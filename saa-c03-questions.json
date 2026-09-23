@@ -28,7 +28,8 @@
       "D is wrong: Reserved Instances sized for the average pay for idle capacity when the queue is empty, and CPU utilization is a poor proxy for queue backlog."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -192,7 +193,8 @@
       "D is wrong: Glacier Flexible Retrieval needs a restore before data can be read, and even expedited retrievals take minutes and add per-GB charges, which breaks the millisecond requirement."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -1406,7 +1408,8 @@
     ],
     "pillars": [
       "Cost Optimization",
-      "Operational Excellence"
+      "Operational Excellence",
+      "Sustainability"
     ]
   },
   {
@@ -1469,7 +1472,8 @@
       "D is wrong: detailed monitoring and Auto Scaling change how many instances run, not how big they are, so the oversized instance types remain."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -1503,7 +1507,8 @@
     ],
     "pillars": [
       "Cost Optimization",
-      "Operational Excellence"
+      "Operational Excellence",
+      "Sustainability"
     ]
   },
   {
@@ -1540,7 +1545,8 @@
       "E is wrong: io2 is a premium volume type that costs more than gp3 for the same performance these workloads need."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -1638,7 +1644,8 @@
       "E is wrong: One Zone-IA keeps only one Availability Zone's copy, reducing durability against zone loss, and it carries the same per-object minimum that caused the problem."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -2157,7 +2164,8 @@
     ],
     "pillars": [
       "Cost Optimization",
-      "Performance Efficiency"
+      "Performance Efficiency",
+      "Sustainability"
     ]
   },
   {
@@ -2647,7 +2655,8 @@
     ],
     "pillars": [
       "Cost Optimization",
-      "Operational Excellence"
+      "Operational Excellence",
+      "Sustainability"
     ]
   },
   {
@@ -3197,7 +3206,8 @@
       "D is wrong: more CPU and memory raises the per-second price, so finishing sooner does not necessarily cost less."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -3228,7 +3238,8 @@
       "D is wrong: compression needs client-side changes, adds CPU cost, and leaves the data in the expensive storage class."
     ],
     "pillars": [
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
@@ -3298,7 +3309,8 @@
     ],
     "pillars": [
       "Cost Optimization",
-      "Reliability"
+      "Reliability",
+      "Sustainability"
     ]
   },
   {
@@ -3691,7 +3703,8 @@
     ],
     "pillars": [
       "Performance Efficiency",
-      "Cost Optimization"
+      "Cost Optimization",
+      "Sustainability"
     ]
   },
   {
