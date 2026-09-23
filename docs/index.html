@@ -49,17 +49,27 @@
         }
         button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid #10B981; outline-offset: 2px; }
-        /* Highlighted keywords inside a question. A soft underline + weight carries the emphasis
-           instead of a filled color block, so a paragraph with several highlights stays calm to
-           read on a phone rather than looking speckled with bright green tiles. */
+        /* Highlighted keywords inside a question. Color and weight alone carry the emphasis: no
+           block fill and no underline, so a paragraph with several highlights stays calm to read
+           on a phone. Yellow also separates the keywords from the emerald used for correct
+           answers and primary actions. */
         .kw {
-            background: none; /* <mark> defaults to a yellow highlighter fill in every browser */
-            color: #6ee7b7;
+            background: none;           /* <mark> defaults to a block highlighter fill */
+            text-decoration: none;      /* and browsers underline it in some contexts */
+            color: #fcd34d;
             font-weight: 600;
-            text-decoration-line: underline;
-            text-decoration-color: rgba(110, 231, 183, 0.8);
-            text-decoration-thickness: 2px;
-            text-underline-offset: 3px;
+        }
+        /* Per-option "why this was wrong" caption, shown only under the option(s) you picked
+           once an answer is revealed. Plain custom rule (not a Tailwind utility) so it needs no
+           rebuild step. */
+        .opt-reason {
+            display: none; /* toggled via element.style.display in JS, not a class, so it isn't
+                               fought over by Tailwind's own .hidden rule from the compiled sheet */
+            margin-top: 0.375rem;
+            padding-top: 0.375rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            line-height: 1.4;
+            opacity: 0.85;
         }
         /* no question bank loaded: show the empty state instead of the practice sections */
         #dashboardView.no-bank .bank-only { display: none; }
@@ -86,11 +96,13 @@
             #questionText { font-size: 0.8125rem; line-height: 1.35; }
             #optionsContainer button { padding: 0.5rem 0.75rem; font-size: 0.8125rem; line-height: 1.35; }
             #explanationText { font-size: 0.78rem; line-height: 1.45; }
+            .opt-reason { font-size: 0.72rem; line-height: 1.3; margin-top: 0.25rem; padding-top: 0.25rem; }
         }
         @media (min-width: 1024px) and (max-height: 700px) {
             #questionText { font-size: 0.78rem; line-height: 1.3; }
             #optionsContainer button { padding: 0.4rem 0.65rem; font-size: 0.78rem; line-height: 1.3; }
             #explanationText { font-size: 0.72rem; line-height: 1.4; }
+            .opt-reason { font-size: 0.68rem; line-height: 1.25; margin-top: 0.2rem; padding-top: 0.2rem; }
         }
         .animate-fade-in {
             animation: fadeIn 0.3s ease-out forwards;
@@ -132,7 +144,7 @@
     <header id="siteHeader" class="bg-slate-900/60 border-b border-slate-800 shrink-0">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-                <svg class="w-9 h-9 rounded-lg shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo">
+                <svg class="w-8 h-8 rounded-lg shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo">
                     <rect width="32" height="32" rx="7" fill="#10B981"/>
                     <path d="M9 17l5 5 9-11" stroke="#0F172A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                 </svg>
@@ -148,18 +160,12 @@
                 </button>
                 <div id="headerMenu" class="hidden absolute right-0 top-11 w-56 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
                     <p id="bankStatusPillMobile" class="px-4 pt-1.5 pb-2 text-[11px] text-slate-500 border-b border-slate-800 mb-1"></p>
-                    <button onclick="runHeaderAction('openImportModal')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
-                        <i class="fa-solid fa-file-arrow-up w-4"></i><span>Import</span>
-                    </button>
                     <button onclick="runHeaderAction('exportMistakesJSON')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-file-arrow-down w-4"></i><span>Export</span>
                     </button>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
                     <button onclick="runHeaderAction('resetAllProgress')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition">
                         <i class="fa-solid fa-rotate-left w-4"></i><span>Reset stats</span>
-                    </button>
-                    <button onclick="runHeaderAction('clearQuestionBank')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition">
-                        <i class="fa-solid fa-trash-can w-4"></i><span>Clear bank</span>
                     </button>
                 </div>
             </div>
@@ -191,17 +197,17 @@
                 <p id="smartPlan" class="bank-only mt-3 text-xs text-slate-500"></p>
             </section>
 
-            <!-- Empty state: shown instead of the practice sections when no question bank is loaded -->
+            <!-- Empty state: shown only if aws-saa-c03-questions.json could not be loaded -->
             <section class="empty-only bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 text-center">
-                <div class="w-9 h-9 mx-auto rounded-xl bg-aws-orange/10 text-aws-orange flex items-center justify-center">
-                    <i class="fa-solid fa-layer-group"></i>
+                <div class="w-9 h-9 mx-auto rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
-                <h3 class="text-lg font-bold mt-4">No question bank loaded</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Import a JSON question bank to start practising. Your progress starts fresh with each bank.</p>
+                <h3 class="text-lg font-bold mt-4">Couldn't load the question bank</h3>
+                <p id="bankErrorDetail" class="text-sm text-slate-500 dark:text-slate-400 mt-1">aws-saa-c03-questions.json could not be read from this folder.</p>
                 <div class="flex flex-wrap justify-center gap-2 mt-5">
-                    <button onclick="openImportModal()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
-                        <i class="fa-solid fa-file-arrow-up text-xs"></i>
-                        <span>Import questions</span>
+                    <button onclick="loadQuestionBank()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                        <span>Retry</span>
                     </button>
                 </div>
             </section>
@@ -314,6 +320,7 @@
                             </div>
                             <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Explanation</span>
                         </div>
+                        <p id="tldrLine" class="hidden text-sm font-medium text-white"></p>
                         <ul id="explanationText" class="list-disc pl-4 space-y-1.5 text-[13px] text-slate-300 leading-relaxed"></ul>
                     </div>
                 </section>
@@ -375,32 +382,6 @@
 
     </main>
 
-    <div id="importModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
-            <div class="flex justify-between items-center">
-                <h3 class="text-lg font-bold">Import Questions JSON</h3>
-                <button onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Drag and drop a custom <code class="text-emerald-500 font-mono">saa-c03-questions.json</code> file below. No other format is accepted.
-            </p>
-            <div id="dropZone"
-                 ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"
-                 onclick="document.getElementById('jsonFileInput').click()"
-                 class="cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-6 py-10 text-center transition">
-                <input type="file" id="jsonFileInput" accept=".json,application/json" onchange="handleFileInputChange(event)" class="hidden">
-                <i id="dropZoneIcon" class="fa-solid fa-file-arrow-up text-2xl text-slate-400"></i>
-                <p id="dropZoneText" class="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">Drop your .json file here</p>
-                <p class="mt-1 text-xs text-slate-400">or click to browse</p>
-            </div>
-            <div class="flex justify-end">
-                <button onclick="closeImportModal()" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <div id="confirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
             <div class="flex items-start gap-3">
@@ -428,17 +409,33 @@
         let flaggedIds = new Set();
         let userAnswers = {};
 
-        // Initialization on window load
+        // Initialization on window load: the question bank always comes from the JSON file
+        // that ships next to this page -- there is no import step and nothing bank-related is
+        // cached, so editing that file and refreshing is the only way the bank changes.
         window.onload = function() {
             loadPersistedData();
-            initApp();
+            loadQuestionBank();
         };
+
+        async function loadQuestionBank() {
+            try {
+                const res = await fetch('./aws-saa-c03-questions.json', { cache: 'no-store' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const parsed = await res.json();
+                if (!Array.isArray(parsed) || parsed.length === 0) {
+                    throw new Error('aws-saa-c03-questions.json must be a non-empty array of questions.');
+                }
+                questions = parsed;
+            } catch (err) {
+                questions = [];
+                const detail = document.getElementById('bankErrorDetail');
+                if (detail) detail.innerText = 'aws-saa-c03-questions.json could not be read from this folder (' + err.message + ').';
+            }
+            initApp();
+        }
 
         function loadPersistedData() {
             try {
-                // The page ships without questions: a bank exists only once the user imports one.
-                const savedQ = localStorage.getItem('saa_questions');
-                questions = savedQ && localStorage.getItem('saa_questions_source') === 'custom' ? JSON.parse(savedQ) : [];
                 const savedMistakes = localStorage.getItem('saa_mistakes');
                 if (savedMistakes) mistakes = JSON.parse(savedMistakes);
 
@@ -456,9 +453,6 @@
 
         function savePersistedData() {
             try {
-                if (localStorage.getItem('saa_questions_source') === 'custom') {
-                    localStorage.setItem('saa_questions', JSON.stringify(questions));
-                }
                 localStorage.setItem('saa_mistakes', JSON.stringify(mistakes));
                 localStorage.setItem('saa_flagged', JSON.stringify(Array.from(flaggedIds)));
                 localStorage.setItem('saa_attempts', JSON.stringify(attemptLog));
@@ -507,25 +501,27 @@
 
             for (const [domain, { total: count, correct }] of Object.entries(domains)) {
                 const tally = `<span class="${correct === count ? 'text-emerald-400' : 'text-slate-400'}"><span class="font-semibold">${correct}</span> / ${count} correct</span>`;
-                const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800";
+                // the whole card is the control, so there is no separate Practice button to aim at
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.title = 'Practice ' + domain;
+                item.className = "w-full text-left flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 hover:border-aws-lightblue transition";
                 item.innerHTML = `
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="w-8 h-8 rounded-xl bg-aws-orange/10 text-aws-orange flex items-center justify-center font-bold text-xs shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                         <div class="min-w-0">
-                            <span class="font-semibold text-sm block">${domain}</span>
+                            <span class="font-semibold text-sm block">${escapeHtml(domain)}</span>
                             <span class="text-xs sm:hidden">${tally}</span>
                         </div>
                     </div>
                     <div class="flex items-center space-x-3 shrink-0 ml-3">
                         <span class="hidden sm:inline text-xs font-medium">${tally}</span>
-                        <button onclick="startQuizByDomain('${domain}')" class="px-3.5 py-2 sm:py-1.5 rounded-xl bg-aws-darkblue text-white text-xs font-semibold hover:bg-slate-700 transition">
-                            Practice
-                        </button>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
                     </div>
                 `;
+                item.addEventListener('click', () => startQuizByDomain(domain));
                 container.appendChild(item);
             }
         }
@@ -547,19 +543,25 @@
             return a;
         }
 
-        // ===== Smart quiz timer =====
-        // A simple stopwatch shown only during a Smart Quiz session: it starts the moment the
-        // session begins, keeps running across questions, freezes on the summary screen (so you
-        // can see how long the session took), and stops if you back out before finishing.
+        // ===== Quiz timer =====
+        // A simple stopwatch shown during a timed session: it starts the moment the session
+        // begins, keeps running across questions, freezes on the summary screen (so you can see
+        // how long the session took), and stops if you back out before finishing.
+        // Timed modes are the two that represent a deliberate sitting, rather than an open-ended
+        // review of your mistakes or flagged questions.
+        const TIMED_MODES = ['all', 'smart'];
         let quizTimerInterval = null;
         let quizTimerStartedAt = null;
         let quizElapsedMs = 0;
 
         function formatDuration(ms) {
             const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-            const m = Math.floor(totalSeconds / 60);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor(totalSeconds / 60) % 60;
             const s = totalSeconds % 60;
-            return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            // a 65-question sitting can run past an hour, so grow to H:MM:SS rather than showing "94:07"
+            const mm = String(m).padStart(2, '0'), ss = String(s).padStart(2, '0');
+            return h ? h + ':' + mm + ':' + ss : mm + ':' + ss;
         }
 
         function clearQuizTimerInterval() {
@@ -616,7 +618,7 @@
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
             setHeaderVisible(false);
-            if (mode === 'smart') startQuizTimer(); else stopAndHideQuizTimer();
+            if (TIMED_MODES.includes(mode)) startQuizTimer(); else stopAndHideQuizTimer();
 
             loadQuestion();
         }
@@ -624,7 +626,18 @@
         function startQuizByDomain(domain) {
             currentQuizMode = 'domain';
             smartReasons = {};
-            currentQuizQuestions = shuffled(questions.filter(q => (q.domain || 'General AWS') === domain));
+            // Three tiers: questions you have never seen, then ones you got wrong last time, then
+            // ones you already got right. Re-entering a section therefore continues into new
+            // material, and the review that follows leads with what you actually missed. Each tier
+            // is shuffled on its own, so the order still varies between sessions.
+            const inDomain = questions.filter(q => (q.domain || 'General AWS') === domain);
+            const tierOf = q => {
+                const log = attemptLog[q.id];
+                if (!log || !log.length) return 0;                    // never attempted
+                return log[log.length - 1][0] ? 2 : 1;                // last answer right : wrong
+            };
+            currentQuizQuestions = [0, 1, 2]
+                .flatMap(t => shuffled(inDomain.filter(q => tierOf(q) === t)));
             if (currentQuizQuestions.length === 0) return;
 
             currentIndex = 0;
@@ -1198,7 +1211,7 @@
                 const btn = document.createElement('button');
                 btn.setAttribute('data-key', key);
                 btn.onclick = () => (multi ? toggleOption(key) : selectAnswer(key));
-                btn.innerHTML = `<span>${key}</span><span class="leading-relaxed flex-1">${escapeHtml(value)}</span>`;
+                btn.innerHTML = `<span>${key}</span><span class="flex-1 min-w-0"><span class="leading-relaxed block">${escapeHtml(value)}</span><span class="opt-reason text-xs"></span></span>`;
                 setOptionState(btn, 'idle', multi);
                 container.appendChild(btn);
             }
@@ -1267,6 +1280,18 @@
                 btn.onclick = null; // disable further clicks
                 const state = correctKeys.includes(key) ? 'correct' : (picked.includes(key) ? 'wrong' : 'dim');
                 setOptionState(btn, state, multi);
+
+                // Show "why this was wrong" only under the option(s) you actually picked -- not
+                // every wrong option, so the layout doesn't grow with the option count and this
+                // stays about your specific mistake. Everything else stays in the bullets below.
+                const reasonEl = btn.querySelector('.opt-reason');
+                const reason = state === 'wrong' && q.wrong_reasons ? q.wrong_reasons[key] : null;
+                if (reason) {
+                    reasonEl.textContent = reason;
+                    reasonEl.style.display = 'block';
+                } else {
+                    reasonEl.style.display = 'none';
+                }
             }
 
             const isCorrect = picked.length === correctKeys.length && picked.every(k => correctKeys.includes(k));
@@ -1288,6 +1313,15 @@
             } else {
                 const which = correctKeys.length > 1 ? 'answers are ' + correctKeys.join(' and ') : 'answer is ' + correctKeys[0];
                 badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i><span class="text-rose-600 dark:text-rose-400">Incorrect. The correct ${which}.</span>`;
+            }
+
+            // the one-line takeaway, when the bank provides one
+            const tldrLine = document.getElementById('tldrLine');
+            if (q.tldr) {
+                tldrLine.textContent = q.tldr;
+                tldrLine.classList.remove('hidden');
+            } else {
+                tldrLine.classList.add('hidden');
             }
 
             // one bullet per entry; an older imported bank may still hold a single string
@@ -1336,7 +1370,7 @@
 
             clearQuizTimerInterval();
             const timeLine = document.getElementById('summaryTimeLine');
-            if (currentQuizMode === 'smart') {
+            if (TIMED_MODES.includes(currentQuizMode)) {
                 document.getElementById('summaryTimeValue').innerText = formatDuration(quizElapsedMs);
                 timeLine.classList.remove('hidden');
             } else {
@@ -1388,10 +1422,9 @@
         }
 
         function renderBankStatus() {
-            const custom = (() => { try { return localStorage.getItem('saa_questions_source') === 'custom'; } catch (e) { return false; } })();
             const text = questions.length === 0
-                ? 'No question bank loaded'
-                : questions.length + ' question' + (questions.length === 1 ? '' : 's') + (custom ? ' \u00b7 imported' : '');
+                ? 'Could not load questions'
+                : questions.length + ' question' + (questions.length === 1 ? '' : 's');
             document.getElementById('bankStatusPill').innerText = text;
             document.getElementById('bankStatusPillMobile').innerText = text;
         }
@@ -1463,89 +1496,7 @@
             if (event.key === 'Escape' && !document.getElementById('confirmModal').classList.contains('hidden')) settleConfirm(false);
         });
 
-        // Modal & File handling
-        function openImportModal() {
-            setDropZoneState('idle');
-            document.getElementById('importModal').classList.remove('hidden');
-        }
-
-        function closeImportModal() {
-            document.getElementById('importModal').classList.add('hidden');
-        }
-
-        function isJsonFile(file) {
-            return !!file && (/\.json$/i.test(file.name) || file.type === 'application/json');
-        }
-
-        function setDropZoneState(state) {
-            // state: 'idle' | 'over' | 'error'
-            const zone = document.getElementById('dropZone');
-            const icon = document.getElementById('dropZoneIcon');
-            const text = document.getElementById('dropZoneText');
-            zone.className = 'cursor-pointer rounded-2xl border-2 border-dashed px-6 py-10 text-center transition ' + (
-                state === 'over' ? 'border-aws-lightblue bg-emerald-500/5' :
-                state === 'error' ? 'border-rose-400 bg-rose-500/5' :
-                'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60'
-            );
-            icon.className = 'fa-solid text-2xl ' + (state === 'error' ? 'fa-circle-exclamation text-rose-400' : 'fa-file-arrow-up text-slate-400');
-            text.className = 'mt-3 text-sm font-medium ' + (state === 'error' ? 'text-rose-500' : 'text-slate-600 dark:text-slate-300');
-            text.innerText = state === 'error' ? 'Only .json files are accepted — try again' : 'Drop your .json file here';
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            setDropZoneState('over');
-        }
-
-        function handleDragLeave(event) {
-            event.preventDefault();
-            setDropZoneState('idle');
-        }
-
-        function handleDrop(event) {
-            event.preventDefault();
-            loadDroppedFile(event.dataTransfer.files && event.dataTransfer.files[0]);
-        }
-
-        function handleFileInputChange(event) {
-            loadDroppedFile(event.target.files && event.target.files[0]);
-            event.target.value = ''; // allow re-selecting the same file name later
-        }
-
-        function loadDroppedFile(file) {
-            if (!file || !isJsonFile(file)) {
-                setDropZoneState('error');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = e => applyImportedJSON(e.target.result, file.name);
-            reader.onerror = () => { setDropZoneState('error'); alertBox('Could not read that file.'); };
-            reader.readAsText(file);
-        }
-
-        async function applyImportedJSON(rawText, fileName) {
-            try {
-                const parsed = JSON.parse(rawText);
-                if (!Array.isArray(parsed) || parsed.length === 0) {
-                    throw new Error('JSON must be a non-empty array of questions.');
-                }
-                if (questions.length > 0 && hasProgress() && !(await showConfirm('Loading a new bank clears your current progress: stats, mistakes, flags and your score estimate.', { title: 'Load new question bank?', confirmLabel: 'Load bank' }))) {
-                    return;
-                }
-                questions = parsed;
-                localStorage.setItem('saa_questions_source', 'custom');
-                clearProgress(); // question ids belong to the old bank
-                savePersistedData();
-                closeImportModal();
-                returnToDashboard();
-                alertBox(`Loaded ${questions.length} questions from ${fileName}`);
-            } catch (err) {
-                setDropZoneState('error');
-                alertBox('That file is not valid JSON in the required SAA-C03 schema.');
-            }
-        }
-
-        function exportMistakesJSON() {
+        async function exportMistakesJSON() {
             if (!questions.length) {
                 alertBox('No question bank is loaded, so there is nothing to export.');
                 return;
@@ -1555,6 +1506,12 @@
                 alertBox('No mistakes recorded yet, so there is nothing to export.');
                 return;
             }
+            // asked after the guards above, so the dialog never appears only to report nothing to export
+            const n = mistakeQuestions.length;
+            const ok = await showConfirm(
+                'This downloads the ' + n + ' question' + (n === 1 ? '' : 's') + ' you answered incorrectly as saa-c03-mistakes.json.',
+                { title: 'Export mistakes?', confirmLabel: 'Export', tone: 'safe' });
+            if (!ok) return;
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mistakeQuestions, null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
@@ -1565,10 +1522,9 @@
         }
 
         async function resetAllProgress() {
-            if (await showConfirm('This clears all stats, mistakes and flagged items. This cannot be undone.', { title: 'Reset all stats?', confirmLabel: 'Reset stats' })) {
+            if (await showConfirm('This cannot be undone.', { title: 'Reset all stats?', confirmLabel: 'Reset stats' })) {
                 clearProgress();
-                initApp();
-                alertBox("All statistics have been reset.");
+                initApp();   // the dashboard visibly returns to zero, so no confirmation alert is needed
             }
         }
 
@@ -1580,29 +1536,6 @@
             try {
                 ['saa_mistakes', 'saa_flagged', 'saa_best_score', 'saa_attempts'].forEach(k => localStorage.removeItem(k));
             } catch (e) {}
-        }
-
-        function hasProgress() {
-            let best = null;
-            try { best = localStorage.getItem('saa_best_score'); } catch (e) {}
-            return Object.keys(attemptLog).length > 0 || mistakes.length > 0 || flaggedIds.size > 0 || !!best;
-        }
-
-        async function clearQuestionBank() {
-            if (questions.length === 0) {
-                alertBox("No question bank is loaded.");
-                return;
-            }
-            const ok = await showConfirm(`This removes its ${questions.length} questions and all progress: stats, mistakes, flags and your score estimate. You can then import a different bank.`, { title: 'Clear the question bank?', confirmLabel: 'Clear bank' });
-            if (!ok) return;
-            questions = [];
-            try {
-                localStorage.removeItem('saa_questions_source');
-                localStorage.removeItem('saa_questions');
-            } catch (e) {}
-            clearProgress();
-            returnToDashboard();
-            alertBox("Question bank cleared. Import a JSON file to load another one.");
         }
 
         function alertBox(msg) {

@@ -27,6 +27,12 @@
       "C is correct: the jobs are short, idempotent and safe to interrupt, so Spot fits; several instance types across Availability Zones lower interruption risk, a small On-Demand base keeps work flowing, and a backlog-per-instance metric scales the fleet on the queue's real workload.",
       "D is wrong: Reserved Instances sized for the average pay for idle capacity when the queue is empty, and CPU utilization is a poor proxy for queue backlog."
     ],
+    "tldr": "Spot Instances with mixed instance types/AZs and an On-Demand base, scaled on SQS backlog, suit short interruptible jobs cheaply.",
+    "wrong_reasons": {
+      "A": "a 3-year Savings Plan sized for peak pays for capacity the queue rarely needs, and scheduled scaling ignores the actual backlog.",
+      "B": "a single instance type in a single Availability Zone concentrates Spot interruption risk, and manual scaling cannot follow a queue that swings between 0 and 200,000 messages.",
+      "D": "Reserved Instances sized for the average pay for idle capacity when the queue is empty, and CPU utilization is a poor proxy for queue backlog."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -61,6 +67,12 @@
       "C is wrong: a publicly accessible database is exposed to the internet, and raising max_connections trades memory for connections without addressing the churn.",
       "D is wrong: an interface VPC endpoint reaches AWS services and PrivateLink endpoint services, not an arbitrary third-party API on the internet, and reserved concurrency of 1,000 still allows up to 1,000 concurrent database connections."
     ],
+    "tldr": "A VPC-attached Lambda reaches the internet via a NAT gateway per AZ; RDS Proxy pools connections so spikes don't exhaust the database.",
+    "wrong_reasons": {
+      "A": "a Lambda function attached to a VPC never receives a public IP address, even in a public subnet, so it cannot reach the internet this way, and a larger DB instance does not stop connection exhaustion.",
+      "C": "a publicly accessible database is exposed to the internet, and raising max_connections trades memory for connections without addressing the churn.",
+      "D": "an interface VPC endpoint reaches AWS services and PrivateLink endpoint services, not an arbitrary third-party API on the internet, and reserved concurrency of 1,000 still allows up to 1,000 concurrent database connections."
+    },
     "pillars": [
       "Reliability",
       "Security"
@@ -93,6 +105,12 @@
       "C is wrong: an IAM user access key is a long-lived credential, and an environment variable in a task definition is readable by anyone who can view the definition.",
       "D is correct: the task role gives the application code temporary credentials scoped to the one bucket, while the separate task execution role lets the ECS agent pull from ECR and write to CloudWatch Logs, which is least privilege for each."
     ],
+    "tldr": "Give application code its own task role and let the ECS agent use a separate task execution role -- least privilege for each.",
+    "wrong_reasons": {
+      "A": "the task execution role is used by the ECS agent to pull images and write logs, not by the application code, so S3 access placed there never reaches the application.",
+      "B": "Fargate has no EC2 instance profile to attach, and a shared role would give every task the same permissions.",
+      "C": "an IAM user access key is a long-lived credential, and an environment variable in a task definition is readable by anyone who can view the definition."
+    },
     "pillars": [
       "Security"
     ]
@@ -125,6 +143,12 @@
       "C is wrong: bucket policies can be edited by admins.",
       "D is wrong: versioning and replication don't prevent deletion."
     ],
+    "tldr": "S3 Object Lock in compliance mode is immutable even to root; pair it with Glacier Deep Archive for cheap long-term storage.",
+    "wrong_reasons": {
+      "B": "governance mode can be bypassed with s3:BypassGovernanceRetention.",
+      "C": "bucket policies can be edited by admins.",
+      "D": "versioning and replication don't prevent deletion."
+    },
     "pillars": [
       "Security",
       "Cost Optimization"
@@ -159,6 +183,12 @@
       "C is correct: FSx for Windows File Server natively serves SMB shares with NTFS ACLs and joins Active Directory, and a Multi-AZ deployment fails over automatically to a standby file server in another zone.",
       "D is wrong: S3 is object storage and cannot provide SMB access or NTFS permission semantics, even through third-party drivers."
     ],
+    "tldr": "FSx for Windows File Server natively serves SMB/NTFS/AD, with Multi-AZ for automatic failover.",
+    "wrong_reasons": {
+      "A": "Amazon EFS is an NFS file system that is not supported on Windows, and it has no NTFS ACLs or Active Directory integration.",
+      "B": "EBS Multi-Attach works only within a single Availability Zone, and building Windows failover clustering by hand is the opposite of minimal administration.",
+      "D": "S3 is object storage and cannot provide SMB access or NTFS permission semantics, even through third-party drivers."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -192,6 +222,12 @@
       "C is wrong: One Zone-IA keeps data in a single Availability Zone and still charges retrieval fees, and adding cross-Region replication brings back the storage cost it was meant to save.",
       "D is wrong: Glacier Flexible Retrieval needs a restore before data can be read, and even expedited retrievals take minutes and add per-GB charges, which breaks the millisecond requirement."
     ],
+    "tldr": "S3 Intelligent-Tiering auto-moves objects between tiers by access pattern with no retrieval fees, ideal for unpredictable access.",
+    "wrong_reasons": {
+      "A": "Standard-IA charges a retrieval fee on every read, and a lifecycle rule never moves a dataset back when it becomes busy again.",
+      "C": "One Zone-IA keeps data in a single Availability Zone and still charges retrieval fees, and adding cross-Region replication brings back the storage cost it was meant to save.",
+      "D": "Glacier Flexible Retrieval needs a restore before data can be read, and even expedited retrievals take minutes and add per-GB charges, which breaks the millisecond requirement."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -223,6 +259,12 @@
       "C is wrong: a larger writer still runs the reporting queries alongside the OLTP workload and adds no failover target.",
       "D is wrong: the standby of an RDS Multi-AZ DB instance deployment cannot serve reads, and leaving Aurora gives up its shared-storage replicas."
     ],
+    "tldr": "Aurora Replicas share storage with the writer, offload reads via the reader endpoint, and double as fast failover targets.",
+    "wrong_reasons": {
+      "B": "a nightly restored copy gives the BI tool data up to a day old, adds a second cluster to operate, and does nothing for failover.",
+      "C": "a larger writer still runs the reporting queries alongside the OLTP workload and adds no failover target.",
+      "D": "the standby of an RDS Multi-AZ DB instance deployment cannot serve reads, and leaving Aurora gives up its shared-storage replicas."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -255,6 +297,12 @@
       "C is wrong: global tables replicate data to other Regions for multi-Region access; they add no cache and no microsecond reads.",
       "D is correct: DAX is an in-memory cache that is API-compatible with DynamoDB, so the application changes only its client and endpoint, repeated reads return in microseconds, and cache hits stop consuming the table's read capacity."
     ],
+    "tldr": "DAX is a drop-in, API-compatible cache in front of DynamoDB for microsecond reads without touching table capacity.",
+    "wrong_reasons": {
+      "A": "ElastiCache would work only after the team rewrites its data access layer with cache-aside and invalidation logic, which is the code change it wants to avoid.",
+      "B": "more read capacity raises cost and throughput, but DynamoDB still answers in single-digit milliseconds, not microseconds.",
+      "C": "global tables replicate data to other Regions for multi-Region access; they add no cache and no microsecond reads."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -287,6 +335,12 @@
       "C is correct: Redis provides sorted sets for leaderboards with sub-millisecond latency, and a replication group with Multi-AZ and automatic failover promotes a replica in another zone with the data intact.",
       "D is wrong: a disk-based relational database cannot deliver sub-millisecond reads for this access pattern, and ranking queries get more expensive as the table grows."
     ],
+    "tldr": "ElastiCache for Redis gives sorted sets for leaderboards plus Multi-AZ replication with automatic failover.",
+    "wrong_reasons": {
+      "A": "Memcached has no replication, persistence or sorted sets, so losing a node loses its data and ranking would need custom code.",
+      "B": "DynamoDB answers in single-digit milliseconds rather than sub-millisecond, and it has no built-in ranking structure like a sorted set.",
+      "D": "a disk-based relational database cannot deliver sub-millisecond reads for this access pattern, and ranking queries get more expensive as the table grows."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -321,6 +375,12 @@
       "C is wrong: interface endpoints for S3 charge per hour in each Availability Zone plus per GB processed, and security groups cannot restrict which buckets are reached; only an endpoint policy can.",
       "D is wrong: public subnets with Elastic IP addresses expose the instances to the internet, and network ACLs work on IP ranges, not buckets."
     ],
+    "tldr": "An S3 gateway endpoint is free, keeps traffic on the AWS network, and its policy can restrict which buckets are reachable.",
+    "wrong_reasons": {
+      "A": "NAT instances avoid the NAT gateway's per-GB processing charge but add instance cost, patching, scaling and a single point of failure, and security groups cannot restrict access to particular S3 buckets.",
+      "C": "interface endpoints for S3 charge per hour in each Availability Zone plus per GB processed, and security groups cannot restrict which buckets are reached; only an endpoint policy can.",
+      "D": "public subnets with Elastic IP addresses expose the instances to the internet, and network ACLs work on IP ranges, not buckets."
+    },
     "pillars": [
       "Cost Optimization",
       "Security"
@@ -353,6 +413,12 @@
       "C is wrong: weights without health checks need manual changes.",
       "D is wrong: geolocation routes by location, not health."
     ],
+    "tldr": "Route 53 failover routing with health checks is the active/passive pattern: primary until unhealthy, then secondary.",
+    "wrong_reasons": {
+      "B": "latency routing is active-active.",
+      "C": "weights without health checks need manual changes.",
+      "D": "geolocation routes by location, not health."
+    },
     "pillars": [
       "Reliability"
     ]
@@ -386,6 +452,12 @@
       "C is wrong: a bucket open to any principal can be read directly from S3, and rate-based WAF rules slow abuse but do not authenticate subscribers.",
       "D is correct: origin access control lets only CloudFront read the private bucket, so direct S3 URLs stop working, and signed cookies authorize a subscriber for many files at once, which suits a manifest plus thousands of segments without changing their URLs."
     ],
+    "tldr": "CloudFront OAC blocks direct S3 access, and signed cookies authorize many files at once instead of one signed URL per file.",
+    "wrong_reasons": {
+      "A": "presigned URLs send viewers straight to S3, bypassing the CDN and its caching, and generating one per segment is exactly the per-file work the company wants to avoid.",
+      "B": "a public bucket lets anyone skip CloudFront and download segments directly from S3, and signing only the manifest leaves every segment unprotected.",
+      "C": "a bucket open to any principal can be read directly from S3, and rate-based WAF rules slow abuse but do not authenticate subscribers."
+    },
     "pillars": [
       "Security",
       "Performance Efficiency"
@@ -419,6 +491,12 @@
       "C is correct: SCPs cap the permissions of every principal in member accounts, including administrators, and are inherited by new accounts, so denying cloudtrail:StopLogging and cloudtrail:DeleteTrail and denying requests outside the approved Regions, with NotAction exempting global services, is preventive, although SCPs never apply to the management account itself.",
       "D is wrong: permissions boundaries must be attached principal by principal, so an administrator can create a new role without one, and nothing enforces them in new accounts."
     ],
+    "tldr": "SCPs cap permissions for every principal, including admins, across member accounts, but never apply to the management account itself.",
+    "wrong_reasons": {
+      "A": "IAM policies deployed with StackSets can be detached or overridden by account administrators, and they do not apply automatically to new accounts or new principals.",
+      "B": "AWS Config detects and remediates after the fact, so a trail can be stopped or a resource launched before the rule reacts.",
+      "D": "permissions boundaries must be attached principal by principal, so an administrator can create a new role without one, and nothing enforces them in new accounts."
+    },
     "pillars": [
       "Security"
     ]
@@ -450,6 +528,12 @@
       "C is wrong: encrypted snapshots cannot be made public at all, and exposing the data publicly, even briefly, violates the requirement.",
       "D is wrong: exporting to an unencrypted bucket breaks the rule that the data stay encrypted at all times."
     ],
+    "tldr": "Sharing an EBS snapshot across accounts needs a customer managed KMS key, since an account can't use another account's AWS managed key.",
+    "wrong_reasons": {
+      "A": "a snapshot encrypted with the AWS managed key aws/ebs cannot be shared with another account, because that key's policy cannot be changed to let Account B use it.",
+      "C": "encrypted snapshots cannot be made public at all, and exposing the data publicly, even briefly, violates the requirement.",
+      "D": "exporting to an unencrypted bucket breaks the rule that the data stay encrypted at all times."
+    },
     "pillars": [
       "Security"
     ]
@@ -482,6 +566,12 @@
       "C is wrong: plain environment variables in a task definition are visible to anyone who can read it, and redeploying to rotate risks downtime.",
       "D is wrong: S3 has no rotation feature, and S3 Object Lambda transforms objects as they are read rather than changing a database password."
     ],
+    "tldr": "Secrets Manager auto-rotates RDS credentials on a schedule with zero app downtime, encrypted and access-controlled.",
+    "wrong_reasons": {
+      "B": "Parameter Store has no built-in rotation, so the cron job on EC2 is custom development and a single point of failure.",
+      "C": "plain environment variables in a task definition are visible to anyone who can read it, and redeploying to rotate risks downtime.",
+      "D": "S3 has no rotation feature, and S3 Object Lambda transforms objects as they are read rather than changing a database password."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -514,6 +604,12 @@
       "C is wrong: message groups control ordering within one queue, and each message is still consumed once, so every service does not get its own copy.",
       "D is correct: SNS delivers a copy of every event to each subscribed SQS queue, each queue holds messages for up to 14 days while its service is offline, and each service scales its own consumers independently."
     ],
+    "tldr": "SNS fan-out to per-consumer SQS queues gives each subscriber its own durable, independently scaled copy of every event.",
+    "wrong_reasons": {
+      "A": "consumers on one queue compete for messages, so each event reaches only one of the three services.",
+      "B": "SNS retries HTTPS deliveries only for a limited time, so a subscriber that is offline for hours loses events.",
+      "C": "message groups control ordering within one queue, and each message is still consumed once, so every service does not get its own copy."
+    },
     "pillars": [
       "Reliability",
       "Performance Efficiency"
@@ -547,6 +643,12 @@
       "C is correct: Standard workflows can run for up to a year, provide built-in Retry and Catch with exponential backoff and a visual execution history, and the .waitForTaskToken pattern pauses the workflow until the underwriter's decision is sent back.",
       "D is wrong: Express workflows run for at most five minutes and do not support the .waitForTaskToken callback pattern, so they cannot wait days for a human."
     ],
+    "tldr": "Step Functions Standard workflows run for up to a year and use .waitForTaskToken to pause for a human step.",
+    "wrong_reasons": {
+      "A": "a Lambda function runs for at most 15 minutes, so it cannot wait through a three-day approval, and chaining functions means writing the state handling yourself.",
+      "B": "queues plus a polling schedule need custom code to track each application's state and give no visual audit trail.",
+      "D": "Express workflows run for at most five minutes and do not support the .waitForTaskToken callback pattern, so they cannot wait days for a human."
+    },
     "pillars": [
       "Operational Excellence",
       "Reliability"
@@ -580,6 +682,12 @@
       "C is wrong: standard SNS topics and SQS queues guarantee neither order nor exactly-once delivery, and a queue per account does not scale.",
       "D is wrong: one message group for every message serializes the whole queue, so accounts can no longer be processed in parallel and one failing message holds up everyone."
     ],
+    "tldr": "SQS FIFO orders messages per MessageGroupId (e.g. per account), so groups run in parallel while staying ordered within themselves.",
+    "wrong_reasons": {
+      "A": "standard queues deliver at least once in best-effort order, so sorting by timestamp in the consumer cannot guarantee exactly-once, in-order processing.",
+      "C": "standard SNS topics and SQS queues guarantee neither order nor exactly-once delivery, and a queue per account does not scale.",
+      "D": "one message group for every message serializes the whole queue, so accounts can no longer be processed in parallel and one failing message holds up everyone."
+    },
     "pillars": [
       "Reliability",
       "Performance Efficiency"
@@ -613,6 +721,12 @@
       "C is wrong: Kinesis needs stream capacity planning and custom consumer code to inspect and forward each event.",
       "D is wrong: SQS cannot receive partner events on its own, and an EC2 routing instance is custom code and a single point of failure."
     ],
+    "tldr": "EventBridge natively ingests SaaS partner events and routes them by content with no polling or custom code.",
+    "wrong_reasons": {
+      "B": "polling the partner API is custom code to run and adds up to a minute of latency.",
+      "C": "Kinesis needs stream capacity planning and custom consumer code to inspect and forward each event.",
+      "D": "SQS cannot receive partner events on its own, and an EC2 routing instance is custom code and a single point of failure."
+    },
     "pillars": [
       "Operational Excellence",
       "Reliability"
@@ -646,6 +760,12 @@
       "C is wrong: DMS logical replication adds lag and provides no managed failover, so the company would own the cutover procedure.",
       "D is correct: Aurora Global Database replicates at the storage layer with typical lag under a second, a managed failover promotes the secondary Region in about a minute, and the secondary cluster serves local reads during normal operation."
     ],
+    "tldr": "Aurora Global Database replicates cross-Region in under a second and fails over in about a minute.",
+    "wrong_reasons": {
+      "A": "hourly snapshot copies mean up to an hour of data loss, and restoring a cluster takes far longer than a minute.",
+      "B": "backups every 15 minutes still lose up to 15 minutes of data, and a restore cannot finish within a minute.",
+      "C": "DMS logical replication adds lag and provides no managed failover, so the company would own the cutover procedure."
+    },
     "pillars": [
       "Reliability"
     ]
@@ -677,6 +797,12 @@
       "C is wrong: Snowmobile was designed for moves of tens of petabytes or more, far beyond 400 TB.",
       "D is wrong: DataSync is limited by the same 200 Mbps connection, so the transfer would take months."
     ],
+    "tldr": "Multiple Snowball Edge devices loaded in parallel beat a slow link for large one-time data migrations.",
+    "wrong_reasons": {
+      "A": "Transfer Acceleration speeds long-distance transfers but still runs over the same shared 200 Mbps link, which needs about 185 days to move 400 TB.",
+      "C": "Snowmobile was designed for moves of tens of petabytes or more, far beyond 400 TB.",
+      "D": "DataSync is limited by the same 200 Mbps connection, so the transfer would take months."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -710,6 +836,12 @@
       "C is correct: SCT converts the Oracle schema and PL/SQL into PostgreSQL-compatible code, and DMS full load plus change data capture keeps the target in sync while the source stays online, so cutover takes only minutes.",
       "D is wrong: Oracle data files cannot be restored as an Aurora PostgreSQL cluster because the engines are not compatible."
     ],
+    "tldr": "SCT converts the schema/code and DMS keeps replicating until cutover, so the source stays live during a database migration.",
+    "wrong_reasons": {
+      "A": "DMS moves data but does not convert stored procedures or complex Oracle code, and a full-load-only task leaves the target stale while the source stays online.",
+      "B": "Oracle Data Pump files cannot be imported into PostgreSQL, and taking the source offline for the transfer breaks the 5-minute downtime limit.",
+      "D": "Oracle data files cannot be restored as an Aurora PostgreSQL cluster because the engines are not compatible."
+    },
     "pillars": [
       "Operational Excellence",
       "Reliability"
@@ -742,6 +874,12 @@
       "C is wrong: a warm standby meets the targets but keeps a scaled-down stack running all the time, which costs more than a pilot light.",
       "D is wrong: active-active at full capacity in both Regions is the most expensive strategy and far exceeds what a 1-hour RTO needs."
     ],
+    "tldr": "Pilot light keeps only data replication and templates running, so DR compute costs stay near zero until failover.",
+    "wrong_reasons": {
+      "B": "nightly snapshots mean up to a day of lost data, far beyond a 5-minute RPO.",
+      "C": "a warm standby meets the targets but keeps a scaled-down stack running all the time, which costs more than a pilot light.",
+      "D": "active-active at full capacity in both Regions is the most expensive strategy and far exceeds what a 1-hour RTO needs."
+    },
     "pillars": [
       "Reliability",
       "Cost Optimization"
@@ -781,6 +919,12 @@
       "D is correct: Lambda allocates CPU in proportion to memory, so more memory shortens both initialization and execution for the environments that still start cold.",
       "E is wrong: the timeout only caps how long an invocation may run and does nothing for latency, and the VPC attachment is not the cause either, since Lambda's shared VPC network interfaces removed the old VPC cold-start penalty."
     ],
+    "tldr": "Provisioned concurrency scheduled ahead of a known ramp, plus more memory (so more CPU), fixes predictable cold-start latency spikes.",
+    "wrong_reasons": {
+      "A": "the traffic is mostly writes, and API Gateway caches responses to reads, not writes.",
+      "B": "reserved concurrency guarantees and caps a share of the account's concurrency, but it does not pre-initialize execution environments, so cold starts remain.",
+      "E": "the timeout only caps how long an invocation may run and does nothing for latency, and the VPC attachment is not the cause either, since Lambda's shared VPC network interfaces removed the old VPC cold-start penalty."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -817,6 +961,12 @@
       "D is wrong: gp3 volumes can now be provisioned with up to 80,000 IOPS, so IOPS is not the limit, but gp3 is designed for single-digit millisecond latency rather than the consistent sub-millisecond latency this workload needs.",
       "E is wrong: instance store data is lost when the instance stops or fails, which the requirement rules out."
     ],
+    "tldr": "Storage IOPS needs are capped by both the volume type and the instance's own EBS bandwidth ceiling -- size both together.",
+    "wrong_reasons": {
+      "A": "fast snapshot restore removes first-read latency on volumes created from snapshots and does nothing for steady-state latency or IOPS.",
+      "D": "gp3 volumes can now be provisioned with up to 80,000 IOPS, so IOPS is not the limit, but gp3 is designed for single-digit millisecond latency rather than the consistent sub-millisecond latency this workload needs.",
+      "E": "instance store data is lost when the instance stops or fails, which the requirement rules out."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -855,6 +1005,12 @@
       "D is correct: RDS Proxy pools and reuses database connections, so thousands of short-lived Lambda invocations share a small number of connections instead of exhausting the limit.",
       "E is wrong: raising max_connections trades memory for more connections and does not address the churn of thousands of short-lived clients."
     ],
+    "tldr": "RDS Proxy absorbs connection churn from many short-lived Lambda calls, and a Multi-AZ DB cluster's standbys are readable for fast failover.",
+    "wrong_reasons": {
+      "A": "a cross-Region read replica must be promoted manually, which cannot meet a 40-second failover target, and it does nothing for connection exhaustion.",
+      "C": "the standby of a Multi-AZ DB instance deployment cannot serve reads, and that deployment type typically takes 60 to 120 seconds to fail over.",
+      "E": "raising max_connections trades memory for more connections and does not address the churn of thousands of short-lived clients."
+    },
     "pillars": [
       "Reliability",
       "Performance Efficiency"
@@ -895,6 +1051,12 @@
       "D is wrong: VPC peering is never transitive, and no setting makes it so.",
       "E is wrong: VPN tunnels over the internet cannot offer the consistent, predictable bandwidth the company requires."
     ],
+    "tldr": "A Transit Gateway replaces a peering mesh at scale, and two Direct Connect locations (not two devices at one) survive a location outage.",
+    "wrong_reasons": {
+      "A": "a second connection at the same Direct Connect location still fails when that location fails, which is exactly the outage that happened.",
+      "D": "VPC peering is never transitive, and no setting makes it so.",
+      "E": "VPN tunnels over the internet cannot offer the consistent, predictable bandwidth the company requires."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -935,6 +1097,12 @@
       "D is correct: a Cognito identity pool exchanges a Google or Apple token for temporary, role-scoped AWS credentials, so each app user uploads to S3 under their own identity without any long-lived key.",
       "E is correct: IAM Identity Center connects to Active Directory once and assigns permission sets to groups across every member account from one place, with sign-in and access audited centrally."
     ],
+    "tldr": "Cognito federates end-user sign-in to temporary credentials, while IAM Identity Center centralizes workforce access -- different tools for different users.",
+    "wrong_reasons": {
+      "A": "an access key embedded in an app is a long-lived credential that anyone can extract from the device.",
+      "B": "IAM users in every account are long-lived credentials to manage 30 times over, with no central assignment or audit.",
+      "C": "it works technically but repeats identity provider and role setup in all 30 accounts, which is neither central nor maintainable."
+    },
     "pillars": [
       "Security"
     ]
@@ -973,6 +1141,12 @@
       "D is wrong: consumers on one queue compete for messages instead of each seeing every event, and a FIFO queue cannot replay consumed messages either.",
       "E is correct: enhanced fan-out gives each registered consumer its own 2 MB/s per shard read throughput, so a slow consumer no longer slows the others."
     ],
+    "tldr": "Kinesis retains records for replay, and enhanced fan-out gives each consumer its own throughput so one slow reader can't affect the rest.",
+    "wrong_reasons": {
+      "B": "SQS deletes messages once they are processed, so a new consumer cannot replay past events.",
+      "C": "shards partition the data, not the consumers, so every consumer still reads every shard and more shards do not isolate a slow team.",
+      "D": "consumers on one queue compete for messages instead of each seeing every event, and a FIFO queue cannot replay consumed messages either."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -1011,6 +1185,12 @@
       "D is correct: Elastic Disaster Recovery replicates servers continuously to low-cost staging resources, giving an RPO of seconds and launching recovery instances within minutes when needed.",
       "E is wrong: restores from Glacier Deep Archive take hours, which breaks a 30-minute RTO."
     ],
+    "tldr": "Pre-built DR networking plus continuous replication both cut recovery time without paying for always-on compute.",
+    "wrong_reasons": {
+      "A": "nightly AMIs mean up to a day of lost data, far beyond a 15-minute RPO.",
+      "B": "Snowball Edge is for bulk offline data transfer, and monthly shipments give an RPO measured in weeks.",
+      "E": "restores from Glacier Deep Archive take hours, which breaks a 30-minute RTO."
+    },
     "pillars": [
       "Reliability",
       "Cost Optimization"
@@ -1044,6 +1224,12 @@
       "C is wrong: Object Ownership governs ACLs, and ACLs are not what is failing here.",
       "D is wrong: it abandons the required customer managed key."
     ],
+    "tldr": "Cross-account SSE-KMS access needs kms:Decrypt granted explicitly in the key policy -- S3 permissions alone aren't enough.",
+    "wrong_reasons": {
+      "B": "Bucket Keys cut KMS request costs and change nothing about authorization.",
+      "C": "Object Ownership governs ACLs, and ACLs are not what is failing here.",
+      "D": "it abandons the required customer managed key."
+    },
     "pillars": [
       "Security"
     ]
@@ -1076,6 +1262,12 @@
       "C is wrong: GuardDuty detects threats and raises findings, but it does not block requests.",
       "D is wrong: limiting the load balancer to the corporate range behind a VPN would lock out the public users the application serves."
     ],
+    "tldr": "Layered defenses (WAF managed rules, rate limiting, CloudFront, Shield Advanced) cover both app-layer attacks and volumetric floods.",
+    "wrong_reasons": {
+      "B": "network ACLs hold only a small number of rules and cannot keep up with rotating addresses, and adding entries by hand needs staff around the clock.",
+      "C": "GuardDuty detects threats and raises findings, but it does not block requests.",
+      "D": "limiting the load balancer to the corporate range behind a VPN would lock out the public users the application serves."
+    },
     "pillars": [
       "Security"
     ]
@@ -1108,6 +1300,12 @@
       "C is wrong: a transit gateway also needs non-overlapping CIDR ranges to route, and it joins customer networks to the provider's network instead of exposing a single service.",
       "D is wrong: a public load balancer sends the traffic over the internet, which the requirement forbids."
     ],
+    "tldr": "PrivateLink exposes a service via an interface endpoint inside each consumer's VPC, sidestepping overlapping CIDRs and peering's scale limits.",
+    "wrong_reasons": {
+      "B": "VPC peering is not possible between VPCs with overlapping CIDR ranges, it connects whole networks in both directions, and it does not scale to hundreds of customer VPCs.",
+      "C": "a transit gateway also needs non-overlapping CIDR ranges to route, and it joins customer networks to the provider's network instead of exposing a single service.",
+      "D": "a public load balancer sends the traffic over the internet, which the requirement forbids."
+    },
     "pillars": [
       "Security",
       "Reliability"
@@ -1140,6 +1338,12 @@
       "C is wrong: NAT gateways do not use security groups.",
       "D is wrong: the subnet already routes through the NAT gateway, and a route to an internet gateway would not fix blocked responses and would defeat the private design."
     ],
+    "tldr": "Network ACLs are stateless, so return traffic needs its own inbound rule for the ephemeral port range.",
+    "wrong_reasons": {
+      "B": "security groups are stateful, so return traffic for an allowed outbound connection is permitted automatically.",
+      "C": "NAT gateways do not use security groups.",
+      "D": "the subnet already routes through the NAT gateway, and a route to an internet gateway would not fix blocked responses and would defeat the private design."
+    },
     "pillars": [
       "Security",
       "Reliability"
@@ -1170,6 +1374,12 @@
       "C is wrong: a trust policy that allows any AWS principal lets anyone assume the role.",
       "D is wrong: a vendor's multi-tenant account cannot sensibly join the company's organization, and SCPs restrict permissions rather than granting access."
     ],
+    "tldr": "sts:ExternalId is the standard defense against the confused-deputy problem when a third party assumes a cross-account role.",
+    "wrong_reasons": {
+      "B": "an access key for an IAM user is a long-lived credential, which the company must not issue, and it could leak from the vendor's systems.",
+      "C": "a trust policy that allows any AWS principal lets anyone assume the role.",
+      "D": "a vendor's multi-tenant account cannot sensibly join the company's organization, and SCPs restrict permissions rather than granting access."
+    },
     "pillars": [
       "Security"
     ]
@@ -1202,6 +1412,12 @@
       "C is wrong: GuardDuty detects suspicious activity and threats, not sensitive data at rest.",
       "D is wrong: a regex function on each upload is custom code to build and maintain, and it checks only new objects rather than discovering data already stored in 400 buckets."
     ],
+    "tldr": "Macie uses ML to find sensitive data across S3 and publishes findings to EventBridge automatically.",
+    "wrong_reasons": {
+      "B": "Inspector assesses workloads such as EC2, container images and Lambda for vulnerabilities, not the contents of S3 objects.",
+      "C": "GuardDuty detects suspicious activity and threats, not sensitive data at rest.",
+      "D": "a regex function on each upload is custom code to build and maintain, and it checks only new objects rather than discovering data already stored in 400 buckets."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -1234,6 +1450,12 @@
       "C is wrong: public certificates issued by ACM cannot be exported and imported elsewhere.",
       "D is wrong: HTTP to the origin leaves the CloudFront-to-load-balancer leg unencrypted, which the requirements forbid."
     ],
+    "tldr": "CloudFront certificates must live in us-east-1, separate from the origin's own regional ACM certificate.",
+    "wrong_reasons": {
+      "B": "moving the load balancer relocates the workload and adds latency for no benefit, since each service can simply use its own certificate.",
+      "C": "public certificates issued by ACM cannot be exported and imported elsewhere.",
+      "D": "HTTP to the origin leaves the CloudFront-to-load-balancer leg unencrypted, which the requirements forbid."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -1267,6 +1489,12 @@
       "C is wrong: CloudFront does not proxy UDP game traffic.",
       "D is wrong: Route 53 weighted routing still waits on DNS caching for failover and gives players no static IP addresses to allow."
     ],
+    "tldr": "Global Accelerator gives static anycast IPs, carries UDP, and reroutes at the edge in seconds with no DNS wait.",
+    "wrong_reasons": {
+      "B": "an Application Load Balancer handles only HTTP and HTTPS, and DNS caching by clients delays failover.",
+      "C": "CloudFront does not proxy UDP game traffic.",
+      "D": "Route 53 weighted routing still waits on DNS caching for failover and gives players no static IP addresses to allow."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -1306,6 +1534,12 @@
       "D is wrong: more concurrent queries does not make any single query scan less data or finish sooner.",
       "E is wrong: Standard-IA only changes the storage price, adds a retrieval charge to every scan, and does nothing for query speed."
     ],
+    "tldr": "Partitioning skips whole files and columnar Parquet skips unneeded columns -- both cut the bytes Athena scans.",
+    "wrong_reasons": {
+      "A": "Transfer Acceleration speeds uploads into the bucket and has no effect on queries.",
+      "D": "more concurrent queries does not make any single query scan less data or finish sooner.",
+      "E": "Standard-IA only changes the storage price, adds a retrieval charge to every scan, and does nothing for query speed."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -1338,6 +1572,12 @@
       "C is wrong: partition placement groups isolate failures for distributed data stores, and extra network interfaces do not lower latency.",
       "D is wrong: a load balancer spreads independent requests across servers and adds a hop; it does nothing for node-to-node MPI traffic, and spreading nodes across zones raises latency."
     ],
+    "tldr": "A cluster placement group plus EFA minimizes node-to-node latency for tightly coupled HPC/MPI workloads.",
+    "wrong_reasons": {
+      "B": "spread placement groups deliberately separate instances onto distinct hardware, which raises latency.",
+      "C": "partition placement groups isolate failures for distributed data stores, and extra network interfaces do not lower latency.",
+      "D": "a load balancer spreads independent requests across servers and adds a hop; it does nothing for node-to-node MPI traffic, and spreading nodes across zones raises latency."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -1369,6 +1609,12 @@
       "C is wrong: EC2 Instance Savings Plans lock to an instance family in a Region and also exclude Fargate and Lambda.",
       "D is wrong: Spot is unsuitable for a steady baseline and offers no commitment discount."
     ],
+    "tldr": "Compute Savings Plans apply across EC2 families/Regions, Fargate and Lambda -- the flexible commitment for a changing workload.",
+    "wrong_reasons": {
+      "B": "Standard Reserved Instances are the least flexible and cannot cover Fargate or Lambda.",
+      "C": "EC2 Instance Savings Plans lock to an instance family in a Region and also exclude Fargate and Lambda.",
+      "D": "Spot is unsuitable for a steady baseline and offers no commitment discount."
+    },
     "pillars": [
       "Cost Optimization"
     ]
@@ -1406,6 +1652,12 @@
       "D is correct: Storage Lens reports incomplete multipart upload bytes, so the team can confirm where the unexplained storage comes from and watch that it stays down.",
       "E is wrong: moving good data to Deep Archive leaves the orphaned parts in place and makes the real objects slow and costly to read."
     ],
+    "tldr": "Failed multipart upload parts are billed but invisible in listings; a lifecycle rule with AbortIncompleteMultipartUpload cleans them up automatically.",
+    "wrong_reasons": {
+      "A": "incomplete multipart uploads are not objects, so versioning does not capture them, and it would add storage for noncurrent versions.",
+      "B": "the bucket has never had versioning, so there are no noncurrent versions to expire.",
+      "E": "moving good data to Deep Archive leaves the orphaned parts in place and makes the real objects slow and costly to read."
+    },
     "pillars": [
       "Cost Optimization",
       "Operational Excellence",
@@ -1440,6 +1692,12 @@
       "C is wrong: Requester Pays only moves the charge to authenticated AWS requesters, so it does not work for anonymous public downloads and does nothing for speed.",
       "D is wrong: replicating to five Regions multiplies storage and replication costs and leaves customers to pick the right bucket themselves."
     ],
+    "tldr": "CloudFront caches popular downloads at the edge, cutting both cost and latency versus serving repeat requests from S3 directly.",
+    "wrong_reasons": {
+      "B": "Transfer Acceleration is aimed at faster long-distance transfers to and from the bucket and adds a surcharge on top of normal transfer pricing.",
+      "C": "Requester Pays only moves the charge to authenticated AWS requesters, so it does not work for anonymous public downloads and does nothing for speed.",
+      "D": "replicating to five Regions multiplies storage and replication costs and leaves customers to pick the right bucket themselves."
+    },
     "pillars": [
       "Cost Optimization",
       "Performance Efficiency"
@@ -1471,6 +1729,12 @@
       "C is wrong: Dedicated Hosts exist for licensing and compliance needs and cost more than shared tenancy.",
       "D is wrong: detailed monitoring and Auto Scaling change how many instances run, not how big they are, so the oversized instance types remain."
     ],
+    "tldr": "Right-size and modernize (e.g. Graviton) before committing to a Savings Plan, or you lock in the waste for years.",
+    "wrong_reasons": {
+      "B": "a 3-year commitment on oversized instances locks the waste in for three years, which is the classic mistake of committing before right-sizing.",
+      "C": "Dedicated Hosts exist for licensing and compliance needs and cost more than shared tenancy.",
+      "D": "detailed monitoring and Auto Scaling change how many instances run, not how big they are, so the oversized instance types remain."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -1505,6 +1769,12 @@
       "C is wrong: Reserved Instances lower the hourly rate but commit to paying for all 40 databases around the clock for a year, idle hours included.",
       "D is wrong: the smallest instance class still bills every hour whether used or not, and it may be too small when developers do use it."
     ],
+    "tldr": "Aurora Serverless v2 scales down to near-zero automatically, unlike a stopped RDS instance, which isn't reachable and auto-restarts after 7 days.",
+    "wrong_reasons": {
+      "B": "a stopped RDS instance starts again automatically after 7 days, and a stopped database is not reachable when a developer connects at an unpredictable time.",
+      "C": "Reserved Instances lower the hourly rate but commit to paying for all 40 databases around the clock for a year, idle hours included.",
+      "D": "the smallest instance class still bills every hour whether used or not, and it may be too small when developers do use it."
+    },
     "pillars": [
       "Cost Optimization",
       "Operational Excellence",
@@ -1544,6 +1814,12 @@
       "D is wrong: copying every snapshot to a second Region doubles snapshot storage and adds transfer charges, the opposite of the goal.",
       "E is wrong: io2 is a premium volume type that costs more than gp3 for the same performance these workloads need."
     ],
+    "tldr": "gp3 is cheaper than gp2 and decouples IOPS from size; Data Lifecycle Manager auto-expires snapshots so they stop piling up.",
+    "wrong_reasons": {
+      "B": "oversizing volumes to buy IOPS is the gp2 workaround that gp3 exists to replace, and it increases cost.",
+      "D": "copying every snapshot to a second Region doubles snapshot storage and adds transfer charges, the opposite of the goal.",
+      "E": "io2 is a premium volume type that costs more than gp3 for the same performance these workloads need."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -1575,6 +1851,12 @@
       "C is wrong: a weekly manual review reacts days after the money is spent and depends on people following up.",
       "D is wrong: quotas cap capacity rather than spend, so they block legitimate experiments while smaller resources can still run up cost indefinitely."
     ],
+    "tldr": "AWS Budgets can trigger an automated action (policy or stop) the moment spend crosses a threshold, with no custom code.",
+    "wrong_reasons": {
+      "B": "Cost Anomaly Detection alerts on unusual spending patterns, but it does not act on resources and does not enforce a fixed dollar limit.",
+      "C": "a weekly manual review reacts days after the money is spent and depends on people following up.",
+      "D": "quotas cap capacity rather than spend, so they block legitimate experiments while smaller resources can still run up cost indefinitely."
+    },
     "pillars": [
       "Cost Optimization",
       "Operational Excellence"
@@ -1606,6 +1888,12 @@
       "C is wrong: Cost Explorer can group by a tag only after it has been activated as a cost allocation tag, and it is a console tool rather than a data feed that finance can query with SQL.",
       "D is wrong: AWS billing does not break costs down by VPC, and moving resources between VPCs would be disruptive while still missing shared services."
     ],
+    "tldr": "Activated cost allocation tags plus the Cost and Usage Report in S3 give queryable, per-business-unit billing data via Athena.",
+    "wrong_reasons": {
+      "B": "budgets track spend against thresholds, and without an activated tag they have nothing to split business-unit costs by.",
+      "C": "Cost Explorer can group by a tag only after it has been activated as a cost allocation tag, and it is a console tool rather than a data feed that finance can query with SQL.",
+      "D": "AWS billing does not break costs down by VPC, and moving resources between VPCs would be disruptive while still missing shared services."
+    },
     "pillars": [
       "Cost Optimization",
       "Operational Excellence"
@@ -1643,6 +1931,12 @@
       "D is wrong: the Deep Archive Access tier is opt-in precisely because retrieval can take up to 12 hours.",
       "E is wrong: One Zone-IA keeps only one Availability Zone's copy, reducing durability against zone loss, and it carries the same per-object minimum that caused the problem."
     ],
+    "tldr": "Intelligent-Tiering handles unpredictable access with no retrieval fee, but its 128 KB minimum means very small objects need separate handling.",
+    "wrong_reasons": {
+      "C": "Glacier Flexible Retrieval restores take minutes to hours, which breaks the millisecond requirement.",
+      "D": "the Deep Archive Access tier is opt-in precisely because retrieval can take up to 12 hours.",
+      "E": "One Zone-IA keeps only one Availability Zone's copy, reducing durability against zone loss, and it carries the same per-object minimum that caused the problem."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -1675,6 +1969,12 @@
       "C is wrong: S3 Express One Zone is designed for very low-latency access from compute in the same Availability Zone, not for faster uploads from distant users.",
       "D is wrong: a proxy fleet in us-east-1 still leaves the long-distance hop on the public internet and adds servers to run and scale."
     ],
+    "tldr": "S3 Transfer Acceleration routes uploads through the nearest edge location, fixing slow long-distance uploads with just an endpoint change.",
+    "wrong_reasons": {
+      "B": "CloudFront caching speeds up repeated downloads of popular objects, not one-time uploads of new files.",
+      "C": "S3 Express One Zone is designed for very low-latency access from compute in the same Availability Zone, not for faster uploads from distant users.",
+      "D": "a proxy fleet in us-east-1 still leaves the long-distance hop on the public internet and adds servers to run and scale."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -1706,6 +2006,12 @@
       "C is wrong: EFS is built for general shared file workloads and cannot reach hundreds of GB/s, and copying 200 TB into it before every run is slow and expensive.",
       "D is wrong: Multi-Attach supports at most 16 instances in one Availability Zone and needs a cluster-aware file system, so it cannot serve hundreds of instances."
     ],
+    "tldr": "FSx for Lustre is a parallel, S3-linked, HPC-grade file system; use scratch for cheap, disposable processing storage.",
+    "wrong_reasons": {
+      "B": "Mountpoint for Amazon S3 gives high-throughput access to objects but is not a full POSIX file system and does not provide sub-millisecond latency.",
+      "C": "EFS is built for general shared file workloads and cannot reach hundreds of GB/s, and copying 200 TB into it before every run is slow and expensive.",
+      "D": "Multi-Attach supports at most 16 instances in one Availability Zone and needs a cluster-aware file system, so it cannot serve hundreds of instances."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -1737,6 +2043,12 @@
       "C is wrong: this is the do-it-yourself log analysis the company wants to avoid, and a daily query finds threats up to a day late.",
       "D is wrong: Macie discovers sensitive data in S3 buckets and does not detect compromised instances or credential misuse."
     ],
+    "tldr": "GuardDuty is agentless threat detection across an organization, correlating CloudTrail, VPC Flow Logs and DNS logs automatically.",
+    "wrong_reasons": {
+      "B": "Inspector scans EC2 instances, container images and Lambda functions for software vulnerabilities and network exposure, not for active threats such as malicious traffic or stolen credentials.",
+      "C": "this is the do-it-yourself log analysis the company wants to avoid, and a daily query finds threats up to a day late.",
+      "D": "Macie discovers sensitive data in S3 buckets and does not detect compromised instances or credential misuse."
+    },
     "pillars": [
       "Security"
     ]
@@ -1768,6 +2080,12 @@
       "C is wrong: AWS Config records resource configuration state, not the API activity the auditor asked for.",
       "D is wrong: nothing here makes the central log group tamper-evident, and it does not guarantee organization-wide capture."
     ],
+    "tldr": "An organization trail plus log file validation plus Object Lock in compliance mode makes an audit trail tamper-evident, even to root.",
+    "wrong_reasons": {
+      "B": "logs kept in the audited account remain under that administrator's control, and versioning alone does not prevent deletion.",
+      "C": "AWS Config records resource configuration state, not the API activity the auditor asked for.",
+      "D": "nothing here makes the central log group tamper-evident, and it does not guarantee organization-wide capture."
+    },
     "pillars": [
       "Security"
     ]
@@ -1804,6 +2122,12 @@
       "D is wrong: a once-daily sweep cannot meet a within-minutes requirement.",
       "E is wrong: Macie discovers sensitive data inside objects, which is a different question from whether the bucket is public."
     ],
+    "tldr": "AWS Config can auto-remediate drift via an SSM Automation runbook, and its compliance events flow to EventBridge for notification.",
+    "wrong_reasons": {
+      "B": "Block Public Access is sound hardening, but on its own it neither corrects a bucket automatically nor produces a record of each occurrence for review, and anyone with sufficient permissions can switch it off.",
+      "D": "a once-daily sweep cannot meet a within-minutes requirement.",
+      "E": "Macie discovers sensitive data inside objects, which is a different question from whether the bucket is public."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -1836,6 +2160,12 @@
       "C is wrong: detailed monitoring only publishes the existing hypervisor-level metrics more often and adds no memory metric.",
       "D is wrong: an ELB health check reacts only once the instance has already stopped serving requests, which is the outage the team wants to prevent, and it never looks at memory."
     ],
+    "tldr": "CloudWatch can't see guest-OS memory on its own -- the CloudWatch agent must publish it, and only a custom action can force an unhealthy instance's replacement.",
+    "wrong_reasons": {
+      "B": "there is no default EC2 MemoryUtilization metric, and a scaling policy adds or removes capacity rather than replacing the leaking instance.",
+      "C": "detailed monitoring only publishes the existing hypervisor-level metrics more often and adds no memory metric.",
+      "D": "an ELB health check reacts only once the instance has already stopped serving requests, which is the outage the team wants to prevent, and it never looks at memory."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -1868,6 +2198,12 @@
       "C is wrong: log export to S3 is a batch job and exported data can take up to 12 hours to become available, so it cannot drive timely paging.",
       "D is wrong: Container Insights collects infrastructure metrics for container workloads and does not match strings in log text."
     ],
+    "tldr": "A CloudWatch Logs metric filter turns a log pattern into an alarm-able metric, with no custom log-processing code needed.",
+    "wrong_reasons": {
+      "B": "it would work, but it adds a stream and a function to run and pay for, to do what a metric filter already does natively.",
+      "C": "log export to S3 is a batch job and exported data can take up to 12 hours to become available, so it cannot drive timely paging.",
+      "D": "Container Insights collects infrastructure metrics for container workloads and does not match strings in log text."
+    },
     "pillars": [
       "Operational Excellence"
     ]
@@ -1899,6 +2235,12 @@
       "C is wrong: an hourly batch job leaves events unsearchable for up to an hour.",
       "D is wrong: the Lambda function is consumer code to write and maintain, and it provides no raw copy in S3."
     ],
+    "tldr": "Kinesis Data Firehose is the fully managed, near-real-time, no-code path from a stream into OpenSearch with an S3 backup copy.",
+    "wrong_reasons": {
+      "B": "a consumer application on EC2 is exactly the code the team does not want to write, run or scale.",
+      "C": "an hourly batch job leaves events unsearchable for up to an hour.",
+      "D": "the Lambda function is consumer code to write and maintain, and it provides no raw copy in S3."
+    },
     "pillars": [
       "Performance Efficiency",
       "Operational Excellence"
@@ -1937,6 +2279,12 @@
       "D is wrong: the bottleneck is CPU spent on repeated queries, not storage I/O, so faster storage does not relieve it.",
       "E is wrong: Performance Insights shows which queries consume resources, but on its own it does not reduce the load."
     ],
+    "tldr": "Cache hot, slightly-stale reads in ElastiCache and offload heavier reporting queries to a read replica -- different tools for different access patterns.",
+    "wrong_reasons": {
+      "C": "the standby in a Multi-AZ DB instance deployment cannot serve reads; it exists only for failover.",
+      "D": "the bottleneck is CPU spent on repeated queries, not storage I/O, so faster storage does not relieve it.",
+      "E": "Performance Insights shows which queries consume resources, but on its own it does not reduce the load."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -1967,6 +2315,12 @@
       "C is wrong: versioning preserves the corrupted objects that were written, not the raw events that the transformation consumed.",
       "D is wrong: error record delivery captures records whose transformation failed, not records that were transformed incorrectly and reported success."
     ],
+    "tldr": "A Kinesis stream retains raw records so a fixed consumer can replay a past window, even after a downstream delivery bug.",
+    "wrong_reasons": {
+      "B": "the buffer is a batching window measured in minutes and retains nothing once the batch is delivered.",
+      "C": "versioning preserves the corrupted objects that were written, not the raw events that the transformation consumed.",
+      "D": "error record delivery captures records whose transformation failed, not records that were transformed incorrectly and reported success."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -1999,6 +2353,12 @@
       "C is wrong: a manual endpoint switch means another multi-hour outage, and the second domain holds none of the data.",
       "D is wrong: a load balancer cannot spread traffic across nodes that do not exist, and OpenSearch Service already fronts the domain with a managed endpoint."
     ],
+    "tldr": "OpenSearch Multi-AZ with Standby keeps a full replica in each zone and isolates cluster management on dedicated master nodes.",
+    "wrong_reasons": {
+      "B": "a larger single node is still one node in one Availability Zone, so the same outage recurs.",
+      "C": "a manual endpoint switch means another multi-hour outage, and the second domain holds none of the data.",
+      "D": "a load balancer cannot spread traffic across nodes that do not exist, and OpenSearch Service already fronts the domain with a managed endpoint."
+    },
     "pillars": [
       "Reliability"
     ]
@@ -2029,6 +2389,12 @@
       "C is wrong: S3 policies grant access to objects and prefixes and cannot express which rows or columns inside a file a principal may read.",
       "D is wrong: workgroups control query settings, cost limits and result locations, not which data a principal is allowed to see."
     ],
+    "tldr": "Lake Formation enforces column- and row-level permissions on the catalog itself, so Athena serves different views from one copy of the data.",
+    "wrong_reasons": {
+      "B": "it produces exactly the duplicated filtered copies the company ruled out, and both copies then have to be kept in sync.",
+      "C": "S3 policies grant access to objects and prefixes and cannot express which rows or columns inside a file a principal may read.",
+      "D": "workgroups control query settings, cost limits and result locations, not which data a principal is allowed to see."
+    },
     "pillars": [
       "Security"
     ]
@@ -2060,6 +2426,12 @@
       "C is wrong: anyone with administrator rights in the production account can edit or detach that policy, and IAM policies never restrict the root user.",
       "D is wrong: governance mode can be removed by principals with sufficient IAM permissions, and keeping the only copy in the production account leaves it inside the blast radius the requirement rules out."
     ],
+    "tldr": "AWS Backup Vault Lock in compliance mode is immutable even to root, and a separate backup account keeps a copy safe from compromised production.",
+    "wrong_reasons": {
+      "B": "a backup vault is not an S3 bucket that you configure, so S3 Object Lock does not apply to it, and the backups would still live only in the account being protected against.",
+      "C": "anyone with administrator rights in the production account can edit or detach that policy, and IAM policies never restrict the root user.",
+      "D": "governance mode can be removed by principals with sufficient IAM permissions, and keeping the only copy in the production account leaves it inside the blast radius the requirement rules out."
+    },
     "pillars": [
       "Security",
       "Reliability"
@@ -2098,6 +2470,12 @@
       "D is wrong: long polling reduces empty responses and request cost but has no effect on how long a received message stays hidden.",
       "E is wrong: a longer retention period keeps the malformed messages cycling for longer instead of removing them."
     ],
+    "tldr": "Set the visibility timeout above worst-case processing time, and use a redrive policy to quarantine messages that keep failing.",
+    "wrong_reasons": {
+      "C": "FIFO deduplication stops duplicate sends, but a message whose visibility timeout expires mid-processing is still delivered again, and in a FIFO queue a repeatedly failing message also holds up every message behind it in its message group.",
+      "D": "long polling reduces empty responses and request cost but has no effect on how long a received message stays hidden.",
+      "E": "a longer retention period keeps the malformed messages cycling for longer instead of removing them."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -2130,6 +2508,12 @@
       "C is wrong: a Gateway Load Balancer inserts virtual appliances such as third-party firewalls into the traffic path; it is not used to front an application.",
       "D is wrong: a Classic Load Balancer is a previous-generation service without static IP addresses, and sticky sessions address none of the requirements."
     ],
+    "tldr": "A Network Load Balancer gives static per-AZ IPs, preserves client source IP, and handles massive throughput at layer 4.",
+    "wrong_reasons": {
+      "B": "an Application Load Balancer's IP addresses change over time and cannot be fixed, and it terminates connections at layer 7, adding latency for a raw TCP protocol.",
+      "C": "a Gateway Load Balancer inserts virtual appliances such as third-party firewalls into the traffic path; it is not used to front an application.",
+      "D": "a Classic Load Balancer is a previous-generation service without static IP addresses, and sticky sessions address none of the requirements."
+    },
     "pillars": [
       "Performance Efficiency",
       "Security"
@@ -2162,6 +2546,12 @@
       "C is wrong: auto scaling adjusts provisioned capacity over several minutes in response to CloudWatch alarms, so short, unscheduled bursts are throttled before capacity catches up.",
       "D is wrong: DAX adds a cluster to pay for and only caches reads, so it neither covers the writes nor removes the cost of idle provisioned capacity."
     ],
+    "tldr": "DynamoDB on-demand mode bills per request and absorbs unpredictable bursts without pre-provisioning for the peak.",
+    "wrong_reasons": {
+      "B": "reserved capacity commits to paying for the peak throughput around the clock, which locks in the waste instead of removing it.",
+      "C": "auto scaling adjusts provisioned capacity over several minutes in response to CloudWatch alarms, so short, unscheduled bursts are throttled before capacity catches up.",
+      "D": "DAX adds a cluster to pay for and only caches reads, so it neither covers the writes nor removes the cost of idle provisioned capacity."
+    },
     "pillars": [
       "Cost Optimization",
       "Performance Efficiency",
@@ -2201,6 +2591,12 @@
       "D is wrong: Managed Microsoft AD is a workforce directory the company would have to size and operate, and it provides neither consumer sign-up nor social sign-in.",
       "E is wrong: IAM Identity Center manages workforce access to AWS accounts and business applications, not consumer identities for a public app."
     ],
+    "tldr": "A Cognito user pool handles sign-up/social sign-in, and its API Gateway authorizer validates tokens before Lambda ever runs.",
+    "wrong_reasons": {
+      "C": "IAM users are meant for a limited number of people and workloads, not a consumer user base, and long-term access keys embedded in an app can be extracted and abused.",
+      "D": "Managed Microsoft AD is a workforce directory the company would have to size and operate, and it provides neither consumer sign-up nor social sign-in.",
+      "E": "IAM Identity Center manages workforce access to AWS accounts and business applications, not consumer identities for a public app."
+    },
     "pillars": [
       "Security"
     ]
@@ -2231,6 +2627,12 @@
       "C is wrong: Instance Connect removes long-lived keys but still needs port 22 open, and it does not record the commands run in a session.",
       "D is wrong: a NAT gateway only lets instances start outbound connections, so it gives administrators no way in at all."
     ],
+    "tldr": "Session Manager needs no inbound ports or SSH keys, and it logs every session's commands for audit.",
+    "wrong_reasons": {
+      "B": "it still depends on inbound SSH and on distributing and rotating SSH keys, and it records nothing about what is typed in each session.",
+      "C": "Instance Connect removes long-lived keys but still needs port 22 open, and it does not record the commands run in a session.",
+      "D": "a NAT gateway only lets instances start outbound connections, so it gives administrators no way in at all."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -2262,6 +2664,12 @@
       "C is wrong: RDS does not allow an encrypted read replica of an unencrypted DB instance, which is exactly why this shortcut is tempting and unavailable.",
       "D is wrong: the account-level EBS encryption default applies to new EC2 volumes and has no effect on the storage of an existing RDS DB instance."
     ],
+    "tldr": "Encryption can only be set at RDS instance creation -- encrypt via a snapshot copy and restore to change it after the fact.",
+    "wrong_reasons": {
+      "A": "RDS does not let you turn on encryption for an existing unencrypted DB instance by modifying it.",
+      "C": "RDS does not allow an encrypted read replica of an unencrypted DB instance, which is exactly why this shortcut is tempting and unavailable.",
+      "D": "the account-level EBS encryption default applies to new EC2 volumes and has no effect on the storage of an existing RDS DB instance."
+    },
     "pillars": [
       "Security"
     ]
@@ -2298,6 +2706,12 @@
       "D is wrong: an Allow cannot take away an Allow the caller already has in an IAM policy in the same account, so plain-HTTP requests would still succeed; only an explicit Deny enforces the rule.",
       "E is wrong: that header controls encryption at rest for new objects, not whether a request used TLS or came through the endpoint."
     ],
+    "tldr": "Deny policies keyed on aws:SourceVpce and aws:SecureTransport together lock S3 access to one VPC endpoint over TLS only.",
+    "wrong_reasons": {
+      "C": "aws:SourceIp does not carry the private address of a request that arrives through a VPC endpoint, so this Deny would block the application's own traffic.",
+      "D": "an Allow cannot take away an Allow the caller already has in an IAM policy in the same account, so plain-HTTP requests would still succeed; only an explicit Deny enforces the rule.",
+      "E": "that header controls encryption at rest for new objects, not whether a request used TLS or came through the endpoint."
+    },
     "pillars": [
       "Security"
     ]
@@ -2329,6 +2743,12 @@
       "C is wrong: network ACLs also work on IP addresses only, and the addresses behind these domains change over time, so the allowlist would silently drift out of date.",
       "D is wrong: a proxy fleet can filter by domain, but the company would have to patch, scale and keep highly available the infrastructure that Network Firewall provides as a managed service."
     ],
+    "tldr": "A centralized Network Firewall in the egress path enforces and logs domain-based outbound rules for every VPC at once.",
+    "wrong_reasons": {
+      "B": "security group rules accept IP addresses, CIDR blocks, prefix lists or other security groups, not domain names.",
+      "C": "network ACLs also work on IP addresses only, and the addresses behind these domains change over time, so the allowlist would silently drift out of date.",
+      "D": "a proxy fleet can filter by domain, but the company would have to patch, scale and keep highly available the infrastructure that Network Firewall provides as a managed service."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -2361,6 +2781,12 @@
       "C is wrong: instance store data is lost when an instance stops or fails, and a cron job leaves the copies inconsistent between runs.",
       "D is wrong: FSx for Windows File Server serves SMB shares for Windows workloads, and a Single-AZ deployment does not survive the loss of its Availability Zone."
     ],
+    "tldr": "EFS gives a shared, Multi-AZ NFS file system that every instance in an Auto Scaling group can mount concurrently.",
+    "wrong_reasons": {
+      "A": "Multi-Attach works only for instances in the same Availability Zone as the volume and needs a cluster-aware file system, so it cannot serve three zones.",
+      "C": "instance store data is lost when an instance stops or fails, and a cron job leaves the copies inconsistent between runs.",
+      "D": "FSx for Windows File Server serves SMB shares for Windows workloads, and a Single-AZ deployment does not survive the loss of its Availability Zone."
+    },
     "pillars": [
       "Reliability"
     ]
@@ -2392,6 +2818,12 @@
       "C is wrong: read replicas are read-only, so they cannot accept the order writes.",
       "D is wrong: a cache speeds up repeated reads but is not a durable buffer for writes, so orders held in it can still be lost."
     ],
+    "tldr": "A queue between app and database decouples burst write rate from the database's absorb rate, so nothing is lost or timed out.",
+    "wrong_reasons": {
+      "B": "paying for peak capacity all year to cover a few hours of sales is the costly option, and a larger burst can still overwhelm it.",
+      "C": "read replicas are read-only, so they cannot accept the order writes.",
+      "D": "a cache speeds up repeated reads but is not a durable buffer for writes, so orders held in it can still be lost."
+    },
     "pillars": [
       "Reliability",
       "Cost Optimization"
@@ -2423,6 +2855,12 @@
       "C is wrong: a DAX cluster must run in the same Region as its table and only caches reads, so writes would still go to us-east-1 and fail with it.",
       "D is wrong: this rebuilds replication by hand, and read-only copies cannot accept writes while us-east-1 is unavailable."
     ],
+    "tldr": "DynamoDB global tables replicate to every Region with local read/write latency and automatic multi-Region resilience.",
+    "wrong_reasons": {
+      "B": "a restore takes time and loses writes made after the restore point, and it does nothing for everyday write latency.",
+      "C": "a DAX cluster must run in the same Region as its table and only caches reads, so writes would still go to us-east-1 and fail with it.",
+      "D": "this rebuilds replication by hand, and read-only copies cannot accept writes while us-east-1 is unavailable."
+    },
     "pillars": [
       "Reliability",
       "Performance Efficiency"
@@ -2455,6 +2893,12 @@
       "C is wrong: it gives up elasticity and its cost savings and still loses sessions when an instance fails.",
       "D is wrong: the data is still tied to one instance, other instances cannot read it, and hourly snapshots lose up to an hour of carts."
     ],
+    "tldr": "Externalizing session state (with TTL) frees instances to scale freely without users losing their session.",
+    "wrong_reasons": {
+      "A": "stickiness only routes a user back to the same instance, so the session is still lost whenever that instance is terminated or fails, and longer stickiness spreads load less evenly.",
+      "C": "it gives up elasticity and its cost savings and still loses sessions when an instance fails.",
+      "D": "the data is still tied to one instance, other instances cannot read it, and hourly snapshots lose up to an hour of carts."
+    },
     "pillars": [
       "Reliability",
       "Performance Efficiency"
@@ -2493,6 +2937,12 @@
       "D is wrong: ELB health checks decide when to replace unhealthy instances, not when to add capacity.",
       "E is wrong: bigger steps still start only after the alarm fires, so every new instance still needs its 10-minute warm-up while users wait."
     ],
+    "tldr": "Predictive scaling pre-launches for a known daily pattern, and a warm pool skips the cold-start wait entirely.",
+    "wrong_reasons": {
+      "C": "a lower target keeps more idle capacity all day and still reacts only after the traffic arrives, so the 10-minute warm-up still hits users.",
+      "D": "ELB health checks decide when to replace unhealthy instances, not when to add capacity.",
+      "E": "bigger steps still start only after the alarm fires, so every new instance still needs its 10-minute warm-up while users wait."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -2525,6 +2975,12 @@
       "C is wrong: rsync copies with limited parallelism, and the company would have to build its own scheduling, retries, monitoring and verification around it.",
       "D is wrong: it adds two services and custom code to reach a destination that DataSync writes to directly."
     ],
+    "tldr": "DataSync automates incremental, verified, bandwidth-efficient transfer of only new or changed files on a schedule.",
+    "wrong_reasons": {
+      "A": "60 TB crosses a 10 Gbps link in roughly half a day at full line rate, so shipping devices adds days of transit for no benefit, and weekly shipments cannot keep up with daily changes.",
+      "C": "rsync copies with limited parallelism, and the company would have to build its own scheduling, retries, monitoring and verification around it.",
+      "D": "it adds two services and custom code to reach a destination that DataSync writes to directly."
+    },
     "pillars": [
       "Performance Efficiency",
       "Operational Excellence"
@@ -2557,6 +3013,12 @@
       "C is wrong: Athena suits ad hoc queries, but 200 users running complex dashboards all day run into account-level limits on concurrent queries, and every refresh pays for another scan.",
       "D is wrong: DynamoDB is a key-value store that cannot run SQL joins or ad hoc aggregations, so every analytic question would need custom precomputation."
     ],
+    "tldr": "Redshift's MPP engine handles heavy joins, concurrency scaling absorbs dashboard spikes, and Spectrum queries S3 data in place.",
+    "wrong_reasons": {
+      "B": "a row-oriented transactional database is not built for analytic scans and joins across hundreds of terabytes, and 430 TB exceeds the maximum storage of an RDS DB instance.",
+      "C": "Athena suits ad hoc queries, but 200 users running complex dashboards all day run into account-level limits on concurrent queries, and every refresh pays for another scan.",
+      "D": "DynamoDB is a key-value store that cannot run SQL joins or ad hoc aggregations, so every analytic question would need custom precomputation."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -2588,6 +3050,12 @@
       "C is wrong: it replaces the customer managed key the security team requires, and S3 would still call KMS for every object.",
       "D is wrong: every extra key adds a monthly charge and S3 still calls KMS once per object, so this raises the cost instead of lowering it."
     ],
+    "tldr": "An S3 Bucket Key drastically cuts KMS request costs by reusing a short-lived derived key instead of calling KMS per object.",
+    "wrong_reasons": {
+      "B": "SSE-S3 removes the KMS charges but breaks the requirement to keep SSE-KMS with the same key.",
+      "C": "it replaces the customer managed key the security team requires, and S3 would still call KMS for every object.",
+      "D": "every extra key adds a monthly charge and S3 still calls KMS once per object, so this raises the cost instead of lowering it."
+    },
     "pillars": [
       "Cost Optimization",
       "Security"
@@ -2621,6 +3089,12 @@
       "C is wrong: license-included instances pay again for SQL Server licenses the company already owns, which is exactly the cost it wants to avoid.",
       "D is wrong: Spot Instances run on shared hardware and can be interrupted, so they neither satisfy dedicated-hardware licensing nor suit a production database."
     ],
+    "tldr": "A Dedicated Host exposes physical sockets/cores for per-core BYOL licensing, tracked for compliance by License Manager.",
+    "wrong_reasons": {
+      "B": "Dedicated Instances run on single-tenant hardware but do not expose sockets and cores or give host-level placement control, so they cannot satisfy licenses bound to physical cores.",
+      "C": "license-included instances pay again for SQL Server licenses the company already owns, which is exactly the cost it wants to avoid.",
+      "D": "Spot Instances run on shared hardware and can be interrupted, so they neither satisfy dedicated-hardware licensing nor suit a production database."
+    },
     "pillars": [
       "Cost Optimization"
     ]
@@ -2653,6 +3127,12 @@
       "C is wrong: the default retention keeps logs in CloudWatch forever, and an OpenSearch domain adds an always-running cluster that costs far more than archival storage.",
       "D is wrong: logs that reach the end of their retention period are deleted, not archived, so everything older than 30 days would be lost."
     ],
+    "tldr": "Keep recent logs in CloudWatch, ship everything to S3 via subscription, and archive to Deep Archive for cheap long-term retention.",
+    "wrong_reasons": {
+      "A": "CloudWatch Logs storage costs far more per GB than S3 Glacier Deep Archive, so keeping 7 years of logs there is the expensive way to meet the requirement.",
+      "C": "the default retention keeps logs in CloudWatch forever, and an OpenSearch domain adds an always-running cluster that costs far more than archival storage.",
+      "D": "logs that reach the end of their retention period are deleted, not archived, so everything older than 30 days would be lost."
+    },
     "pillars": [
       "Cost Optimization",
       "Operational Excellence",
@@ -2685,6 +3165,12 @@
       "C is wrong: this needs an agent on every instance, which the company rules out, and it cannot show traffic that a security group or network ACL rejected before it reached the instance.",
       "D is wrong: Traffic Mirroring captures whole packets, which costs far more to store than the connection metadata needed here, and it must be configured per interface with mirror targets."
     ],
+    "tldr": "VPC Flow Logs capture accepted/rejected traffic with no agent, queryable via Athena for incident investigation.",
+    "wrong_reasons": {
+      "B": "CloudTrail records AWS API calls, not the network connections between hosts.",
+      "C": "this needs an agent on every instance, which the company rules out, and it cannot show traffic that a security group or network ACL rejected before it reached the instance.",
+      "D": "Traffic Mirroring captures whole packets, which costs far more to store than the connection metadata needed here, and it must be configured per interface with mirror targets."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -2717,6 +3203,12 @@
       "C is wrong: AD Connector is a proxy that redirects requests to the on-premises directory rather than a directory in AWS, so every authentication depends on the on-premises link and it cannot hold a trust of its own.",
       "D is wrong: Cognito federates sign-in for web and mobile applications; it cannot domain-join Windows instances or provide integrated Windows authentication."
     ],
+    "tldr": "AWS Managed Microsoft AD plus a forest trust lets EC2 domain-join using existing on-premises AD accounts without duplicating them.",
+    "wrong_reasons": {
+      "B": "self-managed domain controllers mean patching, backups, monitoring and replication design, which is the ongoing administration the company wants to avoid.",
+      "C": "AD Connector is a proxy that redirects requests to the on-premises directory rather than a directory in AWS, so every authentication depends on the on-premises link and it cannot hold a trust of its own.",
+      "D": "Cognito federates sign-in for web and mobile applications; it cannot domain-join Windows instances or provide integrated Windows authentication."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -2755,6 +3247,12 @@
       "D is wrong: replication copies objects to another Region for durability but does not by itself let you recover an object deleted by mistake, and it roughly doubles storage cost.",
       "E is wrong: Transfer Acceleration speeds up long-distance transfers and has nothing to do with recovering deleted objects."
     ],
+    "tldr": "S3 Versioning (with lifecycle expiry) makes deletes recoverable, and MFA Delete adds a second factor before a version can be destroyed.",
+    "wrong_reasons": {
+      "C": "compliance mode would block every deletion for 10 years, including intentional cleanup, and force the company to store data it no longer needs.",
+      "D": "replication copies objects to another Region for durability but does not by itself let you recover an object deleted by mistake, and it roughly doubles storage cost.",
+      "E": "Transfer Acceleration speeds up long-distance transfers and has nothing to do with recovering deleted objects."
+    },
     "pillars": [
       "Security",
       "Reliability"
@@ -2786,6 +3284,12 @@
       "C is wrong: authentication controls who may call the API, but the endpoint itself is still publicly reachable, which the requirement forbids.",
       "D is wrong: a VPC link governs how API Gateway reaches private backends; it does nothing about who can reach the API's own endpoint."
     ],
+    "tldr": "A private API Gateway endpoint plus a VPC-endpoint-scoped resource policy keeps an API reachable only from approved VPCs, never the internet.",
+    "wrong_reasons": {
+      "B": "a regional API keeps a public endpoint that anyone on the internet can reach and attempt to attack, even if a policy rejects most callers.",
+      "C": "authentication controls who may call the API, but the endpoint itself is still publicly reachable, which the requirement forbids.",
+      "D": "a VPC link governs how API Gateway reaches private backends; it does nothing about who can reach the API's own endpoint."
+    },
     "pillars": [
       "Security"
     ]
@@ -2816,6 +3320,12 @@
       "C is wrong: IPv6 addresses are publicly routable, so an internet gateway makes the instances reachable from the internet and the design depends entirely on every security group and network ACL staying correct.",
       "D is wrong: a NAT instance is a self-managed IPv4 device and adds an instance to patch and scale."
     ],
+    "tldr": "An egress-only internet gateway is the IPv6 equivalent of a NAT gateway: outbound-only, nothing can initiate inbound.",
+    "wrong_reasons": {
+      "B": "a NAT gateway handles IPv4 translation, and although it can provide NAT64 so IPv6 hosts reach IPv4-only services, it is not the outbound path for IPv6 traffic to IPv6 destinations.",
+      "C": "IPv6 addresses are publicly routable, so an internet gateway makes the instances reachable from the internet and the design depends entirely on every security group and network ACL staying correct.",
+      "D": "a NAT instance is a self-managed IPv4 device and adds an instance to patch and scale."
+    },
     "pillars": [
       "Security"
     ]
@@ -2847,6 +3357,12 @@
       "C is wrong: replacing instances from a fresh AMI is a sound pattern but requires an image pipeline, only covers instances managed by an Auto Scaling group, and produces no missing-patch report.",
       "D is wrong: Inspector finds and reports vulnerabilities but does not install patches."
     ],
+    "tldr": "Systems Manager Patch Manager applies approved patches on schedule within maintenance windows and reports compliance across accounts.",
+    "wrong_reasons": {
+      "B": "this rebuilds Patch Manager by hand, including scheduling, error handling and compliance reporting.",
+      "C": "replacing instances from a fresh AMI is a sound pattern but requires an image pipeline, only covers instances managed by an Auto Scaling group, and produces no missing-patch report.",
+      "D": "Inspector finds and reports vulnerabilities but does not install patches."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -2879,6 +3395,12 @@
       "C is wrong: SNS is push-based publish/subscribe with no broker protocol support, so it changes the application's interaction model entirely.",
       "D is wrong: a single self-managed broker fails with its Availability Zone and leaves the company patching and operating the broker."
     ],
+    "tldr": "Amazon MQ speaks JMS/AMQP/MQTT/STOMP natively, so a legacy broker migrates without changing application code.",
+    "wrong_reasons": {
+      "B": "SQS has its own API and does not support AMQP, so the messaging layer would have to be reworked, which the deadline rules out.",
+      "C": "SNS is push-based publish/subscribe with no broker protocol support, so it changes the application's interaction model entirely.",
+      "D": "a single self-managed broker fails with its Availability Zone and leaves the company patching and operating the broker."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -2911,6 +3433,12 @@
       "C is wrong: a task that starts every 15 minutes leaves an object written just after a run waiting far longer than 15 minutes.",
       "D is wrong: Same-Region Replication keeps the copy in the same Region, and a nightly copy is far outside the required window."
     ],
+    "tldr": "S3 Replication Time Control SLA-guarantees 15-minute cross-Region replication, with Batch Replication covering pre-existing objects.",
+    "wrong_reasons": {
+      "B": "standard replication is best effort with no time commitment and no metrics that prove the window was met.",
+      "C": "a task that starts every 15 minutes leaves an object written just after a run waiting far longer than 15 minutes.",
+      "D": "Same-Region Replication keeps the copy in the same Region, and a nightly copy is far outside the required window."
+    },
     "pillars": [
       "Reliability",
       "Security"
@@ -2948,6 +3476,12 @@
       "D is wrong: the Amazon-provided DNS server at the VPC base address plus two cannot be queried from outside the VPC, which is precisely why inbound endpoints exist.",
       "E is wrong: hand-copied records drift away from the authoritative on-premises zone and create a second source of truth."
     ],
+    "tldr": "Route 53 Resolver endpoints (outbound plus inbound) bridge DNS resolution between a VPC and on-premises in both directions.",
+    "wrong_reasons": {
+      "C": "a private hosted zone is associated with VPCs, not with on-premises CIDR ranges.",
+      "D": "the Amazon-provided DNS server at the VPC base address plus two cannot be queried from outside the VPC, which is precisely why inbound endpoints exist.",
+      "E": "hand-copied records drift away from the authoritative on-premises zone and create a second source of truth."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -2980,6 +3514,12 @@
       "C is wrong: a nightly copy leaves the appliance as the primary store, so it stays full.",
       "D is wrong: a third-party driver over a WAN gives poor performance with no local cache, and the company would have to operate it itself."
     ],
+    "tldr": "S3 File Gateway presents on-prem NFS/SMB while storing data as S3 objects underneath, so lifecycle rules apply automatically.",
+    "wrong_reasons": {
+      "B": "EFS is meant to be mounted from within a VPC or from on premises over Direct Connect or VPN, and it leaves the archive outside S3 where the lifecycle rules were wanted.",
+      "C": "a nightly copy leaves the appliance as the primary store, so it stays full.",
+      "D": "a third-party driver over a WAN gives poor performance with no local cache, and the company would have to operate it itself."
+    },
     "pillars": [
       "Operational Excellence",
       "Cost Optimization"
@@ -3012,6 +3552,12 @@
       "C is wrong: scale-in protection stops those instances being chosen for scale-in at all, which is effectively disabling scale-in.",
       "D is wrong: cooldown controls how long Auto Scaling waits before the next scaling activity, not how long a terminating instance keeps running."
     ],
+    "tldr": "A termination lifecycle hook holds an instance in Terminating:Wait so in-flight work can finish before it's actually removed.",
+    "wrong_reasons": {
+      "B": "the health check grace period only delays health checks after an instance launches and has nothing to do with termination.",
+      "C": "scale-in protection stops those instances being chosen for scale-in at all, which is effectively disabling scale-in.",
+      "D": "cooldown controls how long Auto Scaling waits before the next scaling activity, not how long a terminating instance keeps running."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -3043,6 +3589,12 @@
       "C is wrong: recursive SQL across hundreds of millions of edges becomes slow and hard to tune, because a relational engine is not optimized for deep traversals.",
       "D is wrong: Timestream is built for time series measurements, not for relationships between entities."
     ],
+    "tldr": "Neptune is a purpose-built graph database for millisecond traversal of highly connected relationship data.",
+    "wrong_reasons": {
+      "B": "DynamoDB can store relationships but has no graph traversal, so each additional hop means another round trip and application-side joins.",
+      "C": "recursive SQL across hundreds of millions of edges becomes slow and hard to tune, because a relational engine is not optimized for deep traversals.",
+      "D": "Timestream is built for time series measurements, not for relationships between entities."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -3074,6 +3626,12 @@
       "C is wrong: a local secondary index must keep the table's partition key, so it can only ever query within one customer.",
       "D is wrong: a duplicate table makes the application responsible for keeping two copies consistent, which a global secondary index does automatically."
     ],
+    "tldr": "A DynamoDB GSI with a different partition key serves a new access pattern without disturbing the base table's capacity or queries.",
+    "wrong_reasons": {
+      "B": "a Scan reads every item before the filter is applied, so it consumes capacity in proportion to the whole table and gets slower as the table grows.",
+      "C": "a local secondary index must keep the table's partition key, so it can only ever query within one customer.",
+      "D": "a duplicate table makes the application responsible for keeping two copies consistent, which a global secondary index does automatically."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -3111,6 +3669,12 @@
       "D is wrong: packing all three services into one task means they scale together, which is exactly what the team wants to avoid.",
       "E is wrong: several hostnames and load balancers break the single entry point and push routing decisions onto clients."
     ],
+    "tldr": "An ALB routes by path to independent target groups, and ECS service auto scaling scales each service independently behind one hostname.",
+    "wrong_reasons": {
+      "C": "a Network Load Balancer operates at layer 4 and cannot see URL paths.",
+      "D": "packing all three services into one task means they scale together, which is exactly what the team wants to avoid.",
+      "E": "several hostnames and load balancers break the single entry point and push routing decisions onto clients."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -3143,6 +3707,12 @@
       "C is wrong: origin request events run only on cache misses, so requests served from the cache would never be normalized.",
       "D is wrong: AWS WAF inspects requests and allows or blocks them; it is not a general request-rewriting engine."
     ],
+    "tldr": "CloudFront Functions handle simple, sub-millisecond edge logic far cheaper than Lambda@Edge.",
+    "wrong_reasons": {
+      "B": "Lambda@Edge suits heavier work that needs a full runtime or network access, and it adds more latency and cost than a CloudFront function for simple rewrites.",
+      "C": "origin request events run only on cache misses, so requests served from the cache would never be normalized.",
+      "D": "AWS WAF inspects requests and allows or blocks them; it is not a general request-rewriting engine."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -3174,6 +3744,12 @@
       "C is wrong: Wavelength Zones serve applications reaching mobile devices over a carrier's 5G network, not wired workstations in a studio.",
       "D is wrong: CloudFront caches and accelerates content delivery; it does not move the editing workload's compute and storage closer."
     ],
+    "tldr": "An AWS Local Zone extends a Region's VPC into a metro area for single-digit-millisecond latency with no on-prem hardware.",
+    "wrong_reasons": {
+      "B": "Outposts would meet the latency target but places AWS-managed racks in the company's facility, which it explicitly does not want.",
+      "C": "Wavelength Zones serve applications reaching mobile devices over a carrier's 5G network, not wired workstations in a studio.",
+      "D": "CloudFront caches and accelerates content delivery; it does not move the editing workload's compute and storage closer."
+    },
     "pillars": [
       "Performance Efficiency"
     ]
@@ -3205,6 +3781,12 @@
       "C is wrong: this reintroduces instances to manage, and stopping them by day only returns to ordinary on-demand economics.",
       "D is wrong: more CPU and memory raises the per-second price, so finishing sooner does not necessarily cost less."
     ],
+    "tldr": "Fargate Spot is safe for stateless, checkpointed, restartable batch jobs and cuts compute cost sharply.",
+    "wrong_reasons": {
+      "B": "a three-year commitment sized for a nightly peak pays for capacity that is used only a few hours each night, and Spot is cheaper still for interruption-tolerant work.",
+      "C": "this reintroduces instances to manage, and stopping them by day only returns to ordinary on-demand economics.",
+      "D": "more CPU and memory raises the per-second price, so finishing sooner does not necessarily cost less."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -3237,6 +3819,12 @@
       "C is wrong: One Zone lowers the price but keeps the data in a single Availability Zone, reducing durability against a zone failure, and copying 40 TB is disruptive.",
       "D is wrong: compression needs client-side changes, adds CPU cost, and leaves the data in the expensive storage class."
     ],
+    "tldr": "EFS lifecycle management auto-moves untouched files to Infrequent Access and back on read, with no app change.",
+    "wrong_reasons": {
+      "B": "Deep Archive retrievals take hours, so the files would no longer be instantly available, and the application would have to be changed to read from S3.",
+      "C": "One Zone lowers the price but keeps the data in a single Availability Zone, reducing durability against a zone failure, and copying 40 TB is disruptive.",
+      "D": "compression needs client-side changes, adds CPU cost, and leaves the data in the expensive storage class."
+    },
     "pillars": [
       "Cost Optimization",
       "Sustainability"
@@ -3269,6 +3857,12 @@
       "C is wrong: writing to a file share abandons the tape workflow the backup software is built around, so its catalog and retention handling would have to be reconfigured.",
       "D is wrong: copying a staging area nightly leaves the physical tape process in place and stores long-term backups in S3 Standard, which is far from the cheapest option."
     ],
+    "tldr": "A Tape Gateway is a drop-in virtual tape library, so backup software keeps working while data lands in cheap cloud archive storage.",
+    "wrong_reasons": {
+      "B": "replacing the backup software is the change the company explicitly wants to avoid.",
+      "C": "writing to a file share abandons the tape workflow the backup software is built around, so its catalog and retention handling would have to be reconfigured.",
+      "D": "copying a staging area nightly leaves the physical tape process in place and stores long-term backups in S3 Standard, which is far from the cheapest option."
+    },
     "pillars": [
       "Cost Optimization",
       "Operational Excellence"
@@ -3307,6 +3901,12 @@
       "D is wrong: moving the working data into HDFS ties it to a running cluster, which prevents the cluster from being transient and adds storage cost.",
       "E is wrong: a three-year commitment for a cluster needed four hours a day pays for the 20 idle hours as well."
     ],
+    "tldr": "A disposable EMR cluster (data lives in S3) plus Spot task nodes turns a mostly-idle cluster into pay-for-use with low Spot risk.",
+    "wrong_reasons": {
+      "C": "losing the primary node ends the cluster and losing core nodes loses HDFS data, so Spot interruptions there can fail the whole run.",
+      "D": "moving the working data into HDFS ties it to a running cluster, which prevents the cluster from being transient and adds storage cost.",
+      "E": "a three-year commitment for a cluster needed four hours a day pays for the 20 idle hours as well."
+    },
     "pillars": [
       "Cost Optimization",
       "Reliability",
@@ -3341,6 +3941,12 @@
       "C is wrong: Organizations with SCPs provides preventive guardrails but neither standardized account provisioning nor drift reporting.",
       "D is wrong: Config aggregators report configuration compliance after the fact and do nothing to provision accounts or prevent misconfiguration."
     ],
+    "tldr": "Control Tower automates a multi-account landing zone: standard account provisioning, guardrails, and drift reporting in one place.",
+    "wrong_reasons": {
+      "B": "StackSets deploy resources but leave account creation, guardrails and drift reporting to be designed and operated by hand.",
+      "C": "Organizations with SCPs provides preventive guardrails but neither standardized account provisioning nor drift reporting.",
+      "D": "Config aggregators report configuration compliance after the fact and do nothing to provision accounts or prevent misconfiguration."
+    },
     "pillars": [
       "Security",
       "Operational Excellence"
@@ -3379,6 +3985,12 @@
       "D is wrong: the root user cannot be deleted; every AWS account keeps one for its lifetime.",
       "E is wrong: sharing any credential destroys attribution and recreates the problem the review found."
     ],
+    "tldr": "Remove the root user's access keys and add MFA, and give day-to-day admin work to named identities instead of root.",
+    "wrong_reasons": {
+      "C": "IAM policies cannot be attached to the root user, which is exactly why root is controlled by protecting its credentials instead.",
+      "D": "the root user cannot be deleted; every AWS account keeps one for its lifetime.",
+      "E": "sharing any credential destroys attribution and recreates the problem the review found."
+    },
     "pillars": [
       "Security"
     ]
@@ -3409,6 +4021,12 @@
       "C is wrong: evaluating policies correctly is the hard part that Access Analyzer solves with formal reasoning, and a wildcard search misses conditions and explicit cross-account grants.",
       "D is wrong: the required-tags rule checks tagging, not who is able to access a resource."
     ],
+    "tldr": "IAM Access Analyzer continuously reports which resources are reachable from outside a trusted zone, across an entire organization.",
+    "wrong_reasons": {
+      "B": "GuardDuty detects active threats from log analysis; it does not evaluate resource policies for external access.",
+      "C": "evaluating policies correctly is the hard part that Access Analyzer solves with formal reasoning, and a wildcard search misses conditions and explicit cross-account grants.",
+      "D": "the required-tags rule checks tagging, not who is able to access a resource."
+    },
     "pillars": [
       "Security"
     ]
@@ -3439,6 +4057,12 @@
       "C is wrong: an independent key has different key material, so every replicated object would have to be re-encrypted, and manual rotation is the operational burden the policy is trying to remove.",
       "D is wrong: SSE-S3 gives up the customer managed key the company requires, along with its key policy and rotation control."
     ],
+    "tldr": "KMS automatic annual rotation keeps the key ID stable so nothing needs re-encrypting, and multi-Region keys let replicas decrypt locally.",
+    "wrong_reasons": {
+      "B": "key material generated by AWS KMS cannot be exported, and imported material would not stay in step with rotation.",
+      "C": "an independent key has different key material, so every replicated object would have to be re-encrypted, and manual rotation is the operational burden the policy is trying to remove.",
+      "D": "SSE-S3 gives up the customer managed key the company requires, along with its key policy and rotation control."
+    },
     "pillars": [
       "Security"
     ]
@@ -3470,6 +4094,12 @@
       "C is wrong: importing key material changes where the material originates, not the multi-tenant nature of the service or the interfaces it exposes.",
       "D is wrong: Secrets Manager stores and rotates secrets; it performs no signing operations on behalf of an application."
     ],
+    "tldr": "CloudHSM gives single-tenant hardware key storage with standard interfaces, for workloads that can't allow any AWS access to key material.",
+    "wrong_reasons": {
+      "B": "KMS is a managed multi-tenant service, so even with a customer managed key the company does not have exclusive control of the hardware, and KMS does not offer a PKCS #11 interface.",
+      "C": "importing key material changes where the material originates, not the multi-tenant nature of the service or the interfaces it exposes.",
+      "D": "Secrets Manager stores and rotates secrets; it performs no signing operations on behalf of an application."
+    },
     "pillars": [
       "Security"
     ]
@@ -3501,6 +4131,12 @@
       "C is wrong: this publishes the applications on the internet and depends on home IP addresses that change.",
       "D is wrong: a bastion per employee multiplies cost and public attack surface and still needs its own access control."
     ],
+    "tldr": "AWS Client VPN federates to an existing IdP via SAML and applies per-group authorization, with no public endpoints exposed.",
+    "wrong_reasons": {
+      "B": "Site-to-Site VPN joins networks rather than individual roaming laptops, and managing 200 home routers is impractical.",
+      "C": "this publishes the applications on the internet and depends on home IP addresses that change.",
+      "D": "a bastion per employee multiplies cost and public attack surface and still needs its own access control."
+    },
     "pillars": [
       "Security"
     ]
@@ -3531,6 +4167,12 @@
       "C is wrong: asking 50 partners to change how they integrate is exactly what the company wants to avoid.",
       "D is wrong: DataSync moves data through an agent between file systems and AWS storage; it is not an inbound SFTP service that partners can push to."
     ],
+    "tldr": "AWS Transfer Family is a managed SFTP endpoint that writes straight into S3 using clients' existing credentials, with no servers to run.",
+    "wrong_reasons": {
+      "B": "this keeps a fleet of SFTP servers to operate and adds a copy step that can lag or fail.",
+      "C": "asking 50 partners to change how they integrate is exactly what the company wants to avoid.",
+      "D": "DataSync moves data through an agent between file systems and AWS storage; it is not an inbound SFTP service that partners can push to."
+    },
     "pillars": [
       "Operational Excellence",
       "Reliability"
@@ -3568,6 +4210,12 @@
       "D is wrong: running at full capacity permanently defeats the point of a low-cost standby and costs far more than raising a quota.",
       "E is wrong: quotas are per Region within an account, so consolidating does not pool limits and it removes the second Region the plan depends on."
     ],
+    "tldr": "Service quotas are per account/Region -- raise DR-Region limits proactively and alarm on usage before a real failover hits them.",
+    "wrong_reasons": {
+      "C": "quota increase requests are reviewed and are not guaranteed to be immediate, so a recovery plan cannot depend on one.",
+      "D": "running at full capacity permanently defeats the point of a low-cost standby and costs far more than raising a quota.",
+      "E": "quotas are per Region within an account, so consolidating does not pool limits and it removes the second Region the plan depends on."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -3600,6 +4248,12 @@
       "C is wrong: a dashboard of averages hides the individual slow requests, which is the problem being investigated.",
       "D is wrong: logs are per function and carry no shared request identifier by default, so reconstructing one request by hand is slow and unreliable."
     ],
+    "tldr": "X-Ray traces a single request across every service hop, revealing where latency actually happens when averages hide it.",
+    "wrong_reasons": {
+      "B": "detailed monitoring changes how often metrics are published, not the ability to follow one request across components.",
+      "C": "a dashboard of averages hides the individual slow requests, which is the problem being investigated.",
+      "D": "logs are per function and carry no shared request identifier by default, so reconstructing one request by hand is slow and unreliable."
+    },
     "pillars": [
       "Operational Excellence",
       "Reliability"
@@ -3638,6 +4292,12 @@
       "D is wrong: extra capacity does not stop a bad patch from reaching every instance.",
       "E is wrong: a fixed fleet gives up elasticity and self-healing, and configuration management still mutates running servers."
     ],
+    "tldr": "Baking a patched AMI removes fleet drift, and a rolling instance refresh with automatic rollback prevents a bad release taking down everything.",
+    "wrong_reasons": {
+      "C": "this logs the same in-place changes and leaves both the drift and the all-at-once failure mode in place.",
+      "D": "extra capacity does not stop a bad patch from reaching every instance.",
+      "E": "a fixed fleet gives up elasticity and self-healing, and configuration management still mutates running servers."
+    },
     "pillars": [
       "Reliability",
       "Operational Excellence"
@@ -3670,6 +4330,12 @@
       "C is wrong: this rebuilds metering and throttling as custom code, which the requirement rules out, and it adds latency and a datastore to every call.",
       "D is wrong: self-limiting is not enforcement, and a dashboard shows the spike only after the backend has been affected."
     ],
+    "tldr": "API Gateway usage plans attach per-API-key throttling and quotas, enforced before requests ever reach the backend.",
+    "wrong_reasons": {
+      "B": "a rate-based WAF rule limits by IP address rather than by developer, so it cannot express per-customer tiers or monthly quotas.",
+      "C": "this rebuilds metering and throttling as custom code, which the requirement rules out, and it adds latency and a datastore to every call.",
+      "D": "self-limiting is not enforcement, and a dashboard shows the spike only after the backend has been affected."
+    },
     "pillars": [
       "Reliability",
       "Cost Optimization"
@@ -3701,6 +4367,12 @@
       "C is wrong: a cluster sized for the nightly peak sits idle the rest of the day and still leaves the team managing capacity.",
       "D is wrong: one instance per job means thousands of launches to orchestrate, retry and track by hand."
     ],
+    "tldr": "AWS Batch queues, sizes, schedules and scales compute for large numbers of independent jobs with dependencies, with nothing to manage.",
+    "wrong_reasons": {
+      "B": "Lambda caps each invocation at 15 minutes with a fixed resource profile, which does not fit long or varied research jobs, and it has no built-in dependency handling.",
+      "C": "a cluster sized for the nightly peak sits idle the rest of the day and still leaves the team managing capacity.",
+      "D": "one instance per job means thousands of launches to orchestrate, retry and track by hand."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization",
@@ -3734,6 +4406,12 @@
       "C is wrong: EMR can do the transformation but means running and tuning clusters, which the serverless requirement excludes.",
       "D is wrong: querying raw CSV keeps every scan slow and expensive, and ad hoc statements by each analyst create inconsistent copies instead of a pipeline."
     ],
+    "tldr": "A Glue crawler infers schema into the Data Catalog, and a Glue ETL job normalizes and writes partitioned Parquet for fast Athena queries.",
+    "wrong_reasons": {
+      "B": "loading into Redshift adds a warehouse to size and pay for when the requirement is to query files that stay in S3.",
+      "C": "EMR can do the transformation but means running and tuning clusters, which the serverless requirement excludes.",
+      "D": "querying raw CSV keeps every scan slow and expensive, and ad hoc statements by each analyst create inconsistent copies instead of a pipeline."
+    },
     "pillars": [
       "Performance Efficiency",
       "Operational Excellence"
@@ -3766,6 +4444,12 @@
       "C is wrong: a BI server on EC2 is infrastructure to size, patch and scale, which the company does not want.",
       "D is wrong: emailed spreadsheets are static, so users cannot filter or explore, and the data is stale as soon as it is sent."
     ],
+    "tldr": "QuickSight SPICE caches data in memory so dashboards stay fast for many concurrent users without re-querying the source each time.",
+    "wrong_reasons": {
+      "B": "the console is a query tool rather than a dashboard, and each filter change would run another billed scan.",
+      "C": "a BI server on EC2 is infrastructure to size, patch and scale, which the company does not want.",
+      "D": "emailed spreadsheets are static, so users cannot filter or explore, and the data is stale as soon as it is sent."
+    },
     "pillars": [
       "Performance Efficiency",
       "Cost Optimization"
@@ -3797,6 +4481,12 @@
       "C is wrong: the teams are in other accounts, and cross-account access to S3 requires a resource policy, so IAM policies alone cannot grant it.",
       "D is wrong: Object Lock governs retention and immutability, and tags do not create per-team access boundaries on a shared bucket."
     ],
+    "tldr": "S3 Access Points give each team its own scoped endpoint and policy, optionally restricted to a single VPC.",
+    "wrong_reasons": {
+      "B": "splitting means moving 300 TB, breaking every existing path, and losing the single data lake that the analytics tools expect.",
+      "C": "the teams are in other accounts, and cross-account access to S3 requires a resource policy, so IAM policies alone cannot grant it.",
+      "D": "Object Lock governs retention and immutability, and tags do not create per-team access boundaries on a shared bucket."
+    },
     "pillars": [
       "Performance Efficiency",
       "Security"
@@ -3829,6 +4519,12 @@
       "C is wrong: geoproximity shifts traffic by distance and bias for every user, so it neither guarantees Germany stays in eu-west-1 nor gives the fastest Region to everyone else.",
       "D is wrong: weighted routing distributes a share of traffic regardless of where the user is or which Region responds fastest."
     ],
+    "tldr": "Route 53 geolocation routing pins one country to a required Region, with latency routing and health checks handling everyone else.",
+    "wrong_reasons": {
+      "B": "latency routing can send German users to another Region whenever it measures faster, which breaks the residency requirement.",
+      "C": "geoproximity shifts traffic by distance and bias for every user, so it neither guarantees Germany stays in eu-west-1 nor gives the fastest Region to everyone else.",
+      "D": "weighted routing distributes a share of traffic regardless of where the user is or which Region responds fastest."
+    },
     "pillars": [
       "Performance Efficiency",
       "Reliability"
@@ -3860,6 +4556,12 @@
       "C is wrong: launching from an AMI still reloads the dataset and discards any local state.",
       "D is wrong: Spot suits interruption-tolerant batch work rather than interactive developer sessions, and it does nothing about start-up time."
     ],
+    "tldr": "EC2 hibernation persists RAM to disk and stops billing, so a slow-loading dataset survives without paying for idle instance time.",
+    "wrong_reasons": {
+      "B": "stopping also ends instance charges, but a normal start boots the operating system and reloads the dataset, which is the 20-minute wait the developers want to avoid.",
+      "C": "launching from an AMI still reloads the dataset and discards any local state.",
+      "D": "Spot suits interruption-tolerant batch work rather than interactive developer sessions, and it does nothing about start-up time."
+    },
     "pillars": [
       "Cost Optimization"
     ]
@@ -3890,6 +4592,12 @@
       "C is wrong: CloudFront can reduce the per-GB rate, but the publisher still pays for delivery.",
       "D is wrong: presigned URLs control who may download and for how long, while the bucket owner is still billed."
     ],
+    "tldr": "S3 Requester Pays shifts request/transfer costs to authenticated requesters while the owner only pays for storage.",
+    "wrong_reasons": {
+      "B": "a colder storage class lowers storage price and adds retrieval fees; it does not move transfer charges to the downloader.",
+      "C": "CloudFront can reduce the per-GB rate, but the publisher still pays for delivery.",
+      "D": "presigned URLs control who may download and for how long, while the bucket owner is still billed."
+    },
     "pillars": [
       "Cost Optimization"
     ]
@@ -3921,6 +4629,12 @@
       "C is wrong: DynamoDB can absorb the writes but offers no time series aggregation, so 7-day windows would need scans or a separate aggregation pipeline, and 5 years of items is costly.",
       "D is wrong: Redshift is a warehouse built for large analytical scans and would run continuously for what is mostly recent-window querying."
     ],
+    "tldr": "Amazon Timestream automatically tiers time-series data by age, keeping recent data fast and older data cheap.",
+    "wrong_reasons": {
+      "B": "a relational engine stores time series inefficiently at this ingest rate, and read replicas multiply cost without changing the storage model.",
+      "C": "DynamoDB can absorb the writes but offers no time series aggregation, so 7-day windows would need scans or a separate aggregation pipeline, and 5 years of items is costly.",
+      "D": "Redshift is a warehouse built for large analytical scans and would run continuously for what is mostly recent-window querying."
+    },
     "pillars": [
       "Cost Optimization",
       "Performance Efficiency"
@@ -3957,6 +4671,12 @@
       "D is wrong: stickiness pins a client to one target that may well be in another Availability Zone, so it does not prevent cross-zone traffic.",
       "E is wrong: a single Availability Zone removes the charge but also removes the service's ability to survive the loss of a zone."
     ],
+    "tldr": "Disabling NLB cross-zone load balancing plus zone-aware DNS keeps traffic, and its cost, inside each Availability Zone.",
+    "wrong_reasons": {
+      "C": "cross-zone load balancing distributes requests to targets in every zone, which is precisely what generates the inter-zone traffic being billed.",
+      "D": "stickiness pins a client to one target that may well be in another Availability Zone, so it does not prevent cross-zone traffic.",
+      "E": "a single Availability Zone removes the charge but also removes the service's ability to survive the loss of a zone."
+    },
     "pillars": [
       "Cost Optimization",
       "Reliability"
