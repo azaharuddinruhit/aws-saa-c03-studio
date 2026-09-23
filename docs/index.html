@@ -214,8 +214,8 @@
 </head>
 <body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex flex-col">
 
-    <!-- Hidden entirely while a quiz is running: its actions (Import/Export/Reset/Clear bank) are
-         irrelevant and risky mid-quiz, and the quiz view has its own back arrow for navigation. -->
+    <!-- Stays visible on every screen, quizzes included, so the title, theme switch and menu are
+         always reachable. The quiz view also has its own back arrow. -->
     <header id="siteHeader" class="bg-slate-900/60 border-b border-slate-800 shrink-0">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
@@ -355,7 +355,7 @@
                         </button>
                         <div class="min-w-0">
                             <span id="quizDomainBadge" class="block text-sm font-semibold text-aws-lightblue leading-tight line-clamp-2">Networking</span>
-                            <span class="block text-xs text-slate-400 mt-0.5 whitespace-nowrap">Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span></span>
+                            <span class="block text-xs text-slate-400 mt-0.5 whitespace-nowrap">Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span><span id="seenChip" class="hidden"></span></span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -400,6 +400,7 @@
                             <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Explanation</span>
                         </div>
                         <p id="tldrLine" class="hidden text-sm font-medium text-white"></p>
+                        <p id="historyLine" class="hidden text-xs text-slate-400"></p>
                         <ul id="explanationText" class="list-disc pl-4 space-y-1.5 text-[13px] text-slate-300 leading-relaxed"></ul>
                     </div>
                 </section>
@@ -719,7 +720,7 @@
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
-            setHeaderVisible(false);
+            setHeaderVisible(true);
             if (TIMED_MODES.includes(mode)) startQuizTimer(); else stopAndHideQuizTimer();
 
             loadQuestion();
@@ -728,19 +729,27 @@
         function startQuizByDomain(domain) {
             currentQuizMode = 'domain';
             smartReasons = {};
-            // Three tiers: questions you have never seen, then ones you got wrong last time, then
-            // ones you already got right. Re-entering a section therefore continues into new
-            // material, and the review that follows leads with what you actually missed. Each tier
-            // is shuffled on its own, so the order still varies between sessions.
+            const now = Date.now();
             const inDomain = questions.filter(q => (q.domain || 'General AWS') === domain);
-            const tierOf = q => {
-                const log = attemptLog[q.id];
-                if (!log || !log.length) return 0;                    // never attempted
-                return log[log.length - 1][0] ? 2 : 1;                // last answer right : wrong
-            };
-            currentQuizQuestions = [0, 1, 2]
-                .flatMap(t => shuffled(inDomain.filter(q => tierOf(q) === t)));
+            // Questions you answered correctly and are not yet due to revisit are skipped, so a
+            // return visit goes straight to what is left. "Not yet due" comes from the same
+            // spacing ladder the Smart quiz uses, so a mastered question does come back, just
+            // later each time. What remains is ordered: never seen, then missed, then due again.
+            // 'solid' is last so that the fallback below still has somewhere to put those
+            // questions; in the normal path they have already been filtered out of the pool.
+            const TIER = { new: 0, missed: 1, due: 2, solid: 3 };
+            const kindOf = q => questionStanding(q, now).kind;
+            let pool = inDomain.filter(q => kindOf(q) !== 'solid');
+            const skipped = inDomain.length - pool.length;
+            if (!pool.length) pool = inDomain;   // nothing outstanding, so revise the whole section
+            currentQuizQuestions = [0, 1, 2, 3]
+                .flatMap(t => shuffled(pool.filter(q => TIER[kindOf(q)] === t)));
             if (currentQuizQuestions.length === 0) return;
+            if (skipped > 0 && pool !== inDomain) {
+                alertBox('Skipping ' + skipped + ' you already know · ' + currentQuizQuestions.length + ' to go');
+            } else if (skipped > 0) {
+                alertBox('You have answered all of these correctly — revising the full section');
+            }
 
             currentIndex = 0;
             score = 0;
@@ -749,7 +758,7 @@
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
-            setHeaderVisible(false);
+            setHeaderVisible(true);
             stopAndHideQuizTimer();
 
             loadQuestion();
@@ -888,6 +897,44 @@
             estimateCollapsed = !estimateCollapsed;
             try { localStorage.setItem('saa_estimate_collapsed', estimateCollapsed ? '1' : '0'); } catch (e) {}
             applyEstimateState();
+        }
+
+        // ===== Prior-attempt history =====
+        // Two views of the same log. The chip tells you, before you answer, whether you have met
+        // this question and how it went, so mastered ones are recognisable at a glance. The line
+        // under the explanation repeats it once answered, where it also shows a run of successes.
+        const HISTORY_DATE = { day: 'numeric', month: 'short' };
+
+        function priorAttempts(q, excludeCurrent) {
+            const log = attemptLog[q.id] || [];
+            return excludeCurrent ? log.slice(0, -1) : log;
+        }
+
+        function renderSeenChip(q) {
+            const chip = document.getElementById('seenChip');
+            const prior = priorAttempts(q, false);
+            if (!prior.length) { chip.classList.add('hidden'); return; }
+            const last = prior[prior.length - 1];
+            const when = new Date(last[1]).toLocaleDateString(undefined, HISTORY_DATE);
+            const good = !!last[0];
+            chip.className = good ? 'text-emerald-400' : 'text-amber-400';
+            chip.innerHTML = ' · <i class="fa-solid ' + (good ? 'fa-circle-check' : 'fa-rotate-left')
+                + ' text-[9px]"></i> ' + (good ? 'Correct ' : 'Missed ') + escapeHtml(when);
+        }
+
+        function renderHistoryLine(q) {
+            const line = document.getElementById('historyLine');
+            const prior = priorAttempts(q, true);   // this session's attempt is already logged
+            if (!prior.length) { line.classList.add('hidden'); return; }
+            const last = prior[prior.length - 1];
+            const when = new Date(last[1]).toLocaleDateString(undefined, HISTORY_DATE);
+            let streak = 0;
+            for (let i = attemptLog[q.id].length - 1; i >= 0 && attemptLog[q.id][i][0]; i--) streak++;
+            const parts = ['Last time: ' + (last[0] ? 'correct' : 'missed') + ' · ' + when];
+            if (streak > 1) parts.push(streak + ' in a row');
+            else if (!last[0] && attemptLog[q.id][attemptLog[q.id].length - 1][0]) parts.push('now corrected');
+            line.innerText = parts.join('  ·  ');
+            line.classList.remove('hidden');
         }
 
         function recordAttempt(q, isCorrect) {
@@ -1253,6 +1300,8 @@
             selectedKeys = new Set();
             answered = false;
             hintUsedThisQuestion = false;
+            renderSeenChip(q);
+            document.getElementById('historyLine').classList.add('hidden');
 
             document.getElementById('liveScoreNum').innerText = score;
             const hintText = document.getElementById('hintText');
@@ -1417,6 +1466,8 @@
                 badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i><span class="text-rose-600 dark:text-rose-400">Incorrect. The correct ${which}.</span>`;
             }
 
+            renderHistoryLine(q);
+
             // the one-line takeaway, when the bank provides one
             const tldrLine = document.getElementById('tldrLine');
             if (q.tldr) {
@@ -1514,7 +1565,19 @@
             }
         }
 
-        function returnToDashboard() {
+        async function returnToDashboard() {
+            // The summary screen uses this too, where there is nothing left to abandon, so the
+            // warning is limited to a quiz still in progress that has answers in it.
+            const inQuiz = !document.getElementById('quizView').classList.contains('hidden');
+            const done = Object.keys(userAnswers).length;
+            if (inQuiz && done > 0) {
+                const total = currentQuizQuestions.length;
+                const ok = await showConfirm(
+                    'You have answered ' + done + ' of ' + total + '. Those answers are already counted in your stats, '
+                    + 'but this session ends here and you will not see its summary.',
+                    { title: 'Leave this session?', confirmLabel: 'Leave' });
+                if (!ok) return;
+            }
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
