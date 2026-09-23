@@ -41,7 +41,7 @@
             backdrop-filter: blur(10px);
         }
         .dark .glass-card {
-            background: rgba(26, 34, 44, 0.95);
+            background: rgba(16, 21, 34, 0.95);
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
@@ -115,19 +115,27 @@
 
            DARK: a blacker theme, replacing Tailwind's navy-leaning slate-900/800/700 with
            neutral near-black tones. */
-        .dark .bg-slate-950, .dark .dark\:bg-slate-950:is(.dark *) { background-color: #000000; }
-        .dark .bg-slate-950\/60 { background-color: rgba(0, 0, 0, .6); }
-        .dark .bg-slate-900, .dark .dark\:bg-slate-900:is(.dark *) { background-color: #0a0a0c; }
-        .dark .bg-slate-900\/60 { background-color: rgba(10, 10, 12, .6); }
-        .dark .bg-slate-800, .dark .dark\:bg-slate-800:is(.dark *) { background-color: #16161a; }
-        .dark .bg-slate-800\/40 { background-color: rgba(22, 22, 26, .4); }
-        .dark .bg-slate-800\/50, .dark .dark\:bg-slate-800\/50:is(.dark *) { background-color: rgba(22, 22, 26, .5); }
-        .dark .bg-slate-800\/60, .dark .dark\:bg-slate-800\/60:is(.dark *) { background-color: rgba(22, 22, 26, .6); }
-        .dark .hover\:bg-slate-700:hover, .dark .dark\:hover\:bg-slate-700:hover:is(.dark *) { background-color: #232327; }
-        .dark .border-slate-800, .dark .dark\:border-slate-800:is(.dark *) { border-color: #1c1c20; }
-        .dark .dark\:border-slate-700:is(.dark *) { border-color: #2a2a2e; }
+           The surface ladder is spaced to the same contrast steps light mode uses, so the two
+           themes separate their layers by the same perceptible amount: page -> card is 1.10:1,
+           card -> surface 1.23:1, surface -> raised 1.20:1. The page stays pure black; only the
+           levels above it lift, which is what makes cards and buttons legible as separate
+           surfaces instead of dissolving into one flat black. */
+        .dark .bg-slate-950, .dark .dark\:bg-slate-950:is(.dark *) { background-color: #050810; }
+        .dark .bg-slate-950\/60 { background-color: rgba(5, 8, 16, .6); }
+        .dark .bg-slate-900, .dark .dark\:bg-slate-900:is(.dark *) { background-color: #101522; }
+        .dark .bg-slate-900\/60 { background-color: rgba(16, 21, 34, .6); }
+        .dark .bg-slate-800, .dark .dark\:bg-slate-800:is(.dark *) { background-color: #212739; }
+        .dark .bg-slate-800\/40 { background-color: rgba(33, 39, 57, .4); }
+        .dark .bg-slate-800\/50, .dark .dark\:bg-slate-800\/50:is(.dark *) { background-color: rgba(33, 39, 57, .5); }
+        .dark .bg-slate-800\/60, .dark .dark\:bg-slate-800\/60:is(.dark *) { background-color: rgba(33, 39, 57, .6); }
+        .dark .bg-slate-700 { background-color: #2e3447; }
+        .dark .hover\:bg-slate-700:hover, .dark .dark\:hover\:bg-slate-700:hover:is(.dark *) { background-color: #2e3447; }
+        /* menu items hover with this one; without an override it fell back to Tailwind's navy */
+        .dark .hover\:bg-slate-800:hover, .dark .dark\:hover\:bg-slate-800:hover:is(.dark *) { background-color: #212739; }
+        .dark .border-slate-800, .dark .dark\:border-slate-800:is(.dark *) { border-color: #191f30; }
+        .dark .dark\:border-slate-700:is(.dark *) { border-color: #272e41; }
         /* the toast keeps a dark surface in both themes, so it is not scoped */
-        .bg-aws-darkblue { background-color: #0a0a0c; }
+        .bg-aws-darkblue { background-color: #101522; }
 
         /* LIGHT: the markup already pairs most surfaces (bg-white dark:bg-slate-900 and friends),
            so only the dark-only utilities -- the ones with no light counterpart in the compiled
@@ -139,6 +147,9 @@
         html:not(.dark) .bg-slate-800\/40 { background-color: rgba(241, 245, 249, .8); }
         html:not(.dark) .bg-slate-800\/50 { background-color: rgba(248, 250, 252, .9); }
         html:not(.dark) .bg-slate-800\/60 { background-color: rgba(226, 232, 240, .7); }
+        /* the A/B/C/D badge sets no text colour of its own, so the letter inherits the page's
+           near-black body text in light mode -- the badge itself has to lighten to suit it */
+        html:not(.dark) .bg-slate-700 { background-color: #cbd5e1; }
         html:not(.dark) .hover\:bg-slate-700:hover { background-color: #cbd5e1; }
         html:not(.dark) .hover\:bg-slate-800:hover { background-color: #e2e8f0; }
         html:not(.dark) .border-slate-800 { border-color: #e2e8f0; }
@@ -149,8 +160,12 @@
         html:not(.dark) .text-slate-200 { color: #1e293b; }
         html:not(.dark) .text-slate-300 { color: #334155; }
         html:not(.dark) .text-slate-400 { color: #64748b; }
-        html:not(.dark) #questionText { color: #0f172a; }
+        /* the two places text-white sits on a plain card rather than a coloured button */
+        html:not(.dark) #questionText, html:not(.dark) #tldrLine { color: #0f172a; }
         html:not(.dark) .hover\:text-slate-200:hover { color: #0f172a; }
+        /* on a dark page these hovers brighten the text; on a light one they must darken it */
+        html:not(.dark) .hover\:text-slate-300:hover { color: #0f172a; }
+        html:not(.dark) .hover\:text-slate-600:hover { color: #0f172a; }
         /* accents: the 300/400-weight greens and reds are tuned for a black page and fall below
            readable contrast on white, so light mode steps them down a few stops */
         html:not(.dark) .text-emerald-400, html:not(.dark) .hover\:text-emerald-400:hover,
@@ -171,15 +186,15 @@
            otherwise the quiz screen alone keeps Tailwind's navy slate while the rest of the app
            follows the theme. */
         @media (min-width: 1024px) {
-            .dark .lg\:bg-slate-900 { background-color: #0a0a0c; }
-            .dark .lg\:border-slate-800 { border-color: #1c1c20; }
+            .dark .lg\:bg-slate-900 { background-color: #101522; }
+            .dark .lg\:border-slate-800 { border-color: #191f30; }
             html:not(.dark) .lg\:bg-slate-900 { background-color: #ffffff; }
             html:not(.dark) .lg\:border-slate-800 { border-color: #e2e8f0; }
         }
         @media not all and (min-width: 1024px) {
-            .dark .max-lg\:bg-slate-900 { background-color: #0a0a0c; }
-            .dark .max-lg\:bg-slate-950 { background-color: #000000; }
-            .dark .max-lg\:border-slate-800 { border-color: #1c1c20; }
+            .dark .max-lg\:bg-slate-900 { background-color: #101522; }
+            .dark .max-lg\:bg-slate-950 { background-color: #050810; }
+            .dark .max-lg\:border-slate-800 { border-color: #191f30; }
             html:not(.dark) .max-lg\:bg-slate-900 { background-color: #ffffff; }
             html:not(.dark) .max-lg\:bg-slate-950 { background-color: #f1f5f9; }
             html:not(.dark) .max-lg\:border-slate-800 { border-color: #e2e8f0; }
