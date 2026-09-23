@@ -107,35 +107,95 @@
         .animate-fade-in {
             animation: fadeIn 0.3s ease-out forwards;
         }
-        /* A blacker dark theme: the surface colors below override Tailwind's slate-900/800/700
-           (which lean navy-blue) with neutral, near-black tones. Same selectors as the compiled
-           utilities above, so these win purely by appearing later in the file -- no !important,
-           and every element using those classes (cards, borders, header, buttons, hover states)
-           picks it up without touching the class list on each one. */
-        .bg-slate-950, .dark\:bg-slate-950:is(.dark *) { background-color: #000000; }
-        .bg-slate-950\/60 { background-color: rgba(0, 0, 0, .6); }
-        .bg-slate-900, .dark\:bg-slate-900:is(.dark *), .bg-aws-darkblue { background-color: #0a0a0c; }
-        .bg-slate-900\/60 { background-color: rgba(10, 10, 12, .6); }
-        .bg-slate-800, .dark\:bg-slate-800:is(.dark *) { background-color: #16161a; }
-        .bg-slate-800\/40 { background-color: rgba(22, 22, 26, .4); }
-        .bg-slate-800\/50, .dark\:bg-slate-800\/50:is(.dark *) { background-color: rgba(22, 22, 26, .5); }
-        .bg-slate-800\/60, .dark\:bg-slate-800\/60:is(.dark *) { background-color: rgba(22, 22, 26, .6); }
-        .hover\:bg-slate-700:hover, .dark\:hover\:bg-slate-700:hover:is(.dark *) { background-color: #232327; }
-        .border-slate-800, .dark\:border-slate-800:is(.dark *) { border-color: #1c1c20; }
-        .dark\:border-slate-700:is(.dark *) { border-color: #2a2a2e; }
-        /* Same recolor for the responsive (lg:/max-lg:) variants used by the question card, its
-           mobile card styling, and the fixed mobile Next bar -- otherwise the quiz screen alone
-           would still show the old navy slate-900/950/800 while the rest of the app went black. */
+        /* ===================== THEMING =====================
+           Tailwind here is precompiled, so new `dark:` variants cannot be added. Instead both
+           themes are expressed by overriding the same compiled utilities, scoped by the `dark`
+           class on <html>. These rules appear after the compiled sheet, so they win on source
+           order plus specificity -- no !important, and no class lists to edit element by element.
+
+           DARK: a blacker theme, replacing Tailwind's navy-leaning slate-900/800/700 with
+           neutral near-black tones. */
+        .dark .bg-slate-950, .dark .dark\:bg-slate-950:is(.dark *) { background-color: #000000; }
+        .dark .bg-slate-950\/60 { background-color: rgba(0, 0, 0, .6); }
+        .dark .bg-slate-900, .dark .dark\:bg-slate-900:is(.dark *) { background-color: #0a0a0c; }
+        .dark .bg-slate-900\/60 { background-color: rgba(10, 10, 12, .6); }
+        .dark .bg-slate-800, .dark .dark\:bg-slate-800:is(.dark *) { background-color: #16161a; }
+        .dark .bg-slate-800\/40 { background-color: rgba(22, 22, 26, .4); }
+        .dark .bg-slate-800\/50, .dark .dark\:bg-slate-800\/50:is(.dark *) { background-color: rgba(22, 22, 26, .5); }
+        .dark .bg-slate-800\/60, .dark .dark\:bg-slate-800\/60:is(.dark *) { background-color: rgba(22, 22, 26, .6); }
+        .dark .hover\:bg-slate-700:hover, .dark .dark\:hover\:bg-slate-700:hover:is(.dark *) { background-color: #232327; }
+        .dark .border-slate-800, .dark .dark\:border-slate-800:is(.dark *) { border-color: #1c1c20; }
+        .dark .dark\:border-slate-700:is(.dark *) { border-color: #2a2a2e; }
+        /* the toast keeps a dark surface in both themes, so it is not scoped */
+        .bg-aws-darkblue { background-color: #0a0a0c; }
+
+        /* LIGHT: the markup already pairs most surfaces (bg-white dark:bg-slate-900 and friends),
+           so only the dark-only utilities -- the ones with no light counterpart in the compiled
+           sheet -- need a value here. Surfaces first, then text, then accents. */
+        html:not(.dark) .bg-slate-950 { background-color: #f1f5f9; }
+        html:not(.dark) .bg-slate-900 { background-color: #ffffff; }
+        html:not(.dark) .bg-slate-900\/60 { background-color: rgba(255, 255, 255, .75); }
+        html:not(.dark) .bg-slate-800 { background-color: #e2e8f0; }
+        html:not(.dark) .bg-slate-800\/40 { background-color: rgba(241, 245, 249, .8); }
+        html:not(.dark) .bg-slate-800\/50 { background-color: rgba(248, 250, 252, .9); }
+        html:not(.dark) .bg-slate-800\/60 { background-color: rgba(226, 232, 240, .7); }
+        html:not(.dark) .hover\:bg-slate-700:hover { background-color: #cbd5e1; }
+        html:not(.dark) .hover\:bg-slate-800:hover { background-color: #e2e8f0; }
+        html:not(.dark) .border-slate-800 { border-color: #e2e8f0; }
+        /* a scrim over light content still needs to be dark to dim what is behind it */
+        html:not(.dark) .bg-slate-950\/60 { background-color: rgba(15, 23, 42, .45); }
+        /* text tuned for light surfaces; .text-white is deliberately left alone because it also
+           sits on the rose confirm button and the dark toast, which stay dark in both themes */
+        html:not(.dark) .text-slate-200 { color: #1e293b; }
+        html:not(.dark) .text-slate-300 { color: #334155; }
+        html:not(.dark) .text-slate-400 { color: #64748b; }
+        html:not(.dark) #questionText { color: #0f172a; }
+        html:not(.dark) .hover\:text-slate-200:hover { color: #0f172a; }
+        /* accents: the 300/400-weight greens and reds are tuned for a black page and fall below
+           readable contrast on white, so light mode steps them down a few stops */
+        html:not(.dark) .text-emerald-400, html:not(.dark) .hover\:text-emerald-400:hover,
+        html:not(.dark) .text-aws-lightblue { color: #047857; }
+        html:not(.dark) .hover\:text-emerald-300:hover { color: #065f46; }
+        html:not(.dark) .text-emerald-100, html:not(.dark) .text-emerald-200 { color: #065f46; }
+        html:not(.dark) .text-rose-400, html:not(.dark) .text-rose-400\/80 { color: #be123c; }
+        html:not(.dark) .hover\:text-rose-300:hover { color: #9f1239; }
+        html:not(.dark) .text-rose-200 { color: #9f1239; }
+        html:not(.dark) .text-amber-400 { color: #b45309; }
+        html:not(.dark) .kw { color: #b45309; }
+        html:not(.dark) .opt-reason { border-top-color: rgba(15, 23, 42, .14); }
+        html:not(.dark) { scrollbar-color: #cbd5e1 transparent; }
+        html:not(.dark) *::-webkit-scrollbar-thumb { background: #cbd5e1; background-clip: content-box; }
+
+        /* The responsive (lg:/max-lg:) surface variants used by the question card, its mobile
+           card styling and the fixed mobile Next bar need the same treatment in both themes --
+           otherwise the quiz screen alone keeps Tailwind's navy slate while the rest of the app
+           follows the theme. */
         @media (min-width: 1024px) {
-            .lg\:bg-slate-900 { background-color: #0a0a0c; }
-            .lg\:border-slate-800 { border-color: #1c1c20; }
+            .dark .lg\:bg-slate-900 { background-color: #0a0a0c; }
+            .dark .lg\:border-slate-800 { border-color: #1c1c20; }
+            html:not(.dark) .lg\:bg-slate-900 { background-color: #ffffff; }
+            html:not(.dark) .lg\:border-slate-800 { border-color: #e2e8f0; }
         }
         @media not all and (min-width: 1024px) {
-            .max-lg\:bg-slate-900 { background-color: #0a0a0c; }
-            .max-lg\:bg-slate-950 { background-color: #000000; }
-            .max-lg\:border-slate-800 { border-color: #1c1c20; }
+            .dark .max-lg\:bg-slate-900 { background-color: #0a0a0c; }
+            .dark .max-lg\:bg-slate-950 { background-color: #000000; }
+            .dark .max-lg\:border-slate-800 { border-color: #1c1c20; }
+            html:not(.dark) .max-lg\:bg-slate-900 { background-color: #ffffff; }
+            html:not(.dark) .max-lg\:bg-slate-950 { background-color: #f1f5f9; }
+            html:not(.dark) .max-lg\:border-slate-800 { border-color: #e2e8f0; }
         }
     </style>
+    <script>
+        // Runs before first paint so the page never flashes the wrong theme. The saved choice
+        // wins; with nothing saved we follow the operating system.
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem('saa_theme'); } catch (e) {}
+            var dark = saved ? saved === 'dark'
+                : !window.matchMedia('(prefers-color-scheme: light)').matches;
+            document.documentElement.classList.toggle('dark', dark);
+        })();
+    </script>
 </head>
 <body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex flex-col">
 
@@ -160,6 +220,10 @@
                 </button>
                 <div id="headerMenu" class="hidden absolute right-0 top-11 w-56 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
                     <p id="bankStatusPillMobile" class="px-4 pt-1.5 pb-2 text-[11px] text-slate-500 border-b border-slate-800 mb-1"></p>
+                    <button id="themeToggleBtn" onclick="toggleTheme()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i id="themeToggleIcon" class="fa-solid fa-sun w-4"></i><span id="themeToggleLabel">Light mode</span>
+                    </button>
+                    <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
                     <button onclick="runHeaderAction('exportMistakesJSON')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-file-arrow-down w-4"></i><span>Export</span>
                     </button>
@@ -459,7 +523,30 @@
             } catch (e) {}
         }
 
+        // ===== Theme =====
+        // The class on <html> is set before first paint by the inline script in <head>; these
+        // only handle switching it afterwards and keeping the menu item's wording in step.
+        function isDarkTheme() {
+            return document.documentElement.classList.contains('dark');
+        }
+
+        function syncThemeToggle() {
+            const dark = isDarkTheme();
+            // the control offers the theme you would switch TO
+            document.getElementById('themeToggleLabel').innerText = dark ? 'Light mode' : 'Dark mode';
+            document.getElementById('themeToggleIcon').className = 'fa-solid w-4 ' + (dark ? 'fa-sun' : 'fa-moon');
+        }
+
+        function toggleTheme() {
+            const dark = !isDarkTheme();
+            document.documentElement.classList.toggle('dark', dark);
+            try { localStorage.setItem('saa_theme', dark ? 'dark' : 'light'); } catch (e) {}
+            syncThemeToggle();
+            closeHeaderMenu();
+        }
+
         function initApp() {
+            syncThemeToggle();
             document.getElementById('dashboardView').classList.toggle('no-bank', questions.length === 0);
             renderBankStatus();
             document.getElementById('totalQuestionsStat').innerText = questions.length;
