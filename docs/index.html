@@ -2,7 +2,7 @@
 <html lang="en" class="h-full dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AWS SAA-C03 Studio</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Cpath%20d%3D%27M9%2017l5%205%209-11%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%273.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20fill%3D%27none%27/%3E%3C/svg%3E">
     <!--
@@ -36,6 +36,17 @@
             main:has(#dashboardView:not(.hidden)) { scrollbar-width: none; }
             main:has(#dashboardView:not(.hidden))::-webkit-scrollbar { display: none; }
         }
+        /* Desktop: the question card is as tall as its content, not the viewport. The shell chain
+           (main -> #quizView -> #quizScroll) is flex-1/min-h-0 so each link stretches to fill the
+           window, and the card's own lg:overflow-y-auto then scrolls inside that fixed height --
+           which left a short question sitting in a tall empty panel. Releasing the stretch and the
+           inner scroll lets the cards size themselves; main already scrolls if they outgrow it.
+           align-items: start stops the two grid columns from matching the taller one's height. */
+        @media (min-width: 1024px) {
+            #quizView, #quizScroll { flex: 0 1 auto; }
+            #quizScroll { align-items: start; }
+            #quizScroll > section, #optionsContainer { overflow-y: visible; }
+        }
         /* Below the lg breakpoint the question card is its own scroller, and a rail down the side
            of a phone screen is just noise -- it still scrolls by touch. #main is included because
            the quiz view can overflow it too on short screens. */
@@ -56,6 +67,27 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: none; }
         }
+        /* Pull-to-refresh indicator. Parked above the viewport and moved down by the gesture
+           handler; it only ever appears on touch pulls, so it needs no breakpoint of its own. */
+        #pullIndicator {
+            position: fixed; top: 0; left: 50%; z-index: 60;
+            width: 2.25rem; height: 2.25rem;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 9999px; font-size: .8rem;
+            background: #10B981; color: #04121f;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+            transform: translate(-50%, -100px); opacity: 0;
+            pointer-events: none;
+        }
+        #pullIndicator.settling { transition: transform .2s ease-out, opacity .2s ease-out; }
+        #pullIndicator.spinning i { animation: ptrSpin .8s linear infinite; }
+        @keyframes ptrSpin { to { transform: rotate(360deg); } }
+        /* keep an overscroll at the end of an inner scroller from rubber-banding the whole shell */
+        main, #quizScroll, #optionsContainer { overscroll-behavior-y: contain; }
+        /* manipulation keeps panning and pinch but drops the double-tap-to-zoom gesture, which
+           also removes the ~300ms tap delay that comes with it. On body it covers the whole page,
+           including iOS, where the viewport meta's user-scalable=no is deliberately ignored. */
+        body { touch-action: manipulation; }
         button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid #10B981; outline-offset: 2px; }
         /* Highlighted keywords inside a question. Color and weight alone carry the emphasis: no
@@ -222,28 +254,31 @@
     </script>
 </head>
 <body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex flex-col">
+    <!-- Stands in for the browser's own pull-to-refresh, which cannot fire while the shell keeps
+         the document at overflow: hidden. Driven by the handler at the end of the script. -->
+    <div id="pullIndicator" aria-hidden="true"><i class="fa-solid fa-arrow-rotate-right"></i></div>
 
     <!-- Stays visible on every screen, quizzes included, so the title, theme switch and menu are
          always reachable. The quiz view also has its own back arrow. -->
     <header id="siteHeader" class="bg-slate-900/60 border-b border-slate-800 shrink-0">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
+            <!-- logo and title act as the home link; mid-quiz this routes through the same
+                 leave-session confirmation as the back arrow -->
+            <button onclick="returnToDashboard()" title="Back to dashboard" class="flex items-center gap-3 min-w-0 text-left">
                 <svg class="w-8 h-8 rounded-lg shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo">
                     <rect width="32" height="32" rx="7" fill="#10B981"/>
                     <path d="M9 17l5 5 9-11" stroke="#0F172A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                 </svg>
                 <div class="min-w-0">
-                    <h1 class="font-semibold text-sm sm:text-base tracking-tight truncate leading-tight">AWS SAA-C03 Studio</h1>
-                    <p id="bankStatusPill" class="text-[11px] text-slate-500 hidden sm:block leading-tight truncate"></p>
+                    <h1 class="font-semibold text-sm sm:text-base tracking-tight truncate leading-tight hover:text-emerald-400 transition">AWS SAA-C03 Studio</h1>
                 </div>
-            </div>
+            </button>
             <!-- A single hamburger menu holds Import/Export/Reset/Clear bank on every screen size. -->
             <div class="relative shrink-0">
                 <button id="headerMenuBtn" onclick="toggleHeaderMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Menu" class="w-9 h-9 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 flex items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-aws-orange focus-visible:outline-offset-2">
                     <i id="headerMenuIcon" class="fa-solid fa-bars"></i>
                 </button>
                 <div id="headerMenu" class="hidden absolute right-0 top-11 w-56 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
-                    <p id="bankStatusPillMobile" class="px-4 pt-1.5 pb-2 text-[11px] text-slate-500 border-b border-slate-800 mb-1"></p>
                     <button id="themeToggleBtn" onclick="toggleTheme()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i id="themeToggleIcon" class="fa-solid fa-sun w-4"></i><span id="themeToggleLabel">Light mode</span>
                     </button>
@@ -575,7 +610,6 @@
         function initApp() {
             syncThemeToggle();
             document.getElementById('dashboardView').classList.toggle('no-bank', questions.length === 0);
-            renderBankStatus();
             document.getElementById('totalQuestionsStat').innerText = questions.length;
             document.getElementById('totalMistakesStat').innerText = mistakes.length;
             document.getElementById('mistakeCountBadge').innerText = mistakes.length;
@@ -751,16 +785,10 @@
             const TIER = { new: 0, missed: 1, due: 2, solid: 3 };
             const kindOf = q => questionStanding(q, now).kind;
             let pool = inDomain.filter(q => kindOf(q) !== 'solid');
-            const skipped = inDomain.length - pool.length;
             if (!pool.length) pool = inDomain;   // nothing outstanding, so revise the whole section
             currentQuizQuestions = [0, 1, 2, 3]
                 .flatMap(t => shuffled(pool.filter(q => TIER[kindOf(q)] === t)));
             if (currentQuizQuestions.length === 0) return;
-            if (skipped > 0 && pool !== inDomain) {
-                alertBox('Skipping ' + skipped + ' you already know · ' + currentQuizQuestions.length + ' to go');
-            } else if (skipped > 0) {
-                alertBox('You have answered all of these correctly — revising the full section');
-            }
 
             currentIndex = 0;
             score = 0;
@@ -1597,14 +1625,6 @@
             initApp();
         }
 
-        function renderBankStatus() {
-            const text = questions.length === 0
-                ? 'Could not load questions'
-                : questions.length + ' question' + (questions.length === 1 ? '' : 's');
-            document.getElementById('bankStatusPill').innerText = text;
-            document.getElementById('bankStatusPillMobile').innerText = text;
-        }
-
         // ---- Mobile header menu ----
         function setHeaderVisible(visible) {
             document.getElementById('siteHeader').classList.toggle('hidden', !visible);
@@ -1722,6 +1742,67 @@
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 3500);
         }
+
+        // ===== Pull to refresh =====
+        // html/body are locked at overflow:hidden so the app fills the viewport, which means the
+        // document never overscrolls and the browser's own pull-to-refresh can never fire. This
+        // reproduces it on whichever inner pane the finger started in, and only when that pane is
+        // already scrolled to the very top.
+        (function () {
+            const TRIGGER = 72;                 // pull distance that commits to a reload
+            const TRAVEL = 108;                 // furthest the indicator will follow the finger
+            const el = document.getElementById('pullIndicator');
+            if (!el || !('ontouchstart' in window)) return;
+            let startY = 0, dist = 0, pane = null, active = false;
+
+            function scrollPaneAt(node) {
+                for (let n = node; n && n !== document.documentElement; n = n.parentElement) {
+                    const oy = getComputedStyle(n).overflowY;
+                    if (oy === 'auto' || oy === 'scroll') return n;
+                }
+                return null;
+            }
+
+            function place(d, settle) {
+                el.classList.toggle('settling', !!settle);
+                el.style.transform = 'translate(-50%, ' + (d > 0 ? Math.min(d, TRAVEL) - 46 : -100) + 'px)';
+                el.style.opacity = d > 0 ? Math.min(1, d / TRIGGER) : 0;
+            }
+
+            document.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) { active = false; return; }
+                pane = scrollPaneAt(e.target);
+                active = !!pane && pane.scrollTop <= 0;
+                startY = e.touches[0].clientY;
+                dist = 0;
+                el.classList.remove('spinning');
+            }, { passive: true });
+
+            document.addEventListener('touchmove', e => {
+                if (!active) return;
+                // a pane that has scrolled away from the top cancels the pull
+                if (pane.scrollTop > 0) { active = false; place(0, true); return; }
+                dist = e.touches[0].clientY - startY;
+                place(dist, false);
+            }, { passive: true });
+
+            document.addEventListener('touchend', () => {
+                if (!active) return;
+                active = false;
+                if (dist >= TRIGGER) {
+                    el.classList.add('spinning');
+                    place(TRIGGER, true);
+                    location.reload();
+                } else {
+                    place(0, true);
+                }
+                dist = 0;
+            }, { passive: true });
+
+            document.addEventListener('touchcancel', () => {
+                active = false; dist = 0; place(0, true);
+            }, { passive: true });
+        })();
     </script>
 </body>
 </html>
