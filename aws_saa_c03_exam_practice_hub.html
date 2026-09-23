@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SAA-C03 Practice</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Cpath%20d%3D%27M9%2017l5%205%209-11%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%273.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20fill%3D%27none%27/%3E%3C/svg%3E">
+    <!--
+      The CSS below is precompiled Tailwind 3.4 (no runtime compiler). To regenerate it after changing classes:
+        1. tailwind.config.js : module.exports = { darkMode: 'class', content: ['./aws_saa_c03_exam_practice_hub.html'],
+             theme: { extend: { colors: { aws: { orange: '#10B981', darkblue: '#0F172A', lightblue: '#34D399', lightbg: '#F8F9FA', carddark: '#1A222C' } } } } }
+        2. input.css          : @tailwind base; @tailwind components; @tailwind utilities;
+        3. run                : npx tailwindcss@3.4.17 -c tailwind.config.js -i input.css -o out.css --minify
+        4. paste out.css over the contents of the next style element.
+    -->
+    <!-- Tailwind CSS 3.4 precompiled -->
+    <style>*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width:640px){.container{max-width:640px}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}@media (min-width:1280px){.container{max-width:1280px}}@media (min-width:1536px){.container{max-width:1536px}}.\!visible{visibility:visible!important}.visible{visibility:visible}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.-top-1{top:-.25rem}.bottom-24{bottom:6rem}.left-0{left:0}.left-4{left:1rem}.right-0{right:0}.right-4{right:1rem}.top-11{top:2.75rem}.z-50{z-index:50}.z-\[60\]{z-index:60}.order-1{order:1}.order-2{order:2}.order-3{order:3}.order-4{order:4}.mx-1{margin-left:.25rem;margin-right:.25rem}.mx-auto{margin-left:auto;margin-right:auto}.my-1{margin-top:.25rem;margin-bottom:.25rem}.-mb-1{margin-bottom:-.25rem}.mb-1{margin-bottom:.25rem}.mb-4{margin-bottom:1rem}.ml-3{margin-left:.75rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}.block{display:block}.inline-block{display:inline-block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.contents{display:contents}.hidden{display:none}.h-1{height:.25rem}.h-1\.5{height:.375rem}.h-14{height:3.5rem}.h-2{height:.5rem}.h-20{height:5rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.max-h-\[90vh\]{max-height:90vh}.min-h-0{min-height:0}.w-1\.5{width:.375rem}.w-20{width:5rem}.w-4{width:1rem}.w-56{width:14rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-full{width:100%}.w-px{width:1px}.min-w-0{min-width:0}.min-w-9{min-width:2.25rem}.max-w-2xl{max-width:42rem}.max-w-6xl{max-width:72rem}.max-w-lg{max-width:32rem}.max-w-sm{max-width:24rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;-moz-user-select:none;user-select:none}.list-disc{list-style-type:disc}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-px{gap:1px}.gap-x-3{-moz-column-gap:.75rem;column-gap:.75rem}.gap-x-6{-moz-column-gap:1.5rem;column-gap:1.5rem}.gap-y-1{row-gap:.25rem}.gap-y-3{row-gap:.75rem}.space-x-2>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.5rem*var(--tw-space-x-reverse));margin-left:calc(.5rem*(1 - var(--tw-space-x-reverse)))}.space-x-3>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.75rem*var(--tw-space-x-reverse));margin-left:calc(.75rem*(1 - var(--tw-space-x-reverse)))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.space-y-6>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem*var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-y{border-top-width:1px}.border-b,.border-y{border-bottom-width:1px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-aws-lightblue{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.border-aws-orange,.border-emerald-500{--tw-border-opacity:1;border-color:rgb(16 185 129/var(--tw-border-opacity,1))}.border-emerald-500\/20{border-color:rgba(16,185,129,.2)}.border-emerald-500\/30{border-color:rgba(16,185,129,.3)}.border-emerald-500\/40{border-color:rgba(16,185,129,.4)}.border-rose-400{--tw-border-opacity:1;border-color:rgb(251 113 133/var(--tw-border-opacity,1))}.border-rose-500{--tw-border-opacity:1;border-color:rgb(244 63 94/var(--tw-border-opacity,1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249/var(--tw-border-opacity,1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240/var(--tw-border-opacity,1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225/var(--tw-border-opacity,1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.bg-amber-500\/10{background-color:rgba(245,158,11,.1)}.bg-aws-darkblue{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.bg-aws-orange{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-aws-orange\/10{background-color:rgba(16,185,129,.1)}.bg-aws-orange\/20{background-color:rgba(16,185,129,.2)}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153/var(--tw-bg-opacity,1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.bg-emerald-500\/10{background-color:rgba(16,185,129,.1)}.bg-emerald-500\/40{background-color:rgba(16,185,129,.4)}.bg-emerald-500\/5{background-color:rgba(16,185,129,.05)}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94/var(--tw-bg-opacity,1))}.bg-rose-500\/10{background-color:rgba(244,63,94,.1)}.bg-rose-500\/5{background-color:rgba(244,63,94,.05)}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240/var(--tw-bg-opacity,1))}.bg-slate-300{--tw-bg-opacity:1;background-color:rgb(203 213 225/var(--tw-bg-opacity,1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252/var(--tw-bg-opacity,1))}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85/var(--tw-bg-opacity,1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.bg-slate-800\/40{background-color:rgba(30,41,59,.4)}.bg-slate-800\/60{background-color:rgba(30,41,59,.6)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.bg-slate-900\/60{background-color:rgba(15,23,42,.6)}.bg-slate-950\/60{background-color:rgba(2,6,23,.6)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pb-2{padding-bottom:.5rem}.pl-4{padding-left:1rem}.pt-1\.5{padding-top:.375rem}.pt-2{padding-top:.5rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[13px\]{font-size:13px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-wider{letter-spacing:.05em}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36/var(--tw-text-opacity,1))}.text-aws-darkblue{--tw-text-opacity:1;color:rgb(15 23 42/var(--tw-text-opacity,1))}.text-aws-lightblue{--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.text-aws-orange{--tw-text-opacity:1;color:rgb(16 185 129/var(--tw-text-opacity,1))}.text-emerald-100{--tw-text-opacity:1;color:rgb(209 250 229/var(--tw-text-opacity,1))}.text-emerald-200{--tw-text-opacity:1;color:rgb(167 243 208/var(--tw-text-opacity,1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.text-emerald-500{--tw-text-opacity:1;color:rgb(16 185 129/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-rose-200{--tw-text-opacity:1;color:rgb(254 205 211/var(--tw-text-opacity,1))}.text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133/var(--tw-text-opacity,1))}.text-rose-400\/80{color:rgba(251,113,133,.8)}.text-rose-500{--tw-text-opacity:1;color:rgb(244 63 94/var(--tw-text-opacity,1))}.text-rose-600{--tw-text-opacity:1;color:rgb(225 29 72/var(--tw-text-opacity,1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.opacity-50{opacity:.5}.shadow{--tw-shadow:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color),0 1px 2px -1px var(--tw-shadow-color)}.shadow,.shadow-2xl{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgba(0,0,0,.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgba(0,0,0,.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color)}.shadow-inner,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color),0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.outline{outline-style:solid}.blur{--tw-blur:blur(8px)}.blur,.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px)}.backdrop-blur-sm,.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-300{transition-duration:.3s}.ease-out{transition-timing-function:cubic-bezier(0,0,.2,1)}.hover\:border-aws-lightblue:hover{--tw-border-opacity:1;border-color:rgb(52 211 153/var(--tw-border-opacity,1))}.hover\:bg-emerald-500\/10:hover{background-color:rgba(16,185,129,.1)}.hover\:bg-emerald-600:hover{--tw-bg-opacity:1;background-color:rgb(5 150 105/var(--tw-bg-opacity,1))}.hover\:bg-rose-500\/10:hover{background-color:rgba(244,63,94,.1)}.hover\:bg-rose-600:hover{--tw-bg-opacity:1;background-color:rgb(225 29 72/var(--tw-bg-opacity,1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240/var(--tw-bg-opacity,1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85/var(--tw-bg-opacity,1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.hover\:text-emerald-300:hover{--tw-text-opacity:1;color:rgb(110 231 183/var(--tw-text-opacity,1))}.hover\:text-emerald-400:hover{--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.hover\:text-rose-300:hover{--tw-text-opacity:1;color:rgb(253 164 175/var(--tw-text-opacity,1))}.hover\:text-slate-300:hover{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.hover\:text-slate-600:hover{--tw-text-opacity:1;color:rgb(71 85 105/var(--tw-text-opacity,1))}.focus-visible\:outline:focus-visible{outline-style:solid}.focus-visible\:outline-2:focus-visible{outline-width:2px}.focus-visible\:outline-offset-2:focus-visible{outline-offset:2px}.focus-visible\:outline-aws-orange:focus-visible{outline-color:#10b981}.focus-visible\:outline-rose-400:focus-visible{outline-color:#fb7185}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:opacity-50:disabled{opacity:.5}.disabled\:hover\:bg-aws-orange:hover:disabled{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.dark\:border-slate-700:is(.dark *){--tw-border-opacity:1;border-color:rgb(51 65 85/var(--tw-border-opacity,1))}.dark\:border-slate-800:is(.dark *){--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.dark\:bg-slate-800:is(.dark *){--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.dark\:bg-slate-800\/50:is(.dark *){background-color:rgba(30,41,59,.5)}.dark\:bg-slate-800\/60:is(.dark *){background-color:rgba(30,41,59,.6)}.dark\:bg-slate-900:is(.dark *){--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.dark\:bg-slate-950:is(.dark *){--tw-bg-opacity:1;background-color:rgb(2 6 23/var(--tw-bg-opacity,1))}.dark\:text-emerald-400:is(.dark *){--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.dark\:text-rose-400:is(.dark *){--tw-text-opacity:1;color:rgb(251 113 133/var(--tw-text-opacity,1))}.dark\:text-slate-100:is(.dark *){--tw-text-opacity:1;color:rgb(241 245 249/var(--tw-text-opacity,1))}.dark\:text-slate-300:is(.dark *){--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.dark\:text-slate-400:is(.dark *){--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.dark\:hover\:bg-slate-700:hover:is(.dark *){--tw-bg-opacity:1;background-color:rgb(51 65 85/var(--tw-bg-opacity,1))}.dark\:hover\:bg-slate-800:hover:is(.dark *){--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.dark\:hover\:text-slate-200:hover:is(.dark *){--tw-text-opacity:1;color:rgb(226 232 240/var(--tw-text-opacity,1))}@media not all and (min-width:1024px){.max-lg\:fixed{position:fixed}.max-lg\:inset-x-0{left:0;right:0}.max-lg\:bottom-0{bottom:0}.max-lg\:z-20{z-index:20}.max-lg\:w-full{width:100%}.max-lg\:scroll-mb-28{scroll-margin-bottom:7rem}.max-lg\:content-start{align-content:flex-start}.max-lg\:justify-center{justify-content:center}.max-lg\:overflow-y-auto{overflow-y:auto}.max-lg\:rounded-2xl{border-radius:1rem}.max-lg\:border{border-width:1px}.max-lg\:border-t{border-top-width:1px}.max-lg\:border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.max-lg\:bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.max-lg\:bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23/var(--tw-bg-opacity,1))}.max-lg\:p-3{padding:.75rem}.max-lg\:p-4{padding:1rem}.max-lg\:py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.max-lg\:pb-1{padding-bottom:.25rem}.max-lg\:pb-24{padding-bottom:6rem}.max-lg\:pb-\[calc\(0\.75rem\+env\(safe-area-inset-bottom\)\)\]{padding-bottom:calc(.75rem + env(safe-area-inset-bottom))}}@media (min-width:640px){.sm\:left-auto{left:auto}.sm\:block{display:block}.sm\:inline{display:inline}.sm\:flex{display:flex}.sm\:hidden{display:none}.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:flex-row{flex-direction:row}.sm\:gap-3{gap:.75rem}.sm\:p-10{padding:2.5rem}.sm\:p-6{padding:1.5rem}.sm\:p-8{padding:2rem}.sm\:px-3{padding-left:.75rem;padding-right:.75rem}.sm\:px-5{padding-left:1.25rem;padding-right:1.25rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.sm\:py-4{padding-top:1rem;padding-bottom:1rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-sm{font-size:.875rem;line-height:1.25rem}}@media (min-width:1024px){.lg\:bottom-5{bottom:1.25rem}.lg\:right-5{right:1.25rem}.lg\:flex{display:flex}.lg\:min-h-0{min-height:0}.lg\:grid-cols-\[minmax\(0\2c 1\.2fr\)_minmax\(0\2c 1fr\)\]{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.lg\:flex-col{flex-direction:column}.lg\:gap-4{gap:1rem}.lg\:overflow-y-auto{overflow-y:auto}.lg\:rounded-2xl{border-radius:1rem}.lg\:border{border-width:1px}.lg\:border-t{border-top-width:1px}.lg\:border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.lg\:bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.lg\:p-5{padding:1.25rem}.lg\:pt-4{padding-top:1rem}}</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body { height: 100%; overflow: hidden; }
+        @supports (height: 100dvh) { body { height: 100dvh; } }
+        body { font-family: 'Inter', sans-serif; }
+        /* Dark slate scrollbars with an emerald hover, matching the theme */
+        * { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+        *::-webkit-scrollbar { width: 10px; height: 10px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+        *::-webkit-scrollbar-thumb:hover { background: #10B981; background-clip: content-box; }
+        *::-webkit-scrollbar-corner { background: transparent; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .dark .glass-card {
+            background: rgba(26, 34, 44, 0.95);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: none; }
+        }
+        button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        button:focus-visible, a:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid #10B981; outline-offset: 2px; }
+        /* highlighted keywords inside a question */
+        .kw { background: rgba(16, 185, 129, 0.16); color: #6ee7b7; font-weight: 600; border-radius: 0.25rem; padding: 0 0.2rem; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+        /* no question bank loaded: show the empty state instead of the practice sections */
+        #dashboardView.no-bank .bank-only { display: none; }
+        #dashboardView:not(.no-bank) .empty-only { display: none; }
+        @media (max-width: 1023px) {
+            #optionsContainer button { padding: 0.85rem; font-size: 0.9375rem; min-height: 3rem; }
+            #optionsContainer button:active { transform: scale(0.99); }
+            #questionText { font-size: 0.9375rem; line-height: 1.55; }
+            #explanationText { font-size: 0.875rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in { animation: none; }
+            * { transition-duration: 0.01ms !important; }
+        }
+        @media (min-width: 1024px) and (max-height: 820px) {
+            #questionText { font-size: 0.8125rem; line-height: 1.35; }
+            #optionsContainer button { padding: 0.5rem 0.75rem; font-size: 0.8125rem; line-height: 1.35; }
+            #explanationText { font-size: 0.78rem; line-height: 1.45; }
+        }
+        @media (min-width: 1024px) and (max-height: 700px) {
+            #questionText { font-size: 0.78rem; line-height: 1.3; }
+            #optionsContainer button { padding: 0.4rem 0.65rem; font-size: 0.78rem; line-height: 1.3; }
+            #explanationText { font-size: 0.72rem; line-height: 1.4; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex flex-col">
+
+    <!-- Hidden entirely while a quiz is running: its actions (Import/Export/Reset/Clear bank) are
+         irrelevant and risky mid-quiz, and the quiz view has its own back arrow for navigation. -->
+    <header id="siteHeader" class="bg-slate-900/60 border-b border-slate-800 shrink-0">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="bg-aws-orange text-aws-darkblue font-bold px-2.5 py-1 rounded-lg text-sm tracking-wide shrink-0">SAA-C03</div>
+                <div class="min-w-0">
+                    <h1 class="font-semibold text-sm sm:text-base tracking-tight truncate leading-tight">Cloud Architect Pro Studio</h1>
+                    <p id="bankStatusPill" class="text-[11px] text-slate-500 hidden sm:block leading-tight truncate"></p>
+                </div>
+            </div>
+            <!-- Desktop: inline buttons, safe actions then a divider then destructive ones.
+                 Phones: a single hamburger menu with the same grouping. -->
+            <div class="hidden sm:flex items-center gap-2 shrink-0">
+                <button onclick="openImportModal()" title="Import questions (JSON)" class="flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-medium text-slate-300 bg-slate-800/60 hover:bg-slate-800 transition hover:text-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-aws-orange focus-visible:outline-offset-2">
+                    <i class="fa-solid fa-file-arrow-up"></i><span>Import</span>
+                </button>
+                <button onclick="exportMistakesJSON()" title="Export mistakes (JSON)" class="flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-medium text-slate-300 bg-slate-800/60 hover:bg-slate-800 transition hover:text-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-aws-orange focus-visible:outline-offset-2">
+                    <i class="fa-solid fa-file-arrow-down"></i><span>Export</span>
+                </button>
+                <div class="w-px h-5 bg-slate-700 mx-1" aria-hidden="true"></div>
+                <button onclick="resetAllProgress()" title="Reset all stats" class="flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-medium text-rose-400/80 bg-rose-500/5 hover:bg-rose-500/10 hover:text-rose-300 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400 focus-visible:outline-offset-2">
+                    <i class="fa-solid fa-rotate-left"></i><span>Reset stats</span>
+                </button>
+                <button onclick="clearQuestionBank()" title="Clear the question bank so you can load another" class="flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-medium text-rose-400/80 bg-rose-500/5 hover:bg-rose-500/10 hover:text-rose-300 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400 focus-visible:outline-offset-2">
+                    <i class="fa-solid fa-trash-can"></i><span>Clear bank</span>
+                </button>
+            </div>
+            <div class="sm:hidden relative shrink-0">
+                <button id="headerMenuBtn" onclick="toggleHeaderMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Menu" class="w-9 h-9 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 flex items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-aws-orange focus-visible:outline-offset-2">
+                    <i id="headerMenuIcon" class="fa-solid fa-bars"></i>
+                </button>
+                <div id="headerMenu" class="hidden absolute right-0 top-11 w-56 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
+                    <p id="bankStatusPillMobile" class="px-4 pt-1.5 pb-2 text-[11px] text-slate-500 border-b border-slate-800 mb-1"></p>
+                    <button onclick="runHeaderAction('openImportModal')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i class="fa-solid fa-file-arrow-up w-4"></i><span>Import</span>
+                    </button>
+                    <button onclick="runHeaderAction('exportMistakesJSON')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i class="fa-solid fa-file-arrow-down w-4"></i><span>Export</span>
+                    </button>
+                    <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
+                    <button onclick="runHeaderAction('resetAllProgress')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition">
+                        <i class="fa-solid fa-rotate-left w-4"></i><span>Reset stats</span>
+                    </button>
+                    <button onclick="runHeaderAction('clearQuestionBank')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition">
+                        <i class="fa-solid fa-trash-can w-4"></i><span>Clear bank</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 min-h-0 max-w-6xl w-full mx-auto px-4 py-4 sm:px-6 flex flex-col overflow-y-auto">
+
+        <!-- VIEW 1: DASHBOARD -->
+        <div id="dashboardView" class="space-y-6 animate-fade-in">
+            <!-- Hero -->
+            <section class="pt-2">
+                <h2 class="text-2xl font-semibold tracking-tight">SAA-C03 practice</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Scenario-based questions across every exam domain.</p>
+                <div class="bank-only flex flex-wrap gap-2 mt-5">
+                    <button onclick="startQuiz('all')" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Start quiz</span>
+                    </button>
+                    <button onclick="startQuiz('smart')" title="A short session built from what you missed, haven't seen, or are due to review" class="border border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-400 font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                        <span>Smart quiz</span>
+                    </button>
+                    <button onclick="startQuiz('mistakes')" id="reviewMistakesBtn" class="border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm hidden">
+                        <span>Review mistakes (<span id="mistakeCountBadge">0</span>)</span>
+                    </button>
+                    <button onclick="startQuiz('flagged')" id="reviewFlaggedBtn" class="border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm hidden">
+                        <span>Flagged (<span id="flaggedCountBadge">0</span>)</span>
+                    </button>
+                </div>
+                <p id="smartPlan" class="bank-only mt-3 text-xs text-slate-500"></p>
+            </section>
+
+            <!-- Empty state: shown instead of the practice sections when no question bank is loaded -->
+            <section class="empty-only bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 text-center">
+                <div class="w-9 h-9 mx-auto rounded-xl bg-aws-orange/10 text-aws-orange flex items-center justify-center">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h3 class="text-lg font-bold mt-4">No question bank loaded</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Import a JSON question bank to start practising. Your progress starts fresh with each bank.</p>
+                <div class="flex flex-wrap justify-center gap-2 mt-5">
+                    <button onclick="openImportModal()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
+                        <i class="fa-solid fa-file-arrow-up text-xs"></i>
+                        <span>Import questions</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Exam score estimate -->
+            <section id="estimateCard" class="bank-only bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <button id="estimateToggle" onclick="toggleEstimate()" aria-expanded="true" aria-controls="estimateContent" title="Show or hide the score estimate" class="w-full flex items-center justify-between gap-3 text-left">
+                    <h3 class="text-lg font-bold">Estimated exam score</h3>
+                    <span class="flex items-center gap-3 shrink-0">
+                        <span id="estimateSummary" class="hidden text-sm text-slate-300"></span>
+                        <span id="estimateMeta" class="hidden sm:inline text-[10px] font-mono uppercase tracking-wider text-slate-400">SAA-C03 · 100–1000</span>
+                        <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center"><i id="estimateChevron" class="fa-solid fa-chevron-up text-xs"></i></span>
+                    </span>
+                </button>
+                <div id="estimateContent" class="mt-4">
+                <div id="estimateBody"></div>
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is estimated</summary>
+                    <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>Your answers are fitted to an item-response (Rasch) model, so <em>which</em> questions you answered matters, not just how many you got right: a run of easy questions moves the estimate less than the same run of hard ones.</li>
+                        <li>The model allows for guessing — 25% on a four-option question, 10% on a Select TWO — so the estimate never credits you for a lucky guess.</li>
+                        <li>Your fitted ability is then projected onto the real exam's own mix of easy, medium and hard questions, which is why practising only easy questions will not inflate your score.</li>
+                        <li>Each domain is pulled toward your overall ability, so a domain with two answers isn't trusted like one with twenty. Domains are weighted by the official blueprint: 30% Secure, 26% Resilient, 24% High-Performing, 20% Cost-Optimized.</li>
+                        <li>Recent answers count more (21-day half-life). Repeat attempts count 30%, answers taken after reading the hint count 45%, and mistake-drill answers count 50%, because each is weaker evidence of unaided ability.</li>
+                        <li>A 3,000-run Monte Carlo simulates a 50-question scored exam and maps the result linearly onto AWS's 100–1000 scale, with 720 as the pass mark. The range is the 10th–90th percentile.</li>
+                        <li>AWS does not publish its scoring model or its item difficulties, so treat this as a guide rather than a guarantee.</li>
+                    </ul>
+                </details>
+                </div>
+            </section>
+
+            <!-- Stats -->
+            <div class="bank-only grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800">
+                <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Questions</p>
+                    <h3 id="totalQuestionsStat" class="text-2xl font-semibold mt-0.5">0</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Best score</p>
+                    <h3 id="bestScoreStat" class="text-2xl font-semibold mt-0.5">0%</h3>
+                </div>
+                <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Mistakes</p>
+                    <h3 id="totalMistakesStat" class="text-2xl font-semibold mt-0.5">0</h3>
+                </div>
+            </div>
+
+            <!-- Domains -->
+            <div class="bank-only bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold mb-4 flex items-center justify-between">
+                    <span>Available Exam Domains</span>
+                    <span class="text-xs text-slate-400 font-normal">SAA-C03 Blueprint</span>
+                </h3>
+                <div id="domainListContainer" class="space-y-3">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: QUIZ RUNNER
+             Desktop: two columns that fit the viewport. Mobile: one column ordered question, hint, options, explanation,
+             with a sticky top bar and a fixed Next/Submit button. -->
+        <div id="quizView" class="hidden w-full max-w-6xl mx-auto flex flex-col gap-3 flex-1 min-h-0 animate-fade-in">
+            <div class="shrink-0 flex flex-col gap-2 max-lg:pb-1">
+                <!-- Top bar -->
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <button onclick="returnToDashboard()" aria-label="Back to dashboard" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div class="min-w-0">
+                            <span id="quizDomainBadge" class="block text-sm font-semibold text-aws-lightblue leading-tight line-clamp-2">Networking</span>
+                            <span class="block text-xs text-slate-400 mt-0.5 whitespace-nowrap">Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <button id="flagQuestionBtn" onclick="toggleFlagCurrentQuestion()" aria-label="Flag for review" class="h-9 min-w-9 px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center justify-center gap-1.5">
+                            <i id="flagIcon" class="fa-regular fa-flag"></i>
+                            <span id="flagText" class="hidden sm:inline">Flag for Review</span>
+                        </button>
+                        <p class="text-sm font-semibold text-emerald-500 whitespace-nowrap"><span id="liveScoreNum">0</span> pts</p>
+                    </div>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                    <div id="quizProgressBar" class="bg-aws-orange h-full transition-all duration-300" style="width: 10%;"></div>
+                </div>
+            </div>
+
+            <div id="quizScroll" class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-3 lg:gap-4 flex-1 min-h-0 max-lg:content-start max-lg:overflow-y-auto max-lg:pb-24">
+                <!-- Left card on desktop (question, hint, explanation). On mobile it dissolves (contents) so the parts can be reordered. -->
+                <section class="contents lg:flex lg:flex-col lg:gap-4 lg:p-5 lg:rounded-2xl lg:border lg:border-slate-800 lg:bg-slate-900 lg:overflow-y-auto">
+                    <h2 id="questionText" class="order-1 max-lg:p-4 max-lg:rounded-2xl max-lg:border max-lg:border-slate-800 max-lg:bg-slate-900 text-sm leading-relaxed text-white">
+                        <!-- Populated via JS -->
+                    </h2>
+                    <div id="hintWrap" class="hidden order-2">
+                        <div class="flex items-center flex-wrap gap-x-3 gap-y-1">
+                            <button id="hintToggleBtn" onclick="toggleHint()" class="inline-flex items-center gap-1.5 py-1 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition">
+                                <i class="fa-regular fa-lightbulb"></i>
+                                <span id="hintToggleText">Show hint</span>
+                            </button>
+                            <span id="difficultyBadge" class="hidden"></span>
+                            <span id="reasonBadge" class="hidden"></span>
+                            <span id="pillarsBadge" class="hidden"></span>
+                        </div>
+                        <p id="hintText" class="hidden mt-2 text-[13px] leading-relaxed text-slate-300 bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-3 py-2"></p>
+                    </div>
+                    <div id="explanationBox" class="hidden order-4 max-lg:p-4 max-lg:rounded-2xl max-lg:border max-lg:border-slate-800 max-lg:bg-slate-900 max-lg:scroll-mb-28 lg:pt-4 lg:border-t border-slate-800 space-y-2 animate-fade-in">
+                        <div class="flex items-center justify-between">
+                            <div id="answerResultBadge" class="flex items-center space-x-2 font-semibold text-sm">
+                                <!-- Correct / Incorrect -->
+                            </div>
+                            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Explanation</span>
+                        </div>
+                        <ul id="explanationText" class="list-disc pl-4 space-y-1.5 text-[13px] text-slate-300 leading-relaxed"></ul>
+                    </div>
+                </section>
+
+                <!-- Right column: options and next/submit button -->
+                <section class="order-3 flex flex-col gap-3 lg:min-h-0">
+                    <p id="multiNote" class="hidden text-xs font-semibold text-emerald-400 -mb-1"></p>
+                    <div id="optionsContainer" class="space-y-2 lg:overflow-y-auto">
+                        <!-- Populated via JS -->
+                    </div>
+                    <div id="nextBar" class="hidden shrink-0 flex justify-end max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-20 max-lg:p-3 max-lg:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:bg-slate-950 max-lg:border-t max-lg:border-slate-800">
+                        <button id="nextQuestionBtn" onclick="handleNextClick()" class="bg-aws-orange hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-aws-orange text-aws-darkblue font-semibold px-6 py-2.5 max-lg:py-3.5 max-lg:w-full max-lg:justify-center rounded-xl transition flex items-center space-x-2 text-sm">
+                            <span id="nextBtnText">Next Question</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- VIEW 3: SUMMARY SCREEN -->
+        <div id="summaryView" class="hidden w-full space-y-6 animate-fade-in max-w-2xl mx-auto text-center">
+            <div class="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
+                <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <span class="bg-aws-orange/20 text-aws-orange text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Exam Simulation Complete</span>
+                    <h2 class="text-2xl sm:text-3xl font-bold mt-2">Great Effort!</h2>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Here is how you performed on this SAA-C03 practice run.</p>
+                </div>
+
+                <!-- Score Circle / Stats -->
+                <div class="grid grid-cols-3 gap-4 py-4 border-y border-slate-100 dark:border-slate-800">
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium">Final Score</span>
+                        <h3 id="summaryScorePercent" class="text-xl sm:text-2xl font-bold text-aws-lightblue mt-1">0%</h3>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium">Correct</span>
+                        <h3 id="summaryCorrectCount" class="text-xl sm:text-2xl font-bold text-emerald-500 mt-1">0</h3>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium">Incorrect</span>
+                        <h3 id="summaryIncorrectCount" class="text-xl sm:text-2xl font-bold text-rose-500 mt-1">0</h3>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <button onclick="returnToDashboard()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-bold px-6 py-3.5 rounded-2xl shadow transition text-sm">
+                        Return to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="importModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold">Import Questions JSON</h3>
+                <button onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Drag and drop a custom <code class="text-emerald-500 font-mono">saa-c03-questions.json</code> file below. No other format is accepted.
+            </p>
+            <div id="dropZone"
+                 ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"
+                 onclick="document.getElementById('jsonFileInput').click()"
+                 class="cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-6 py-10 text-center transition">
+                <input type="file" id="jsonFileInput" accept=".json,application/json" onchange="handleFileInputChange(event)" class="hidden">
+                <i id="dropZoneIcon" class="fa-solid fa-file-arrow-up text-2xl text-slate-400"></i>
+                <p id="dropZoneText" class="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">Drop your .json file here</p>
+                <p class="mt-1 text-xs text-slate-400">or click to browse</p>
+            </div>
+            <div class="flex justify-end">
+                <button onclick="closeImportModal()" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
+            <div class="flex items-start gap-3">
+                <div id="confirmIconWrap" class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0">
+                    <i id="confirmIcon" class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 id="confirmTitle" class="text-base font-bold">Are you sure?</h3>
+                    <p id="confirmMessage" class="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed"></p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button id="confirmCancelBtn" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
+                <button id="confirmOkBtn" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white shadow">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuizQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let mistakes = [];
+        let flaggedIds = new Set();
+        let userAnswers = {};
+
+        // Initialization on window load
+        window.onload = function() {
+            loadPersistedData();
+            initApp();
+        };
+
+        function loadPersistedData() {
+            try {
+                // The page ships without questions: a bank exists only once the user imports one.
+                const savedQ = localStorage.getItem('saa_questions');
+                questions = savedQ && localStorage.getItem('saa_questions_source') === 'custom' ? JSON.parse(savedQ) : [];
+                const savedMistakes = localStorage.getItem('saa_mistakes');
+                if (savedMistakes) mistakes = JSON.parse(savedMistakes);
+
+                const savedFlagged = localStorage.getItem('saa_flagged');
+                if (savedFlagged) flaggedIds = new Set(JSON.parse(savedFlagged));
+
+                estimateCollapsed = localStorage.getItem('saa_estimate_collapsed') === '1';
+
+                const savedLog = localStorage.getItem('saa_attempts');
+                if (savedLog) attemptLog = JSON.parse(savedLog);
+            } catch (e) {
+                questions = [];
+            }
+        }
+
+        function savePersistedData() {
+            try {
+                if (localStorage.getItem('saa_questions_source') === 'custom') {
+                    localStorage.setItem('saa_questions', JSON.stringify(questions));
+                }
+                localStorage.setItem('saa_mistakes', JSON.stringify(mistakes));
+                localStorage.setItem('saa_flagged', JSON.stringify(Array.from(flaggedIds)));
+                localStorage.setItem('saa_attempts', JSON.stringify(attemptLog));
+            } catch (e) {}
+        }
+
+        function initApp() {
+            document.getElementById('dashboardView').classList.toggle('no-bank', questions.length === 0);
+            renderBankStatus();
+            document.getElementById('totalQuestionsStat').innerText = questions.length;
+            document.getElementById('totalMistakesStat').innerText = mistakes.length;
+            document.getElementById('mistakeCountBadge').innerText = mistakes.length;
+            document.getElementById('flaggedCountBadge').innerText = flaggedIds.size;
+
+            if (mistakes.length > 0) {
+                document.getElementById('reviewMistakesBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('reviewMistakesBtn').classList.add('hidden');
+            }
+
+            if (flaggedIds.size > 0) {
+                document.getElementById('reviewFlaggedBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('reviewFlaggedBtn').classList.add('hidden');
+            }
+
+            renderDomainList();
+            calculateBestScore();
+            renderEstimate();
+            renderSmartPlan();
+        }
+
+        function renderDomainList() {
+            const container = document.getElementById('domainListContainer');
+            container.innerHTML = '';
+
+            // Per section: total questions, and how many were answered correctly the last time they were attempted
+            const domains = {};
+            questions.forEach(q => {
+                const d = q.domain || 'General AWS';
+                if (!domains[d]) domains[d] = { total: 0, correct: 0 };
+                domains[d].total++;
+                const log = attemptLog[q.id];
+                if (log && log.length && log[log.length - 1][0] === 1) domains[d].correct++;
+            });
+
+            for (const [domain, { total: count, correct }] of Object.entries(domains)) {
+                const tally = `<span class="${correct === count ? 'text-emerald-400' : 'text-slate-400'}"><span class="font-semibold">${correct}</span> / ${count} correct</span>`;
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800";
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="w-8 h-8 rounded-xl bg-aws-orange/10 text-aws-orange flex items-center justify-center font-bold text-xs shrink-0">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="font-semibold text-sm block">${domain}</span>
+                            <span class="text-xs sm:hidden">${tally}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 shrink-0 ml-3">
+                        <span class="hidden sm:inline text-xs font-medium">${tally}</span>
+                        <button onclick="startQuizByDomain('${domain}')" class="px-3.5 py-2 sm:py-1.5 rounded-xl bg-aws-darkblue text-white text-xs font-semibold hover:bg-slate-700 transition">
+                            Practice
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            }
+        }
+
+        function calculateBestScore() {
+            const best = localStorage.getItem('saa_best_score') || 0;
+            document.getElementById('bestScoreStat').innerText = best + '%';
+        }
+
+
+        // Quiz control flows
+        // Fisher-Yates shuffle (returns a new array) so every session gets a fresh random order
+        function shuffled(list) {
+            const a = [...list];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function startQuiz(mode) {
+            if (questions.length === 0) {
+                alertBox("No questions loaded! Please import a valid JSON file first.");
+                return;
+            }
+
+            currentQuizMode = mode;
+            smartReasons = {};
+            if (mode === 'all') {
+                currentQuizQuestions = shuffled(questions);
+            } else if (mode === 'mistakes') {
+                currentQuizQuestions = shuffled(questions.filter(q => mistakes.includes(q.id)));
+            } else if (mode === 'smart') {
+                currentQuizQuestions = selectSmartQuestions(SMART_SIZE);
+            } else if (mode === 'flagged') {
+                currentQuizQuestions = shuffled(questions.filter(q => flaggedIds.has(q.id)));
+            }
+
+            if (currentQuizQuestions.length === 0) {
+                alertBox("No questions found for this mode.");
+                return;
+            }
+
+            currentIndex = 0;
+            score = 0;
+            userAnswers = {};
+
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('quizView').classList.remove('hidden');
+            setHeaderVisible(false);
+
+            loadQuestion();
+        }
+
+        function startQuizByDomain(domain) {
+            currentQuizMode = 'domain';
+            smartReasons = {};
+            currentQuizQuestions = shuffled(questions.filter(q => (q.domain || 'General AWS') === domain));
+            if (currentQuizQuestions.length === 0) return;
+
+            currentIndex = 0;
+            score = 0;
+            userAnswers = {};
+
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('quizView').classList.remove('hidden');
+            setHeaderVisible(false);
+
+            loadQuestion();
+        }
+
+        // ===== Exam score estimator =====
+        // Bayesian, blueprint-weighted estimate of the scaled SAA-C03 score (100-1000, pass = 720).
+        // AWS does not publish its scoring model, so this is an approximation, not a prediction guarantee.
+        const EXAM_DOMAINS = {
+            1: { name: 'Secure Architectures', w: 0.30 },
+            2: { name: 'Resilient Architectures', w: 0.26 },
+            3: { name: 'High-Performing Architectures', w: 0.24 },
+            4: { name: 'Cost-Optimized Architectures', w: 0.20 }
+        };
+        // Task statements from the official SAA-C03 exam guide (shortened for display)
+        const EXAM_TASKS = {
+            '1.1': 'Secure access to AWS resources',
+            '1.2': 'Secure workloads and applications',
+            '1.3': 'Data security controls',
+            '2.1': 'Scalable and loosely coupled architectures',
+            '2.2': 'Highly available and fault-tolerant architectures',
+            '3.1': 'High-performing storage',
+            '3.2': 'High-performing and elastic compute',
+            '3.3': 'High-performing databases',
+            '3.4': 'High-performing network architectures',
+            '3.5': 'Data ingestion and transformation',
+            '4.1': 'Cost-optimized storage',
+            '4.2': 'Cost-optimized compute',
+            '4.3': 'Cost-optimized databases',
+            '4.4': 'Cost-optimized network architectures'
+        };
+        const PASS_SCORE = 720;
+        const SCORED_QUESTIONS = 50;   // the real exam has 65 questions, 50 of them scored
+        const HALF_LIFE_DAYS = 21;     // recent answers count more
+        const REPEAT_WEIGHT = 0.3;     // re-answering a question mostly measures memory, so it counts less
+        const HINT_WEIGHT = 0.45;      // answering after reading the hint says less about unaided ability
+        const DRILL_WEIGHT = 0.5;      // "review mistakes" is a biased sample: you retry until you get it right
+        const MIN_ANSWERED = 10;       // distinct questions needed before an estimate is shown
+        const MC_RUNS = 3000;
+        const DAY_MS = 86400000;
+
+        // ---- Item-response model ----
+        // P(correct) = c + (1 - c) * sigmoid(ability - itemDifficulty), a Rasch model with a guessing floor.
+        // Ability lives on a logit scale, so a practice mix that is easier or harder than the real exam
+        // no longer biases the estimate: ability is inferred from the items you actually saw, then
+        // projected onto the exam's own mix of difficulty and question format.
+        const ITEM_B = { easy: -0.85, medium: 0, hard: 0.85 };   // item difficulty in logits
+        const GUESS_SINGLE = 0.25;                                // 1 of 4 options
+        const GUESS_MULTI = 0.10;                                 // 2 of 5 options: 1 / C(5,2)
+        const PRIOR_SD = 1.5;                                     // weak prior on overall ability
+        const DOMAIN_SD = 0.7;                                    // how far a domain may drift from your overall ability
+        // Assumed composition of the real exam, independent of this bank's composition.
+        const EXAM_MIX = [
+            { b: ITEM_B.easy,   c: GUESS_SINGLE, p: 0.22 },
+            { b: ITEM_B.medium, c: GUESS_SINGLE, p: 0.44 },
+            { b: ITEM_B.hard,   c: GUESS_SINGLE, p: 0.22 },
+            { b: ITEM_B.medium, c: GUESS_MULTI,  p: 0.07 },
+            { b: ITEM_B.hard,   c: GUESS_MULTI,  p: 0.05 }
+        ];
+
+        let attemptLog = {};           // question id -> [[1|0, timestamp, flags], ...]
+        let estimateCollapsed = false;
+        const FLAG_HINT = 1, FLAG_DRILL = 2;
+        let hintUsedThisQuestion = false;
+        let currentQuizMode = 'all';
+
+        const sigmoid = z => 1 / (1 + Math.exp(-z));
+        const itemP = (theta, b, c) => c + (1 - c) * sigmoid(theta - b);
+        const itemDP = (theta, b, c) => { const s = sigmoid(theta - b); return (1 - c) * s * (1 - s); };
+
+        function itemParams(q) {
+            return {
+                b: ITEM_B[String(q.difficulty || '').toLowerCase()] ?? ITEM_B.medium,
+                c: Array.isArray(q.correct_answer) ? GUESS_MULTI : GUESS_SINGLE
+            };
+        }
+
+        // Weighted MAP estimate of ability, with a Normal(mu, sd) prior. Bisection on the score
+        // function: robust even when a domain has only a couple of observations.
+        function fitAbility(obs, mu, sd) {
+            const score = theta => {
+                let s = -(theta - mu) / (sd * sd);
+                for (const o of obs) {
+                    const p = itemP(theta, o.b, o.c);
+                    s += o.w * (o.y - p) / (p * (1 - p)) * itemDP(theta, o.b, o.c);
+                }
+                return s;
+            };
+            let lo = -4, hi = 4;
+            const sLo = score(lo), sHi = score(hi);
+            let theta;
+            if (sLo <= 0) theta = lo;
+            else if (sHi >= 0) theta = hi;
+            else {
+                for (let i = 0; i < 60; i++) {
+                    const mid = (lo + hi) / 2;
+                    if (score(mid) > 0) lo = mid; else hi = mid;
+                }
+                theta = (lo + hi) / 2;
+            }
+            // Observed Fisher information gives the standard error.
+            let info = 1 / (sd * sd);
+            for (const o of obs) {
+                const p = itemP(theta, o.b, o.c), d = itemDP(theta, o.b, o.c);
+                info += o.w * d * d / (p * (1 - p));
+            }
+            return { theta, se: 1 / Math.sqrt(info) };
+        }
+
+        // Expected accuracy on the real exam's mix of items, for a given ability.
+        function projectedAccuracy(theta) {
+            return EXAM_MIX.reduce((acc, m) => acc + m.p * itemP(theta, m.b, m.c), 0);
+        }
+
+        function applyEstimateState() {
+            document.getElementById('estimateContent').classList.toggle('hidden', estimateCollapsed);
+            document.getElementById('estimateSummary').classList.toggle('hidden', !estimateCollapsed);
+            document.getElementById('estimateMeta').classList.toggle('sm:inline', !estimateCollapsed);
+            document.getElementById('estimateMeta').classList.toggle('hidden', true);
+            document.getElementById('estimateChevron').className = 'fa-solid text-xs ' + (estimateCollapsed ? 'fa-chevron-down' : 'fa-chevron-up');
+            document.getElementById('estimateToggle').setAttribute('aria-expanded', String(!estimateCollapsed));
+        }
+
+        function toggleEstimate() {
+            estimateCollapsed = !estimateCollapsed;
+            try { localStorage.setItem('saa_estimate_collapsed', estimateCollapsed ? '1' : '0'); } catch (e) {}
+            applyEstimateState();
+        }
+
+        function recordAttempt(q, isCorrect) {
+            const list = attemptLog[q.id] || (attemptLog[q.id] = []);
+            let flags = 0;
+            if (hintUsedThisQuestion) flags |= FLAG_HINT;
+            if (currentQuizMode === 'mistakes') flags |= FLAG_DRILL;
+            list.push([isCorrect ? 1 : 0, Date.now(), flags]);
+            if (list.length > 20) list.splice(1, 1); // always keep the first attempt
+        }
+
+        // Well-Architected pillars: the `pillars` field, or the trailing "Pillar(s): ..." sentence of an older imported bank
+        function pillarsOf(q) {
+            if (Array.isArray(q.pillars)) return q.pillars;
+            const m = /Pillars?:\s*([^.]+)/.exec([].concat(q.explanation || '').join(' '));
+            return m ? m[1].split(',').map(s => s.trim()).filter(Boolean) : [];
+        }
+
+        // An imported bank may predate the task field, so this is optional everywhere it is used.
+        function taskOf(q) {
+            return EXAM_TASKS[q.task] ? q.task : null;
+        }
+
+        function examDomainOf(q) {
+            if (EXAM_DOMAINS[q.exam_domain]) return q.exam_domain;
+            const pillar = pillarsOf(q)[0] || '';
+            if (/Security/.test(pillar)) return 1;
+            if (/Performance/.test(pillar)) return 3;
+            if (/Cost/.test(pillar)) return 4;
+            return 2;
+        }
+
+        function mulberry32(a) {
+            return function () {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                let t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        function normalSample(rng) { // Box-Muller
+            let u = 0;
+            while (u === 0) u = rng();
+            return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
+        }
+
+        function estimateExamScore() {
+            const now = Date.now();
+            const per = {};
+            for (const d of Object.keys(EXAM_DOMAINS)) per[d] = { obs: [], s: 0, n: 0, questions: 0, attempts: 0 };
+            const perTask = {};
+            for (const t of Object.keys(EXAM_TASKS)) perTask[t] = { s: 0, n: 0, questions: 0, attempts: 0 };
+            const all = [];
+            let distinct = 0, totalAttempts = 0;
+
+            for (const q of questions) {
+                const list = attemptLog[q.id];
+                if (!list || !list.length) continue;
+                const d = per[examDomainOf(q)];
+                const t = perTask[taskOf(q)] || null;
+                const { b, c } = itemParams(q);
+                distinct++; d.questions++;
+                if (t) t.questions++;
+                list.forEach((entry, i) => {
+                    const correct = entry[0], ts = entry[1], flags = entry[2] || 0;
+                    let w = Math.pow(0.5, Math.max(0, now - ts) / DAY_MS / HALF_LIFE_DAYS);
+                    if (i > 0) w *= REPEAT_WEIGHT;                  // repeats mostly measure memory
+                    if (flags & FLAG_HINT) w *= HINT_WEIGHT;        // hinted answers say less about unaided ability
+                    if (flags & FLAG_DRILL) w *= DRILL_WEIGHT;      // mistake drills are a biased sample
+                    const o = { y: correct, w, b, c };
+                    d.obs.push(o); all.push(o);
+                    d.s += w * correct; d.n += w; d.attempts++; totalAttempts++;
+                    if (t) { t.s += w * correct; t.n += w; t.attempts++; }
+                });
+            }
+            if (distinct < MIN_ANSWERED) return { ready: false, distinct };
+
+            let N = 0;
+            for (const d of Object.values(per)) N += d.n;
+
+            // Two-level fit. First your overall ability, then each domain pulled toward it,
+            // so a domain with two answers is not trusted as if it had twenty.
+            const global = fitAbility(all, 0, PRIOR_SD);
+            const post = {};
+            for (const [id, d] of Object.entries(per)) {
+                const fit = fitAbility(d.obs, global.theta, DOMAIN_SD);
+                post[id] = { theta: fit.theta, se: fit.se, mean: projectedAccuracy(fit.theta) };
+            }
+
+            // Monte Carlo: sample an ability per domain, convert to the accuracy that ability implies
+            // on the real exam's item mix, blend by blueprint weight, then simulate a 50-question exam.
+            const rng = mulberry32(Math.imul(distinct, 0x9E3779B1) ^ Math.imul(totalAttempts, 0x85EBCA6B) ^ Math.round(N * 1000));
+            const scores = [];
+            for (let r = 0; r < MC_RUNS; r++) {
+                let p = 0;
+                for (const [id, dom] of Object.entries(EXAM_DOMAINS)) {
+                    p += dom.w * projectedAccuracy(post[id].theta + post[id].se * normalSample(rng));
+                }
+                let k = 0;
+                for (let i = 0; i < SCORED_QUESTIONS; i++) if (rng() < p) k++;
+                scores.push(Math.round(100 + 900 * k / SCORED_QUESTIONS));
+            }
+            scores.sort((x, y) => x - y);
+            const at = f => scores[Math.min(scores.length - 1, Math.floor(f * scores.length))];
+            return {
+                ready: true, per, post, perTask, distinct, totalAttempts, effectiveN: N,
+                ability: global.theta,
+                median: at(0.5), lo: at(0.1), hi: at(0.9),
+                passProb: scores.filter(s => s >= PASS_SCORE).length / scores.length
+            };
+        }
+
+        function renderEstimate() {
+            const body = document.getElementById('estimateBody');
+            if (!body) return;
+            const est = estimateExamScore();
+
+            if (!est.ready) {
+                document.getElementById('estimateSummary').innerText = est.distinct + '/' + MIN_ANSWERED + ' answered';
+                applyEstimateState();
+                const left = MIN_ANSWERED - est.distinct;
+                body.innerHTML = `
+                    <p class="text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} to unlock your estimate. It combines your accuracy in each exam domain, weighted by the real exam blueprint.</p>
+                    <div class="h-1.5 rounded-full bg-slate-800 mt-3"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${Math.round(est.distinct / MIN_ANSWERED * 100)}%"></div></div>`;
+                return;
+            }
+
+            const pct = s => ((s - 100) / 900 * 100).toFixed(1);
+            const pp = Math.round(est.passProb * 100);
+            const tone = est.passProb >= 0.75
+                ? { text: 'text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400', label: 'Likely pass' }
+                : est.passProb >= 0.4
+                    ? { text: 'text-amber-400', chip: 'bg-amber-500/10 text-amber-400', label: 'Borderline' }
+                    : { text: 'text-rose-400', chip: 'bg-rose-500/10 text-rose-400', label: 'Needs work' };
+            document.getElementById('estimateSummary').innerHTML =
+                '<span class="font-semibold ' + tone.text + '">' + est.median + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
+            applyEstimateState();
+            const confidence = est.effectiveN < 15 ? 'Low' : est.effectiveN < 40 ? 'Medium' : 'High';
+
+            const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
+                const acc = Math.round(est.post[id].mean * 100);
+                const d = est.per[id];
+                return `
+                    <div>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="text-slate-300 truncate">${dom.name} <span class="text-slate-500">${Math.round(dom.w * 100)}%</span></span>
+                            <span class="font-semibold text-slate-200">${acc}%</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${acc}%"></div></div>
+                        <p class="text-[10px] text-slate-500 mt-1" title="Projected accuracy on the real exam's mix of easy, medium and hard questions \u2014 not your raw practice accuracy.">${d.questions} question${d.questions === 1 ? '' : 's'} \u00b7 ${d.attempts} attempt${d.attempts === 1 ? '' : 's'}</p>
+                    </div>`;
+            }).join('');
+
+            const taskRows = Object.entries(EXAM_TASKS)
+                .map(([id, name]) => ({ id, name, t: est.perTask ? est.perTask[id] : null }))
+                .filter(x => x.t && x.t.n > 0)
+                .map(x => ({ ...x, acc: Math.round(100 * x.t.s / x.t.n) }))
+                .sort((a, b) => a.acc - b.acc)   // weakest first: that is what to study next
+                .map(x => `
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="font-mono text-slate-500 shrink-0">${x.id}</span>
+                        <span class="text-slate-300 truncate flex-1">${escapeHtml(x.name)}</span>
+                        <span class="hidden sm:inline text-slate-500 shrink-0">${x.t.questions}q</span>
+                        <span class="w-20 h-1.5 rounded-full bg-slate-800 shrink-0"><span class="block h-1.5 rounded-full bg-aws-orange" style="width:${x.acc}%"></span></span>
+                        <span class="font-semibold w-9 text-right shrink-0 ${x.acc >= 70 ? 'text-emerald-400' : x.acc >= 50 ? 'text-amber-400' : 'text-rose-400'}">${x.acc}%</span>
+                    </div>`).join('');
+
+            body.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 items-end">
+                    <div>
+                        <p class="text-xs text-slate-400">Predicted score</p>
+                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${est.median}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="text-xs text-slate-400 mt-1">80% range ${est.lo}\u2013${est.hi}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400">Chance of passing (\u2265${PASS_SCORE})</p>
+                        <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${pp}%</p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <div class="relative h-2 rounded-full bg-slate-800">
+                        <div class="absolute h-2 rounded-full bg-emerald-500/40" style="left:${pct(est.lo)}%;width:${(pct(est.hi) - pct(est.lo)).toFixed(1)}%"></div>
+                        <div class="absolute -top-1 h-4 w-px bg-slate-300" style="left:${pct(PASS_SCORE)}%"></div>
+                        <div class="absolute -top-1 h-4 w-1.5 rounded-full bg-emerald-400" style="left:calc(${pct(est.median)}% - 3px)"></div>
+                    </div>
+                    <div class="relative mt-1.5 h-4 text-[10px] text-slate-500">
+                        <span class="absolute left-0">100</span>
+                        <span class="absolute" style="left:${pct(PASS_SCORE)}%;transform:translateX(-50%)">${PASS_SCORE} pass</span>
+                        <span class="absolute right-0">1000</span>
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">By exam guide task statement</summary>
+                    <div class="mt-3 space-y-2">${taskRows || '<p class="text-xs text-slate-500">Answer a few more questions to see this breakdown.</p>'}</div>
+                    <p class="mt-3 text-[10px] text-slate-500">Your weighted accuracy per task statement of the official SAA-C03 exam guide, weakest first. Unlike the domain figures above, these are raw and not projected onto the exam's item mix.</p>
+                </details>
+                <p class="mt-4 text-[11px] text-slate-500">Confidence: ${confidence} \u00b7 based on ${est.distinct} question${est.distinct === 1 ? '' : 's'} and ${est.totalAttempts} attempt${est.totalAttempts === 1 ? '' : 's'}</p>`;
+        }
+
+        // ===== Smart quiz =====
+        // Builds a session from what will help most: questions you missed last time, questions you have not seen,
+        // and questions that are due for review (spaced repetition), weighted toward your weakest exam domains.
+        const SMART_SIZE = 15;
+        const SPACING_DAYS = [1, 3, 7, 14, 30];  // review interval grows with each consecutive correct answer
+        let smartReasons = {};                   // question id -> why it was picked (shown as a chip in the quiz)
+
+        function questionStanding(q, now) {
+            const log = attemptLog[q.id];
+            if (!log || !log.length) return { kind: 'new', base: 0.55, reason: 'New question' };
+            const last = log[log.length - 1];
+            const days = Math.max(0, now - last[1]) / DAY_MS;
+            if (!last[0]) return { kind: 'missed', base: 1 + 0.2 * Math.pow(0.5, days / 7), reason: 'Missed last time' };
+            let streak = 0;
+            for (let i = log.length - 1; i >= 0 && log[i][0]; i--) streak++;
+            const interval = SPACING_DAYS[Math.min(streak, SPACING_DAYS.length) - 1];
+            const ratio = days / interval;
+            return { kind: ratio >= 1 ? 'due' : 'solid', base: 0.5 * Math.min(1.2, ratio), reason: ratio >= 1 ? 'Due for review' : 'Refresher' };
+        }
+
+        function selectSmartQuestions(size) {
+            const now = Date.now();
+            const est = estimateExamScore();
+            const mean = id => (est.ready ? est.post[id].mean : 0.6);
+            const weakest = est.ready
+                ? Object.keys(EXAM_DOMAINS).reduce((a, b) => (est.post[a].mean <= est.post[b].mean ? a : b))
+                : null;
+
+            const scored = questions.map(q => {
+                const s = questionStanding(q, now);
+                const d = examDomainOf(q);
+                const weight = 1 + (1 - mean(d)) * 4 * EXAM_DOMAINS[d].w;   // weaker, heavier-weighted domains matter more
+                const reason = (s.kind !== 'missed' && s.kind !== 'solid' && String(d) === weakest) ? 'Weak domain' : s.reason;
+                return { q, d, reason, score: s.base * weight + Math.random() * 0.15 };  // jitter keeps sessions varied
+            }).sort((a, b) => b.score - a.score);
+
+            // keep the mix balanced: no single exam domain fills more than 60% of the session
+            const cap = Math.ceil(size * 0.6);
+            const count = {};
+            const picked = [];
+            for (const item of scored) {
+                if (picked.length >= size) break;
+                if ((count[item.d] || 0) >= cap) continue;
+                count[item.d] = (count[item.d] || 0) + 1;
+                picked.push(item);
+            }
+            for (const item of scored) {
+                if (picked.length >= size) break;
+                if (!picked.includes(item)) picked.push(item);
+            }
+
+            smartReasons = {};
+            picked.forEach(item => { smartReasons[item.q.id] = item.reason; });
+            return shuffled(picked.map(item => item.q));
+        }
+
+        function renderSmartPlan() {
+            const el = document.getElementById('smartPlan');
+            if (!el) return;
+            const now = Date.now();
+            const tally = { missed: 0, new: 0, due: 0 };
+            for (const q of questions) {
+                const k = questionStanding(q, now).kind;
+                if (k in tally) tally[k]++;
+            }
+            const parts = [];
+            if (tally.missed) parts.push(tally.missed + ' to redo');
+            if (tally.due) parts.push(tally.due + ' due for review');
+            if (tally.new) parts.push(tally.new + ' new');
+            const est = estimateExamScore();
+            if (est.ready) {
+                const weakest = Object.keys(EXAM_DOMAINS).reduce((a, b) => (est.post[a].mean <= est.post[b].mean ? a : b));
+                parts.push('weakest area: ' + EXAM_DOMAINS[weakest].name + ' (' + Math.round(est.post[weakest].mean * 100) + '%)');
+            }
+            el.innerText = parts.length
+                ? 'Smart quiz picks ' + Math.min(SMART_SIZE, questions.length) + ' questions: ' + parts.join(' \u00b7 ')
+                : 'Smart quiz picks the questions that will help you most.';
+        }
+
+        // ---- Question rendering helpers ----
+        const DEFAULT_KEYWORDS = /\b(MOST|LEAST|LOWEST|HIGHEST|BEST|TWO|THREE|NOT|ONLY|EXCEPT)\b/g;
+        const BOX = "w-7 h-7 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ";
+        const OPT_BASE = "w-full text-left p-3 rounded-xl text-sm flex items-start space-x-3 transition ";
+        const OPT = {
+            idle: OPT_BASE + "border border-slate-800 hover:border-aws-lightblue bg-slate-800/40",
+            selected: OPT_BASE + "border-2 border-aws-orange bg-emerald-500/10 text-emerald-100",
+            correct: OPT_BASE + "border-2 border-emerald-500 bg-emerald-500/10 text-emerald-200",
+            wrong: OPT_BASE + "border-2 border-rose-500 bg-rose-500/10 text-rose-200",
+            dim: OPT_BASE + "border border-slate-800 opacity-50"
+        };
+        const BOX_STATE = {
+            idle: "bg-slate-700",
+            selected: "bg-aws-orange text-aws-darkblue",
+            correct: "bg-emerald-500 text-aws-darkblue",
+            wrong: "bg-rose-500 text-white",
+            dim: "bg-slate-700"
+        };
+        const DIFFICULTY = {
+            easy: { label: 'Easy', cls: 'bg-emerald-500/10 text-emerald-400' },
+            medium: { label: 'Medium', cls: 'bg-amber-500/10 text-amber-400' },
+            hard: { label: 'Hard', cls: 'bg-rose-500/10 text-rose-400' }
+        };
+        let selectedKeys = new Set();   // in-progress choice for multi-select questions
+        let answered = false;
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Escape the text, then wrap each keyword (longest first, case-insensitive) in <mark>.
+        // Questions without a keywords array fall back to highlighting emphasis words like MOST / LEAST / TWO.
+        function highlightKeywords(text, keywords) {
+            const safe = escapeHtml(text);
+            const wrap = m => '<mark class="kw">' + m + '</mark>';
+            if (Array.isArray(keywords) && keywords.length) {
+                const pattern = keywords
+                    .map(k => escapeHtml(k).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                    .sort((a, b) => b.length - a.length)
+                    .join('|');
+                return safe.replace(new RegExp(pattern, 'gi'), wrap);
+            }
+            return safe.replace(DEFAULT_KEYWORDS, wrap);
+        }
+
+        function correctKeysOf(q) {
+            return Array.isArray(q.correct_answer) ? q.correct_answer : [q.correct_answer];
+        }
+
+        function isMulti(q) {
+            return correctKeysOf(q).length > 1;
+        }
+
+        function setOptionState(btn, state, multi) {
+            btn.className = OPT[state];
+            btn.firstElementChild.className = BOX + (multi ? "rounded-md " : "rounded-xl ") + BOX_STATE[state];
+        }
+
+        function loadQuestion() {
+            const q = currentQuizQuestions[currentIndex];
+            const multi = isMulti(q);
+            selectedKeys = new Set();
+            answered = false;
+            hintUsedThisQuestion = false;
+
+            document.getElementById('liveScoreNum').innerText = score;
+            const hintText = document.getElementById('hintText');
+            hintText.classList.add('hidden');
+            hintText.innerText = q.hint || '';
+            document.getElementById('hintToggleText').innerText = 'Show hint';
+            document.getElementById('hintToggleBtn').classList.toggle('hidden', !q.hint);
+            const diff = DIFFICULTY[String(q.difficulty || '').toLowerCase()];
+            const badge = document.getElementById('difficultyBadge');
+            if (diff) {
+                badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ' + diff.cls;
+                badge.innerText = diff.label;
+            } else {
+                badge.className = 'hidden';
+            }
+            const reason = smartReasons[q.id];
+            const reasonBadge = document.getElementById('reasonBadge');
+            if (reason) {
+                reasonBadge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300';
+                reasonBadge.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles text-emerald-400 text-[9px]"></i>' + escapeHtml(reason);
+            } else {
+                reasonBadge.className = 'hidden';
+            }
+            const pillars = pillarsOf(q);
+            const pillarsBadge = document.getElementById('pillarsBadge');
+            if (pillars.length) {
+                pillarsBadge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300';
+                pillarsBadge.innerHTML = '<i class="fa-solid fa-building-columns text-aws-orange text-[9px]"></i>' + escapeHtml(pillars.join(' · '));
+                pillarsBadge.title = 'Well-Architected pillars';
+            } else {
+                pillarsBadge.className = 'hidden';
+            }
+            document.getElementById('hintWrap').classList.toggle('hidden', !q.hint && !diff && !reason && !pillars.length);
+            document.getElementById('currentQNum').innerText = currentIndex + 1;
+            document.getElementById('totalQNum').innerText = currentQuizQuestions.length;
+            document.getElementById('quizDomainBadge').innerText = q.domain || 'SAA-C03';
+            document.getElementById('questionText').innerHTML = highlightKeywords(q.question, q.keywords);
+
+            const progress = ((currentIndex + 1) / currentQuizQuestions.length) * 100;
+            document.getElementById('quizProgressBar').style.width = progress + '%';
+
+            // Flagged button state
+            const flagIcon = document.getElementById('flagIcon');
+            const flagText = document.getElementById('flagText');
+            if (flaggedIds.has(q.id)) {
+                flagIcon.className = "fa-solid fa-flag text-rose-500";
+                flagText.innerText = "Flagged";
+            } else {
+                flagIcon.className = "fa-regular fa-flag";
+                flagText.innerText = "Flag for Review";
+            }
+
+            // Options (square boxes for multi-select, rounded for single choice)
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            for (const [key, value] of Object.entries(q.options)) {
+                const btn = document.createElement('button');
+                btn.setAttribute('data-key', key);
+                btn.onclick = () => (multi ? toggleOption(key) : selectAnswer(key));
+                btn.innerHTML = `<span>${key}</span><span class="leading-relaxed flex-1">${escapeHtml(value)}</span>`;
+                setOptionState(btn, 'idle', multi);
+                container.appendChild(btn);
+            }
+
+            const note = document.getElementById('multiNote');
+            if (multi) {
+                note.innerText = 'Select ' + correctKeysOf(q).length + ' answers';
+                note.classList.remove('hidden');
+            } else {
+                note.classList.add('hidden');
+            }
+
+            document.getElementById('explanationBox').classList.add('hidden');
+            document.querySelector('main').scrollTo(0, 0);
+            document.getElementById('quizScroll').scrollTo(0, 0);
+
+            // Single choice: the button appears after answering. Multi-select: a Submit button is shown straight away.
+            const nextBar = document.getElementById('nextBar');
+            if (multi) {
+                nextBar.classList.remove('hidden');
+                updateSubmitButton(q);
+            } else {
+                nextBar.classList.add('hidden');
+            }
+        }
+
+        function toggleOption(key) {
+            if (answered) return;
+            const q = currentQuizQuestions[currentIndex];
+            const need = correctKeysOf(q).length;
+            if (selectedKeys.has(key)) {
+                selectedKeys.delete(key);
+            } else if (selectedKeys.size < need) {
+                selectedKeys.add(key);
+            }
+            for (const btn of document.getElementById('optionsContainer').children) {
+                setOptionState(btn, selectedKeys.has(btn.getAttribute('data-key')) ? 'selected' : 'idle', true);
+            }
+            updateSubmitButton(q);
+        }
+
+        function updateSubmitButton(q) {
+            const need = correctKeysOf(q).length;
+            document.getElementById('nextBtnText').innerText = 'Submit (' + selectedKeys.size + '/' + need + ')';
+            document.getElementById('nextQuestionBtn').disabled = selectedKeys.size !== need;
+        }
+
+        function selectAnswer(selectedKey) {
+            revealAnswer(currentQuizQuestions[currentIndex], [selectedKey]);
+        }
+
+        function revealAnswer(q, picked) {
+            answered = true;
+            const multi = isMulti(q);
+            const correctKeys = correctKeysOf(q);
+            userAnswers[q.id] = picked;
+            // the explanation takes over from the hint; the difficulty and pillar chips stay
+            document.getElementById('hintToggleBtn').classList.add('hidden');
+            document.getElementById('hintText').classList.add('hidden');
+            if (document.getElementById('difficultyBadge').classList.contains('hidden') && document.getElementById('reasonBadge').classList.contains('hidden') && document.getElementById('pillarsBadge').classList.contains('hidden')) {
+                document.getElementById('hintWrap').classList.add('hidden');
+            }
+
+            for (const btn of document.getElementById('optionsContainer').children) {
+                const key = btn.getAttribute('data-key');
+                btn.onclick = null; // disable further clicks
+                const state = correctKeys.includes(key) ? 'correct' : (picked.includes(key) ? 'wrong' : 'dim');
+                setOptionState(btn, state, multi);
+            }
+
+            const isCorrect = picked.length === correctKeys.length && picked.every(k => correctKeys.includes(k));
+            recordAttempt(q, isCorrect);
+            if (isCorrect) {
+                score++;
+                document.getElementById('liveScoreNum').innerText = score;
+                // remove from mistakes if corrected
+                mistakes = mistakes.filter(id => id !== q.id);
+            } else {
+                if (!mistakes.includes(q.id)) mistakes.push(q.id);
+            }
+            savePersistedData();
+
+            // Show explanation
+            const badge = document.getElementById('answerResultBadge');
+            if (isCorrect) {
+                badge.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-base"></i><span class="text-emerald-600 dark:text-emerald-400">Correct Answer</span>`;
+            } else {
+                const which = correctKeys.length > 1 ? 'answers are ' + correctKeys.join(' and ') : 'answer is ' + correctKeys[0];
+                badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i><span class="text-rose-600 dark:text-rose-400">Incorrect. The correct ${which}.</span>`;
+            }
+
+            // one bullet per entry; an older imported bank may still hold a single string
+            const bullets = [].concat(q.explanation || "Review the AWS Well-Architected Framework for this service.");
+            document.getElementById('explanationText').innerHTML = bullets.map(b => '<li>' + escapeHtml(b) + '</li>').join('');
+            const expl = document.getElementById('explanationBox');
+            expl.classList.remove('hidden');
+            if (window.innerWidth < 1024) expl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            document.getElementById('nextBar').classList.remove('hidden');
+            document.getElementById('nextQuestionBtn').disabled = false;
+            document.getElementById('nextBtnText').innerText =
+                currentIndex === currentQuizQuestions.length - 1 ? "View Summary" : "Next Question";
+        }
+
+        // One button serves as Submit (multi-select, before answering) and Next.
+        function handleNextClick() {
+            const q = currentQuizQuestions[currentIndex];
+            if (isMulti(q) && !answered) {
+                if (selectedKeys.size === correctKeysOf(q).length) revealAnswer(q, [...selectedKeys]);
+                return;
+            }
+            handleNextQuestion();
+        }
+
+        function toggleHint() {
+            const text = document.getElementById('hintText');
+            const show = text.classList.toggle('hidden') === false;
+            if (show) hintUsedThisQuestion = true; // recorded with the attempt, and counts for less
+            document.getElementById('hintToggleText').innerText = show ? 'Hide hint' : 'Show hint';
+        }
+
+        function handleNextQuestion() {
+            currentIndex++;
+            if (currentIndex < currentQuizQuestions.length) {
+                loadQuestion();
+            } else {
+                showSummary();
+            }
+        }
+
+        function showSummary() {
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('summaryView').classList.remove('hidden');
+            setHeaderVisible(true);
+
+            const total = currentQuizQuestions.length;
+            const percent = Math.round((score / total) * 100);
+            document.getElementById('summaryScorePercent').innerText = percent + '%';
+            document.getElementById('summaryCorrectCount').innerText = score;
+            document.getElementById('summaryIncorrectCount').innerText = (total - score);
+
+            const currentBest = parseInt(localStorage.getItem('saa_best_score') || '0');
+            if (percent > currentBest) {
+                localStorage.setItem('saa_best_score', percent);
+            }
+            initApp();
+        }
+
+        function toggleFlagCurrentQuestion() {
+            const q = currentQuizQuestions[currentIndex];
+            if (flaggedIds.has(q.id)) {
+                flaggedIds.delete(q.id);
+            } else {
+                flaggedIds.add(q.id);
+            }
+            savePersistedData();
+            initApp();
+
+            const flagIcon = document.getElementById('flagIcon');
+            const flagText = document.getElementById('flagText');
+            if (flaggedIds.has(q.id)) {
+                flagIcon.className = "fa-solid fa-flag text-rose-500";
+                flagText.innerText = "Flagged";
+            } else {
+                flagIcon.className = "fa-regular fa-flag";
+                flagText.innerText = "Flag for Review";
+            }
+        }
+
+        function returnToDashboard() {
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            setHeaderVisible(true);
+            initApp();
+        }
+
+        function renderBankStatus() {
+            const custom = (() => { try { return localStorage.getItem('saa_questions_source') === 'custom'; } catch (e) { return false; } })();
+            const text = questions.length === 0
+                ? 'No question bank loaded'
+                : questions.length + ' question' + (questions.length === 1 ? '' : 's') + (custom ? ' \u00b7 imported' : '');
+            document.getElementById('bankStatusPill').innerText = text;
+            document.getElementById('bankStatusPillMobile').innerText = text;
+        }
+
+        // ---- Mobile header menu ----
+        function setHeaderVisible(visible) {
+            document.getElementById('siteHeader').classList.toggle('hidden', !visible);
+        }
+
+        function toggleHeaderMenu() {
+            const menu = document.getElementById('headerMenu');
+            const open = menu.classList.toggle('hidden') === false;
+            document.getElementById('headerMenuBtn').setAttribute('aria-expanded', String(open));
+            document.getElementById('headerMenuIcon').className = 'fa-solid ' + (open ? 'fa-xmark' : 'fa-bars');
+        }
+
+        function closeHeaderMenu() {
+            document.getElementById('headerMenu').classList.add('hidden');
+            document.getElementById('headerMenuBtn').setAttribute('aria-expanded', 'false');
+            document.getElementById('headerMenuIcon').className = 'fa-solid fa-bars';
+        }
+
+        function runHeaderAction(fnName) {
+            closeHeaderMenu();
+            window[fnName]();
+        }
+
+        document.addEventListener('click', event => {
+            const menu = document.getElementById('headerMenu');
+            if (menu && !menu.classList.contains('hidden') &&
+                !menu.contains(event.target) && !document.getElementById('headerMenuBtn').contains(event.target)) {
+                closeHeaderMenu();
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeHeaderMenu();
+        });
+
+        // Themed confirm dialog (replaces window.confirm, which cannot be styled).
+        // showConfirm(message, { title, confirmLabel, tone }) -> Promise<boolean>
+        let confirmResolve = null;
+
+        function showConfirm(message, options = {}) {
+            const { title = 'Are you sure?', confirmLabel = 'Confirm', tone = 'danger' } = options;
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            const okBtn = document.getElementById('confirmOkBtn');
+            okBtn.innerText = confirmLabel;
+            const danger = tone === 'danger';
+            okBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow ' + (danger ? 'bg-rose-500 hover:bg-rose-600' : 'bg-aws-orange hover:bg-emerald-600 text-aws-darkblue');
+            document.getElementById('confirmIconWrap').className = 'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ' + (danger ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400');
+            document.getElementById('confirmIcon').className = 'fa-solid ' + (danger ? 'fa-triangle-exclamation' : 'fa-circle-question');
+            document.getElementById('confirmModal').classList.remove('hidden');
+            return new Promise(resolve => { confirmResolve = resolve; });
+        }
+
+        function settleConfirm(result) {
+            document.getElementById('confirmModal').classList.add('hidden');
+            if (confirmResolve) { const r = confirmResolve; confirmResolve = null; r(result); }
+        }
+
+        document.getElementById('confirmOkBtn').addEventListener('click', () => settleConfirm(true));
+        document.getElementById('confirmCancelBtn').addEventListener('click', () => settleConfirm(false));
+        document.getElementById('confirmModal').addEventListener('click', event => {
+            if (event.target.id === 'confirmModal') settleConfirm(false);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !document.getElementById('confirmModal').classList.contains('hidden')) settleConfirm(false);
+        });
+
+        // Modal & File handling
+        function openImportModal() {
+            setDropZoneState('idle');
+            document.getElementById('importModal').classList.remove('hidden');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+        }
+
+        function isJsonFile(file) {
+            return !!file && (/\.json$/i.test(file.name) || file.type === 'application/json');
+        }
+
+        function setDropZoneState(state) {
+            // state: 'idle' | 'over' | 'error'
+            const zone = document.getElementById('dropZone');
+            const icon = document.getElementById('dropZoneIcon');
+            const text = document.getElementById('dropZoneText');
+            zone.className = 'cursor-pointer rounded-2xl border-2 border-dashed px-6 py-10 text-center transition ' + (
+                state === 'over' ? 'border-aws-lightblue bg-emerald-500/5' :
+                state === 'error' ? 'border-rose-400 bg-rose-500/5' :
+                'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60'
+            );
+            icon.className = 'fa-solid text-2xl ' + (state === 'error' ? 'fa-circle-exclamation text-rose-400' : 'fa-file-arrow-up text-slate-400');
+            text.className = 'mt-3 text-sm font-medium ' + (state === 'error' ? 'text-rose-500' : 'text-slate-600 dark:text-slate-300');
+            text.innerText = state === 'error' ? 'Only .json files are accepted — try again' : 'Drop your .json file here';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            setDropZoneState('over');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            setDropZoneState('idle');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            loadDroppedFile(event.dataTransfer.files && event.dataTransfer.files[0]);
+        }
+
+        function handleFileInputChange(event) {
+            loadDroppedFile(event.target.files && event.target.files[0]);
+            event.target.value = ''; // allow re-selecting the same file name later
+        }
+
+        function loadDroppedFile(file) {
+            if (!file || !isJsonFile(file)) {
+                setDropZoneState('error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => applyImportedJSON(e.target.result, file.name);
+            reader.onerror = () => { setDropZoneState('error'); alertBox('Could not read that file.'); };
+            reader.readAsText(file);
+        }
+
+        async function applyImportedJSON(rawText, fileName) {
+            try {
+                const parsed = JSON.parse(rawText);
+                if (!Array.isArray(parsed) || parsed.length === 0) {
+                    throw new Error('JSON must be a non-empty array of questions.');
+                }
+                if (questions.length > 0 && hasProgress() && !(await showConfirm('Loading a new bank clears your current progress: stats, mistakes, flags and your score estimate.', { title: 'Load new question bank?', confirmLabel: 'Load bank' }))) {
+                    return;
+                }
+                questions = parsed;
+                localStorage.setItem('saa_questions_source', 'custom');
+                clearProgress(); // question ids belong to the old bank
+                savePersistedData();
+                closeImportModal();
+                returnToDashboard();
+                alertBox(`Loaded ${questions.length} questions from ${fileName}`);
+            } catch (err) {
+                setDropZoneState('error');
+                alertBox('That file is not valid JSON in the required SAA-C03 schema.');
+            }
+        }
+
+        function exportMistakesJSON() {
+            if (!questions.length) {
+                alertBox('No question bank is loaded, so there is nothing to export.');
+                return;
+            }
+            const mistakeQuestions = questions.filter(q => mistakes.includes(q.id));
+            if (!mistakeQuestions.length) {
+                alertBox('No mistakes recorded yet, so there is nothing to export.');
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mistakeQuestions, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "saa-c03-mistakes.json");
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        async function resetAllProgress() {
+            if (await showConfirm('This clears all stats, mistakes and flagged items. This cannot be undone.', { title: 'Reset all stats?', confirmLabel: 'Reset stats' })) {
+                clearProgress();
+                initApp();
+                alertBox("All statistics have been reset.");
+            }
+        }
+
+        function clearProgress() {
+            attemptLog = {};
+            mistakes = [];
+            flaggedIds.clear();
+            smartReasons = {};
+            try {
+                ['saa_mistakes', 'saa_flagged', 'saa_best_score', 'saa_attempts'].forEach(k => localStorage.removeItem(k));
+            } catch (e) {}
+        }
+
+        function hasProgress() {
+            let best = null;
+            try { best = localStorage.getItem('saa_best_score'); } catch (e) {}
+            return Object.keys(attemptLog).length > 0 || mistakes.length > 0 || flaggedIds.size > 0 || !!best;
+        }
+
+        async function clearQuestionBank() {
+            if (questions.length === 0) {
+                alertBox("No question bank is loaded.");
+                return;
+            }
+            const ok = await showConfirm(`This removes its ${questions.length} questions and all progress: stats, mistakes, flags and your score estimate. You can then import a different bank.`, { title: 'Clear the question bank?', confirmLabel: 'Clear bank' });
+            if (!ok) return;
+            questions = [];
+            try {
+                localStorage.removeItem('saa_questions_source');
+                localStorage.removeItem('saa_questions');
+            } catch (e) {}
+            clearProgress();
+            returnToDashboard();
+            alertBox("Question bank cleared. Import a JSON file to load another one.");
+        }
+
+        function alertBox(msg) {
+            // Clean custom modal alert instead of native alert()
+            const div = document.createElement('div');
+            div.className = "fixed bottom-24 lg:bottom-5 left-4 right-4 sm:left-auto lg:right-5 bg-aws-darkblue text-white px-5 py-3 rounded-2xl shadow-xl z-50 text-xs sm:text-sm flex items-center space-x-3 border border-emerald-500/30 animate-fade-in";
+            div.innerHTML = `<i class="fa-solid fa-circle-info text-aws-orange"></i><span>${msg}</span>`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3500);
+        }
+    </script>
+</body>
+</html>
