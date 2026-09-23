@@ -36,6 +36,15 @@
             main:has(#dashboardView:not(.hidden)) { scrollbar-width: none; }
             main:has(#dashboardView:not(.hidden))::-webkit-scrollbar { display: none; }
         }
+        /* Below the lg breakpoint the question card is its own scroller, and a rail down the side
+           of a phone screen is just noise -- it still scrolls by touch. #main is included because
+           the quiz view can overflow it too on short screens. */
+        @media (max-width: 1023px) {
+            #quizScroll, #optionsContainer, main:has(#quizView:not(.hidden)) { scrollbar-width: none; }
+            #quizScroll::-webkit-scrollbar,
+            #optionsContainer::-webkit-scrollbar,
+            main:has(#quizView:not(.hidden))::-webkit-scrollbar { display: none; }
+        }
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -293,15 +302,15 @@
 
             <!-- Exam score estimate -->
             <section id="estimateCard" class="bank-only bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <button id="estimateToggle" onclick="toggleEstimate()" aria-expanded="true" aria-controls="estimateContent" title="Show or hide the score estimate" class="w-full flex items-center justify-between gap-3 text-left">
-                    <h3 class="text-lg font-bold">Estimated exam score</h3>
+                <button id="estimateToggle" onclick="toggleEstimate()" aria-expanded="false" aria-controls="estimateContent" title="Show or hide the score estimate" class="w-full flex items-center justify-between gap-3 text-left">
+                    <h3 class="text-lg font-bold">Exam score</h3>
                     <span class="flex items-center gap-3 shrink-0">
                         <span id="estimateSummary" class="hidden text-sm text-slate-300"></span>
                         <span id="estimateMeta" class="hidden sm:inline text-[10px] font-mono uppercase tracking-wider text-slate-400">SAA-C03 · 100–1000</span>
                         <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center"><i id="estimateChevron" class="fa-solid fa-chevron-up text-xs"></i></span>
                     </span>
                 </button>
-                <div id="estimateContent" class="mt-4">
+                <div id="estimateContent" class="hidden mt-4">
                 <div id="estimateBody"></div>
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is estimated</summary>
@@ -522,7 +531,9 @@
                 const savedFlagged = localStorage.getItem('saa_flagged');
                 if (savedFlagged) flaggedIds = new Set(JSON.parse(savedFlagged));
 
-                estimateCollapsed = localStorage.getItem('saa_estimate_collapsed') === '1';
+                // nothing saved yet means closed; only an explicit '0' opens it
+                const savedCollapse = localStorage.getItem('saa_estimate_collapsed');
+                estimateCollapsed = savedCollapse === null ? true : savedCollapse === '1';
 
                 const savedLog = localStorage.getItem('saa_attempts');
                 if (savedLog) attemptLog = JSON.parse(savedLog);
@@ -820,7 +831,7 @@
         ];
 
         let attemptLog = {};           // question id -> [[1|0, timestamp, flags], ...]
-        let estimateCollapsed = false;
+        let estimateCollapsed = true;   // collapsed until the reader opens it
         const FLAG_HINT = 1, FLAG_DRILL = 2;
         let hintUsedThisQuestion = false;
         let currentQuizMode = 'all';
