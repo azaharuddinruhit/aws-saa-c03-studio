@@ -307,11 +307,11 @@
             <!-- Hero -->
             <section class="pt-2">
                 <div class="bank-only flex flex-wrap gap-2">
-                    <button onclick="startQuiz('all')" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
+                    <button onclick="chooseQuizSize('all')" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Start quiz</span>
                     </button>
-                    <button onclick="startQuiz('smart')" title="A short session built from what you missed, haven't seen, or are due to review" class="border border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-400 font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
+                    <button onclick="chooseQuizSize('smart')" title="A short session built from what you missed, haven't seen, or are due to review" class="border border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-400 font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
                         <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
                         <span>Smart quiz</span>
                     </button>
@@ -396,6 +396,14 @@
              with a sticky top bar and a fixed Next/Submit button. -->
         <div id="quizView" class="hidden w-full max-w-6xl mx-auto flex flex-col gap-3 flex-1 min-h-0 animate-fade-in">
             <div class="shrink-0 flex flex-col gap-2 max-lg:pb-1">
+                <!-- Quiz title on its own line, so a long section name is not squeezed by the controls; the flag sits beside it -->
+                <div class="flex items-center justify-between gap-2">
+                    <p id="quizTitle" class="min-w-0 text-sm font-semibold text-aws-lightblue leading-tight line-clamp-2">Quiz</p>
+                    <button id="flagQuestionBtn" onclick="toggleFlagCurrentQuestion()" aria-label="Flag for review" class="shrink-0 h-9 min-w-9 px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center justify-center gap-1.5">
+                        <i id="flagIcon" class="fa-regular fa-flag"></i>
+                        <span id="flagText" class="hidden sm:inline">Flag for Review</span>
+                    </button>
+                </div>
                 <!-- Top bar -->
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -403,15 +411,11 @@
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
                         <div class="min-w-0">
-                            <span id="quizDomainBadge" class="block text-sm font-semibold text-aws-lightblue leading-tight line-clamp-2">Networking</span>
-                            <span class="block text-xs text-slate-400 mt-0.5 whitespace-nowrap">Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span><span id="seenChip" class="hidden"></span></span>
+                            <span class="block text-xs text-slate-400 whitespace-nowrap">Question <span id="currentQNum">1</span> / <span id="totalQNum">10</span></span>
+                            <span id="seenChip" class="hidden"></span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                        <button id="flagQuestionBtn" onclick="toggleFlagCurrentQuestion()" aria-label="Flag for review" class="h-9 min-w-9 px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center justify-center gap-1.5">
-                            <i id="flagIcon" class="fa-regular fa-flag"></i>
-                            <span id="flagText" class="hidden sm:inline">Flag for Review</span>
-                        </button>
                         <p id="quizTimer" class="hidden text-sm font-semibold text-slate-400 whitespace-nowrap"><i class="fa-regular fa-clock text-xs"></i> <span id="quizTimerText">00:00</span></p>
                         <p class="text-sm font-semibold text-emerald-500 whitespace-nowrap"><span id="liveScoreNum">0</span> pts</p>
                     </div>
@@ -498,7 +502,7 @@
                     </div>
                 </div>
                 <p id="summaryTimeLine" class="hidden text-xs text-slate-400 -mt-2">
-                    <i class="fa-regular fa-clock"></i> Smart quiz completed in <span id="summaryTimeValue" class="font-semibold text-slate-300">00:00</span>
+                    <i class="fa-regular fa-clock"></i> Completed in <span id="summaryTimeValue" class="font-semibold text-slate-300">00:00</span>
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
@@ -529,10 +533,40 @@
         </div>
     </div>
 
+    <!-- Asks how many questions a Start quiz or Smart quiz should have -->
+    <div id="sizeModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
+            <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                    <i id="sizeIcon" class="fa-solid fa-play"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 id="sizeTitle" class="text-base font-bold">How many questions?</h3>
+                    <p id="sizeMessage" class="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed"></p>
+                </div>
+            </div>
+            <div>
+                <div id="sizePresets" class="flex flex-wrap gap-2" role="radiogroup" aria-label="Number of questions"></div>
+                <label id="sizeCustomRow" class="mt-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                    <span id="sizeCustomLabel">Custom</span>
+                    <input id="sizeCustom" type="number" min="1" step="1" inputmode="numeric" class="w-20 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm">
+                    <span id="sizeMax"></span>
+                </label>
+                <p id="sizeBudget" class="mt-2 text-xs text-slate-500"></p>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button id="sizeCancelBtn" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
+                <button id="sizeStartBtn" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-aws-orange hover:bg-emerald-600 text-aws-darkblue shadow disabled:opacity-50 disabled:cursor-not-allowed">Start</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let questions = [];
         let currentQuizQuestions = [];
-        let currentIndex = 0;
+        let currentIndex = 0;     // the question on screen
+        let liveIndex = 0;        // the furthest question reached; the ones before it reopen read-only
+        let quizFinished = false;
         let score = 0;
         let mistakes = [];
         let flaggedIds = new Set();
@@ -589,7 +623,14 @@
                 if (BANKS[savedBank]) bankKey = savedBank;
             } catch (e) {}
             loadPersistedData();
-            loadQuestionBank().then(() => { restoreSession(); countOtherBanks(); });
+            loadQuestionBank().then(() => {
+                restoreSession();
+                // the address says dashboard, so whatever this tab was doing has been left behind
+                if (parseRoute().name === 'dashboard') endSession();
+                renderRoute();
+                window.addEventListener('popstate', renderRoute);
+                countOtherBanks();
+            });
         };
 
         // The menu shows every bank's size, so the banks that are not active are read once in the
@@ -808,8 +849,11 @@
         // how long the session took), and stops if you back out before finishing.
         // Timed modes are the two that represent a deliberate sitting, rather than an open-ended
         // review of your mistakes or flagged questions.
-        const TIMED_MODES = ['all', 'smart'];
+        // Every quiz gets one countdown of 2 minutes per question. At zero a warning appears once,
+        // and the clock carries on below zero so you can see how far over you went.
+        const SECONDS_PER_QUESTION = 120;
         let quizTimerInterval = null;
+        let timeWarned = false;
         let quizTimerStartedAt = null;
         let quizElapsedMs = 0;
 
@@ -830,13 +874,33 @@
         function startQuizTimer(startedAt = Date.now()) {
             clearQuizTimerInterval();
             quizTimerStartedAt = startedAt;
-            quizElapsedMs = Date.now() - startedAt;
-            document.getElementById('quizTimerText').innerText = formatDuration(quizElapsedMs);
             document.getElementById('quizTimer').classList.remove('hidden');
-            quizTimerInterval = setInterval(() => {
-                quizElapsedMs = Date.now() - quizTimerStartedAt;
-                document.getElementById('quizTimerText').innerText = formatDuration(quizElapsedMs);
-            }, 1000);
+            tickQuizTimer();
+            quizTimerInterval = setInterval(tickQuizTimer, 1000);
+        }
+
+        function quizBudgetMs() {
+            return currentQuizQuestions.length * SECONDS_PER_QUESTION * 1000;
+        }
+
+        function tickQuizTimer() {
+            quizElapsedMs = Date.now() - quizTimerStartedAt;
+            const left = quizBudgetMs() - quizElapsedMs;
+            // counting down, round up so a fresh quiz opens on its full time; below zero, show the overrun
+            document.getElementById('quizTimerText').innerText =
+                left >= 0 ? formatDuration(Math.ceil(left / 1000) * 1000) : '\u2212' + formatDuration(-left);
+            const timer = document.getElementById('quizTimer');
+            timer.classList.toggle('text-rose-400', left < 0);
+            timer.classList.toggle('text-slate-400', left >= 0);
+            // waits a tick if another dialog is open, since there is only one
+            if (left <= 0 && !timeWarned && document.getElementById('confirmModal').classList.contains('hidden')) {
+                timeWarned = true;
+                saveSession();
+                const n = currentQuizQuestions.length;
+                showConfirm('The ' + formatDuration(quizBudgetMs()) + ' for ' + n + ' question' + (n === 1 ? '' : 's')
+                    + ' has run out. The timer keeps running below zero so you can see how far over you go.',
+                    { title: "Time's up", confirmLabel: 'Keep going', tone: 'notice', icon: 'fa-hourglass-end', hideCancel: true });
+            }
         }
 
         function stopAndHideQuizTimer() {
@@ -846,9 +910,9 @@
         }
 
         // ===== Session survives a refresh =====
-        // The quiz in progress is kept in sessionStorage: per tab, so a refresh resumes it at the same
-        // question, but closing the tab ends it. Question ids are stored rather than questions, and a
-        // session from another bank, or one whose questions are no longer in the file, is dropped.
+        // The quiz in progress is kept in sessionStorage: per tab, so a refresh resumes it, but closing
+        // the tab ends it. Question ids are stored rather than questions, and a session from another
+        // bank, or one whose questions are no longer in the file, is dropped.
         const SESSION_KEY = 'saa_session';
 
         function saveSession() {
@@ -857,12 +921,15 @@
                     bank: bankKey,
                     mode: currentQuizMode,
                     ids: currentQuizQuestions.map(q => q.id),
-                    index: currentIndex,
+                    live: liveIndex,
+                    finished: quizFinished,
                     score,
                     answers: userAnswers,
                     reasons: smartReasons,
                     hint: hintUsedThisQuestion,
-                    startedAt: quizTimerStartedAt
+                    startedAt: quizTimerStartedAt,
+                    elapsedMs: quizElapsedMs,
+                    warned: timeWarned
                 }));
             } catch (e) {}
         }
@@ -871,35 +938,135 @@
             try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
         }
 
+        // Puts a saved session back into memory; renderRoute() then decides what to show.
         function restoreSession() {
             let saved = null;
             try { saved = JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch (e) {}
             if (!saved || saved.bank !== bankKey || !Array.isArray(saved.ids)) return;
             const byId = new Map(questions.map(q => [q.id, q]));
             const list = saved.ids.map(id => byId.get(id));
-            if (!list.length || list.some(q => !q) || !(saved.index >= 0 && saved.index < list.length)) {
+            if (!list.length || list.some(q => !q) || !(saved.live >= 0 && saved.live <= list.length)) {
                 clearSession();
                 return;
             }
 
             currentQuizMode = saved.mode;
             currentQuizQuestions = list;
-            currentIndex = saved.index;
+            liveIndex = saved.live;
+            currentIndex = Math.min(liveIndex, list.length - 1);
+            quizFinished = !!saved.finished;
             score = saved.score || 0;
             userAnswers = saved.answers || {};
             smartReasons = saved.reasons || {};
-
-            showQuizView();
-            if (TIMED_MODES.includes(currentQuizMode) && saved.startedAt) startQuizTimer(saved.startedAt);
+            hintUsedThisQuestion = !!saved.hint;
+            quizElapsedMs = saved.elapsedMs || 0;
+            timeWarned = !!saved.warned;
+            if (!quizFinished && saved.startedAt) startQuizTimer(saved.startedAt);
             else stopAndHideQuizTimer();
+        }
 
+        // Forgets the session in memory and in this tab.
+        function endSession() {
+            clearSession();
+            currentQuizQuestions = [];
+            currentIndex = liveIndex = 0;
+            quizFinished = false;
+            userAnswers = {};
+            timeWarned = false;
+            stopAndHideQuizTimer();
+        }
+
+        // ===== Routes =====
+        // The address tracks the screen, so the browser's Back and Forward move through a quiz:
+        //   (no hash)    dashboard
+        //   #/quiz/<n>   question n of the session in this tab; answered ones reopen read-only
+        //   #/summary    the finished session's summary
+        // The address only says where you are. What the session contains (its questions, their
+        // order, your answers) lives in sessionStorage, so an address with no session behind it
+        // falls back to the dashboard.
+        function parseRoute() {
+            const quiz = /^#\/quiz\/(\d+)$/.exec(location.hash);
+            if (quiz) return { name: 'quiz', n: parseInt(quiz[1], 10) };
+            if (location.hash === '#/summary') return { name: 'summary' };
+            return { name: 'dashboard' };
+        }
+
+        function routeUrl(route) {
+            if (route.name === 'quiz') return '#/quiz/' + route.n;
+            if (route.name === 'summary') return '#/summary';
+            return location.pathname + location.search;
+        }
+
+        // Records a new screen in the history, or replaces the current entry, without rendering it.
+        function setRoute(route, replace) {
+            const url = routeUrl(route);
+            if (url === routeUrl(parseRoute())) return;
+            history[replace ? 'replaceState' : 'pushState'](null, '', url);
+        }
+
+        function go(route) {
+            setRoute(route, false);
+            renderRoute();
+        }
+
+        async function renderRoute() {
+            const route = parseRoute();
+            const active = currentQuizQuestions.length > 0;
+
+            if (route.name === 'dashboard') {
+                // Back past the first question. The dialog cannot stop the browser, so
+                // cancelling steps forward again to the question that was on screen.
+                if (active && !(await leaveSession('Leave this session?', 'Leave'))) {
+                    history.forward();
+                    return;
+                }
+                showDashboardView();
+                initApp();
+                return;
+            }
+            if (!active) {
+                setRoute({ name: 'dashboard' }, true);
+                showDashboardView();
+                initApp();
+                return;
+            }
+            if (route.name === 'summary') {
+                if (quizFinished) { showSummary(); return; }
+                route.n = liveIndex + 1;   // not finished yet: back to the question you are on
+            }
+
+            // Only questions already reached can be opened; anything further lands on the live one.
+            const last = Math.min(liveIndex, currentQuizQuestions.length - 1);
+            const index = Math.min(Math.max(route.n - 1, 0), last);
+            setRoute({ name: 'quiz', n: index + 1 }, true);
+            showQuestionAt(index);
+        }
+
+        function showQuestionAt(index) {
+            showQuizView();
+            currentIndex = index;
             loadQuestion();
             const q = currentQuizQuestions[currentIndex];
             if (userAnswers[q.id]) {
-                revealAnswer(q, userAnswers[q.id], true);   // already recorded and scored before the refresh
-            } else if (saved.hint) {
-                toggleHint();
+                revealAnswer(q, userAnswers[q.id], true);   // already recorded and scored when it was answered
+            } else if (hintUsedThisQuestion) {
+                toggleHint();   // the hint was open before a refresh or a step back
             }
+        }
+
+        function showDashboardView() {
+            document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            setHeaderVisible(true);
+        }
+
+        // Named after what was started, matching the dashboard buttons; a section quiz is named after its section
+        const QUIZ_TITLES = { all: 'Quiz', smart: 'Smart quiz', mistakes: 'Review mistakes', flagged: 'Flagged' };
+
+        function quizTitle() {
+            if (currentQuizMode === 'domain') return currentQuizQuestions[0].domain || 'General AWS';
+            return QUIZ_TITLES[currentQuizMode] || 'Quiz';
         }
 
         function showQuizView() {
@@ -909,7 +1076,113 @@
             setHeaderVisible(true);
         }
 
-        function startQuiz(mode) {
+        // ===== Quiz size =====
+        // Start quiz and Smart quiz ask how many questions to use. The last choice for each is remembered
+        // (for every bank) and becomes the preselected option next time; it is always capped at the bank size.
+        const SIZE_TEXT = {
+            all: { title: 'Start quiz', icon: 'fa-play', message: 'Questions are drawn at random from the whole bank.' },
+            smart: { title: 'Smart quiz', icon: 'fa-wand-magic-sparkles', message: 'Questions you missed, are due to review, or have not seen yet, weighted toward your weakest domains.' }
+        };
+        let sizeMode = null;
+        let sizeChoice = 0;
+
+        function preferredQuizSize(mode) {
+            let saved = 0;
+            try { saved = parseInt(localStorage.getItem('saa_quiz_size_' + mode), 10) || 0; } catch (e) {}
+            const fallback = mode === 'smart' ? SMART_SIZE : EXAM_SIZE;
+            return Math.max(1, Math.min(saved || fallback, questions.length));
+        }
+
+        function chooseQuizSize(mode) {
+            if (questions.length === 0) {
+                alertBox("No questions loaded! Please import a valid JSON file first.");
+                return;
+            }
+            sizeMode = mode;
+            const text = SIZE_TEXT[mode];
+            document.getElementById('sizeTitle').innerText = text.title;
+            document.getElementById('sizeIcon').className = 'fa-solid ' + text.icon;
+            document.getElementById('sizeMessage').innerText = text.message;
+            const custom = document.getElementById('sizeCustom');
+            custom.max = questions.length;
+            document.getElementById('sizeMax').innerText = 'of ' + questions.length;
+            // with no presets the number box is the only control, so it drops its top margin and its "Custom" label
+            const hasPresets = sizePresetsFor(mode).length > 0;
+            document.getElementById('sizePresets').classList.toggle('hidden', !hasPresets);
+            document.getElementById('sizeCustomRow').classList.toggle('mt-3', hasPresets);
+            document.getElementById('sizeCustomLabel').innerText = hasPresets ? 'Custom' : 'Questions';
+            setQuizSize(preferredQuizSize(mode));
+            document.getElementById('sizeModal').classList.remove('hidden');
+        }
+
+        // Start quiz has no presets, only the number box. Presets larger than the bank are dropped,
+        // and replaced by the whole bank when that is smaller.
+        // (built on call: SMART_SIZE is declared further down the script)
+        function sizePresetsFor(mode) {
+            if (mode !== 'smart') return [];
+            const presets = [5, 10, SMART_SIZE, 20, 25, 30];
+            const n = questions.length;
+            const list = presets.filter(v => v < n);
+            if (presets.some(v => v >= n)) list.push(n);
+            return list;
+        }
+
+        function setQuizSize(value, fromInput = false) {
+            const n = questions.length;
+            sizeChoice = Number.isInteger(value) && value >= 1 && value <= n ? value : 0;
+            if (!fromInput) document.getElementById('sizeCustom').value = sizeChoice || '';
+            const presets = document.getElementById('sizePresets');
+            presets.innerHTML = '';
+            for (const v of sizePresetsFor(sizeMode)) {
+                const active = v === sizeChoice;
+                const btn = document.createElement('button');
+                btn.setAttribute('role', 'radio');
+                btn.setAttribute('aria-checked', String(active));
+                btn.className = 'px-3 py-1.5 rounded-lg border text-sm font-medium transition ' + (active
+                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                    : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800');
+                btn.innerText = v === n && sizeMode === 'all' ? 'All ' + n : String(v);
+                btn.onclick = () => setQuizSize(v);
+                presets.appendChild(btn);
+            }
+            const budget = document.getElementById('sizeBudget');
+            budget.classList.toggle('text-rose-400', !sizeChoice);
+            budget.classList.toggle('text-slate-500', !!sizeChoice);
+            budget.innerText = sizeChoice
+                ? sizeChoice + ' question' + (sizeChoice === 1 ? '' : 's') + ' · ' + formatDuration(sizeChoice * SECONDS_PER_QUESTION * 1000) + ' on the timer (2 minutes each)'
+                : 'Enter a whole number from 1 to ' + n + '.';
+            document.getElementById('sizeStartBtn').disabled = !sizeChoice;
+        }
+
+        function closeSizeModal() {
+            document.getElementById('sizeModal').classList.add('hidden');
+            sizeMode = null;
+        }
+
+        function confirmQuizSize() {
+            if (!sizeMode || !sizeChoice) return;
+            const mode = sizeMode, size = sizeChoice;
+            try { localStorage.setItem('saa_quiz_size_' + mode, String(size)); } catch (e) {}
+            closeSizeModal();
+            startQuiz(mode, size);
+        }
+
+        document.getElementById('sizeCustom').addEventListener('input', event => {
+            setQuizSize(Number(event.target.value), true);
+        });
+        document.getElementById('sizeCustom').addEventListener('keydown', event => {
+            if (event.key === 'Enter') confirmQuizSize();
+        });
+        document.getElementById('sizeStartBtn').addEventListener('click', confirmQuizSize);
+        document.getElementById('sizeCancelBtn').addEventListener('click', closeSizeModal);
+        document.getElementById('sizeModal').addEventListener('click', event => {
+            if (event.target.id === 'sizeModal') closeSizeModal();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !document.getElementById('sizeModal').classList.contains('hidden')) closeSizeModal();
+        });
+
+        function startQuiz(mode, size) {
             if (questions.length === 0) {
                 alertBox("No questions loaded! Please import a valid JSON file first.");
                 return;
@@ -918,12 +1191,12 @@
             currentQuizMode = mode;
             smartReasons = {};
             if (mode === 'all') {
-                // one exam-length sitting, drawn at random from the whole bank
-                currentQuizQuestions = shuffled(questions).slice(0, EXAM_SIZE);
+                // a sitting of the chosen size (exam length by default), drawn at random from the whole bank
+                currentQuizQuestions = shuffled(questions).slice(0, size || EXAM_SIZE);
             } else if (mode === 'mistakes') {
                 currentQuizQuestions = shuffled(questions.filter(q => mistakes.includes(q.id)));
             } else if (mode === 'smart') {
-                currentQuizQuestions = selectSmartQuestions(SMART_SIZE);
+                currentQuizQuestions = selectSmartQuestions(size || SMART_SIZE);
             } else if (mode === 'flagged') {
                 currentQuizQuestions = shuffled(questions.filter(q => flaggedIds.has(q.id)));
             }
@@ -933,14 +1206,18 @@
                 return;
             }
 
-            currentIndex = 0;
+            beginSession();
+            startQuizTimer();
+            go({ name: 'quiz', n: 1 });
+        }
+
+        function beginSession() {
+            currentIndex = liveIndex = 0;
+            quizFinished = false;
             score = 0;
             userAnswers = {};
-
-            showQuizView();
-            if (TIMED_MODES.includes(mode)) startQuizTimer(); else stopAndHideQuizTimer();
-
-            loadQuestion();
+            hintUsedThisQuestion = false;
+            timeWarned = false;
         }
 
         function startQuizByDomain(domain) {
@@ -962,14 +1239,9 @@
                 .flatMap(t => shuffled(pool.filter(q => TIER[kindOf(q)] === t)));
             if (currentQuizQuestions.length === 0) return;
 
-            currentIndex = 0;
-            score = 0;
-            userAnswers = {};
-
-            showQuizView();
-            stopAndHideQuizTimer();
-
-            loadQuestion();
+            beginSession();
+            startQuizTimer();
+            go({ name: 'quiz', n: 1 });
         }
 
         // ===== Exam score estimator =====
@@ -1125,8 +1397,8 @@
             const last = prior[prior.length - 1];
             const when = new Date(last[1]).toLocaleDateString(undefined, HISTORY_DATE);
             const good = !!last[0];
-            chip.className = good ? 'text-emerald-400' : 'text-amber-400';
-            chip.innerHTML = ' · <i class="fa-solid ' + (good ? 'fa-circle-check' : 'fa-rotate-left')
+            chip.className = 'block text-xs mt-0.5 whitespace-nowrap ' + (good ? 'text-emerald-400' : 'text-amber-400');   // its own line under the question count
+            chip.innerHTML = '<i class="fa-solid ' + (good ? 'fa-circle-check' : 'fa-rotate-left')
                 + ' text-[9px]"></i> ' + (good ? 'Correct ' : 'Missed ') + escapeHtml(when);
         }
 
@@ -1443,7 +1715,7 @@
                 parts.push('weakest area: ' + EXAM_DOMAINS[weakest].name + ' (' + Math.round(est.post[weakest].mean * 100) + '%)');
             }
             el.innerText = parts.length
-                ? 'Smart quiz picks ' + Math.min(SMART_SIZE, questions.length) + ' questions: ' + parts.join(' \u00b7 ')
+                ? 'Smart quiz picks ' + preferredQuizSize('smart') + ' questions: ' + parts.join(' \u00b7 ')
                 : 'Smart quiz picks the questions that will help you most.';
         }
 
@@ -1510,7 +1782,6 @@
             const multi = isMulti(q);
             selectedKeys = new Set();
             answered = false;
-            hintUsedThisQuestion = false;
             renderSeenChip(q);
             document.getElementById('historyLine').classList.add('hidden');
 
@@ -1549,7 +1820,9 @@
             document.getElementById('hintWrap').classList.toggle('hidden', !q.hint && !diff && !reason && !pillars.length && !taskId);
             document.getElementById('currentQNum').innerText = currentIndex + 1;
             document.getElementById('totalQNum').innerText = currentQuizQuestions.length;
-            document.getElementById('quizDomainBadge').innerText = q.domain || 'SAA-C03';
+            // a mixed quiz also names this question's domain; a section quiz's title already is the domain
+            document.getElementById('quizTitle').innerHTML = escapeHtml(quizTitle()) + (currentQuizMode === 'domain' ? ''
+                : ' <span class="font-normal text-slate-400">· ' + escapeHtml(q.domain || 'General AWS') + '</span>');
             document.getElementById('questionText').innerHTML = highlightKeywords(q.question, q.keywords);
 
             const progress = ((currentIndex + 1) / currentQuizQuestions.length) * 100;
@@ -1724,28 +1997,39 @@
         }
 
         function handleNextQuestion() {
-            currentIndex++;
-            if (currentIndex < currentQuizQuestions.length) {
-                loadQuestion();
-            } else {
-                showSummary();
+            const next = currentIndex + 1;
+            if (next >= currentQuizQuestions.length) {
+                if (!quizFinished) finishQuiz();
+                go({ name: 'summary' });
+                return;
             }
+            if (next > liveIndex) {
+                liveIndex = next;
+                hintUsedThisQuestion = false;
+                saveSession();
+            }
+            go({ name: 'quiz', n: next + 1 });
+        }
+
+        function finishQuiz() {
+            if (quizTimerInterval) quizElapsedMs = Date.now() - quizTimerStartedAt;
+            clearQuizTimerInterval();
+            quizFinished = true;
+            liveIndex = currentQuizQuestions.length;
+            saveSession();
         }
 
         function showSummary() {
-            clearSession();
+            document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.remove('hidden');
             setHeaderVisible(true);
 
             clearQuizTimerInterval();
-            const timeLine = document.getElementById('summaryTimeLine');
-            if (TIMED_MODES.includes(currentQuizMode)) {
-                document.getElementById('summaryTimeValue').innerText = formatDuration(quizElapsedMs);
-                timeLine.classList.remove('hidden');
-            } else {
-                timeLine.classList.add('hidden');
-            }
+            const budget = quizBudgetMs(), over = quizElapsedMs - budget;
+            document.getElementById('summaryTimeValue').innerHTML = formatDuration(quizElapsedMs) + ' of ' + formatDuration(budget)
+                + (over >= 1000 ? ' <span class="text-rose-400">\u00b7 ' + formatDuration(over) + ' over</span>' : '');
+            document.getElementById('summaryTimeLine').classList.remove('hidden');
             document.getElementById('quizTimer').classList.add('hidden');
 
             const total = currentQuizQuestions.length;
@@ -1784,7 +2068,7 @@
         async function leaveSession(title, confirmLabel) {
             const inQuiz = !document.getElementById('quizView').classList.contains('hidden');
             const done = Object.keys(userAnswers).length;
-            if (inQuiz && done > 0) {
+            if (inQuiz && done > 0 && !quizFinished) {
                 const total = currentQuizQuestions.length;
                 const ok = await showConfirm(
                     'You have answered ' + done + ' of ' + total + '. Those answers are already counted in your stats, '
@@ -1792,12 +2076,9 @@
                     { title, confirmLabel });
                 if (!ok) return false;
             }
-            clearSession();
-            document.getElementById('quizView').classList.add('hidden');
-            document.getElementById('summaryView').classList.add('hidden');
-            document.getElementById('dashboardView').classList.remove('hidden');
-            setHeaderVisible(true);
-            stopAndHideQuizTimer();
+            endSession();
+            setRoute({ name: 'dashboard' }, false);
+            showDashboardView();
             return true;
         }
 
@@ -1845,7 +2126,8 @@
         let confirmResolve = null;
 
         function showConfirm(message, options = {}) {
-            const { title = 'Are you sure?', confirmLabel = 'Confirm', tone = 'danger' } = options;
+            const { title = 'Are you sure?', confirmLabel = 'Confirm', tone = 'danger', icon = null, hideCancel = false } = options;
+            document.getElementById('confirmCancelBtn').classList.toggle('hidden', hideCancel);
             document.getElementById('confirmTitle').innerText = title;
             document.getElementById('confirmMessage').innerText = message;
             const okBtn = document.getElementById('confirmOkBtn');
@@ -1853,7 +2135,7 @@
             const danger = tone === 'danger';
             okBtn.className = 'px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow ' + (danger ? 'bg-rose-500 hover:bg-rose-600' : 'bg-aws-orange hover:bg-emerald-600 text-aws-darkblue');
             document.getElementById('confirmIconWrap').className = 'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ' + (danger ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400');
-            document.getElementById('confirmIcon').className = 'fa-solid ' + (danger ? 'fa-triangle-exclamation' : 'fa-circle-question');
+            document.getElementById('confirmIcon').className = 'fa-solid ' + (icon || (danger ? 'fa-triangle-exclamation' : 'fa-circle-question'));
             document.getElementById('confirmModal').classList.remove('hidden');
             return new Promise(resolve => { confirmResolve = resolve; });
         }

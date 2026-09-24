@@ -1468,7 +1468,7 @@
       "LEAST operational overhead"
     ],
     "options": {
-      "A": "Use Amazon CloudWatch Network. Monitor to set up Internet Control Message Protocol (ICMP) probe monitoring from each subnet to the on-premises destination.",
+      "A": "Use Amazon CloudWatch Network Monitor to set up Internet Control Message Protocol (ICMP) probe monitoring from each subnet to the on-premises destination.",
       "B": "Create an Amazon EC2 instance in each subnet. Create a scheduled job to send Internet Control Message Protocol (ICMP) packets to the on-premises destination.",
       "C": "Create an AWS Lambda function in each subnet. Write a script to perform Internet Control Message Protocol (ICMP) connectivity checks.",
       "D": "Create an AWS Batch job in each subnet. Write a script to perform Internet Control Message Protocol (ICMP) connectivity checks."
@@ -1802,7 +1802,7 @@
     "options": {
       "A": "Set up an AWS Direct Connect connection that has a public virtual interface (VIF) to connect each user's data center to the EC2 instances. Create a Direct Connect gateway for the ERP system API to route user API requests.",
       "B": "Deploy Amazon API Gateway endpoints in multiple Regions. Use Amazon Route 53 latency-based routing to route requests to the nearest endpoint. Configure a VPC peering connection between the Regions to connect to the ERP system.",
-      "C": "Set up AWS Global Accelerator. Configure listeners for the necessary ports. Configure endpoint groups for the appropriate Regions to distribute traffic. Create an endpoint in each group for the API,.",
+      "C": "Set up AWS Global Accelerator. Configure listeners for the necessary ports. Configure endpoint groups for the appropriate Regions to distribute traffic. Create an endpoint in each group for the API.",
       "D": "Use AWS Site-to-Site VPN to establish dedicated VPN tunnels between multiple Regions and user networks. Route traffic to the API through the VPN connections."
     },
     "correct_answer": "C",
@@ -2409,7 +2409,7 @@
     "exam_domain": 4,
     "task": "4.3",
     "difficulty": "medium",
-    "question": "A company is migrating a PostgreSQL database to AWS. The database load is consistently high. The company has no plans to modify the CPU or memory requirements for next year. The company wants a solution that maximizes cost savings and reduces maintenance overhead. Which combination of options Will meet these requirements? (Select TWO.)",
+    "question": "A company is migrating a PostgreSQL database to AWS. The database load is consistently high. The company has no plans to modify the CPU or memory requirements for next year. The company wants a solution that maximizes cost savings and reduces maintenance overhead. Which combination of options will meet these requirements? (Select TWO.)",
     "hint": "A managed database with steady load: pick the engine option and the discount that actually applies to it.",
     "keywords": [
       "PostgreSQL",
@@ -3262,7 +3262,7 @@
     "options": {
       "A": "Add a custom IAM policy to the Lambda function's execution role. Configure the policy to allow the neptune-db:connect action. Specify the Neptune cluster's Amazon Resource Name (ARN) as the resource.",
       "B": "Attach the AmazonNeptuneFullAccess managed policy to the Lambda function's execution role.",
-      "C": "Create a custom inline IAM policy. Configure the policy to include 'Action: \"*\"\"' and 'Resource: \"arn:aws:neptune :* \". Add the policy to the Lambda function's execution role.",
+      "C": "Create a custom inline IAM policy. Configure the policy to include \"Action\": \"*\" and \"Resource\": \"arn:aws:neptune:*\". Add the policy to the Lambda function's execution role.",
       "D": "Add a custom IAM policy to the Lambda function's execution role. Configure the policy to allow the rds-db:connect action. Specify the Neptune cluster's Amazon Resource Name (ARN) as the resource."
     },
     "correct_answer": "A",
@@ -3334,7 +3334,7 @@
     ],
     "options": {
       "A": "Store the logs in an Amazon S3 bucket. Configure Amazon Macie to discover sensitive data. Use Amazon Athena to query the logs.",
-      "B": "Store the logs in an Amazon EBS volume. Create an application that uses Amazon SageMaker Al to detect sensitive data. Use Amazon RDS to query the logs.",
+      "B": "Store the logs in an Amazon EBS volume. Create an application that uses Amazon SageMaker AI to detect sensitive data. Use Amazon RDS to query the logs.",
       "C": "Store the logs in Amazon DynamoDB. Use AWS KMS to discover sensitive data. Use Amazon Redshift Spectrum to query the logs.",
       "D": "Store the logs in an Amazon S3 bucket. Use Amazon Inspector to discover sensitive data. Use Amazon Athena to query the logs."
     },
@@ -3594,7 +3594,7 @@
       "A": "Use Amazon S3 with Transfer Acceleration to host the application.",
       "B": "Use Amazon S3 with Cache-Control headers to host the application.",
       "C": "Host the application on Amazon EC2 instances in an Auto Scaling group. Configure an Amazon CloudFront distribution to use the EC2 instances as the origin.",
-      "D": "Host the application on Amazon EC2 instances in an Auto Scaling group. Create an Amazon ElastiCache (Redis OSS) cluster, and integrate the cluster with the EC instances."
+      "D": "Host the application on Amazon EC2 instances in an Auto Scaling group. Create an Amazon ElastiCache (Redis OSS) cluster, and integrate the cluster with the EC2 instances."
     },
     "correct_answer": "A",
     "explanation": [
@@ -4074,7 +4074,7 @@
     "exam_domain": 4,
     "task": "4.2",
     "difficulty": "medium",
-    "question": "A company develops a multi-tenant application that runs on Amazon EC2 instances in an AWS account. The company performs a security audit. The security audit identifies that the company must separate tenants into dedicated AWS accounts to reduce the potential impact of exploited vulnerabilities across customers. The company recently purchased a Savings Plan for the account where the application runs. The company wants to use the discounts in all the accounts where the application will run. Which combination of steps will meet these requirements while following AWS WellArchitected design patterns? (Select TWO.)",
+    "question": "A company develops a multi-tenant application that runs on Amazon EC2 instances in an AWS account. The company performs a security audit. The security audit identifies that the company must separate tenants into dedicated AWS accounts to reduce the potential impact of exploited vulnerabilities across customers. The company recently purchased a Savings Plan for the account where the application runs. The company wants to use the discounts in all the accounts where the application will run. Which combination of steps will meet these requirements while following AWS Well-Architected design patterns? (Select TWO.)",
     "hint": "Savings Plan discounts are shared through consolidated billing in an organization, controlled from the management account.",
     "keywords": [
       "separate tenants into dedicated AWS accounts",
@@ -5381,7 +5381,7 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
-    "question": "A company needs to run its external website on Amazon EC2 instances and on-premises virtualized servers. The AWS environment has a 1 GB AWS Direct Connect connection to the data center. The application has IP addresses that will not change. The on-premises and AWS servers are able to restart themselves while maintaining the same IP address if a failure occurs. Some website users have to add their vendors to an allow list, so the solution must have a fixed IP address. The company needs a solution with the lowest operational overhead to handle this split traffic. What should a solutions architect do to meet these requirements?",
+    "question": "A company needs to run its external website on Amazon EC2 instances and on-premises virtualized servers. The AWS environment has a 1 Gbps AWS Direct Connect connection to the data center. The application has IP addresses that will not change. The on-premises and AWS servers are able to restart themselves while maintaining the same IP address if a failure occurs. Some website users have to add their vendors to an allow list, so the solution must have a fixed IP address. The company needs a solution with the lowest operational overhead to handle this split traffic. What should a solutions architect do to meet these requirements?",
     "hint": "Which load balancer gives static IP addresses and can target on-premises IPs over Direct Connect?",
     "keywords": [
       "on-premises virtualized servers",

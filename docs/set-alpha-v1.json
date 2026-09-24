@@ -4627,7 +4627,8 @@
       "A is wrong: Redshift is a warehouse built for large analytical scans and would run continuously for what is mostly recent-window querying.",
       "B is wrong: DynamoDB can absorb the writes but offers no time series aggregation, so 7-day windows would need scans or a separate aggregation pipeline, and 5 years of items is costly.",
       "C is correct: Timestream is a purpose-built time series database with built-in tiering, keeping recent data in a fast tier for windowed queries, ageing older data into low-cost storage automatically, and providing time series functions for aggregation.",
-      "D is wrong: a relational engine stores time series inefficiently at this ingest rate, and read replicas multiply cost without changing the storage model."
+      "D is wrong: a relational engine stores time series inefficiently at this ingest rate, and read replicas multiply cost without changing the storage model.",
+      "Note: AWS closed Amazon Timestream for LiveAnalytics to new customers on June 20, 2025; existing customers can keep using it, and AWS recommends Amazon Timestream for InfluxDB for new time-series workloads. C remains the intended answer to this question."
     ],
     "tldr": "Amazon Timestream automatically tiers time-series data by age, keeping recent data fast and older data cheap.",
     "wrong_reasons": {
