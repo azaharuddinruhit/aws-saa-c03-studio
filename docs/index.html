@@ -589,7 +589,7 @@
                 if (BANKS[savedBank]) bankKey = savedBank;
             } catch (e) {}
             loadPersistedData();
-            loadQuestionBank().then(countOtherBanks);
+            loadQuestionBank().then(() => { restoreSession(); countOtherBanks(); });
         };
 
         // The menu shows every bank's size, so the banks that are not active are read once in the
@@ -827,11 +827,11 @@
             if (quizTimerInterval) { clearInterval(quizTimerInterval); quizTimerInterval = null; }
         }
 
-        function startQuizTimer() {
+        function startQuizTimer(startedAt = Date.now()) {
             clearQuizTimerInterval();
-            quizTimerStartedAt = Date.now();
-            quizElapsedMs = 0;
-            document.getElementById('quizTimerText').innerText = '00:00';
+            quizTimerStartedAt = startedAt;
+            quizElapsedMs = Date.now() - startedAt;
+            document.getElementById('quizTimerText').innerText = formatDuration(quizElapsedMs);
             document.getElementById('quizTimer').classList.remove('hidden');
             quizTimerInterval = setInterval(() => {
                 quizElapsedMs = Date.now() - quizTimerStartedAt;
@@ -843,6 +843,70 @@
             clearQuizTimerInterval();
             document.getElementById('quizTimer').classList.add('hidden');
             document.getElementById('summaryTimeLine').classList.add('hidden');
+        }
+
+        // ===== Session survives a refresh =====
+        // The quiz in progress is kept in sessionStorage: per tab, so a refresh resumes it at the same
+        // question, but closing the tab ends it. Question ids are stored rather than questions, and a
+        // session from another bank, or one whose questions are no longer in the file, is dropped.
+        const SESSION_KEY = 'saa_session';
+
+        function saveSession() {
+            try {
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+                    bank: bankKey,
+                    mode: currentQuizMode,
+                    ids: currentQuizQuestions.map(q => q.id),
+                    index: currentIndex,
+                    score,
+                    answers: userAnswers,
+                    reasons: smartReasons,
+                    hint: hintUsedThisQuestion,
+                    startedAt: quizTimerStartedAt
+                }));
+            } catch (e) {}
+        }
+
+        function clearSession() {
+            try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+        }
+
+        function restoreSession() {
+            let saved = null;
+            try { saved = JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch (e) {}
+            if (!saved || saved.bank !== bankKey || !Array.isArray(saved.ids)) return;
+            const byId = new Map(questions.map(q => [q.id, q]));
+            const list = saved.ids.map(id => byId.get(id));
+            if (!list.length || list.some(q => !q) || !(saved.index >= 0 && saved.index < list.length)) {
+                clearSession();
+                return;
+            }
+
+            currentQuizMode = saved.mode;
+            currentQuizQuestions = list;
+            currentIndex = saved.index;
+            score = saved.score || 0;
+            userAnswers = saved.answers || {};
+            smartReasons = saved.reasons || {};
+
+            showQuizView();
+            if (TIMED_MODES.includes(currentQuizMode) && saved.startedAt) startQuizTimer(saved.startedAt);
+            else stopAndHideQuizTimer();
+
+            loadQuestion();
+            const q = currentQuizQuestions[currentIndex];
+            if (userAnswers[q.id]) {
+                revealAnswer(q, userAnswers[q.id], true);   // already recorded and scored before the refresh
+            } else if (saved.hint) {
+                toggleHint();
+            }
+        }
+
+        function showQuizView() {
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('quizView').classList.remove('hidden');
+            setHeaderVisible(true);
         }
 
         function startQuiz(mode) {
@@ -873,10 +937,7 @@
             score = 0;
             userAnswers = {};
 
-            document.getElementById('dashboardView').classList.add('hidden');
-            document.getElementById('summaryView').classList.add('hidden');
-            document.getElementById('quizView').classList.remove('hidden');
-            setHeaderVisible(true);
+            showQuizView();
             if (TIMED_MODES.includes(mode)) startQuizTimer(); else stopAndHideQuizTimer();
 
             loadQuestion();
@@ -905,10 +966,7 @@
             score = 0;
             userAnswers = {};
 
-            document.getElementById('dashboardView').classList.add('hidden');
-            document.getElementById('summaryView').classList.add('hidden');
-            document.getElementById('quizView').classList.remove('hidden');
-            setHeaderVisible(true);
+            showQuizView();
             stopAndHideQuizTimer();
 
             loadQuestion();
@@ -1540,6 +1598,7 @@
             } else {
                 nextBar.classList.add('hidden');
             }
+            saveSession();
         }
 
         function toggleOption(key) {
@@ -1567,7 +1626,8 @@
             revealAnswer(currentQuizQuestions[currentIndex], [selectedKey]);
         }
 
-        function revealAnswer(q, picked) {
+        // `restoring` redraws an answer given before a refresh without recording or scoring it again
+        function revealAnswer(q, picked, restoring = false) {
             answered = true;
             const multi = isMulti(q);
             const correctKeys = correctKeysOf(q);
@@ -1599,16 +1659,19 @@
             }
 
             const isCorrect = picked.length === correctKeys.length && picked.every(k => correctKeys.includes(k));
-            recordAttempt(q, isCorrect);
-            if (isCorrect) {
-                score++;
-                document.getElementById('liveScoreNum').innerText = score;
-                // remove from mistakes if corrected
-                mistakes = mistakes.filter(id => id !== q.id);
-            } else {
-                if (!mistakes.includes(q.id)) mistakes.push(q.id);
+            if (!restoring) {
+                recordAttempt(q, isCorrect);
+                if (isCorrect) {
+                    score++;
+                    document.getElementById('liveScoreNum').innerText = score;
+                    // remove from mistakes if corrected
+                    mistakes = mistakes.filter(id => id !== q.id);
+                } else {
+                    if (!mistakes.includes(q.id)) mistakes.push(q.id);
+                }
+                savePersistedData();
+                saveSession();
             }
-            savePersistedData();
 
             // Show explanation
             const badge = document.getElementById('answerResultBadge');
@@ -1656,7 +1719,7 @@
         function toggleHint() {
             const text = document.getElementById('hintText');
             const show = text.classList.toggle('hidden') === false;
-            if (show) hintUsedThisQuestion = true; // recorded with the attempt, and counts for less
+            if (show) { hintUsedThisQuestion = true; saveSession(); } // recorded with the attempt, and counts for less
             document.getElementById('hintToggleText').innerText = show ? 'Hide hint' : 'Show hint';
         }
 
@@ -1670,6 +1733,7 @@
         }
 
         function showSummary() {
+            clearSession();
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.remove('hidden');
             setHeaderVisible(true);
@@ -1728,6 +1792,7 @@
                     { title, confirmLabel });
                 if (!ok) return false;
             }
+            clearSession();
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
