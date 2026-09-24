@@ -1034,7 +1034,10 @@
         }
 
         function estimateExamScore() {
-            const now = Date.now();
+            // Ages are measured from your latest answer, not the clock, so the estimate only
+            // changes when you answer something; a refresh alone reproduces the same numbers.
+            let now = 0;
+            for (const list of Object.values(attemptLog)) for (const entry of list) now = Math.max(now, entry[1]);
             const per = {};
             for (const d of Object.keys(EXAM_DOMAINS)) per[d] = { obs: [], s: 0, n: 0, questions: 0, attempts: 0 };
             const perTask = {};
