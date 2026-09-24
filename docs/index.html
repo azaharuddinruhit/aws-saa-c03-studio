@@ -374,8 +374,8 @@
                     <h3 id="totalQuestionsStat" class="text-2xl font-semibold mt-0.5">0</h3>
                 </div>
                 <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Best score</p>
-                    <h3 id="bestScoreStat" class="text-2xl font-semibold mt-0.5">0%</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Answered</p>
+                    <h3 id="answeredStat" class="text-2xl font-semibold mt-0.5">0</h3>
                 </div>
                 <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
                     <p class="text-xs text-slate-500 dark:text-slate-400">Mistakes</p>
@@ -543,9 +543,10 @@
         // prefixes are storage identifiers: changing one orphans the progress saved under it.
         const BANKS = {
             alpha: { label: 'Set Alpha', symbol: 'α', slug: 'set-alpha', file: 'set-alpha-v1.json', prefix: 'set_alpha_' },
-            beta: { label: 'Set Beta', symbol: 'β', slug: 'set-beta', file: 'set-beta-v1.json', prefix: 'set_beta_' }
+            beta: { label: 'Set Beta', symbol: 'β', slug: 'set-beta', file: 'set-beta-v1.json', prefix: 'set_beta_' },
+            gamma: { label: 'Set Gamma', symbol: 'γ', slug: 'set-gamma', file: 'set-gamma-v1.json', prefix: 'set_gamma_' }
         };
-        const BANK_DATA = ['mistakes', 'flagged', 'attempts', 'best_score'];   // what each bank stores
+        const BANK_DATA = ['mistakes', 'flagged', 'attempts'];   // what each bank stores
         let bankKey = 'alpha';
         const bankCounts = {};   // bank key -> question count, for the menu; filled as each file is read
 
@@ -567,6 +568,10 @@
                         if (localStorage.getItem(to + name) === null) localStorage.setItem(to + name, value);
                         localStorage.removeItem(from + name);
                     }
+                }
+                // "Best score" was replaced by the Answered count; drop what it left behind.
+                for (const prefix of ['saa_', 'saa_setA_', ...Object.values(BANKS).map(b => b.prefix)]) {
+                    localStorage.removeItem(prefix + 'best_score');
                 }
                 const renamed = { main: 'alpha', setA: 'beta' };
                 const savedBank = localStorage.getItem('saa_bank');
@@ -733,7 +738,7 @@
             }
 
             renderDomainList();
-            calculateBestScore();
+            renderAnsweredStat();
             renderEstimate();
             renderSmartPlan();
         }
@@ -779,10 +784,10 @@
             }
         }
 
-        function calculateBestScore() {
-            let best = 0;
-            try { best = localStorage.getItem(storeKey('best_score')) || 0; } catch (e) {}
-            document.getElementById('bestScoreStat').innerText = best + '%';
+        // Coverage of the bank: distinct questions attempted at least once
+        function renderAnsweredStat() {
+            document.getElementById('answeredStat').innerText =
+                questions.filter(q => attemptLog[q.id] && attemptLog[q.id].length).length;
         }
 
 
@@ -1685,12 +1690,6 @@
             document.getElementById('summaryCorrectCount').innerText = score;
             document.getElementById('summaryIncorrectCount').innerText = (total - score);
 
-            try {
-                const currentBest = parseInt(localStorage.getItem(storeKey('best_score')) || '0');
-                if (percent > currentBest) {
-                    localStorage.setItem(storeKey('best_score'), percent);
-                }
-            } catch (e) {}
             initApp();
         }
 
