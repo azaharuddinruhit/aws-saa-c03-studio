@@ -269,8 +269,10 @@
                     <rect width="32" height="32" rx="7" fill="#10B981"/>
                     <path d="M9 17l5 5 9-11" stroke="#0F172A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                 </svg>
-                <div class="min-w-0">
+                <div class="min-w-0 flex items-center gap-2">
                     <h1 class="font-semibold text-sm sm:text-base tracking-tight truncate leading-tight hover:text-emerald-400 transition">AWS SAA-C03 Studio</h1>
+                    <!-- the active question bank, so it is never hidden away in the menu -->
+                    <span id="bankLabel" class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap"></span>
                 </div>
             </button>
             <!-- A single hamburger menu holds Import/Export/Reset/Clear bank on every screen size. -->
@@ -279,6 +281,9 @@
                     <i id="headerMenuIcon" class="fa-solid fa-bars"></i>
                 </button>
                 <div id="headerMenu" class="hidden absolute right-0 top-11 w-56 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
+                    <p class="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Question bank</p>
+                    <div id="bankMenuItems" role="group" aria-label="Question bank"><!-- Populated via JS --></div>
+                    <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
                     <button id="themeToggleBtn" onclick="toggleTheme()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i id="themeToggleIcon" class="fa-solid fa-sun w-4"></i><span id="themeToggleLabel">Light mode</span>
                     </button>
@@ -320,13 +325,13 @@
                 <p id="smartPlan" class="bank-only mt-3 text-xs text-slate-500"></p>
             </section>
 
-            <!-- Empty state: shown only if aws-saa-c03-questions.json could not be loaded -->
+            <!-- Empty state: shown only if the selected bank's JSON file could not be loaded -->
             <section class="empty-only bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 text-center">
                 <div class="w-9 h-9 mx-auto rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <h3 class="text-lg font-bold mt-4">Couldn't load the question bank</h3>
-                <p id="bankErrorDetail" class="text-sm text-slate-500 dark:text-slate-400 mt-1">aws-saa-c03-questions.json could not be read from this folder.</p>
+                <p id="bankErrorDetail" class="text-sm text-slate-500 dark:text-slate-400 mt-1">The question bank could not be read from this folder.</p>
                 <div class="flex flex-wrap justify-center gap-2 mt-5">
                     <button onclick="loadQuestionBank()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
@@ -533,44 +538,143 @@
         let flaggedIds = new Set();
         let userAnswers = {};
 
+        // Question banks. Question ids are only unique within a bank, so each bank keeps its own
+        // progress under its own prefix (set_alpha_mistakes, set_beta_attempts, ...). The keys and
+        // prefixes are storage identifiers: changing one orphans the progress saved under it.
+        const BANKS = {
+            alpha: { label: 'Set Alpha', symbol: 'α', slug: 'set-alpha', file: 'set-alpha-v1.json', prefix: 'set_alpha_' },
+            beta: { label: 'Set Beta', symbol: 'β', slug: 'set-beta', file: 'set-beta-v1.json', prefix: 'set_beta_' }
+        };
+        const BANK_DATA = ['mistakes', 'flagged', 'attempts', 'best_score'];   // what each bank stores
+        let bankKey = 'alpha';
+        const bankCounts = {};   // bank key -> question count, for the menu; filled as each file is read
+
+        function storeKey(name) {
+            return BANKS[bankKey].prefix + name;
+        }
+
+        // One-time move of progress saved before the banks were renamed (main -> alpha, saved as
+        // saa_mistakes etc.; setA -> beta, saved as saa_setA_mistakes etc.). It only acts while old
+        // keys remain, and never overwrites newer data. Safe to delete once every browser in use
+        // has opened the page.
+        function migrateLegacyStorage() {
+            try {
+                const moves = [['saa_', 'set_alpha_'], ['saa_setA_', 'set_beta_']];
+                for (const [from, to] of moves) {
+                    for (const name of BANK_DATA) {
+                        const value = localStorage.getItem(from + name);
+                        if (value === null) continue;
+                        if (localStorage.getItem(to + name) === null) localStorage.setItem(to + name, value);
+                        localStorage.removeItem(from + name);
+                    }
+                }
+                const renamed = { main: 'alpha', setA: 'beta' };
+                const savedBank = localStorage.getItem('saa_bank');
+                if (renamed[savedBank]) localStorage.setItem('saa_bank', renamed[savedBank]);
+            } catch (e) {}
+        }
+
         // Initialization on window load: the question bank always comes from the JSON file
         // that ships next to this page -- there is no import step and nothing bank-related is
         // cached, so editing that file and refreshing is the only way the bank changes.
         window.onload = function() {
+            migrateLegacyStorage();
+            try {
+                const savedBank = localStorage.getItem('saa_bank');
+                if (BANKS[savedBank]) bankKey = savedBank;
+            } catch (e) {}
             loadPersistedData();
-            loadQuestionBank();
+            loadQuestionBank().then(countOtherBanks);
         };
 
+        // The menu shows every bank's size, so the banks that are not active are read once in the
+        // background; a file that cannot be read simply shows no count.
+        async function countOtherBanks() {
+            for (const [key, bank] of Object.entries(BANKS)) {
+                if (key in bankCounts) continue;
+                try {
+                    const res = await fetch('./' + bank.file, { cache: 'no-store' });
+                    if (!res.ok) continue;
+                    const parsed = await res.json();
+                    if (Array.isArray(parsed)) bankCounts[key] = parsed.length;
+                } catch (e) {}
+            }
+            renderBankMenu();
+        }
+
         async function loadQuestionBank() {
+            const file = BANKS[bankKey].file;
             try {
-                const res = await fetch('./aws-saa-c03-questions.json', { cache: 'no-store' });
+                const res = await fetch('./' + file, { cache: 'no-store' });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const parsed = await res.json();
                 if (!Array.isArray(parsed) || parsed.length === 0) {
-                    throw new Error('aws-saa-c03-questions.json must be a non-empty array of questions.');
+                    throw new Error(file + ' must be a non-empty array of questions.');
                 }
                 questions = parsed;
+                bankCounts[bankKey] = parsed.length;
             } catch (err) {
                 questions = [];
                 const detail = document.getElementById('bankErrorDetail');
-                if (detail) detail.innerText = 'aws-saa-c03-questions.json could not be read from this folder (' + err.message + ').';
+                if (detail) detail.innerText = file + ' could not be read from this folder (' + err.message + ').';
             }
             initApp();
         }
 
+        // Picked from the header menu, which is open on every screen: a quiz in progress is ended
+        // first (with the same confirmation as the back arrow), since its questions belong to the old bank.
+        async function selectBank(key) {
+            closeHeaderMenu();
+            if (key === bankKey || !BANKS[key]) return;
+            if (!(await leaveSession('Switch to ' + BANKS[key].label + '?', 'Switch'))) return;
+            bankKey = key;
+            try { localStorage.setItem('saa_bank', key); } catch (e) {}
+            mistakes = [];
+            flaggedIds = new Set();
+            attemptLog = {};
+            smartReasons = {};
+            loadPersistedData();
+            loadQuestionBank();
+        }
+
+        function renderBankMenu() {
+            document.getElementById('bankLabel').innerText = BANKS[bankKey].label;
+            const items = document.getElementById('bankMenuItems');
+            items.innerHTML = '';
+            for (const [key, bank] of Object.entries(BANKS)) {
+                const active = key === bankKey;
+                const btn = document.createElement('button');
+                btn.setAttribute('role', 'menuitemradio');
+                btn.setAttribute('aria-checked', String(active));
+                btn.className = 'w-full flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-800 hover:text-emerald-400 transition '
+                    + (active ? 'text-emerald-400 font-medium' : 'text-slate-300');
+                // each bank is marked by its Greek letter; only one bank is active, marked by colour and a trailing check.
+                // The check keeps its width when hidden so the question counts line up.
+                const count = key in bankCounts
+                    ? '<span class="text-xs text-slate-500" style="font-variant-numeric:tabular-nums">' + bankCounts[key] + '</span>'
+                    : '';
+                btn.innerHTML = '<span class="w-4 text-center text-base font-semibold leading-tight" aria-hidden="true">' + bank.symbol + '</span><span>' + escapeHtml(bank.label) + '</span>'
+                    + '<span class="flex items-center gap-2" style="margin-left:auto">' + count
+                    + '<i class="fa-solid fa-check text-xs w-4"' + (active ? '' : ' style="visibility:hidden"') + '></i></span>';
+                btn.title = key in bankCounts ? bankCounts[key] + ' questions' : '';
+                btn.onclick = () => selectBank(key);
+                items.appendChild(btn);
+            }
+        }
+
         function loadPersistedData() {
             try {
-                const savedMistakes = localStorage.getItem('saa_mistakes');
+                const savedMistakes = localStorage.getItem(storeKey('mistakes'));
                 if (savedMistakes) mistakes = JSON.parse(savedMistakes);
 
-                const savedFlagged = localStorage.getItem('saa_flagged');
+                const savedFlagged = localStorage.getItem(storeKey('flagged'));
                 if (savedFlagged) flaggedIds = new Set(JSON.parse(savedFlagged));
 
                 // nothing saved yet means closed; only an explicit '0' opens it
                 const savedCollapse = localStorage.getItem('saa_estimate_collapsed');
                 estimateCollapsed = savedCollapse === null ? true : savedCollapse === '1';
 
-                const savedLog = localStorage.getItem('saa_attempts');
+                const savedLog = localStorage.getItem(storeKey('attempts'));
                 if (savedLog) attemptLog = JSON.parse(savedLog);
             } catch (e) {
                 questions = [];
@@ -579,9 +683,9 @@
 
         function savePersistedData() {
             try {
-                localStorage.setItem('saa_mistakes', JSON.stringify(mistakes));
-                localStorage.setItem('saa_flagged', JSON.stringify(Array.from(flaggedIds)));
-                localStorage.setItem('saa_attempts', JSON.stringify(attemptLog));
+                localStorage.setItem(storeKey('mistakes'), JSON.stringify(mistakes));
+                localStorage.setItem(storeKey('flagged'), JSON.stringify(Array.from(flaggedIds)));
+                localStorage.setItem(storeKey('attempts'), JSON.stringify(attemptLog));
             } catch (e) {}
         }
 
@@ -609,6 +713,7 @@
 
         function initApp() {
             syncThemeToggle();
+            renderBankMenu();
             document.getElementById('dashboardView').classList.toggle('no-bank', questions.length === 0);
             document.getElementById('totalQuestionsStat').innerText = questions.length;
             document.getElementById('totalMistakesStat').innerText = mistakes.length;
@@ -675,7 +780,8 @@
         }
 
         function calculateBestScore() {
-            const best = localStorage.getItem('saa_best_score') || 0;
+            let best = 0;
+            try { best = localStorage.getItem(storeKey('best_score')) || 0; } catch (e) {}
             document.getElementById('bestScoreStat').innerText = best + '%';
         }
 
@@ -1579,10 +1685,12 @@
             document.getElementById('summaryCorrectCount').innerText = score;
             document.getElementById('summaryIncorrectCount').innerText = (total - score);
 
-            const currentBest = parseInt(localStorage.getItem('saa_best_score') || '0');
-            if (percent > currentBest) {
-                localStorage.setItem('saa_best_score', percent);
-            }
+            try {
+                const currentBest = parseInt(localStorage.getItem(storeKey('best_score')) || '0');
+                if (percent > currentBest) {
+                    localStorage.setItem(storeKey('best_score'), percent);
+                }
+            } catch (e) {}
             initApp();
         }
 
@@ -1607,9 +1715,10 @@
             }
         }
 
-        async function returnToDashboard() {
-            // The summary screen uses this too, where there is nothing left to abandon, so the
-            // warning is limited to a quiz still in progress that has answers in it.
+        // Ends whatever is on screen and goes back to the dashboard. The summary screen uses this too,
+        // where there is nothing left to abandon, so the warning is limited to a quiz still in progress
+        // that has answers in it. Resolves false if the reader cancels.
+        async function leaveSession(title, confirmLabel) {
             const inQuiz = !document.getElementById('quizView').classList.contains('hidden');
             const done = Object.keys(userAnswers).length;
             if (inQuiz && done > 0) {
@@ -1617,15 +1726,19 @@
                 const ok = await showConfirm(
                     'You have answered ' + done + ' of ' + total + '. Those answers are already counted in your stats, '
                     + 'but this session ends here and you will not see its summary.',
-                    { title: 'Leave this session?', confirmLabel: 'Leave' });
-                if (!ok) return;
+                    { title, confirmLabel });
+                if (!ok) return false;
             }
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
             setHeaderVisible(true);
             stopAndHideQuizTimer();
-            initApp();
+            return true;
+        }
+
+        async function returnToDashboard() {
+            if (await leaveSession('Leave this session?', 'Leave')) initApp();
         }
 
         // ---- Mobile header menu ----
@@ -1707,14 +1820,15 @@
             }
             // asked after the guards above, so the dialog never appears only to report nothing to export
             const n = mistakeQuestions.length;
+            const fileName = 'saa-c03-' + BANKS[bankKey].slug + '-mistakes.json';
             const ok = await showConfirm(
-                'This downloads the ' + n + ' question' + (n === 1 ? '' : 's') + ' you answered incorrectly as saa-c03-mistakes.json.',
+                'This downloads the ' + n + ' question' + (n === 1 ? '' : 's') + ' you answered incorrectly as ' + fileName + '.',
                 { title: 'Export mistakes?', confirmLabel: 'Export', tone: 'safe' });
             if (!ok) return;
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mistakeQuestions, null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", "saa-c03-mistakes.json");
+            dlAnchor.setAttribute("download", fileName);
             document.body.appendChild(dlAnchor);
             dlAnchor.click();
             dlAnchor.remove();
@@ -1733,7 +1847,7 @@
             flaggedIds.clear();
             smartReasons = {};
             try {
-                ['saa_mistakes', 'saa_flagged', 'saa_best_score', 'saa_attempts'].forEach(k => localStorage.removeItem(k));
+                BANK_DATA.forEach(k => localStorage.removeItem(storeKey(k)));
             } catch (e) {}
         }
 
