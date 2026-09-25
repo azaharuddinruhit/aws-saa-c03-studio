@@ -278,6 +278,9 @@
                     <button onclick="toggleTheme()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i id="themeToggleIcon" class="fa-solid fa-sun w-4"></i><span id="themeToggleLabel">Light mode</span>
                     </button>
+                    <button onclick="toggleSync()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i class="fa-solid fa-cloud w-4"></i><span id="syncToggleLabel">Sync with GitHub</span>
+                    </button>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
                     <button onclick="runHeaderAction('exportMistakesJSON')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-file-arrow-down w-4"></i><span>Export</span>
@@ -607,12 +610,15 @@
         // Initialization on window load: the question bank always comes from the JSON file
         // that ships next to this page -- there is no import step and nothing bank-related is
         // cached, so editing that file and refreshing is the only way the bank changes.
-        window.onload = function() {
+        window.onload = async function() {
             migrateLegacyStorage();
             try {
                 const savedBank = localStorage.getItem('saa_bank');
                 if (BANKS[savedBank]) bankKey = savedBank;
             } catch (e) {}
+            syncMenuLabel();
+            // pick up progress saved in other browsers first, but never wait long for GitHub
+            await Promise.race([syncNow(), new Promise(r => setTimeout(r, 5000))]);
             loadPersistedData();
             loadQuestionBank().then(() => {
                 restoreSession();
@@ -723,7 +729,193 @@
                 localStorage.setItem(storeKey('flagged'), JSON.stringify(Array.from(flaggedIds)));
                 localStorage.setItem(storeKey('attempts'), JSON.stringify(attemptLog));
             } catch (e) {}
+            markBankChanged();
         }
+
+        // ===== Sync through a GitHub Gist =====
+        // localStorage stays the working copy; a secret gist holds a copy every browser can reach.
+        // Each bank carries the time it last changed and the newer side wins, bank by bank, so
+        // studying one bank here and another elsewhere never collides. The token is typed once
+        // per browser and kept only in that browser -- it must never be written into this file.
+        const GIST_ID = '3839dfa70132a8e1ab3636fdd3f39e16';
+        const GIST_FILE = 'progress.json';
+        const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
+        const TOKEN_KEY = 'saa_gist_token';
+        const SYNC_DELAY = 2000;          // answers in quick succession go up as one save
+        let syncTimer = null;
+        let syncRunning = null;           // the sync in flight, so two never overlap
+        let syncErrorShown = false;       // one toast per page load is enough
+
+        function syncToken() {
+            try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+        }
+
+        function bankUpdated(key) {
+            try { return parseInt(localStorage.getItem(BANKS[key].prefix + 'updated'), 10) || 0; } catch (e) { return 0; }
+        }
+
+        function readLocalBank(key) {
+            const p = BANKS[key].prefix;
+            const get = (name, fallback) => {
+                try { const v = localStorage.getItem(p + name); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+            };
+            return { updatedAt: bankUpdated(key), mistakes: get('mistakes', []), flagged: get('flagged', []), attempts: get('attempts', {}) };
+        }
+
+        function writeLocalBank(key, bank) {
+            const p = BANKS[key].prefix;
+            localStorage.setItem(p + 'mistakes', JSON.stringify(bank.mistakes || []));
+            localStorage.setItem(p + 'flagged', JSON.stringify(bank.flagged || []));
+            localStorage.setItem(p + 'attempts', JSON.stringify(bank.attempts || {}));
+            localStorage.setItem(p + 'updated', String(bank.updatedAt));
+        }
+
+        function localBankHasData(key) {
+            const b = readLocalBank(key);
+            return b.mistakes.length > 0 || b.flagged.length > 0 || Object.keys(b.attempts).length > 0;
+        }
+
+        // Called whenever the active bank's progress changes; the upload follows a moment later.
+        function markBankChanged() {
+            try { localStorage.setItem(storeKey('updated'), String(Date.now())); } catch (e) {}
+            if (!syncToken()) return;
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(() => syncNow(), SYNC_DELAY);
+        }
+
+        async function fetchRemote() {
+            const res = await fetch(GIST_API, {
+                cache: 'no-store',
+                headers: { Authorization: 'Bearer ' + syncToken(), Accept: 'application/vnd.github+json' }
+            });
+            if (res.status === 401) throw new Error('GitHub rejected the token');
+            if (res.status === 404) throw new Error('gist not found, or the token lacks the gist scope');
+            if (!res.ok) throw new Error('GitHub answered HTTP ' + res.status);
+            const file = (await res.json()).files[GIST_FILE];
+            if (!file) return { banks: {} };   // a fresh gist; the first upload creates the file
+            let text = file.content;
+            if (file.truncated) text = await (await fetch(file.raw_url, { cache: 'no-store' })).text();
+            if (!text.trim()) return { banks: {} };
+            let parsed;
+            try { parsed = JSON.parse(text); } catch (e) { throw new Error(GIST_FILE + ' in the gist is not valid JSON'); }
+            return parsed && typeof parsed.banks === 'object' ? parsed : { banks: {} };
+        }
+
+        async function pushRemote(remote, keepalive) {
+            const body = JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(remote) } } });
+            const res = await fetch(GIST_API, {
+                method: 'PATCH',
+                // keepalive lets a save finish while the tab closes, but only for small bodies
+                keepalive: keepalive && body.length < 60000,
+                headers: { Authorization: 'Bearer ' + syncToken(), Accept: 'application/vnd.github+json' },
+                body
+            });
+            if (!res.ok) throw new Error('GitHub answered HTTP ' + res.status + ' while saving');
+        }
+
+        // Pulls banks that are newer in the gist and pushes banks that are newer here. The active
+        // bank is only replaced while the dashboard is showing; mid-quiz this browser keeps going
+        // and, having changed since, wins at the next save.
+        function syncNow(keepalive = false) {
+            if (!syncToken()) return Promise.resolve(false);
+            clearTimeout(syncTimer);
+            const run = (syncRunning || Promise.resolve()).then(async () => {
+                try {
+                    const remote = await fetchRemote();
+                    let pulledActive = false, push = false;
+                    for (const key of Object.keys(BANKS)) {
+                        const theirs = remote.banks[key];
+                        const localAt = bankUpdated(key);
+                        const theirAt = theirs ? theirs.updatedAt || 0 : 0;
+                        if (theirs && theirAt > localAt) {
+                            if (key === bankKey && parseRoute().name !== 'dashboard') continue;
+                            writeLocalBank(key, theirs);
+                            if (key === bankKey) pulledActive = true;
+                        } else if (localAt > theirAt) {
+                            remote.banks[key] = readLocalBank(key);
+                            push = true;
+                        }
+                    }
+                    if (push) await pushRemote(remote, keepalive);
+                    return pulledActive;
+                } catch (err) {
+                    if (!syncErrorShown) { syncErrorShown = true; alertBox('Sync failed: ' + escapeHtml(err.message) + '. Progress is still saved in this browser.'); }
+                    return false;
+                }
+            });
+            syncRunning = run;
+            return run;
+        }
+
+        // Re-reads the active bank after a pull changed it underneath the page.
+        function reloadActiveBank() {
+            mistakes = [];
+            flaggedIds = new Set();
+            attemptLog = {};
+            smartReasons = {};
+            loadPersistedData();
+            initApp();
+        }
+
+        function syncMenuLabel() {
+            document.getElementById('syncToggleLabel').innerText = syncToken() ? 'Sync on · disconnect' : 'Sync with GitHub';
+        }
+
+        async function toggleSync() {
+            closeHeaderMenu();
+            if (syncToken()) {
+                if (!(await showConfirm('This browser stops syncing and forgets the token. Progress saved here and in the gist is kept.',
+                    { title: 'Disconnect sync?', confirmLabel: 'Disconnect', tone: 'safe' }))) return;
+                try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+                syncMenuLabel();
+                return;
+            }
+            // connecting may replace the active bank, which is only safe while no quiz holds it
+            if (parseRoute().name !== 'dashboard') {
+                alertBox('Connect sync from the dashboard, not during a quiz.');
+                return;
+            }
+            const token = (prompt('Paste a GitHub token with the "gist" scope. It is stored only in this browser.') || '').trim();
+            if (!token) return;
+            try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
+            syncErrorShown = false;
+            let remote;
+            try {
+                remote = await fetchRemote();
+            } catch (err) {
+                try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+                alertBox('Could not connect: ' + escapeHtml(err.message) + '.');
+                return;
+            }
+            // First connection: the gist is the shared copy, so a bank it already holds replaces
+            // this browser's; banks it lacks are uploaded from here.
+            const replacing = Object.keys(BANKS).filter(k => remote.banks[k] && localBankHasData(k));
+            if (replacing.length && !(await showConfirm(
+                'The gist already has progress for ' + replacing.map(k => BANKS[k].label).join(', ') + '. It will replace what this browser has for those banks.',
+                { title: 'Use the synced progress?', confirmLabel: 'Use synced', tone: 'safe' }))) {
+                try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+                return;
+            }
+            for (const key of Object.keys(BANKS)) {
+                try {
+                    if (remote.banks[key]) localStorage.setItem(BANKS[key].prefix + 'updated', '0');
+                    else if (localBankHasData(key) && !bankUpdated(key)) localStorage.setItem(BANKS[key].prefix + 'updated', String(Date.now()));
+                } catch (e) {}
+            }
+            syncMenuLabel();
+            if (await syncNow()) reloadActiveBank();
+            alertBox('Sync is on. Progress now follows you to any browser with the token.');
+        }
+
+        // Coming back to the tab picks up what other browsers saved; leaving it saves right away.
+        document.addEventListener('visibilitychange', async () => {
+            if (!syncToken()) return;
+            if (document.visibilityState === 'hidden') {
+                if (syncTimer) syncNow(true);
+            } else if (await syncNow()) {
+                reloadActiveBank();
+            }
+        });
 
         // ===== Theme =====
         // The class on <html> is set before first paint by the inline script in <head>; these
@@ -2151,6 +2343,7 @@
             try {
                 BANK_DATA.forEach(k => localStorage.removeItem(storeKey(k)));
             } catch (e) {}
+            markBankChanged();   // the reset reaches the other browsers too
         }
 
         function alertBox(msg) {
