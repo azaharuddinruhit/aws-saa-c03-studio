@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Storage Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Storage & Backup ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which storage service?',
+  one: 'Storage questions describe how data is used (by one server, shared, as objects, moved from on-premises) and ask which service fits.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Is it block storage for one EC2 instance, like a boot volume or a database disk?', s:'Block storage for one instance?', o:[['Yes','blk'],['No','fs']]},
+      blk:   {q:'Do you need the fastest possible local disk, and can you lose the data on stop?', s:'Fastest disk, data disposable?', o:[['Yes','R:istore'],['No','blk2']]},
+      blk2:  {q:'Is it a critical database needing more than 16,000 IOPS or sub-millisecond latency?', s:'Critical DB, >16K IOPS?', o:[['Yes','R:io2'],['No','R:gp3']]},
+      fs:    {q:'Must many servers mount the same file system at once?', s:'Shared file system?', o:[['Yes','fs2'],['No','obj']]},
+      fs2:   {q:'Are the clients Linux (NFS)?', s:'Linux / NFS clients?', o:[['Yes','fs3'],['No','fs4']]},
+      fs3:   {q:'Is it HPC or ML needing hundreds of GB/s, often with data in S3?', s:'HPC / ML throughput?', o:[['Yes','R:lustre'],['No','R:efs']]},
+      fs4:   {q:'Windows (SMB) with Active Directory?', s:'Windows + AD?', o:[['Yes','R:fsxwin'],['No','R:ontap']]},
+      obj:   {q:'Is it objects: backups, data lake, media, static website?', s:'Objects via API?', o:[['Yes','obj2'],['No','mv']]},
+      obj2:  {q:'Is the access pattern unknown or changing?', s:'Access pattern unknown?', o:[['Yes','R:intel'],['No','obj3']]},
+      obj3:  {q:'Is it an archive you rarely read and can wait hours to retrieve?', s:'Archive, can wait hours?', o:[['Yes','R:deep'],['No','R:s3']]},
+      mv:    {q:'Is the job moving or syncing data from on-premises?', s:'Moving data from on-prem?', o:[['Yes','mv2'],['No','R:backup']]},
+      mv2:   {q:'Is the network too slow (the transfer would take weeks)?', s:'Network too slow?', o:[['Yes','R:snow'],['No','mv3']]},
+      mv3:   {q:'Must on-prem apps keep using NFS/SMB/iSCSI/tape with the data in AWS?', s:'On-prem apps keep local protocols?', o:[['Yes','R:sgw'],['No','mv4']]},
+      mv4:   {q:'Do partners send files over SFTP or FTPS?', s:'Partners use SFTP?', o:[['Yes','R:transfer'],['No','R:datasync']]}
+    },
+    results: {
+      istore:  {t:'EC2 instance store', ico:'ec2', w:'Local NVMe on the host: highest IOPS, but data is lost on stop or terminate.', alt:'Only for caches, scratch space or data replicated elsewhere.'},
+      io2:     {t:'EBS io2 Block Express', ico:'ebs', w:'Up to 256,000 IOPS with sub-millisecond latency for critical databases.', alt:'Also the only type with Multi-Attach (with io1).'},
+      gp3:     {t:'EBS gp3', ico:'ebs', w:'The default SSD: 3,000 IOPS baseline, and you set IOPS and throughput separately from size.', alt:'~20% cheaper than gp2.'},
+      lustre:  {t:'FSx for Lustre', ico:'fsxlustre', w:'HPC file system with hundreds of GB/s that links to an S3 bucket.', alt:'Scratch for temporary data, Persistent for long-lived data.'},
+      efs:     {t:'Amazon EFS', ico:'efs', w:'Serverless NFS for Linux, shared across AZs, grows and shrinks automatically.', alt:'Lifecycle to Infrequent Access cuts cost.'},
+      fsxwin:  {t:'FSx for Windows File Server', ico:'fsxwin', w:'SMB file shares with Active Directory, NTFS permissions and DFS.', alt:'Multi-AZ option for high availability.'},
+      ontap:   {t:'FSx for NetApp ONTAP', ico:'fsxontap', w:'Multi-protocol (NFS, SMB, iSCSI) with NetApp features.', alt:'Best for migrating existing NetApp storage.'},
+      intel:   {t:'S3 Intelligent-Tiering', ico:'s3', w:'Moves objects between tiers by access, with no retrieval fees.', alt:'Small monitoring fee per object.'},
+      deep:    {t:'S3 Glacier Deep Archive', ico:'glacier', w:'Cheapest storage in AWS. Retrieval within 12 hours (48 h bulk).', alt:'Need milliseconds? Glacier Instant Retrieval.'},
+      s3:      {t:'S3 Standard', ico:'s3', w:'Frequently accessed objects, millisecond access, stored across 3+ AZs.', alt:'Add lifecycle rules as data cools down.'},
+      backup:  {t:'AWS Backup', ico:'backup', w:'Central backup policies across EC2, EBS, RDS, DynamoDB, EFS, FSx and more.', alt:'Vault Lock makes backups immutable.'},
+      snow:    {t:'AWS Snowball Edge', ico:'snowball', w:'Ship data on a rugged device when the network would take weeks.', alt:'Then keep changes in sync with DataSync.'},
+      sgw:     {t:'AWS Storage Gateway', ico:'storagegw', w:'On-prem apps keep NFS/SMB/iSCSI/tape; the data lives in AWS.', alt:'File, Volume or Tape Gateway.'},
+      transfer:{t:'AWS Transfer Family', ico:'transfer', w:'Managed SFTP/FTPS/FTP endpoints that store files in S3 or EFS.', alt:'Partners keep their existing clients.'},
+      datasync:{t:'AWS DataSync', ico:'datasync', w:'Online transfer and scheduled sync from NFS/SMB/HDFS to S3, EFS or FSx.', alt:'Pair with Direct Connect for private transfers.'}
+    }
+  }
+},
+
+classes: {
+  icon: 's3', eyebrow: 'Object storage', title: 'S3 storage classes', test: 'S3 classes',
+  one: 'Object storage with 11 nines of durability. The exam asks which <b>storage class</b> fits how often data is read and how fast you need it back.',
+  picks: [['s3','Backups, data lakes, media, static assets: unlimited objects'],['s3','"Unknown or changing access patterns" → <b>Intelligent-Tiering</b>'],['glacier','Rarely read archives → <b>Glacier</b> classes']],
+  explain: [
+    {tab:'Hot → cold', type:'spectrum', axis:['← Read often, costs more','Read rarely, costs less →'], start:0, stops:[
+      {n:'Standard', ico:'s3', sub:'Frequent access', head:'Milliseconds · no retrieval fee', text:'The default for active data. Stored across 3+ AZs.'},
+      {n:'Intelligent-Tiering', ico:'s3', sub:'Unknown patterns', head:'Moves objects between tiers automatically', text:'No retrieval fees; small monitoring fee per object. Pick it when access is unknown or changes.'},
+      {n:'Standard-IA', ico:'s3', sub:'Infrequent, fast when needed', head:'Milliseconds · retrieval fee · 30-day minimum', text:'Backups and DR copies read a few times a year.'},
+      {n:'One Zone-IA', ico:'s3', sub:'Infrequent, re-creatable', head:'One AZ · ~20% cheaper than Standard-IA', text:'Only for data you can re-create, like thumbnails or secondary copies. Lost if the AZ is destroyed.'},
+      {n:'Glacier Instant', ico:'glacier', sub:'Archive, read quarterly', head:'Milliseconds · 90-day minimum', text:'Archives that still need instant access, such as medical images read once a quarter.'},
+      {n:'Glacier Flexible', ico:'glacier', sub:'Archive, can wait', head:'Expedited 1–5 min · Standard 3–5 h · Bulk 5–12 h · 90-day minimum', text:'Backups and archives where waiting minutes to hours is fine.'},
+      {n:'Deep Archive', ico:'glacier', sub:'Coldest, cheapest', head:'Standard 12 h · Bulk 48 h · 180-day minimum', text:'Compliance archives kept 7–10 years and almost never read.'}
+    ]},
+    {tab:'Lifecycle rules', type:'steps', label:'A typical lifecycle rule', items:[
+      'Day 0: upload to <b>S3 Standard</b>',
+      'Day 30+: transition to <b>Standard-IA</b> (objects must stay 30 days in Standard first)',
+      'Day 90+: transition to <b>Glacier Flexible Retrieval</b> or <b>Deep Archive</b>',
+      'Later: <b>expire</b> (delete) objects or old noncurrent versions'],
+      aid:'Lifecycle rules move objects by <b>age</b>. Intelligent-Tiering moves them by <b>access</b>.'},
+    {tab:'Numbers', type:'tiles', items:[['11 9s','Durability, every class',1],['5 TB','Largest object',1],['5 GB','Largest single PUT',1],['3,500 / 5,500','PUT / GET per second per prefix'],['30 · 90 · 180 d','Minimum days: IA · Glacier IR/Flexible · Deep Archive'],['128 KB','Minimum billable size (IA classes)']],
+      note:'Orange = know by heart.'}
+  ],
+  traps: [
+    '<b>One Zone-IA loses data if its AZ is destroyed.</b> Only for data you can re-create.',
+    '<b>Glacier Flexible and Deep Archive are not instant.</b> "Needed within milliseconds" → Glacier Instant Retrieval or Standard-IA.',
+    '<b>Minimum durations still bill if you delete early:</b> 30 days (IA), 90 (Glacier Instant/Flexible), 180 (Deep Archive).'
+  ],
+  details: {sum:'tiers, Express One Zone, retrieval', facts:[
+    ['Intelligent-Tiering tiers','Frequent → Infrequent after 30 days → Archive Instant after 90; optional Archive and Deep Archive tiers.'],
+    ['S3 Express One Zone','Single-digit ms latency for very hot data, in one AZ (directory buckets).'],
+    ['Restoring from Glacier','Creates a temporary copy; you choose the retrieval tier and how many days to keep it.'],
+    ['Requester Pays','The downloader pays request and transfer costs.'],
+    ['Storage Lens / Class Analysis','Show usage and suggest lifecycle rules.']
+  ]}
+},
+
+s3feat: {
+  icon: 's3', eyebrow: 'Protect · share · replicate', title: 'S3 features', test: 'S3 features',
+  one: 'Beyond storage classes, questions test how you <b>protect</b>, <b>share</b>, <b>replicate</b> and <b>speed up</b> S3.',
+  picks: [['s3','"Can\'t be deleted, even by root" → <b>Object Lock</b> (compliance)'],['s3','"Temporary access to a private object" → <b>presigned URL</b>'],['s3','"Slow uploads from far away" → <b>Transfer Acceleration</b>']],
+  explain: [
+    {tab:'Protect', type:'list', items:[
+      ['Versioning','Keeps every version: protects against overwrites and deletes. Required for replication.'],
+      ['Object Lock','WORM. <b>Compliance</b>: nobody, not even root, can delete before retention ends. <b>Governance</b>: users with special permission can.'],
+      ['Legal hold','Blocks deletion with no end date, until someone removes it.'],
+      ['MFA Delete','MFA needed to delete versions or suspend versioning (root user only).'],
+      ['Block Public Access','Account or bucket switch that overrides any public ACL or policy.']]},
+    {tab:'Encryption', type:'compare', cols:[['','SSE-S3'],['kms','SSE-KMS'],['','SSE-C']], rows:[
+      ['Keys','Managed by S3','KMS keys you control','You send the key each request'],
+      ['Audit','No key audit','Every use in CloudTrail','None in AWS'],
+      ['Pick when','Default (on for all new objects)','Audit, rotation control, separation of duties','Keys must stay outside AWS']],
+      aid:'Very high request rates with SSE-KMS can hit KMS quotas; <b>S3 Bucket Keys</b> reduce KMS calls. Client-side encryption = data never reaches AWS unencrypted.'},
+    {tab:'Replication', type:'compare', cols:[['','Cross-Region (CRR)'],['','Same-Region (SRR)']], rows:[
+      ['Use for','Compliance, lower latency, DR','Log aggregation, prod → test copies'],
+      ['Needs','Versioning on both buckets','Versioning on both buckets'],
+      ['Existing objects','Not copied; use S3 Batch Replication','Same']],
+      aid:'Replication Time Control (RTC): 99.99% of objects replicated within 15 minutes, with an SLA.'},
+    {tab:'Access & speed', type:'list', items:[
+      ['Presigned URL','Time-limited GET or PUT for a private object, using the signer\'s permissions.'],
+      ['Bucket policy vs IAM','Bucket policy for cross-account and public access; IAM policies for your own users and roles.'],
+      ['Access Points','Named endpoints per app or team, each with its own policy; can be VPC-only.'],
+      ['Transfer Acceleration','Uploads enter at the nearest edge location and ride the AWS backbone.'],
+      ['Multipart upload','Recommended above 100 MB, required above 5 GB. Parallel parts, retry per part.'],
+      ['Event notifications','Object events → SNS, SQS, Lambda or EventBridge.'],
+      ['Gateway VPC endpoint','Private S3 access from a VPC, no charge.'],
+      ['Static website','Serve through CloudFront with Origin Access Control for HTTPS and a private bucket.']]}
+  ],
+  traps: [
+    '<b>Governance mode can be bypassed</b> with special permissions. "Nobody can delete, not even root" = <b>compliance mode</b>.',
+    '<b>Replication needs versioning on both buckets</b> and doesn\'t copy existing objects unless you use Batch Replication.',
+    '"Audit key usage" or "control key rotation" → <b>SSE-KMS</b>, not SSE-S3.'
+  ],
+  details: {sum:'Batch Operations, consistency, CORS', facts:[
+    ['S3 Batch Operations','One action (copy, tag, restore, invoke Lambda) across billions of objects.'],
+    ['Consistency','Strong read-after-write consistency for all operations.'],
+    ['CORS','Needed when a browser page on another domain calls the bucket.'],
+    ['S3 Object Lambda','Transform objects as they are read, e.g. redact PII.'],
+    ['S3 Inventory','Scheduled report of objects, encryption status and metadata.']
+  ]}
+},
+
+ebs: {
+  icon: 'ebs', eyebrow: 'Block storage', title: 'Amazon EBS', test: 'EBS',
+  one: 'Network disks for one EC2 instance in <b>one AZ</b>. The exam asks which <b>volume type</b> fits the IOPS or throughput need, and how snapshots work.',
+  picks: [['ebs','Boot volumes and most workloads → <b>gp3</b>'],['ebs','Critical databases needing high, steady IOPS → <b>io2 Block Express</b>'],['ebs','Big sequential reads (logs, big data) → <b>st1</b>; cold data → <b>sc1</b>']],
+  explain: [
+    {tab:'Volume types', type:'compare', cols:[['','gp3'],['','io2 BE'],['','st1'],['','sc1']], rows:[
+      ['Media','SSD','SSD','HDD','HDD'],
+      ['Max IOPS','16,000','256,000','500','250'],
+      ['Max MiB/s','1,000','4,000','500','250'],
+      ['Boot volume','Yes','Yes','No','No'],
+      ['Pick when','Default','Critical DBs, Multi-Attach','Big data, logs','Cheapest, cold']],
+      aid:'SSD = IOPS (random, small I/O). HDD = throughput (large, sequential I/O). gp3 numbers are the exam values.'},
+    {tab:'Snapshots', type:'list', items:[
+      ['Incremental','Only changed blocks after the first snapshot; stored in S3 by AWS.'],
+      ['Restore anywhere','New volume in any AZ; copy the snapshot to another Region (and re-encrypt).'],
+      ['Fast Snapshot Restore','Volumes are fully initialized at creation: no first-read slowdown.'],
+      ['Archive tier','~75% cheaper for snapshots kept 90+ days; restore takes 24–72 hours.'],
+      ['Recycle Bin','Recover accidentally deleted snapshots and AMIs.'],
+      ['Data Lifecycle Manager','Automates snapshot creation and retention.']]},
+    {tab:'Encryption & attach', type:'list', items:[
+      ['Encryption','KMS keys; covers data at rest, data moving to the instance, and snapshots.'],
+      ['Encrypt an existing volume','Snapshot → copy the snapshot with encryption → create a new volume.'],
+      ['Encryption by default','Region setting that encrypts every new volume.'],
+      ['Multi-Attach','io1/io2 only; up to 16 Nitro instances in the same AZ; the app must handle concurrent writes.'],
+      ['Delete on termination','On for the root volume, off for extra volumes.'],
+      ['Elastic Volumes','Change size, type or IOPS while attached.']]}
+  ],
+  traps: [
+    '<b>A volume is locked to one AZ.</b> To move it: snapshot, then restore in the other AZ (or copy the snapshot to another Region).',
+    '<b>You can\'t encrypt an existing volume in place.</b> Snapshot → encrypted copy → new volume.',
+    '<b>HDD volumes (st1, sc1) can\'t be boot volumes.</b>'
+  ],
+  details: {sum:'gp2, RAID, durability', facts:[
+    ['gp2 vs gp3','gp2 IOPS grow with size (3 IOPS per GiB). gp3 sets IOPS and throughput independently and costs ~20% less.'],
+    ['RAID 0','Stripe volumes for more IOPS than one volume gives.'],
+    ['io2 durability','99.999%, versus 99.8–99.9% for other types.'],
+    ['Instance store vs EBS','Instance store is faster but lost on stop; EBS persists.']
+  ]}
+},
+
+files: {
+  icon: 'efs', eyebrow: 'Shared file systems', title: 'EFS & FSx', test: 'Files',
+  one: 'File systems that many servers mount at once. Pick by <b>operating system</b> and <b>performance</b>.',
+  picks: [['efs','Linux servers sharing files across AZs → <b>EFS</b>'],['fsxwin','Windows shares with Active Directory → <b>FSx for Windows</b>'],['fsxlustre','HPC / ML throughput, data in S3 → <b>FSx for Lustre</b>']],
+  explain: [
+    {tab:'Which one?', type:'picker', opts:{
+      efs:{n:'Amazon EFS', short:'EFS', ico:'efs', tag:'NFS · Linux', pts:['Serverless: grows and shrinks automatically','Multi-AZ, thousands of clients','Mounts on EC2, ECS, EKS, Lambda','Lifecycle to Infrequent Access / Archive']},
+      win:{n:'FSx for Windows', short:'FSx Windows', ico:'fsxwin', tag:'SMB · Windows', pts:['Active Directory, NTFS permissions','DFS namespaces, shadow copies','Multi-AZ option']},
+      lustre:{n:'FSx for Lustre', short:'FSx Lustre', ico:'fsxlustre', tag:'Lustre · HPC', pts:['Hundreds of GB/s, millions of IOPS','Links to an S3 bucket','Scratch or Persistent deployment']},
+      ontap:{n:'FSx for NetApp ONTAP', short:'FSx ONTAP', ico:'fsxontap', tag:'NFS + SMB + iSCSI', pts:['Multi-protocol: Linux, Windows, macOS','Snapshots, clones, dedupe','Lift-and-shift of NetApp']},
+      zfs:{n:'FSx for OpenZFS', short:'FSx OpenZFS', ico:'fsxzfs', tag:'NFS · ZFS', pts:['Move existing ZFS file servers','Snapshots and clones','Very low latency']}
+    }, scen:[
+      ['"Linux web servers in 3 AZs share uploads"','efs','EFS is NFS, multi-AZ, and scales automatically.'],
+      ['"Windows users need a shared drive with AD permissions"','win','FSx for Windows speaks SMB and joins Active Directory.'],
+      ['"ML training reads an S3 dataset at huge throughput"','lustre','FSx for Lustre links to S3 and delivers HPC throughput.'],
+      ['"Migrate NetApp NAS with NFS and SMB clients"','ontap','FSx for NetApp ONTAP is multi-protocol and runs ONTAP.'],
+      ['"Lambda functions need a shared file system"','efs','Lambda can mount EFS from inside a VPC.'],
+      ['"Move an on-prem ZFS file server"','zfs','FSx for OpenZFS runs ZFS natively.']
+    ], aid:'Linux → EFS · Windows → FSx for Windows · HPC → FSx for Lustre · NetApp / multi-protocol → ONTAP'},
+    {tab:'EFS options', type:'list', items:[
+      ['Throughput modes','Elastic (recommended, pay per use), Provisioned, or Bursting.'],
+      ['Storage classes','Standard, Infrequent Access, Archive. One Zone versions are cheaper but single-AZ.'],
+      ['Lifecycle management','Moves files not read for N days to IA or Archive.'],
+      ['Access control','Security groups on mount targets (one per AZ), IAM, and EFS Access Points.'],
+      ['Performance modes','General Purpose (default, lowest latency) or Max I/O (legacy).']]}
+  ],
+  traps: [
+    '<b>EFS is Linux (NFS) only.</b> Windows servers need FSx for Windows File Server.',
+    '<b>EBS can\'t be shared across AZs.</b> "Shared storage for many instances" → EFS or FSx, not EBS.',
+    '<b>Lustre scratch has no replication.</b> Data is lost if a server fails; use Persistent for long-lived data.'
+  ],
+  details: {sum:'replication, Multi-AZ, backups', facts:[
+    ['EFS Replication','Copies the file system to another Region or AZ, RPO in minutes.'],
+    ['FSx for Windows Multi-AZ','Standby file server in another AZ with automatic failover.'],
+    ['Backups','EFS and FSx both integrate with AWS Backup.'],
+    ['Loading data','DataSync copies from on-premises into EFS or FSx.']
+  ]}
+},
+
+hybrid: {
+  icon: 'storagegw', eyebrow: 'On-premises ↔ AWS', title: 'Hybrid & data transfer', test: 'Hybrid',
+  one: 'Getting data between on-premises and AWS: <b>sync it online</b>, <b>ship it offline</b>, or let on-prem apps <b>keep using local protocols</b> with storage in AWS.',
+  picks: [['datasync','"Online migration or scheduled sync of files" → <b>DataSync</b>'],['snowball','"Petabytes over a slow link" → <b>Snowball Edge</b>'],['storagegw','"On-prem apps keep NFS/SMB/iSCSI/tape" → <b>Storage Gateway</b>']],
+  explain: [
+    {tab:'Which tool?', type:'picker', opts:{
+      datasync:{n:'AWS DataSync', short:'DataSync', ico:'datasync', tag:'Online transfer', pts:['Agent on-prem: NFS, SMB, HDFS, object storage','Into S3, EFS or FSx; also AWS ↔ AWS','Scheduled or one-time, with verification','Throttle bandwidth; use a VPC endpoint over Direct Connect']},
+      snow:{n:'Snowball Edge', short:'Snowball', ico:'snowball', tag:'Offline transfer', pts:['Rugged device shipped to you','For when the network would take weeks','Local compute for disconnected sites','Data is imported into S3']},
+      sgw:{n:'Storage Gateway', short:'Storage Gateway', ico:'storagegw', tag:'Hybrid access', pts:['On-prem apps keep NFS/SMB/iSCSI/tape','Local cache for low latency','Data stored durably in AWS','Ongoing use, not a one-time move']},
+      transfer:{n:'Transfer Family', short:'Transfer Family', ico:'transfer', tag:'SFTP / FTPS / FTP / AS2', pts:['Managed endpoints into S3 or EFS','Partners keep their existing clients','Service users, AD or your own identity provider']}
+    }, scen:[
+      ['"Migrate a 50 TB NFS share and keep syncing until cutover"','datasync','DataSync moves and re-syncs data online.'],
+      ['"5 PB to move; the link would take months"','snow','Ship the data on Snowball Edge devices.'],
+      ['"Replace a tape library, keep the backup software"','sgw','Tape Gateway presents a virtual tape library backed by S3 and Glacier.'],
+      ['"Office apps need an SMB share with data in S3"','sgw','S3 File Gateway: SMB/NFS locally, objects in S3.'],
+      ['"Partners upload files by SFTP into S3"','transfer','Transfer Family runs managed SFTP endpoints.'],
+      ['"Remote site with no connectivity must process data"','snow','Snowball Edge has compute for disconnected sites.']
+    ]},
+    {tab:'Storage Gateway types', type:'compare', cols:[['','S3 File'],['','Volume'],['','Tape']], rows:[
+      ['Protocol','NFS / SMB','iSCSI','iSCSI virtual tape'],
+      ['Data lands in','S3 objects','S3, as EBS snapshots','S3 / Glacier'],
+      ['Local','Cache of recent files','Cached: hot data · Stored: all data','Cache of recent tapes'],
+      ['Pick when','File shares backed by S3','Block volumes backed up to AWS','Replace physical tapes']],
+      aid:'<b>Cached volumes</b>: primary data in S3, hot data local. <b>Stored volumes</b>: all data local, async snapshots to AWS.'},
+    {tab:'Online or ship it?', type:'tiles', items:[['~9 days','100 TB at 1 Gbps (full speed)',1],['~3 months','1 PB at 1 Gbps',1],['Weeks+','→ consider Snowball'],['Ongoing sync','→ DataSync']],
+      note:'The exam gives size and bandwidth. Do the rough math: TB × 8,000 ÷ Gbps = seconds.'}
+  ],
+  traps: [
+    '<b>DataSync moves data; Storage Gateway gives ongoing access.</b> Don\'t swap them.',
+    '<b>Snowball is for when the network is the bottleneck</b>, not for continuous sync.',
+    '<b>Direct Connect alone doesn\'t move files.</b> Pair it with DataSync (or a gateway) to do the transfer.'
+  ],
+  details: {sum:'combinations, appliances', facts:[
+    ['Snowball + DataSync','Bulk load with Snowball, then sync changes with DataSync.'],
+    ['DataSync vs CLI copy','DataSync adds scheduling, verification, retries and faster parallel transfer.'],
+    ['Gateway hardware appliance','A physical Storage Gateway for sites without virtualization.'],
+    ['Databases','Use AWS DMS for databases, not DataSync (see Databases page).']
+  ]}
+},
+
+backup: {
+  icon: 'backup', eyebrow: 'Central protection', title: 'AWS Backup', test: 'Backup',
+  one: 'One place to set <b>backup policies</b> across AWS services, with copies to other <b>Regions</b> and <b>accounts</b>.',
+  picks: [['backup','"Central backup policy for EC2, EBS, RDS, DynamoDB, EFS, FSx" → <b>AWS Backup</b>'],['backup','"Backups must be immutable, even for admins" → <b>Vault Lock</b>'],['backup','"Copy backups to another Region/account for DR" → <b>cross-Region/account copy</b>']],
+  explain: [
+    {label:'Key pieces', type:'list', items:[
+      ['Backup plan','Schedule, retention, and when to move backups to cold storage.'],
+      ['Backup vault','Encrypted container for recovery points, protected by a vault policy.'],
+      ['Vault Lock','WORM for backups. Compliance mode can\'t be changed after the grace period, even by root.'],
+      ['Cross-Region / cross-account copy','Automatic copies for disaster recovery; accounts come from AWS Organizations.'],
+      ['Coverage','EC2, EBS, RDS, Aurora, DynamoDB, EFS, FSx, S3, Storage Gateway and more.'],
+      ['Audit Manager','Reports whether backups meet your policies.']]}
+  ],
+  traps: [
+    '"Protect backups from deletion, even by administrators" → <b>Vault Lock in compliance mode</b>.',
+    '<b>Per-service snapshots aren\'t a central policy.</b> Many services, one schedule → AWS Backup.',
+    '<b>A backup in the same Region and account isn\'t DR.</b> Add cross-Region and cross-account copies.'
+  ]
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['S3 classes','Logs are read often for 30 days, rarely afterwards, and must be kept 7 years at the lowest cost.',['Lifecycle: Standard → Standard-IA at 30 days → Deep Archive','Intelligent-Tiering only','One Zone-IA from day one','S3 Standard with versioning'],0,'Known aging pattern = lifecycle rules. Deep Archive is cheapest for long retention.'],
+  ['S3 classes','Access patterns are unknown and change often. The company wants automatic savings with no retrieval fees.',['S3 Intelligent-Tiering','S3 Standard-IA','S3 One Zone-IA','Glacier Instant Retrieval'],0,'Intelligent-Tiering moves objects by access and charges no retrieval fees.'],
+  ['S3 classes','Thumbnails can be regenerated from originals and are rarely read. Minimize cost.',['S3 One Zone-IA','S3 Standard-IA','S3 Standard','Glacier Deep Archive'],0,'Re-creatable, infrequent data fits One Zone-IA. Deep Archive retrieval is too slow for thumbnails.'],
+  ['S3 classes','Medical images are read about once a quarter but must be returned in milliseconds.',['Glacier Instant Retrieval','Glacier Flexible Retrieval','Glacier Deep Archive','One Zone-IA'],0,'Archive pricing with millisecond access = Glacier Instant Retrieval.'],
+  ['S3 classes','A compliance archive is kept 10 years; retrieval within 48 hours is acceptable. Lowest cost.',['Glacier Deep Archive','Glacier Flexible Retrieval','Standard-IA','Intelligent-Tiering'],0,'Deep Archive is the cheapest class; bulk retrieval takes up to 48 hours.'],
+  ['S3 classes','Archived data is occasionally needed within minutes during an emergency.',['Glacier Flexible Retrieval with Expedited retrieval','Deep Archive with Standard retrieval','Snowball Edge','S3 One Zone-IA'],0,'Expedited retrieval from Glacier Flexible returns data in 1–5 minutes.'],
+  ['S3 features','Uploads of 20 GB files fail intermittently over an unreliable network.',['Multipart upload','S3 Transfer Acceleration only','Increase the PUT size limit','S3 Batch Operations'],0,'Multipart retries only failed parts and is required above 5 GB.'],
+  ['S3 features','A regulator requires that objects can\'t be deleted or overwritten by anyone, including root, for 7 years.',['S3 Object Lock in compliance mode','S3 Object Lock in governance mode','MFA Delete','A bucket policy that denies DeleteObject'],0,'Compliance mode can\'t be bypassed by any user, including root.'],
+  ['S3 features','A customer needs temporary download access to one object in a private bucket.',['Generate a presigned URL','Make the object public','Create an IAM user for the customer','Enable Transfer Acceleration'],0,'Presigned URLs grant time-limited access using the signer\'s permissions.'],
+  ['S3 features','Users around the world upload large files to one bucket, and uploads from far away are slow.',['S3 Transfer Acceleration','Cross-Region Replication','CloudFront signed cookies','S3 Select'],0,'Transfer Acceleration routes uploads through edge locations over the AWS backbone.'],
+  ['S3 features','Security must audit every use of the keys that encrypt S3 objects.',['SSE-KMS with customer managed keys','SSE-S3','SSE-C','No encryption; use bucket policies'],0,'KMS key use is logged in CloudTrail. SSE-S3 has no per-key audit.'],
+  ['S3 features','New objects must be copied automatically to a bucket in another Region for DR.',['Cross-Region Replication with versioning on both buckets','Same-Region Replication','S3 Lifecycle rule','S3 Inventory'],0,'CRR copies new objects to another Region; both buckets need versioning.'],
+  ['S3 features','Millions of objects already in the bucket must be copied to a new replica bucket.',['S3 Batch Replication','Enable CRR only','S3 Inventory','Transfer Acceleration'],0,'Replication rules only cover new objects. Batch Replication copies existing ones.'],
+  ['S3 features','EC2 instances in a private subnet must reach S3 without internet access and without extra cost.',['Gateway VPC endpoint for S3','NAT gateway','Interface endpoint in every AZ','Internet gateway'],0,'Gateway endpoints for S3 are free and keep traffic private.'],
+  ['EBS','A database needs 100,000 IOPS with sub-millisecond latency.',['io2 Block Express','gp3','st1','Instance store only'],0,'io2 Block Express reaches 256,000 IOPS. gp3 tops out at 16,000 (exam value).'],
+  ['EBS','Most cost-effective volume for general workloads needing 5,000 IOPS on a small volume.',['gp3 with provisioned IOPS','gp2 sized large enough','io2','sc1'],0,'gp3 sets IOPS independently of size and costs less than gp2.'],
+  ['EBS','Sequential log processing needs high throughput at low cost; it is not a boot volume.',['st1','gp3','io2','sc1 as the boot volume'],0,'Throughput-optimized HDD fits large sequential I/O.'],
+  ['EBS','An EBS volume must be used by an instance in a different AZ.',['Snapshot it and create a volume in the target AZ','Detach and attach it in the other AZ','Enable Multi-Attach','Move it with DataSync'],0,'Volumes are AZ-locked. Snapshots can be restored in any AZ.'],
+  ['EBS','An existing unencrypted volume must be encrypted.',['Snapshot → copy with encryption → create a new volume','Enable encryption on the volume','Turn on encryption by default','Use SSE-S3'],0,'You can\'t encrypt in place. The encrypted copy of the snapshot creates an encrypted volume.'],
+  ['EBS','Volumes created from snapshots must give full performance immediately.',['Fast Snapshot Restore','Snapshot archive tier','Elastic Volumes','Data Lifecycle Manager'],0,'FSR pre-initializes volumes so there is no first-read penalty.'],
+  ['EBS','A clustered app needs one block volume attached to several instances in the same AZ.',['io2 with Multi-Attach','gp3 with Multi-Attach','EFS','st1'],0,'Only io1/io2 support Multi-Attach, up to 16 Nitro instances in one AZ.'],
+  ['Files','Linux web servers in three AZs must share uploaded files.',['Amazon EFS','EBS Multi-Attach','Instance store','FSx for Windows'],0,'EFS is multi-AZ NFS that many instances mount at once.'],
+  ['Files','Windows users need a shared drive with Active Directory permissions.',['FSx for Windows File Server','Amazon EFS','S3 File Gateway only','FSx for Lustre'],0,'FSx for Windows provides SMB with AD integration.'],
+  ['Files','An HPC job must process a large dataset stored in S3 at very high throughput.',['FSx for Lustre linked to the S3 bucket','EFS General Purpose','EBS gp3','S3 Transfer Acceleration'],0,'FSx for Lustre integrates with S3 and delivers HPC throughput.'],
+  ['Files','An on-premises NetApp NAS serving NFS and SMB clients must move to AWS with minimal change.',['FSx for NetApp ONTAP','Amazon EFS','FSx for Lustre','S3 File Gateway'],0,'ONTAP is multi-protocol and keeps NetApp features.'],
+  ['Files','EFS costs are high, and most files aren\'t accessed after 30 days.',['EFS lifecycle management to Infrequent Access','Switch to Max I/O','Use Provisioned throughput','Move to EBS'],0,'Lifecycle policies move cold files to the cheaper IA class automatically.'],
+  ['Hybrid','A 50 TB on-prem NFS share must be migrated and kept in sync until cutover.',['AWS DataSync','Snowball Edge','Tape Gateway','Transfer Family'],0,'DataSync handles online transfer and incremental sync.'],
+  ['Hybrid','2 PB must move to AWS, and the internet link would take months.',['Snowball Edge devices','DataSync over the internet','Direct Connect only','Transfer Acceleration'],0,'When the network is the bottleneck, ship the data.'],
+  ['Hybrid','Replace a physical tape library without changing the backup software.',['Tape Gateway','S3 File Gateway','DataSync','AWS Backup'],0,'Tape Gateway presents a virtual tape library backed by S3 and Glacier.'],
+  ['Hybrid','On-prem apps need an NFS share whose data is stored as objects in S3, with a local cache.',['S3 File Gateway','Volume Gateway stored mode','EFS','DataSync'],0,'S3 File Gateway: NFS/SMB locally, objects in S3.'],
+  ['Hybrid','Business partners must upload files into S3 over SFTP.',['AWS Transfer Family','S3 presigned URLs','DataSync','Storage Gateway'],0,'Transfer Family runs managed SFTP endpoints for S3.'],
+  ['Hybrid','On-prem iSCSI volumes should keep primary data in S3, with only frequently used data cached locally.',['Volume Gateway, cached mode','Volume Gateway, stored mode','Tape Gateway','S3 File Gateway'],0,'Cached volumes keep primary data in S3 and hot data on-prem.'],
+  ['Hybrid','The full dataset must stay on-prem for low latency, with asynchronous backups to AWS.',['Volume Gateway, stored mode','Volume Gateway, cached mode','Snowball Edge','Transfer Family'],0,'Stored volumes keep all data local and snapshot it to AWS.'],
+  ['Backup','Central backup policies are needed for EC2, RDS, DynamoDB and EFS across many accounts.',['AWS Backup with AWS Organizations','Data Lifecycle Manager','Per-service snapshots with Lambda','S3 Lifecycle rules'],0,'AWS Backup centralizes plans across services and accounts.'],
+  ['Backup','Backups must be impossible to delete, even by administrators, for the retention period.',['AWS Backup Vault Lock in compliance mode','An IAM deny policy','MFA Delete','S3 Object Lock governance mode'],0,'Vault Lock compliance mode can\'t be changed after its grace period, even by root.'],
+  ['Backup','Backups must be copied automatically to another Region for disaster recovery.',['AWS Backup cross-Region copy rule','S3 Same-Region Replication','EBS Multi-Attach','Read replicas'],0,'Backup plans can copy recovery points to another Region automatically.']
+];
+
+const FC = [
+  ['S3 classes','S3 durability?','99.999999999% (11 nines) for every storage class.'],
+  ['S3 classes','Largest object / largest single PUT?','5 TB per object; 5 GB per PUT. Use multipart above 100 MB.'],
+  ['S3 classes','Minimum storage days: Standard-IA / Glacier Instant & Flexible / Deep Archive?','30 / 90 / 180 days.'],
+  ['S3 classes','Glacier Flexible Retrieval times?','Expedited 1–5 min, Standard 3–5 h, Bulk 5–12 h.'],
+  ['S3 classes','Deep Archive retrieval times?','Standard within 12 h, Bulk within 48 h.'],
+  ['S3 classes','One Zone-IA risk?','Data is lost if its single AZ is destroyed.'],
+  ['S3 classes','Request rate per prefix?','3,500 PUT/COPY/POST/DELETE and 5,500 GET/HEAD per second.'],
+  ['S3 features','Object Lock modes?','Compliance: nobody can delete, even root. Governance: users with special permission can.'],
+  ['S3 features','What does replication require?','Versioning on both buckets. Only new objects unless you use Batch Replication.'],
+  ['S3 features','SSE-S3 vs SSE-KMS?','SSE-S3: S3-managed keys (default). SSE-KMS: your KMS keys, audited in CloudTrail.'],
+  ['S3 features','Presigned URL?','Time-limited access to a private object, using the signer\'s permissions.'],
+  ['EBS','gp3 baseline and max?','Baseline 3,000 IOPS and 125 MiB/s at any size; up to 16,000 IOPS (exam value).'],
+  ['EBS','io2 Block Express max?','256,000 IOPS, 4,000 MiB/s, sub-millisecond latency.'],
+  ['EBS','Which types can boot?','SSD types (gp2, gp3, io1, io2). Not st1 or sc1.'],
+  ['EBS','Multi-Attach?','io1/io2 only, up to 16 Nitro instances in one AZ.'],
+  ['EBS','How are snapshots stored?','Incrementally, in S3 managed by AWS.'],
+  ['Files','EFS protocol and OS?','NFS, Linux only.'],
+  ['Files','FSx for Lustre deployment types?','Scratch (temporary, no replication) and Persistent (replicated).'],
+  ['Files','FSx for Windows protocol?','SMB, with Active Directory integration.'],
+  ['Hybrid','Storage Gateway types?','S3 File Gateway, Volume Gateway (cached or stored), Tape Gateway.'],
+  ['Hybrid','Cached vs stored volumes?','Cached: data in S3, hot data local. Stored: all data local, async snapshots to AWS.'],
+  ['Hybrid','How long is 100 TB over 1 Gbps?','About 9–10 days at full speed. Weeks → consider Snowball.'],
+  ['Backup','Vault Lock compliance mode?','After the grace period, nobody can change or delete it, even root.']
+];
+
+const NUMS = [
+  ['11 9s','S3 durability'],['5 TB','Largest S3 object'],['5 GB','Largest single PUT'],['100 MB','Use multipart above'],
+  ['3,500 / 5,500','PUT / GET per second per prefix'],['30 · 90 · 180 d','Minimum days: IA · Glacier · Deep Archive'],
+  ['1–5 min','Glacier expedited retrieval'],['12 h / 48 h','Deep Archive standard / bulk'],['3,000 · 125','gp3 baseline IOPS · MiB/s'],
+  ['16,000','gp3 max IOPS (exam value)'],['256,000','io2 Block Express max IOPS'],['16','Multi-Attach instances (io1/io2)'],['15 min','S3 RTC replication SLA']
+];
+
+const PAIRS = [
+  ['Standard-IA','Multi-AZ, infrequent','One Zone-IA','One AZ, re-creatable data'],
+  ['Glacier Instant','Milliseconds, archive price','Glacier Flexible','Minutes to hours'],
+  ['Object Lock compliance','Nobody can delete','Object Lock governance','Special permission can'],
+  ['SSE-S3','S3-managed keys','SSE-KMS','Your KMS keys, audited'],
+  ['CRR','Another Region','SRR','Same Region'],
+  ['gp3','General SSD, IOPS set freely','io2','Highest IOPS, Multi-Attach'],
+  ['EFS','NFS, Linux','FSx for Windows','SMB, Windows + AD'],
+  ['DataSync','Move or sync data','Storage Gateway','Ongoing hybrid access'],
+  ['Cached volume','Data in S3, cache local','Stored volume','Data local, backup to S3']
+];
+
+const TRAPS = [
+  ['"Unknown or changing access patterns"','S3 Intelligent-Tiering'],
+  ['"Infrequent, re-creatable, cheapest"','S3 One Zone-IA','Never for data you can\'t re-create'],
+  ['"Archive, but milliseconds retrieval"','Glacier Instant Retrieval','Not Glacier Flexible: minutes to hours'],
+  ['"Archive for 7–10 years, lowest cost"','Glacier Deep Archive'],
+  ['"Nobody can delete, not even root"','Object Lock compliance mode','Not governance mode'],
+  ['"Temporary access to a private object"','Presigned URL'],
+  ['"Slow uploads from distant users"','S3 Transfer Acceleration'],
+  ['"Audit encryption key usage"','SSE-KMS','Not SSE-S3'],
+  ['"Copy objects to another Region"','Cross-Region Replication','Needs versioning on both buckets'],
+  ['"Replicate objects that already exist"','S3 Batch Replication'],
+  ['"Private S3 access from a VPC, free"','Gateway VPC endpoint'],
+  ['"Large files, unreliable uploads"','Multipart upload'],
+  ['"Highest IOPS for a critical database"','io2 Block Express'],
+  ['"Cheapest SSD for general use"','gp3'],
+  ['"Throughput-heavy, sequential, not boot"','st1'],
+  ['"Move an EBS volume to another AZ"','Snapshot → restore in the new AZ'],
+  ['"Encrypt an existing unencrypted volume"','Snapshot → encrypted copy → new volume'],
+  ['"Shared Linux file system across AZs"','EFS','Not EBS'],
+  ['"Windows share with Active Directory"','FSx for Windows File Server','Not EFS: Linux only'],
+  ['"HPC with data in S3"','FSx for Lustre'],
+  ['"Multi-protocol NAS, NetApp"','FSx for NetApp ONTAP'],
+  ['"Migrate and keep syncing files online"','DataSync'],
+  ['"Petabytes, limited bandwidth"','Snowball Edge'],
+  ['"Replace tape backups"','Tape Gateway'],
+  ['"On-prem NFS/SMB backed by S3"','S3 File Gateway'],
+  ['"Partners use SFTP"','Transfer Family'],
+  ['"Central backups across services and accounts"','AWS Backup'],
+  ['"Backups immune to deletion by admins"','Backup Vault Lock (compliance)']
+];
+
+App.start({
+  id: 'storage',
+  title: 'Storage Cheat Sheet',
+  learn: [['pick','Pick storage','',6],['classes','S3 classes','s3',14],['s3feat','S3 features','s3',14],['ebs','EBS','ebs',12],
+          ['files','EFS & FSx','efs',10],['hybrid','Hybrid & transfer','storagegw',12],['backup','AWS Backup','backup',5]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

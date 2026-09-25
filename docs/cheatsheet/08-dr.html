@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 DR & Migration Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Disaster Recovery & Migration ================= */
+const STRAT = {
+  br:{n:'Backup & restore', short:'Backup & restore', ico:'backup', tag:'RPO hours · RTO hours', pts:['Back up data to another Region','Rebuild infrastructure with IaC after the disaster','Lowest cost']},
+  pilot:{n:'Pilot light', short:'Pilot light', ico:'rds', tag:'RPO minutes · RTO tens of minutes', pts:['Core data replicated and live','Servers off or only AMIs ready','Turn on and scale during failover']},
+  warm:{n:'Warm standby', short:'Warm standby', ico:'asg', tag:'RPO seconds–minutes · RTO minutes', pts:['A smaller full copy always running','Can take some traffic immediately','Scale out on failover']},
+  multi:{n:'Multi-site active/active', short:'Multi-site', ico:'route53', tag:'RPO & RTO near zero', pts:['Both Regions serve users','Aurora Global, DynamoDB Global Tables','Most expensive']}
+};
+
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which DR or migration option?',
+  one: 'These questions are either about <b>recovering from a disaster</b> (match the RPO/RTO) or about <b>moving</b> servers, databases and data into AWS.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Is the goal recovering from a disaster (Region failure, data loss)?', s:'Disaster recovery?', o:[['Yes','d1'],['No','m1']]},
+      d1:    {q:'Is hours of downtime and data loss acceptable, at the lowest cost?', s:'Hours OK, lowest cost?', o:[['Yes','R:br'],['No','d2']]},
+      d2:    {q:'Is ~30 minutes of downtime OK, with only core data running in the DR Region?', s:'Only data running?', o:[['Yes','R:pilot'],['No','d3']]},
+      d3:    {q:'Is a few minutes of downtime OK, with a scaled-down copy always running?', s:'Scaled-down copy running?', o:[['Yes','R:warm'],['No','R:multi']]},
+      m1:    {q:'Do you first need an inventory of servers and their dependencies?', s:'Discover servers first?', o:[['Yes','R:ads'],['No','m2']]},
+      m2:    {q:'Lift-and-shift servers to EC2 with minimal downtime?', s:'Rehost servers?', o:[['Yes','R:mgn'],['No','m3']]},
+      m3:    {q:'Migrating a database?', s:'Database?', o:[['Yes','m4'],['No','m5']]},
+      m4:    {q:'Is the target a different database engine (e.g. Oracle → PostgreSQL)?', s:'Different engine?', o:[['Yes','R:sctdms'],['No','R:dms']]},
+      m5:    {q:'Can the files move online over the network in reasonable time?', s:'Files online?', o:[['Yes','R:datasync'],['No','R:snow']]}
+    },
+    results: {
+      br:      {t:'Backup & restore', ico:'backup', w:'Cross-Region backups; rebuild with IaC after a disaster. RPO/RTO in hours.', alt:'AWS Backup copies to another Region and account.'},
+      pilot:   {t:'Pilot light', ico:'rds', w:'Data replicated live; compute switched on during failover. RTO tens of minutes.', alt:'Warm standby if some capacity must run already.'},
+      warm:    {t:'Warm standby', ico:'asg', w:'A scaled-down but working copy always runs; scale out on failover.', alt:'RTO minutes.'},
+      multi:   {t:'Multi-site active/active', ico:'route53', w:'Both Regions serve traffic; RPO and RTO near zero.', alt:'Aurora Global Database, DynamoDB Global Tables, Route 53.'},
+      ads:     {t:'Application Discovery Service', ico:'ads', w:'Collects server specs, utilization and dependencies to plan the migration.', alt:'Results appear in Migration Hub.'},
+      mgn:     {t:'Application Migration Service', ico:'mgn', w:'Continuous block replication of servers to AWS; cut over in minutes.', alt:'The lift-and-shift (rehost) answer.'},
+      sctdms:  {t:'SCT + DMS', ico:'dms', w:'SCT converts the schema; DMS copies data and keeps it in sync (CDC).', alt:'Source stays live until cutover.'},
+      dms:     {t:'AWS DMS', ico:'dms', w:'Full load + change data capture for minimal-downtime migration.', alt:'Huge DB + slow link → Snowball first.'},
+      datasync:{t:'AWS DataSync', ico:'datasync', w:'Online transfer and scheduled sync into S3, EFS or FSx.', alt:'Use Direct Connect for steady private throughput.'},
+      snow:    {t:'Snowball Edge', ico:'snowball', w:'Ship data offline when the network would take weeks.', alt:'Then sync changes with DataSync.'}
+    }
+  }
+},
+
+strategies: {
+  icon: 'backup', eyebrow: 'RPO & RTO', title: 'DR strategies', test: 'Strategies',
+  one: 'Four strategies trade <b>cost</b> against <b>how fast</b> you recover (RTO) and <b>how much data</b> you lose (RPO).',
+  picks: [['backup','RPO/RTO in hours, lowest cost → <b>backup & restore</b>'],['rds','Only data running in the DR Region → <b>pilot light</b>'],['route53','Near-zero downtime, both Regions live → <b>multi-site</b>']],
+  explain: [
+    {tab:'Cheap → fast', type:'spectrum', axis:['← Cheaper, slower recovery','Faster recovery, costs more →'], start:1, stops:[
+      {n:'Backup & restore', ico:'backup', sub:'Lowest cost', head:'RPO hours · RTO hours', text:'Back up data (AWS Backup, snapshots, S3) to another Region; rebuild infrastructure with IaC after the disaster.'},
+      {n:'Pilot light', ico:'rds', sub:'Core data live', head:'RPO minutes · RTO tens of minutes', text:'Data is replicated continuously; servers are off or just AMIs. Turn them on, scale up and switch DNS.'},
+      {n:'Warm standby', ico:'asg', sub:'Scaled-down copy running', head:'RPO seconds–minutes · RTO minutes', text:'A smaller but fully working environment always runs. Scale it out and fail over.'},
+      {n:'Multi-site', ico:'route53', sub:'Full copy serving users', head:'RPO & RTO near zero', text:'Both Regions serve traffic all the time. Most expensive.'}
+    ], aid:'<b>RPO</b> = how much data you can lose (time since the last good copy). <b>RTO</b> = how long until you\'re back up.'},
+    {tab:'Match the numbers', type:'picker', opts: STRAT, scen:[
+      ['"RTO 24 h, RPO 12 h, minimize cost"','br','Hours of recovery are acceptable, so backups are enough.'],
+      ['"RTO 30 min; the database must be replicated; servers can be off"','pilot','Only the core data runs in the DR Region.'],
+      ['"RTO under 10 min; DR must take traffic right away at reduced capacity"','warm','A scaled-down working copy is already running.'],
+      ['"Zero downtime; users served from two Regions"','multi','Active/active serves from both Regions.']
+    ]}
+  ],
+  traps: [
+    '<b>Pilot light vs warm standby:</b> pilot light runs only the data; warm standby runs a smaller working copy of everything.',
+    '<b>Backups in the same Region aren\'t DR.</b> Copy them to another Region (and account).',
+    '<b>RPO is data loss; RTO is downtime.</b> Don\'t swap them.'
+  ]
+},
+
+blocks: {
+  icon: 'drs', eyebrow: 'Layer by layer', title: 'DR building blocks', test: 'Building blocks',
+  one: 'DR is built layer by layer: <b>replicate the data</b>, be ready to <b>run the compute</b>, and <b>move the traffic</b>.',
+  picks: [['aurora','"Relational DB Region failover in ~1 minute" → <b>Aurora Global Database</b>'],['drs','"Replicate servers continuously, recover in minutes" → <b>Elastic Disaster Recovery</b>'],['route53','"Send users to the DR Region when primary fails" → <b>Route 53 failover</b>']],
+  explain: [
+    {tab:'Data', type:'list', items:[
+      ['S3','Cross-Region Replication; RTC gives a 15-minute SLA.'],
+      ['EBS / AMIs','Copy snapshots and AMIs to the DR Region.'],
+      ['RDS','Cross-Region read replica (promote it) or cross-Region automated backups.'],
+      ['Aurora','Global Database: under 1 s lag, Region failover in about a minute.'],
+      ['DynamoDB','Global Tables: multi-Region, active-active.'],
+      ['AWS Backup','Cross-Region and cross-account copies with one policy.']]},
+    {tab:'Compute & infra', type:'list', items:[
+      ['Elastic Disaster Recovery','Continuous block-level replication into low-cost staging; launch recovery instances in minutes, RPO in seconds.'],
+      ['Infrastructure as code','CloudFormation / StackSets rebuild the stack in the DR Region.'],
+      ['AMIs','Pre-built images launch fast.'],
+      ['Auto Scaling','Warm standby runs a small ASG and scales out on failover.'],
+      ['Service quotas','Raise quotas in the DR Region ahead of time.']]},
+    {tab:'Traffic', type:'list', items:[
+      ['Route 53 failover','Health checks switch DNS to the DR Region.'],
+      ['Global Accelerator','Static IPs; shifts traffic between Regions in seconds.'],
+      ['Route 53 ARC','Readiness checks and routing controls for controlled failover.'],
+      ['CloudFront origin groups','Fail over to a secondary origin.']]}
+  ],
+  traps: [
+    '<b>DNS failover waits for TTLs.</b> Use low TTLs, or Global Accelerator for faster switching.',
+    '<b>RDS read replicas need promotion</b> (manual or scripted); they aren\'t automatic Region failover.',
+    '<b>Prepare the DR Region:</b> quotas, AMIs, secrets and KMS keys (multi-Region keys), or recovery stalls.'
+  ],
+  details: {sum:'testing, Resilience Hub', facts:[
+    ['Fault Injection Service','Run controlled failure experiments to test DR.'],
+    ['Resilience Hub','Checks whether an app meets its RTO/RPO targets.'],
+    ['KMS multi-Region keys','Decrypt data in the DR Region with the same key.']
+  ]}
+},
+
+migrate: {
+  icon: 'mgn', eyebrow: 'Move applications', title: 'Migration strategies & tools', test: 'Migration',
+  one: 'Moving applications to AWS: discover what you have, pick a strategy from the <b>7 Rs</b>, and use the right tool.',
+  picks: [['mgn','"Lift-and-shift servers, minimal downtime" → <b>Application Migration Service</b>'],['ads','"Inventory servers and dependencies first" → <b>Application Discovery Service</b>'],['migrationhub','"Track all migrations in one place" → <b>Migration Hub</b>']],
+  explain: [
+    {tab:'The 7 Rs', type:'list', items:[
+      ['Retire','Turn it off; nobody needs it.'],
+      ['Retain','Keep it on-premises for now.'],
+      ['Rehost','Lift-and-shift to EC2 (Application Migration Service).'],
+      ['Relocate','Move VMware workloads as they are (VMware Cloud on AWS).'],
+      ['Replatform','Small changes for managed benefits, e.g. database → RDS.'],
+      ['Repurchase','Move to a SaaS product.'],
+      ['Refactor','Re-architect as cloud-native (Lambda, containers, DynamoDB).']],
+      aid:'Least effort → <b>Rehost</b>. Managed benefits, little change → <b>Replatform</b>. Most benefit, most effort → <b>Refactor</b>.'},
+    {tab:'Tools', type:'picker', opts:{
+      ads:{n:'Application Discovery Service', short:'Discovery Service', ico:'ads', tag:'Plan', pts:['Agentless (VMware) or agent-based','Specs, utilization, dependencies','Feeds Migration Hub']},
+      mgn:{n:'Application Migration Service', short:'MGN', ico:'mgn', tag:'Rehost', pts:['Continuous block replication','Test launches, then cutover','Servers become EC2']},
+      hub:{n:'Migration Hub', short:'Migration Hub', ico:'migrationhub', tag:'Track', pts:['One dashboard for migrations','Strategy recommendations']},
+      dms:{n:'DMS + SCT', short:'DMS + SCT', ico:'dms', tag:'Databases', pts:['DMS copies data, CDC keeps sync','SCT converts schemas']}
+    }, scen:[
+      ['"Find all servers and dependencies before planning"','ads','Discovery Service builds the inventory.'],
+      ['"Move 200 VMs to EC2 with minimal downtime"','mgn','MGN replicates continuously and cuts over fast.'],
+      ['"See every migration\'s status in one place"','hub','Migration Hub tracks progress across tools.'],
+      ['"Move Oracle to Aurora PostgreSQL"','dms','SCT converts the schema; DMS moves the data.']
+    ]}
+  ],
+  traps: [
+    '<b>Lift-and-shift → Application Migration Service.</b> The older Server Migration Service is retired.',
+    '<b>Discover dependencies first</b>, or apps break mid-move.',
+    '<b>Replatform ≠ refactor.</b> Moving a DB to RDS is replatform; rewriting the app is refactor.'
+  ],
+  details: {sum:'evaluator, VMware, mainframe', facts:[
+    ['Migration Evaluator','Builds the business case and cost estimate.'],
+    ['VMware Cloud on AWS','Relocate vSphere workloads without converting them.'],
+    ['Mainframe Modernization','Rehost or refactor mainframe applications.']
+  ]}
+},
+
+data: {
+  icon: 'datasync', eyebrow: 'Move the bytes', title: 'Moving data & databases', test: 'Data transfer',
+  one: 'Getting files and databases into AWS: <b>online</b>, <b>offline</b>, or <b>continuously</b>.',
+  picks: [['datasync','"Copy files now and keep syncing" → <b>DataSync</b>'],['snowball','"Petabytes, slow link" → <b>Snowball Edge</b>'],['dms','"Database with minimal downtime" → <b>DMS</b>']],
+  explain: [
+    {tab:'Which tool?', type:'picker', opts:{
+      datasync:{n:'AWS DataSync', short:'DataSync', ico:'datasync', tag:'Online files', pts:['NFS, SMB, HDFS, object storage','Into S3, EFS, FSx','Scheduled, verified']},
+      snow:{n:'Snowball Edge', short:'Snowball', ico:'snowball', tag:'Offline', pts:['Ship data on a device','When the network takes weeks','Edge compute option']},
+      dms:{n:'AWS DMS', short:'DMS', ico:'dms', tag:'Databases', pts:['Full load + CDC','Source stays online','SCT for engine changes']},
+      transfer:{n:'Transfer Family', short:'Transfer Family', ico:'transfer', tag:'SFTP / FTPS', pts:['Managed file-transfer endpoints','Into S3 or EFS']},
+      dx:{n:'Direct Connect', short:'Direct Connect', ico:'dx', tag:'Private link', pts:['Consistent bandwidth for ongoing transfer','Pair with DataSync','Weeks to set up']}
+    }, scen:[
+      ['"Copy a 50 TB NFS share now and sync until cutover"','datasync','DataSync moves and re-syncs files online.'],
+      ['"2 PB over a 100 Mbps link"','snow','The network would take years; ship it.'],
+      ['"Migrate MySQL with minimal downtime"','dms','DMS CDC keeps the source live until cutover.'],
+      ['"Partners deliver files over SFTP"','transfer','Transfer Family runs managed SFTP.'],
+      ['"Steady 5 TB/day between data center and AWS"','dx','Direct Connect gives consistent throughput.']
+    ]},
+    {tab:'Online or ship it?', type:'tiles', items:[['~9 days','100 TB at 1 Gbps',1],['~3 months','1 PB at 1 Gbps',1],['~3 months','100 TB at 100 Mbps'],['Weeks+','→ Snowball']],
+      note:'Rough math: TB × 8,000 ÷ Gbps = seconds.'}
+  ],
+  traps: [
+    '<b>When the transfer would take weeks, Snowball beats the network.</b>',
+    '<b>Huge database, slow link:</b> Snowball for the initial load, then DMS CDC for changes.',
+    '<b>DataSync moves data; Storage Gateway gives ongoing on-prem access.</b>'
+  ]
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['Strategies','RTO of 24 hours and RPO of 24 hours are acceptable. Minimize cost.',['Backup and restore','Pilot light','Warm standby','Multi-site active/active'],0,'Hours of recovery → the cheapest strategy.'],
+  ['Strategies','The database is replicated to the DR Region; app servers stay off until needed. RTO 30 minutes.',['Pilot light','Backup and restore','Warm standby','Multi-site'],0,'Only the core data runs: pilot light.'],
+  ['Strategies','A scaled-down but fully working copy must run in the DR Region and take traffic immediately.',['Warm standby','Pilot light','Backup and restore','Cold standby'],0,'A running smaller copy is warm standby.'],
+  ['Strategies','Zero downtime is required and users are served from two Regions.',['Multi-site active/active','Warm standby','Pilot light','Backup and restore'],0,'Both Regions live = active/active.'],
+  ['Strategies','"The business can lose at most 5 minutes of data." Which metric is this?',['RPO','RTO','MTTR','SLA'],0,'RPO measures acceptable data loss.'],
+  ['Strategies','"The app must be back online within 1 hour." Which metric is this?',['RTO','RPO','MTBF','Durability'],0,'RTO measures acceptable downtime.'],
+  ['Strategies','All backups are in the same Region as production. What improves DR most?',['Copy backups to another Region (and account)','Take backups more often','Use larger volumes','Enable Multi-AZ only'],0,'A Region-wide event would take out same-Region backups.'],
+  ['Building blocks','A relational database needs Region failover in about a minute with ~1 s RPO.',['Aurora Global Database','RDS Multi-AZ','Nightly snapshots copied cross-Region','DynamoDB Streams'],0,'Aurora Global Database replicates storage in under 1 s.'],
+  ['Building blocks','A NoSQL table must accept writes in two Regions.',['DynamoDB Global Tables','DynamoDB Streams to S3','DAX','Read replicas'],0,'Global Tables are multi-Region active-active.'],
+  ['Building blocks','Servers must replicate continuously to another Region and recover within minutes.',['AWS Elastic Disaster Recovery','Nightly AMIs','AWS Backup daily plan','DataSync'],0,'DRS keeps block-level replicas and launches recovery instances quickly.'],
+  ['Building blocks','Users must be sent to the DR Region automatically when the primary fails.',['Route 53 failover routing with health checks','Weighted routing 50/50','Geolocation routing','Simple routing'],0,'Failover routing switches on health.'],
+  ['Building blocks','DNS failover works, but clients keep reaching the failed Region for a long time.',['Lower the record TTL (or use Global Accelerator)','Raise the TTL','Use more health checks','Use geolocation routing'],0,'Resolvers cache records until the TTL expires.'],
+  ['Building blocks','Encrypted backups must be decryptable in the DR Region with the same key.',['KMS multi-Region keys','AWS managed keys','SSE-C','CloudHSM in one Region'],0,'Multi-Region keys share key material across Regions.'],
+  ['Building blocks','The whole infrastructure must be recreated identically in the DR Region.',['CloudFormation (StackSets) templates','Manual console setup','AMIs only','Trusted Advisor'],0,'Infrastructure as code rebuilds consistently.'],
+  ['Building blocks','One policy must copy backups of EC2, RDS, DynamoDB and EFS to another Region and account.',['AWS Backup with cross-Region and cross-account copy','Data Lifecycle Manager','S3 CRR','DMS'],0,'AWS Backup centralizes backups across services.'],
+  ['Migration','Before planning, list all on-prem servers, their utilization and dependencies.',['AWS Application Discovery Service','Application Migration Service','DataSync','Trusted Advisor'],0,'Discovery Service builds the inventory.'],
+  ['Migration','Lift-and-shift 300 servers to EC2 with minimal downtime.',['AWS Application Migration Service','Server Migration Service','Rebuild from scratch','Snowball'],0,'MGN replicates continuously and cuts over quickly.'],
+  ['Migration','Track the status of all migrations in one dashboard.',['AWS Migration Hub','CloudWatch','Config','Trusted Advisor'],0,'Migration Hub tracks migrations across tools.'],
+  ['Migration','An in-house CRM will be replaced by a SaaS product.',['Repurchase','Rehost','Replatform','Retain'],0,'Moving to SaaS is repurchase.'],
+  ['Migration','Move the database to RDS without changing application code.',['Replatform','Refactor','Rehost','Retire'],0,'Small change for managed benefits = replatform.'],
+  ['Migration','Rewrite a monolith as microservices on Lambda.',['Refactor','Rehost','Replatform','Relocate'],0,'Re-architecting is refactor.'],
+  ['Migration','Some apps must stay on-premises for now due to latency needs.',['Retain','Retire','Rehost','Repurchase'],0,'Keeping them in place is retain.'],
+  ['Data transfer','Copy a 50 TB NFS share now and keep syncing until cutover.',['AWS DataSync','Snowball Edge','Transfer Family','Storage Gateway only'],0,'DataSync moves and re-syncs files online.'],
+  ['Data transfer','2 PB must move over a 100 Mbps link.',['Snowball Edge','DataSync','Transfer Acceleration','Direct Connect alone'],0,'The network would take years.'],
+  ['Data transfer','Migrate MySQL to RDS with minimal downtime.',['DMS full load + CDC','mysqldump overnight','Snowball','DataSync'],0,'CDC keeps replicating until cutover.'],
+  ['Data transfer','Migrate Oracle to Aurora PostgreSQL.',['SCT for the schema, then DMS','DMS alone','DataSync','Application Migration Service'],0,'Different engines need schema conversion.'],
+  ['Data transfer','Partners must keep sending files over SFTP after migration.',['AWS Transfer Family','DataSync','Snowball','Direct Connect'],0,'Transfer Family runs managed SFTP into S3.'],
+  ['Data transfer','An 80 TB database must migrate over a slow link with minimal downtime.',['Snowball Edge for the bulk load, then DMS CDC','DMS over the internet only','Stop the DB and ship disks','DataSync'],0,'Ship the bulk data, then catch up with CDC.']
+];
+
+const FC = [
+  ['Strategies','RPO vs RTO?','RPO: how much data you can lose. RTO: how long until you\'re back.'],
+  ['Strategies','Four DR strategies, cheapest first?','Backup & restore → Pilot light → Warm standby → Multi-site active/active.'],
+  ['Strategies','Pilot light vs warm standby?','Pilot light: only data running. Warm standby: a smaller working copy running.'],
+  ['Building blocks','Aurora Global Database RPO / RTO?','Under 1 s lag; Region failover in about a minute.'],
+  ['Building blocks','Elastic Disaster Recovery?','Continuous block replication; recover in minutes; RPO seconds.'],
+  ['Building blocks','Faster DNS failover?','Lower TTL, or Global Accelerator.'],
+  ['Building blocks','S3 replication SLA option?','Replication Time Control: 99.99% within 15 minutes.'],
+  ['Migration','The 7 Rs?','Retire, Retain, Rehost, Relocate, Replatform, Repurchase, Refactor.'],
+  ['Migration','Lift-and-shift tool?','AWS Application Migration Service (MGN).'],
+  ['Migration','Server inventory and dependencies?','AWS Application Discovery Service.'],
+  ['Data transfer','DMS vs SCT?','DMS moves data (full load + CDC). SCT converts schemas.'],
+  ['Data transfer','When Snowball?','When the network transfer would take weeks.']
+];
+
+const NUMS = [
+  ['<1 s · ~1 min','Aurora Global lag · failover'],['15 min','S3 RTC replication SLA'],['seconds','Elastic Disaster Recovery RPO'],
+  ['~9 days','100 TB at 1 Gbps'],['~3 months','1 PB at 1 Gbps'],['7','Migration strategies (7 Rs)']
+];
+
+const PAIRS = [
+  ['RPO','Data you can lose','RTO','Time to recover'],
+  ['Pilot light','Only data running','Warm standby','Smaller full copy running'],
+  ['Backup & restore','Cheapest, hours','Multi-site','Most expensive, near zero'],
+  ['Rehost','Lift-and-shift','Replatform','Small changes, e.g. RDS'],
+  ['Replatform','Tweak','Refactor','Rewrite'],
+  ['MGN','Migrate servers','DRS','Recover servers'],
+  ['DataSync','Move / sync files','Storage Gateway','Ongoing hybrid access'],
+  ['DMS','Copies data','SCT','Converts schema']
+];
+
+const TRAPS = [
+  ['"Hours of downtime OK, lowest cost"','Backup & restore'],
+  ['"Only the database runs in DR"','Pilot light'],
+  ['"DR must take traffic immediately, reduced capacity"','Warm standby'],
+  ['"Zero downtime, two Regions live"','Multi-site active/active'],
+  ['"Max 5 minutes of data loss"','RPO = 5 min','Not RTO'],
+  ['"Backups only in the same Region"','Copy cross-Region and cross-account'],
+  ['"Relational Region failover in ~1 min"','Aurora Global Database'],
+  ['"Multi-Region NoSQL writes"','DynamoDB Global Tables'],
+  ['"Continuous server replication, recover in minutes"','Elastic Disaster Recovery'],
+  ['"Automatic DNS failover"','Route 53 failover + health checks'],
+  ['"Clients keep hitting the failed Region"','Lower TTL / Global Accelerator'],
+  ['"Decrypt in the DR Region"','KMS multi-Region keys'],
+  ['"Inventory servers and dependencies"','Application Discovery Service'],
+  ['"Lift-and-shift servers"','Application Migration Service','Not Server Migration Service (retired)'],
+  ['"Track migrations"','Migration Hub'],
+  ['"Replace with SaaS"','Repurchase'],
+  ['"DB to RDS, no code change"','Replatform'],
+  ['"Rewrite as microservices"','Refactor'],
+  ['"Copy files and keep syncing"','DataSync'],
+  ['"Petabytes, slow link"','Snowball Edge'],
+  ['"DB migration, minimal downtime"','DMS with CDC'],
+  ['"Oracle → PostgreSQL"','SCT + DMS']
+];
+
+App.start({
+  id: 'dr',
+  title: 'DR & Migration Cheat Sheet',
+  learn: [['pick','Pick an option','',6],['strategies','DR strategies','backup',10],['blocks','Building blocks','drs',10],['migrate','Migration','mgn',10],['data','Moving data','datasync',6]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

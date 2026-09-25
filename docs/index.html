@@ -275,6 +275,11 @@
                     <p class="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Question bank</p>
                     <div id="bankMenuItems" role="group" aria-label="Question bank"><!-- Populated via JS --></div>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
+                    <!-- The cheat sheet hub lists every domain; a quiz in progress lives in sessionStorage, so Back resumes it -->
+                    <a href="cheatsheet/index.html" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i class="fa-solid fa-book-open w-4"></i><span>Cheat sheets</span>
+                    </a>
+                    <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
                     <button onclick="toggleTheme()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i id="themeToggleIcon" class="fa-solid fa-sun w-4"></i><span id="themeToggleLabel">Light mode</span>
                     </button>

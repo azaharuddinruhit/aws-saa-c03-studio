@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Monitoring Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Monitoring, Management & Governance ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which monitoring or management tool?',
+  one: 'These questions ask how to <b>observe</b> systems, <b>audit</b> changes, <b>operate</b> servers, or <b>deploy</b> infrastructure. Follow the tree.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Do you need to measure performance or react to metric thresholds?', s:'Metrics & thresholds?', o:[['Yes','cw1'],['No','a1']]},
+      cw1:   {q:'Do you need memory, disk space or application logs from servers?', s:'Memory / disk / app logs?', o:[['Yes','R:agent'],['No','cw2']]},
+      cw2:   {q:'Must you trace requests across microservices to find the slow one?', s:'Trace requests?', o:[['Yes','R:xray'],['No','R:alarm']]},
+      a1:    {q:'Do you need to know who made an API call?', s:'Who made the call?', o:[['Yes','R:cloudtrail'],['No','a2']]},
+      a2:    {q:'Track resource configuration and compliance over time?', s:'Config & compliance?', o:[['Yes','R:config'],['No','o1']]},
+      o1:    {q:'Run commands, patch, or access servers without SSH?', s:'Operate servers, no SSH?', o:[['Yes','R:ssm'],['No','o2']]},
+      o2:    {q:'Deploy infrastructure repeatably as code?', s:'Infrastructure as code?', o:[['Yes','o3'],['No','o4']]},
+      o3:    {q:'Across many accounts and Regions at once?', s:'Many accounts / Regions?', o:[['Yes','R:stacksets'],['No','R:cfn']]},
+      o4:    {q:'Is an AWS-side event (outage, maintenance) affecting your resources?', s:'AWS event affecting you?', o:[['Yes','R:health'],['No','R:trusted']]}
+    },
+    results: {
+      agent:     {t:'CloudWatch agent', ico:'cloudwatch', w:'Sends memory, disk and OS/app logs from EC2 and on-prem servers to CloudWatch.', alt:'Not collected by default.'},
+      xray:      {t:'AWS X-Ray', ico:'xray', w:'Traces requests across services; service map shows latency and errors.', alt:'Works with Lambda, ECS, API Gateway.'},
+      alarm:     {t:'CloudWatch metrics & alarms', ico:'cloudwatch', w:'Alarm on metrics → SNS, Auto Scaling, EC2 actions.', alt:'Detailed monitoring = 1-minute metrics.'},
+      cloudtrail:{t:'AWS CloudTrail', ico:'cloudtrail', w:'Records API calls: who, what, when, from where.', alt:'Data events (S3 objects) are off by default.'},
+      config:    {t:'AWS Config', ico:'config', w:'Configuration history and compliance rules, with auto-remediation.', alt:'Detects; SCPs prevent.'},
+      ssm:       {t:'AWS Systems Manager', ico:'ssm', w:'Session Manager, Patch Manager, Run Command, Parameter Store, Automation.', alt:'Needs the SSM Agent and an instance role.'},
+      stacksets: {t:'CloudFormation StackSets', ico:'cfn', w:'Deploy one template to many accounts and Regions.', alt:'Integrates with AWS Organizations.'},
+      cfn:       {t:'AWS CloudFormation', ico:'cfn', w:'Templates create, update and delete stacks of resources consistently.', alt:'Drift detection, change sets, rollback.'},
+      health:    {t:'AWS Health Dashboard', ico:'health', w:'AWS events that affect your resources, like maintenance or outages.', alt:'Automate responses with EventBridge.'},
+      trusted:   {t:'AWS Trusted Advisor', ico:'trustedadvisor', w:'Checks for cost, security, fault tolerance, performance and service quotas.', alt:'Full checks need Business Support or higher.'}
+    }
+  }
+},
+
+cloudwatch: {
+  icon: 'cloudwatch', eyebrow: 'Metrics · alarms · logs', title: 'Amazon CloudWatch', test: 'CloudWatch',
+  one: 'Metrics, alarms, logs and dashboards for everything in AWS. The exam tests <b>what\'s collected by default</b>, <b>the agent</b>, and <b>alarms</b>.',
+  picks: [['cloudwatch','"Alarm when CPU > 80%, then scale or notify" → <b>CloudWatch alarm</b>'],['cloudwatch','"Memory or disk usage of EC2" → <b>CloudWatch agent</b>'],['cloudwatch','"Stream logs in real time to other services" → <b>subscription filter</b>']],
+  explain: [
+    {tab:'Metrics & alarms', type:'list', items:[
+      ['Default EC2 metrics','CPU, network, disk I/O, status checks. <b>Not</b> memory or disk space.'],
+      ['Basic vs detailed','5-minute vs 1-minute metrics (detailed costs extra).'],
+      ['Custom metrics','PutMetricData; high resolution down to 1 second.'],
+      ['Alarm actions','SNS, Auto Scaling, EC2 stop/terminate/reboot/recover, Systems Manager.'],
+      ['Composite alarms','Combine alarms with AND/OR to cut noise.'],
+      ['Anomaly detection','Alarm when a metric leaves its learned band.']]},
+    {tab:'Logs', type:'list', items:[
+      ['Retention','Set it per log group; the default is never expire.'],
+      ['CloudWatch agent','Ships OS/app logs and memory/disk metrics from EC2 and on-prem.'],
+      ['Logs Insights','Query logs with a purpose-built query language.'],
+      ['Metric filters','Turn log patterns (e.g. "ERROR") into metrics and alarms.'],
+      ['Subscription filters','Stream logs in real time to Lambda, Kinesis, Firehose or OpenSearch.'],
+      ['Export to S3','Batch export for archiving; not real time.']]},
+    {tab:'More', type:'list', items:[
+      ['Dashboards','Cross-account, cross-Region views.'],
+      ['Synthetics canaries','Scripts that test endpoints and user journeys on a schedule.'],
+      ['Container / Lambda Insights','Detailed metrics for ECS, EKS and Lambda.'],
+      ['Cross-account observability','Monitor many accounts from one.']]}
+  ],
+  traps: [
+    '<b>Memory and disk space aren\'t default EC2 metrics.</b> Install the CloudWatch agent.',
+    '<b>Real-time log processing → subscription filters.</b> Export to S3 is batch.',
+    '<b>Detailed monitoring = 1-minute metrics.</b> Custom high-resolution metrics go to 1 second.'
+  ]
+},
+
+audit: {
+  icon: 'cloudtrail', eyebrow: 'Who did what · what changed', title: 'CloudTrail & Config', test: 'Audit',
+  one: 'Two record-keepers: <b>CloudTrail</b> logs who did what; <b>Config</b> records what resources looked like and whether they comply.',
+  picks: [['cloudtrail','"Who deleted the bucket?" → <b>CloudTrail</b>'],['config','"Flag unencrypted volumes; show history" → <b>AWS Config</b>'],['config','"Fix non-compliant resources automatically" → <b>Config remediation</b>']],
+  explain: [
+    {tab:'CloudTrail vs Config', type:'compare', cols:[['cloudtrail','CloudTrail'],['config','AWS Config']], rows:[
+      ['Records','API calls: who, what, when, where','Resource configurations over time'],
+      ['Answers','"Who changed it?"','"What did it look like? Compliant?"'],
+      ['Default','90 days of management events','Off until you enable the recorder'],
+      ['Long-term','Trail to S3 (and CloudWatch Logs)','History in S3; aggregator for many accounts'],
+      ['Acts','Events → EventBridge','Rules + automatic remediation']]},
+    {tab:'CloudTrail options', type:'list', items:[
+      ['Data events','S3 object-level and Lambda invoke activity; off by default.'],
+      ['Organization trail','One trail logging every account.'],
+      ['Log file validation','Detects tampering with log files.'],
+      ['Insights','Flags unusual API activity volumes.'],
+      ['Querying','CloudTrail Lake (SQL), or Athena on trail logs in S3.']]},
+    {tab:'Config options', type:'list', items:[
+      ['Managed rules','Prebuilt checks: encrypted volumes, public S3, required tags.'],
+      ['Custom rules','Lambda or Guard policy rules.'],
+      ['Conformance packs','Bundles of rules, deployable org-wide.'],
+      ['Aggregator','Compliance view across accounts and Regions.'],
+      ['Remediation','SSM Automation runbooks, manual or automatic.']]}
+  ],
+  traps: [
+    '<b>CloudTrail = who. Config = what it looked like, and whether it complies.</b>',
+    '<b>Config detects and can fix, but doesn\'t prevent.</b> To block the action, use SCPs or IAM.',
+    '<b>S3 object-level activity needs CloudTrail data events</b>, which are off by default.'
+  ]
+},
+
+ssm: {
+  icon: 'ssm', eyebrow: 'Operate fleets', title: 'Systems Manager', test: 'Systems Manager',
+  one: 'Operate fleets of servers (EC2 and on-prem) without SSH: <b>access</b>, <b>patch</b>, <b>run commands</b>, and <b>store config</b>.',
+  picks: [['ssm','"Shell access with no SSH or bastion" → <b>Session Manager</b>'],['ssm','"Patch hundreds of instances on a schedule" → <b>Patch Manager</b>'],['ssm','"Run a script on many instances now" → <b>Run Command</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      session:{n:'Session Manager', ico:'ssm', tag:'Access', pts:['Shell with no inbound ports or keys','Sessions logged to S3/CloudWatch','Port forwarding']},
+      patch:{n:'Patch Manager', ico:'ssm', tag:'Patching', pts:['Patch baselines + maintenance windows','Compliance reporting','Windows and Linux']},
+      run:{n:'Run Command', ico:'ssm', tag:'Commands', pts:['Scripts on many instances','Target by tag, rate controls','Output to S3']},
+      param:{n:'Parameter Store', ico:'ssm', tag:'Config', pts:['Hierarchical parameters','SecureString with KMS','Free standard tier']},
+      auto:{n:'Automation', ico:'ssm', tag:'Runbooks', pts:['Multi-step runbooks','Used by Config remediation']},
+      inv:{n:'Inventory', ico:'ssm', tag:'What\'s installed', pts:['Software and config inventory','Feeds compliance']}
+    }, scen:[
+      ['"Admins need a shell with port 22 closed"','session','Session Manager needs no inbound ports.'],
+      ['"Apply security patches monthly to 500 instances"','patch','Patch Manager with a maintenance window.'],
+      ['"Run a script on every tagged web server now"','run','Run Command targets instances by tag.'],
+      ['"Store a DB endpoint and API key for apps"','param','Parameter Store (SecureString for secrets).'],
+      ['"Fix a non-compliant resource step by step, automatically"','auto','Automation runbooks, often from Config.'],
+      ['"List software installed on every instance"','inv','Inventory collects installed software.']
+    ]}
+  ],
+  aid: 'Instances need the <b>SSM Agent</b> and an <b>instance role</b> (AmazonSSMManagedInstanceCore). Private subnets reach SSM through VPC endpoints or NAT.',
+  traps: [
+    '<b>No SSM Agent or instance role = the instance doesn\'t show up.</b>',
+    '<b>Most secure admin access → Session Manager</b>: no bastions, SSH keys or open ports.',
+    '<b>Private instances without internet</b> need the ssm, ssmmessages and ec2messages interface endpoints.'
+  ]
+},
+
+iac: {
+  icon: 'cfn', eyebrow: 'Infrastructure as code', title: 'CloudFormation & Service Catalog', test: 'IaC',
+  one: 'Create the same stacks every time, across accounts and Regions, and offer approved products to teams.',
+  picks: [['cfn','"Create the same environment repeatedly" → <b>CloudFormation</b>'],['cfn','"Deploy one stack to every account and Region" → <b>StackSets</b>'],['servicecatalog','"Teams may launch only approved products" → <b>Service Catalog</b>']],
+  explain: [
+    {label:'Key features', type:'list', items:[
+      ['Template & stack','YAML/JSON template → a stack of resources, managed together.'],
+      ['Change sets','Preview changes before applying them.'],
+      ['Drift detection','Finds resources changed outside CloudFormation.'],
+      ['Rollback','Failed creates or updates roll back automatically.'],
+      ['DeletionPolicy','Retain or Snapshot resources (e.g. RDS) when the stack is deleted.'],
+      ['StackSets','One template to many accounts and Regions, with Organizations.'],
+      ['Service Catalog','Portfolio of approved products; users launch them without broad IAM permissions.'],
+      ['CDK / SAM','IaC in programming languages (CDK) or simplified serverless templates (SAM).']]}
+  ],
+  traps: [
+    '<b>Keep the database when the stack is deleted</b> → DeletionPolicy: Retain or Snapshot.',
+    '<b>Many accounts or Regions → StackSets</b>, not copying stacks by hand.',
+    '<b>Users can\'t create resources themselves but must launch approved stacks</b> → Service Catalog.'
+  ]
+},
+
+observe: {
+  icon: 'xray', eyebrow: 'Beyond metrics', title: 'Tracing & health', test: 'Observability',
+  one: 'Trace requests across services, build dashboards, and know when <b>AWS itself</b> is the problem.',
+  picks: [['xray','"Which microservice is slow?" → <b>X-Ray</b>'],['health','"Is an AWS event affecting our resources?" → <b>Health Dashboard</b>'],['grafana','"Managed Grafana / Prometheus for containers" → <b>Managed Grafana & Prometheus</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      xray:{n:'AWS X-Ray', short:'X-Ray', ico:'xray', tag:'Tracing', pts:['Traces requests across services','Service map, latency, errors','Lambda, ECS, API Gateway']},
+      health:{n:'AWS Health Dashboard', short:'Health Dashboard', ico:'health', tag:'AWS events', pts:['Maintenance and outages affecting you','Events → EventBridge']},
+      grafana:{n:'Managed Grafana', short:'Managed Grafana', ico:'grafana', tag:'Dashboards', pts:['Managed Grafana workspaces','CloudWatch, Prometheus and more as sources']},
+      prom:{n:'Managed Prometheus', short:'Managed Prometheus', ico:'prometheus', tag:'Container metrics', pts:['Prometheus-compatible metrics (EKS)','Scales automatically']},
+      trusted:{n:'Trusted Advisor', short:'Trusted Advisor', ico:'trustedadvisor', tag:'Best practices', pts:['Cost, security, fault tolerance, performance, quotas']}
+    }, scen:[
+      ['"Find which microservice adds latency"','xray','X-Ray traces the whole request path.'],
+      ['"Notify us when AWS maintenance affects our instances"','health','Health events can trigger EventBridge rules.'],
+      ['"Grafana dashboards without running servers"','grafana','Managed Grafana is serverless.'],
+      ['"Store Prometheus metrics from EKS"','prom','Managed Service for Prometheus.'],
+      ['"Are we close to service quotas?"','trusted','Trusted Advisor checks service limits.']
+    ]}
+  ],
+  traps: [
+    '<b>CloudWatch metrics can\'t show which service in a chain is slow.</b> X-Ray traces requests.',
+    '<b>The Health Dashboard shows AWS events affecting your resources.</b> Automate responses with EventBridge.',
+    '<b>Quota warnings</b> → Trusted Advisor or Service Quotas with CloudWatch alarms.'
+  ]
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['CloudWatch','An Auto Scaling group must scale on EC2 memory usage.',['Publish memory with the CloudWatch agent','Use the default memory metric','Enable detailed monitoring','Use CloudTrail'],0,'Memory isn\'t a default EC2 metric.'],
+  ['CloudWatch','Notify the team when average CPU stays above 80% for 10 minutes.',['CloudWatch alarm → SNS','CloudTrail','AWS Config rule','Trusted Advisor'],0,'Alarms evaluate metrics and trigger SNS.'],
+  ['CloudWatch','EC2 metrics must be available every minute instead of every five.',['Enable detailed monitoring','Install the agent','Use Logs Insights','Enable X-Ray'],0,'Detailed monitoring gives 1-minute metrics.'],
+  ['CloudWatch','Application logs must be processed in real time by a Lambda function.',['CloudWatch Logs subscription filter','Export logs to S3','Metric filter only','CloudTrail'],0,'Subscription filters stream logs in real time.'],
+  ['CloudWatch','Alarm whenever the word "ERROR" appears in application logs.',['Metric filter + alarm','Subscription filter to S3','Config rule','X-Ray'],0,'Metric filters turn log patterns into metrics.'],
+  ['CloudWatch','Too many alarms fire together; alert only when both CPU and latency are high.',['Composite alarm','Two SNS topics','Anomaly detection','Detailed monitoring'],0,'Composite alarms combine states with AND/OR.'],
+  ['CloudWatch','Test a website login flow from outside every 5 minutes.',['CloudWatch Synthetics canary','Route 53 health check only','X-Ray','Config'],0,'Canaries script user journeys.'],
+  ['Audit','Find out who terminated an EC2 instance last night.',['AWS CloudTrail','AWS Config','CloudWatch metrics','VPC Flow Logs'],0,'CloudTrail records API calls with the identity.'],
+  ['Audit','Show how a security group changed over the last month and flag 0.0.0.0/0 rules.',['AWS Config','CloudTrail only','Trusted Advisor','GuardDuty'],0,'Config keeps configuration history and evaluates rules.'],
+  ['Audit','Security groups that allow SSH from anywhere must be fixed automatically.',['Config rule with SSM Automation remediation','CloudTrail Insights','Budgets action','Shield'],0,'Config can remediate automatically.'],
+  ['Audit','Log every S3 GetObject request for a sensitive bucket.',['Enable CloudTrail data events for S3','Management events only','Config','Macie'],0,'Object-level activity needs data events.'],
+  ['Audit','One trail must log API activity for all accounts in the organization.',['Organization trail','A trail in each account manually','Config aggregator','Security Hub'],0,'An organization trail covers every account.'],
+  ['Audit','Prove CloudTrail logs weren\'t altered.',['Log file integrity validation','S3 versioning only','Config','Macie'],0,'Digest files detect tampering.'],
+  ['Audit','Compliance status must be viewed across 50 accounts and all Regions.',['Config aggregator','CloudTrail Lake','Trusted Advisor','Budgets'],0,'Aggregators combine Config data.'],
+  ['Systems Manager','Admins need shell access to private instances without SSH keys, bastions or open ports.',['Session Manager','EC2 Instance Connect with public IPs','Bastion host','Direct Connect'],0,'Session Manager uses the SSM Agent.'],
+  ['Systems Manager','Apply OS patches to 500 instances every month during a set window.',['Patch Manager with a maintenance window','Run Command manually','Launch new AMIs by hand','Config'],0,'Patch Manager automates patching.'],
+  ['Systems Manager','Run a configuration script on all instances tagged Role=web.',['Run Command targeting the tag','SSH into each','CloudFormation','Budgets'],0,'Run Command targets by tag.'],
+  ['Systems Manager','Instances don\'t appear in Systems Manager.',['Install the SSM Agent and attach an instance role with SSM permissions','Enable CloudTrail','Open port 22','Add a NAT gateway only'],0,'Both the agent and the role are required.'],
+  ['Systems Manager','Private instances without internet access must be managed by SSM.',['Interface endpoints for ssm, ssmmessages, ec2messages','Gateway endpoint for S3 only','Internet gateway','VPC peering'],0,'SSM needs its endpoints in private subnets.'],
+  ['Systems Manager','Store configuration values and secrets cheaply for applications.',['Parameter Store (SecureString)','Secrets Manager for everything','DynamoDB','User data'],0,'Parameter Store standard tier is free.'],
+  ['IaC','The same environment must be created repeatedly and consistently.',['AWS CloudFormation','Manual console steps','Config','Trusted Advisor'],0,'Templates create identical stacks.'],
+  ['IaC','A security baseline stack must deploy to every account and Region.',['CloudFormation StackSets','Nested stacks','Change sets','Service Catalog only'],0,'StackSets target many accounts and Regions.'],
+  ['IaC','Preview what an update will change before applying it.',['Change sets','Drift detection','Rollback','StackSets'],0,'Change sets show proposed changes.'],
+  ['IaC','Someone changed resources in the console; find differences from the template.',['Drift detection','Change sets','Rollback triggers','CloudTrail Lake'],0,'Drift detection compares actual vs template.'],
+  ['IaC','The RDS database must survive when the stack is deleted.',['DeletionPolicy: Snapshot or Retain','Termination protection on EC2','Change sets','StackSets'],0,'DeletionPolicy keeps or snapshots the resource.'],
+  ['IaC','Developers without create permissions must launch only approved environments.',['AWS Service Catalog','Give them AdministratorAccess','StackSets','Config'],0,'Service Catalog launches products with a constraint role.'],
+  ['Observability','Find which microservice in a request chain adds latency.',['AWS X-Ray','CloudWatch metrics only','CloudTrail','Config'],0,'X-Ray traces requests end to end.'],
+  ['Observability','Automatically react when AWS schedules maintenance on your instances.',['AWS Health events → EventBridge','CloudTrail','Config rule','Trusted Advisor'],0,'Health events flow to EventBridge.'],
+  ['Observability','Grafana dashboards are needed without managing servers.',['Amazon Managed Grafana','Grafana on EC2','QuickSight only','CloudWatch Logs'],0,'Managed Grafana is fully managed.'],
+  ['Observability','Store Prometheus metrics from an EKS cluster.',['Amazon Managed Service for Prometheus','CloudTrail','X-Ray','Config'],0,'A managed, Prometheus-compatible store.'],
+  ['Observability','Warn before hitting service quotas.',['Trusted Advisor / Service Quotas with CloudWatch alarms','CloudTrail','X-Ray','Budgets'],0,'Quota checks and alarms warn early.']
+];
+
+const FC = [
+  ['CloudWatch','Default EC2 metrics exclude?','Memory and disk-space usage (need the CloudWatch agent).'],
+  ['CloudWatch','Basic vs detailed monitoring?','5-minute vs 1-minute metrics.'],
+  ['CloudWatch','Highest custom metric resolution?','1 second.'],
+  ['CloudWatch','Real-time log streaming?','Subscription filters → Lambda, Kinesis, Firehose, OpenSearch.'],
+  ['CloudWatch','Default log retention?','Never expire.'],
+  ['Audit','CloudTrail event history length?','90 days of management events.'],
+  ['Audit','CloudTrail data events?','S3 object-level and Lambda invoke; off by default.'],
+  ['Audit','Config vs SCP?','Config detects and remediates; SCPs prevent.'],
+  ['Audit','Config across accounts?','Aggregator.'],
+  ['Systems Manager','Requirements for a managed instance?','SSM Agent + instance role (AmazonSSMManagedInstanceCore) + network path.'],
+  ['Systems Manager','SSM endpoints for private subnets?','ssm, ssmmessages, ec2messages.'],
+  ['IaC','Keep RDS when the stack is deleted?','DeletionPolicy: Retain or Snapshot.'],
+  ['IaC','Deploy to many accounts/Regions?','CloudFormation StackSets.'],
+  ['IaC','Approved products for teams?','AWS Service Catalog.'],
+  ['Observability','Trace requests across services?','AWS X-Ray.'],
+  ['Observability','AWS events affecting you?','AWS Health Dashboard (→ EventBridge).']
+];
+
+const NUMS = [
+  ['5 min / 1 min','Basic / detailed monitoring'],['1 s','Highest-resolution custom metric'],['90 days','CloudTrail event history'],
+  ['Never','Default CloudWatch Logs retention'],['3','SSM interface endpoints needed']
+];
+
+const PAIRS = [
+  ['CloudTrail','Who called which API','Config','Resource config + compliance'],
+  ['Metric filter','Log pattern → metric','Subscription filter','Stream logs in real time'],
+  ['Config','Detect + remediate','SCP','Prevent'],
+  ['Run Command','Run now','Patch Manager','Patch on a schedule'],
+  ['Parameter Store','Config values, cheap','Secrets Manager','Rotation'],
+  ['StackSets','Many accounts/Regions','Nested stacks','Reuse components'],
+  ['X-Ray','Traces requests','CloudWatch','Metrics, logs, alarms']
+];
+
+const TRAPS = [
+  ['"Scale on memory"','CloudWatch agent custom metric','Not a default metric'],
+  ['"Alert when CPU > 80%"','CloudWatch alarm → SNS'],
+  ['"1-minute metrics"','Detailed monitoring'],
+  ['"Process logs in real time"','Subscription filter','Not export to S3'],
+  ['"Alarm on ERROR in logs"','Metric filter'],
+  ['"Test the login flow every 5 minutes"','Synthetics canary'],
+  ['"Who terminated the instance?"','CloudTrail'],
+  ['"Config history, flag open SGs"','AWS Config'],
+  ['"Auto-fix non-compliant resources"','Config + SSM Automation'],
+  ['"Log S3 object reads"','CloudTrail data events'],
+  ['"Compliance across accounts"','Config aggregator'],
+  ['"Shell without SSH or bastion"','Session Manager'],
+  ['"Monthly patching"','Patch Manager'],
+  ['"Instances missing from SSM"','SSM Agent + instance role'],
+  ['"Same environment every time"','CloudFormation'],
+  ['"Every account and Region"','StackSets'],
+  ['"Keep the DB on stack delete"','DeletionPolicy Retain / Snapshot'],
+  ['"Approved products only"','Service Catalog'],
+  ['"Which microservice is slow?"','X-Ray'],
+  ['"AWS maintenance affects us"','Health Dashboard → EventBridge']
+];
+
+App.start({
+  id: 'monitoring',
+  title: 'Monitoring Cheat Sheet',
+  learn: [['pick','Pick a tool','',6],['cloudwatch','CloudWatch','cloudwatch',12],['audit','CloudTrail & Config','cloudtrail',10],['ssm','Systems Manager','ssm',8],
+          ['iac','CloudFormation','cfn',8],['observe','Tracing & health','xray',6]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

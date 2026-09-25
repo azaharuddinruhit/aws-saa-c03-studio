@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Networking Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Networking & Content Delivery ================= */
+/* load balancer picker data */
+const LB = {
+  alb:{n:'Application Load Balancer',ico:'alb',layer:'Layer 7 · HTTP / HTTPS / gRPC',pts:['Routes by path, host, header, query string','Targets EC2, IPs, Lambda, ECS','Cognito/OIDC login; works with AWS WAF','No static IP (DNS name only)']},
+  nlb:{n:'Network Load Balancer',ico:'nlb',layer:'Layer 4 · TCP / UDP / TLS',pts:['Millions of requests per second, ultra-low latency','Static IP per AZ; can use Elastic IPs','Keeps the client source IP','Needed for PrivateLink endpoint services']},
+  gwlb:{n:'Gateway Load Balancer',ico:'gwlb',layer:'Layer 3 · IP packets',pts:['Deploys and scales third-party virtual appliances','Firewalls, IDS/IPS, deep packet inspection','Traffic arrives through GWLB endpoints']}
+};
+const LBSCEN = [
+  ['"Route /api and /images to different services"','alb','Path-based routing is Layer 7, so it needs an ALB.'],
+  ['"Partners must allow-list fixed IPs"','nlb','An NLB has a static IP per AZ and can use Elastic IPs. An ALB has none.'],
+  ['"UDP game traffic, millions of packets per second"','nlb','UDP and extreme performance are Layer 4 jobs: NLB.'],
+  ['"Invoke a Lambda function over HTTP"','alb','An ALB can use Lambda functions as targets.'],
+  ['"Inspect all traffic with third-party firewalls"','gwlb','GWLB inserts and scales virtual appliances transparently.'],
+  ['"Share a service with other VPCs via PrivateLink"','nlb','PrivateLink endpoint services sit behind an NLB.'],
+  ['"Log users in with Cognito before the app"','alb','ALB listener rules can authenticate with Cognito or any OIDC provider.']
+];
+
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which network option?',
+  one: 'Networking questions describe <b>who needs to reach what</b>: VPCs, on-premises, AWS services or global users. Follow the tree to the right connection.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Are you connecting an on-premises network or remote users to AWS?', s:'On-prem or remote users?', o:[['Yes','h1'],['No','v1']]},
+      h1:    {q:'Do you need a dedicated private line with consistent bandwidth?', s:'Dedicated private line?', o:[['Yes','h2'],['No','h3']]},
+      h2:    {q:'Must traffic also be encrypted, or have a cheap backup path?', s:'Encryption or backup too?', o:[['Yes','R:dxvpn'],['No','R:dx']]},
+      h3:    {q:'Is it individual remote employees on laptops?', s:'Individual remote users?', o:[['Yes','R:clientvpn'],['No','R:s2s']]},
+      v1:    {q:'Are you connecting VPCs to each other?', s:'VPC to VPC?', o:[['Yes','v2'],['No','p1']]},
+      v2:    {q:'Many VPCs (and maybe on-prem) in a hub-and-spoke design?', s:'Many VPCs, hub-and-spoke?', o:[['Yes','R:tgw'],['No','v3']]},
+      v3:    {q:'Expose one service only, possibly with overlapping CIDRs?', s:'Expose one service?', o:[['Yes','R:privatelink'],['No','R:peering']]},
+      p1:    {q:'Should a VPC reach AWS services privately, without the internet?', s:'Private access to AWS services?', o:[['Yes','p2'],['No','lb']]},
+      p2:    {q:'Is the service S3 or DynamoDB, accessed from inside the VPC?', s:'S3 / DynamoDB from the VPC?', o:[['Yes','R:gwep'],['No','R:ifep']]},
+      lb:    {q:'Should incoming traffic be spread across instances or containers in a Region?', s:'Spread incoming traffic?', o:[['Yes','lb2'],['No','e1']]},
+      lb2:   {q:'Is it HTTP(S) that must be routed by path, host or header?', s:'HTTP routing by path/host?', o:[['Yes','R:alb'],['No','lb3']]},
+      lb3:   {q:'Must traffic pass through third-party firewall or inspection appliances?', s:'Firewall appliances inline?', o:[['Yes','R:gwlb'],['No','R:nlb']]},
+      e1:    {q:'Do private instances need outbound-only internet access?', s:'Outbound-only internet?', o:[['Yes','R:nat'],['No','e2']]},
+      e2:    {q:'Do global users need lower latency to your app?', s:'Faster for global users?', o:[['Yes','e3'],['No','R:route53']]},
+      e3:    {q:'Is it HTTP(S) content that can be cached?', s:'Cacheable HTTP(S)?', o:[['Yes','R:cloudfront'],['No','R:ga']]}
+    },
+    results: {
+      dxvpn:      {t:'Direct Connect + VPN', ico:'dx', w:'Private, consistent line with IPsec VPN on top for encryption, or VPN as a cheap backup.', alt:'MACsec also encrypts dedicated DX connections.'},
+      dx:         {t:'AWS Direct Connect', ico:'dx', w:'Dedicated private connection with consistent bandwidth (1/10/100 Gbps).', alt:'Takes weeks to set up; plan a backup path.'},
+      clientvpn:  {t:'AWS Client VPN', ico:'clientvpn', w:'Managed OpenVPN for individual users connecting to VPCs.', alt:'Site-to-site links → Site-to-Site VPN.'},
+      s2s:        {t:'Site-to-Site VPN', ico:'s2svpn', w:'IPsec tunnels over the internet; ready in minutes to hours.', alt:'~1.25 Gbps per tunnel; ECMP on Transit Gateway for more.'},
+      tgw:        {t:'AWS Transit Gateway', ico:'tgw', w:'Hub that connects thousands of VPCs and on-prem networks with transitive routing.', alt:'Share across accounts with AWS RAM.'},
+      privatelink:{t:'AWS PrivateLink', ico:'privatelink', w:'Expose one service (behind an NLB) to other VPCs through interface endpoints.', alt:'Works with overlapping CIDRs; one-way.'},
+      peering:    {t:'VPC peering', ico:'peering', w:'Private routing between two VPCs, across accounts and Regions.', alt:'Not transitive; CIDRs can\'t overlap.'},
+      gwep:       {t:'Gateway VPC endpoint', ico:'vpce', w:'Free route-table target for S3 and DynamoDB.', alt:'Not usable from on-premises.'},
+      ifep:       {t:'Interface VPC endpoint', ico:'vpce', w:'ENI with private IPs for most AWS services (PrivateLink).', alt:'Hourly + per-GB cost; reachable from on-prem over VPN/DX.'},
+      alb:        {t:'Application Load Balancer', ico:'alb', w:'Layer 7: routes HTTP(S) by path, host or header to EC2, IPs, Lambda or ECS.', alt:'No static IP; WAF attaches here.'},
+      gwlb:       {t:'Gateway Load Balancer', ico:'gwlb', w:'Layer 3: deploys and scales third-party firewalls and inspection appliances.', alt:'Traffic arrives through GWLB endpoints.'},
+      nlb:        {t:'Network Load Balancer', ico:'nlb', w:'Layer 4: TCP/UDP at millions of requests per second, static IP per AZ.', alt:'Keeps the client source IP; needed for PrivateLink.'},
+      nat:        {t:'NAT gateway', ico:'nat', w:'Managed outbound internet for private subnets; lives in a public subnet.', alt:'One per AZ for high availability.'},
+      cloudfront: {t:'Amazon CloudFront', ico:'cloudfront', w:'CDN that caches content at edge locations worldwide.', alt:'Origin Access Control keeps S3 private.'},
+      ga:         {t:'AWS Global Accelerator', ico:'globalacc', w:'Two static anycast IPs; routes TCP/UDP over the AWS backbone with fast failover.', alt:'No caching.'},
+      route53:    {t:'Amazon Route 53', ico:'route53', w:'DNS routing policies decide where users go: failover, latency, weighted, geolocation.', alt:'Alias records for AWS resources at the zone apex.'}
+    }
+  }
+},
+
+vpc: {
+  icon: 'vpc', eyebrow: 'Your private network', title: 'VPC basics', test: 'VPC',
+  one: 'Your private network in a Region: subnets per AZ, route tables, gateways and two layers of firewall. The exam tests <b>public vs private subnets</b>, <b>NAT</b>, and <b>security groups vs NACLs</b>.',
+  picks: [['vpc','Public subnet = a route to an <b>internet gateway</b>'],['nat','Private instances need outbound internet → <b>NAT gateway</b>'],['nacl','"Block a specific IP address" → <b>network ACL</b> deny rule']],
+  explain: [
+    {tab:'Security group vs NACL', type:'compare', cols:[['','Security group'],['nacl','Network ACL']], rows:[
+      ['Applies to','Instance / ENI','Subnet'],
+      ['State','Stateful: replies allowed automatically','Stateless: allow both directions'],
+      ['Rules','Allow only','Allow and deny'],
+      ['Evaluation','All rules together','Lowest number first; first match wins'],
+      ['Default','Inbound denied, outbound allowed','Default NACL allows everything']],
+      aid:'To <b>deny</b> an IP → NACL. Stateless NACLs must also allow <b>ephemeral ports</b> (1024–65535) for return traffic.'},
+    {tab:'NAT gateway', type:'compare', cols:[['nat','NAT gateway'],['ec2','NAT instance']], rows:[
+      ['Managed','Yes','No, your EC2'],
+      ['Availability','Redundant inside one AZ','You script failover'],
+      ['Bandwidth','Scales to 100 Gbps','Instance size'],
+      ['Security groups','No','Yes'],
+      ['Pick when','Default answer','Legacy / extreme cost cutting']],
+      aid:'<b>One NAT gateway per AZ</b>, each private subnet routed to its own AZ\'s gateway. The NAT gateway sits in a <b>public</b> subnet.'},
+    {tab:'Building blocks', type:'list', items:[
+      ['Subnet','Lives in one AZ. Public = its route table sends 0.0.0.0/0 to an internet gateway.'],
+      ['Internet gateway','One per VPC; internet access for resources with public IPs.'],
+      ['Route table','Per subnet; the most specific route wins.'],
+      ['Egress-only IGW','Outbound-only internet for IPv6.'],
+      ['Reserved IPs','AWS reserves 5 addresses in every subnet.'],
+      ['CIDR','/16 to /28; add secondary CIDRs later.'],
+      ['Flow Logs','IP traffic metadata to CloudWatch Logs or S3, for troubleshooting.'],
+      ['Session Manager','Shell access with no SSH keys, bastion or open ports.']]}
+  ],
+  traps: [
+    '<b>Security groups can\'t deny.</b> "Block this IP" → NACL deny rule.',
+    '<b>NACLs are stateless.</b> Allow return traffic on ephemeral ports, or connections fail.',
+    '<b>A NAT gateway lives in one AZ.</b> One gateway for all AZs is a single point of failure.'
+  ],
+  details: {sum:'troubleshooting, IPv6, references', facts:[
+    ['Reachability Analyzer','Tests whether a path between two resources works, and why not.'],
+    ['Security group references','Allow traffic from another security group instead of IP ranges.'],
+    ['IPv6','Dual-stack VPCs; IPv6 addresses are public, so use an egress-only IGW.'],
+    ['Bastion host','Public jump box for SSH; Session Manager is the modern replacement.'],
+    ['Traffic Mirroring','Copies packets to inspection tools.']
+  ]}
+},
+
+connect: {
+  icon: 'tgw', eyebrow: 'VPC ↔ VPC · private access', title: 'VPC connectivity', test: 'Connectivity',
+  one: 'Connecting VPCs to each other and reaching AWS services privately. The exam asks <b>peering vs Transit Gateway vs PrivateLink</b>, and <b>gateway vs interface endpoints</b>.',
+  picks: [['peering','Two VPCs, simple → <b>VPC peering</b>'],['tgw','Many VPCs + on-prem, hub-and-spoke → <b>Transit Gateway</b>'],['vpce','S3/DynamoDB privately → <b>gateway endpoint</b>; other services → <b>interface endpoint</b>']],
+  explain: [
+    {tab:'Which one?', type:'picker', opts:{
+      peering:{n:'VPC peering', short:'Peering', ico:'peering', tag:'1-to-1', pts:['Two VPCs, any Region or account','Not transitive','CIDRs can\'t overlap','No hourly fee']},
+      tgw:{n:'Transit Gateway', short:'Transit Gateway', ico:'tgw', tag:'Hub and spoke', pts:['Thousands of VPCs + VPN + DX','Transitive routing, route tables','Peer TGWs across Regions','Share with AWS RAM']},
+      pl:{n:'PrivateLink', short:'PrivateLink', ico:'privatelink', tag:'Expose one service', pts:['Consumers use interface endpoints','Service sits behind an NLB','Overlapping CIDRs OK','One-way access']}
+    }, scen:[
+      ['"Connect two VPCs, cheapest and simplest"','peering','Peering is simple and has no hourly charge.'],
+      ['"Connect 50 VPCs and an on-prem network"','tgw','Transit Gateway replaces a mesh of peerings.'],
+      ['"Offer our API to customer VPCs with overlapping CIDRs"','pl','PrivateLink exposes one service without routing whole networks.'],
+      ['"VPC A must reach VPC C through VPC B"','tgw','Peering isn\'t transitive; Transit Gateway is.'],
+      ['"One-way private access to a service in another account"','pl','PrivateLink gives consumers access to the service only.']
+    ]},
+    {tab:'VPC endpoints', type:'compare', cols:[['vpce','Gateway endpoint'],['vpce','Interface endpoint']], rows:[
+      ['Services','S3 and DynamoDB only','Most AWS services'],
+      ['How','Route table entry','ENI with private IPs'],
+      ['Cost','Free','Per hour + per GB'],
+      ['From on-prem','No','Yes, over VPN / DX'],
+      ['Controls','Endpoint policy','Security group + endpoint policy']],
+      aid:'S3 from inside the VPC → gateway endpoint (free). S3 from on-premises over Direct Connect → interface endpoint.'}
+  ],
+  traps: [
+    '<b>Peering isn\'t transitive, and CIDRs can\'t overlap.</b> Many VPCs → Transit Gateway.',
+    '<b>Gateway endpoints exist only for S3 and DynamoDB</b>, and can\'t be used from on-premises.',
+    '<b>AWS API calls through a NAT gateway cost more.</b> A VPC endpoint is cheaper and private.'
+  ],
+  details: {sum:'policies, RAM, ECMP', facts:[
+    ['Endpoint policies','Limit which buckets or actions work through the endpoint.'],
+    ['aws:SourceVpce','Bucket policy condition: allow access only through one endpoint.'],
+    ['AWS RAM','Share subnets or Transit Gateways with other accounts.'],
+    ['ECMP on TGW','Combine several VPN tunnels for more bandwidth.'],
+    ['VPC Lattice','Service-to-service networking across VPCs and accounts.']
+  ]}
+},
+
+elb: {
+  icon: 'elb', eyebrow: 'Traffic distribution', title: 'Elastic Load Balancing', test: 'ELB',
+  one: 'Spreads traffic across healthy targets in several AZs. The exam asks which <b>type</b> fits: ALB, NLB or GWLB.',
+  picks: [['alb','Route by URL path, host or header → <b>ALB</b>'],['nlb','Static IPs, TCP/UDP, extreme performance → <b>NLB</b>'],['gwlb','Third-party firewall or inspection appliances → <b>GWLB</b>']],
+  explain: [
+    {label:'Which load balancer? Pick a scenario', type:'picker',
+     opts: Object.fromEntries(Object.entries(LB).map(([k,x])=>[k,{...x, short:k.toUpperCase()}])), scen: LBSCEN}
+  ],
+  aid: '<b>A</b>LB = <b>A</b>pplication (Layer 7, smart routing) · <b>N</b>LB = <b>N</b>etwork (Layer 4, fast, static IP) · <b>G</b>WLB = <b>G</b>ateway (Layer 3, appliances)',
+  traps: [
+    '<b>An ALB has no static IP.</b> Need fixed IPs? Use an NLB with Elastic IPs, or put Global Accelerator in front of the ALB.',
+    '<b>Behind an ALB, the app sees the load balancer\'s IP.</b> The client\'s IP is in the <code>X-Forwarded-For</code> header. An NLB keeps the source IP.',
+    '<b>AWS WAF attaches to an ALB, not an NLB.</b> "Block SQL injection or XSS at the load balancer" → ALB + WAF.'
+  ],
+  details: {sum:'cross-zone, sticky sessions, SNI, draining', facts:[
+    ['Cross-zone load balancing','ALB: on by default, free. NLB and GWLB: off by default; inter-AZ data is charged when on.'],
+    ['Sticky sessions','ALB uses cookies; NLB sticks by source IP. Can leave load uneven.'],
+    ['SNI','Several TLS certificates (from ACM) on one listener, one per domain. ALB and NLB.'],
+    ['Deregistration delay','300 s by default (0–3600). Lets in-flight requests finish before a target leaves.'],
+    ['Health checks','Per target group. Unhealthy targets stop getting traffic; an ASG using ELB checks replaces them.'],
+    ['SSL offloading','Terminate TLS at the load balancer so targets serve plain HTTP.'],
+    ['Internal load balancers','Private IPs only, for tiers inside the VPC.'],
+    ['Classic Load Balancer','Legacy. Never the answer for a new design.']
+  ]}
+},
+
+hybrid: {
+  icon: 'dx', eyebrow: 'On-premises ↔ AWS', title: 'VPN & Direct Connect', test: 'Hybrid',
+  one: 'Linking on-premises networks to AWS: quick and encrypted over the internet (<b>VPN</b>), or private and consistent (<b>Direct Connect</b>).',
+  picks: [['s2svpn','Fast setup, encrypted over the internet → <b>Site-to-Site VPN</b>'],['dx','Consistent bandwidth, private, big data → <b>Direct Connect</b>'],['clientvpn','Remote employees on laptops → <b>Client VPN</b>']],
+  explain: [
+    {tab:'VPN vs Direct Connect', type:'compare', cols:[['s2svpn','Site-to-Site VPN'],['dx','Direct Connect']], rows:[
+      ['Path','Internet, IPsec','Private dedicated line'],
+      ['Setup','Minutes to hours','Weeks to months'],
+      ['Bandwidth','~1.25 Gbps per tunnel','1/10/100 Gbps dedicated; hosted from 50 Mbps'],
+      ['Latency','Variable','Consistent'],
+      ['Encrypted','Yes','No by default']],
+      aid:'Direct Connect is <b>not encrypted</b>. "Encrypted + consistent" → VPN over Direct Connect (or MACsec).'},
+    {tab:'Resilience', type:'list', items:[
+      ['Cheapest backup','Site-to-Site VPN as backup to one DX connection.'],
+      ['High resiliency','Two DX connections at two different locations.'],
+      ['Maximum resiliency','Two connections at each of two locations (4 total).'],
+      ['Link Aggregation Group','Bundle connections at one location for more bandwidth.'],
+      ['Direct Connect Gateway','One DX connection reaches VPCs in many Regions.'],
+      ['Accelerated VPN','Uses Global Accelerator edge locations for better VPN performance.']]},
+    {tab:'Parts', type:'list', items:[
+      ['Customer gateway','Your side of the VPN.'],
+      ['Virtual private gateway','AWS side, attached to one VPC.'],
+      ['Transit Gateway attachment','AWS side shared by many VPCs.'],
+      ['Private VIF','DX to your VPCs.'],
+      ['Public VIF','DX to public AWS endpoints such as S3.'],
+      ['Transit VIF','DX to a Transit Gateway through a DX Gateway.']]}
+  ],
+  traps: [
+    '<b>Direct Connect takes weeks.</b> "Needed this week" → Site-to-Site VPN first.',
+    '<b>Direct Connect isn\'t encrypted.</b> Add IPsec VPN over DX (or MACsec) when encryption is required.',
+    '<b>One DX connection is a single point of failure.</b> Add a second DX or a VPN backup.'
+  ],
+  details: {sum:'BGP, CloudHub, SiteLink', facts:[
+    ['BGP','Dynamic routing for DX and VPN; VPN also supports static routes.'],
+    ['VPN CloudHub','Hub-and-spoke between branch sites through a virtual private gateway.'],
+    ['SiteLink','Connects your own sites to each other over the AWS network.'],
+    ['Client VPN auth','Active Directory, SAML, or certificates.']
+  ]}
+},
+
+route53: {
+  icon: 'route53', eyebrow: 'DNS', title: 'Route 53', test: 'Route 53',
+  one: 'Managed DNS with health checks. The exam asks which <b>routing policy</b> fits, and when to use an <b>alias</b> record.',
+  picks: [['route53','"Send users to the lowest-latency Region" → <b>latency</b>'],['route53','"Active-passive DR" → <b>failover</b> + health checks'],['route53','"Zone apex (example.com) → ALB" → <b>alias</b> record']],
+  explain: [
+    {tab:'Routing policies', type:'picker', opts:{
+      simple:{n:'Simple', ico:'route53', tag:'One resource', pts:['No health checks']},
+      weighted:{n:'Weighted', ico:'route53', tag:'Split by %', pts:['Canary and blue/green releases']},
+      latency:{n:'Latency', ico:'route53', tag:'Fastest Region', pts:['Lowest latency for each user']},
+      failover:{n:'Failover', ico:'route53', tag:'Active-passive', pts:['Secondary used when the primary health check fails']},
+      geo:{n:'Geolocation', ico:'route53', tag:'User location', pts:['Continent, country or state; set a default']},
+      geoprox:{n:'Geoproximity', ico:'route53', tag:'Distance + bias', pts:['Shift traffic between Regions with a bias']},
+      multi:{n:'Multivalue', ico:'route53', tag:'Up to 8 healthy IPs', pts:['Client-side load balancing, not a replacement for ELB']},
+      ipb:{n:'IP-based', ico:'route53', tag:'Client IP range', pts:['Route by the user\'s CIDR, e.g. per ISP']}
+    }, scen:[
+      ['"Send 10% of traffic to the new version"','weighted','Weighted records split traffic by percentage.'],
+      ['"Users should reach the lowest-latency Region"','latency','Latency routing picks the fastest Region for each user.'],
+      ['"Switch to the DR site when the primary is down"','failover','Failover routing with a health check on the primary.'],
+      ['"EU users must be served from the EU by law"','geo','Geolocation routes by where the user is.'],
+      ['"Gradually shift traffic toward a new Region"','geoprox','Geoproximity bias expands or shrinks a Region\'s area.'],
+      ['"Return several healthy IPs, no load balancer"','multi','Multivalue answers return up to 8 healthy records.'],
+      ['"Route one ISP\'s customers to a specific endpoint"','ipb','IP-based routing matches client CIDR ranges.']
+    ]},
+    {tab:'Records & checks', type:'list', items:[
+      ['Alias record','Points to AWS resources (ALB, CloudFront, S3 website, API Gateway). Works at the zone apex; free queries.'],
+      ['CNAME','Points a name to another name. Not allowed at the zone apex.'],
+      ['TTL','How long resolvers cache answers. Lower = faster changes, more queries.'],
+      ['Health checks','Endpoint, calculated (combine checks), or CloudWatch alarm (for private resources).'],
+      ['Private hosted zone','Names resolvable only inside associated VPCs.'],
+      ['Resolver endpoints','Inbound: on-prem resolves AWS names. Outbound: VPCs resolve on-prem names.']]}
+  ],
+  traps: [
+    '<b>No CNAME at the zone apex</b> (example.com). Use an alias record.',
+    '<b>Geolocation = where the user is</b> (law, localization). <b>Latency = speed.</b> Don\'t swap them.',
+    '<b>Health checks can\'t reach private resources.</b> Use a CloudWatch alarm–based health check.'
+  ],
+  details: {sum:'registrar, DNSSEC, ARC', facts:[
+    ['Registrar','Route 53 can register domains too.'],
+    ['DNSSEC','Signing for public hosted zones.'],
+    ['Route 53 ARC','Readiness checks and routing controls for Region failover.'],
+    ['Traffic Flow','Visual policy editor; required for geoproximity.']
+  ]}
+},
+
+edge: {
+  icon: 'cloudfront', eyebrow: 'Global users', title: 'CloudFront & Global Accelerator', test: 'Edge',
+  one: 'Bringing apps closer to global users. <b>CloudFront</b> caches content at the edge; <b>Global Accelerator</b> speeds up any TCP/UDP traffic behind static IPs.',
+  picks: [['cloudfront','Cache static and dynamic web content globally → <b>CloudFront</b>'],['globalacc','Static IPs, fast Region failover, TCP/UDP → <b>Global Accelerator</b>'],['cloudfront','"Only CloudFront may read the bucket" → <b>Origin Access Control</b>']],
+  explain: [
+    {tab:'CloudFront vs GA', type:'compare', cols:[['cloudfront','CloudFront'],['globalacc','Global Accelerator']], rows:[
+      ['Traffic','HTTP(S), WebSocket','Any TCP / UDP'],
+      ['Caching','Yes, at the edge','No'],
+      ['IPs','Many, changing','2 static anycast IPs'],
+      ['Failover','Origin groups','Health-based, across Regions in seconds'],
+      ['Pick when','Websites, APIs, video, S3','Gaming, IoT, VoIP, static IPs']]},
+    {tab:'CloudFront security', type:'list', items:[
+      ['Origin Access Control','Only CloudFront can read the S3 bucket (replaces OAI).'],
+      ['Signed URLs','Access to one file, e.g. a paid download.'],
+      ['Signed cookies','Access to many files, e.g. a premium section.'],
+      ['Geo restriction','Allow or block countries.'],
+      ['AWS WAF + Shield','WAF rules at the edge; Shield Standard is automatic.'],
+      ['Certificates','The ACM certificate for CloudFront must be in us-east-1.']]},
+    {tab:'CloudFront features', type:'list', items:[
+      ['Cache behaviors','Different settings per path pattern, e.g. /images/*.'],
+      ['TTL & invalidation','Control caching time; invalidate paths to purge early.'],
+      ['Origin groups','Primary and secondary origin for automatic failover.'],
+      ['Custom origins','ALB, EC2 or any HTTP server.'],
+      ['Edge compute','CloudFront Functions (light) and Lambda@Edge (heavier).'],
+      ['Price classes','Use fewer edge locations to cut cost.']]}
+  ],
+  traps: [
+    '<b>The CloudFront certificate must be in us-east-1.</b> An ALB certificate stays in the ALB\'s Region.',
+    '<b>Signed URL = one file; signed cookies = many files.</b>',
+    '<b>Global Accelerator doesn\'t cache.</b> "Cache content at the edge" → CloudFront.'
+  ],
+  details: {sum:'S3 origins, logs, GA endpoints', facts:[
+    ['S3 origin types','OAC works with the S3 REST endpoint; website endpoints need a public bucket.'],
+    ['Real-time logs','Stream request logs to Kinesis Data Streams.'],
+    ['GA endpoints','ALB, NLB, EC2, Elastic IP; traffic dials per Region for blue/green.'],
+    ['Field-level encryption','Encrypts sensitive form fields all the way to the app.']
+  ]}
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['VPC','Instances in a private subnet must download patches from the internet but must not be reachable from it.',['NAT gateway in a public subnet','Internet gateway on the private subnet','Elastic IPs on the instances','VPC peering'],0,'NAT allows outbound-only internet for private subnets.'],
+  ['VPC','A malicious IP range must be blocked from reaching a subnet.',['Network ACL deny rule','Security group deny rule','Route table blackhole','Remove the internet gateway'],0,'Security groups can\'t deny; NACLs can.'],
+  ['VPC','After adding a custom NACL, inbound requests arrive but responses never get back.',['Allow outbound ephemeral ports (1024–65535) in the NACL','Add a security group outbound rule','Add a NAT gateway','Enable Flow Logs'],0,'NACLs are stateless; return traffic needs its own rule.'],
+  ['VPC','Private subnets in three AZs use one NAT gateway. The design must survive an AZ failure.',['One NAT gateway per AZ with per-AZ route tables','A larger NAT gateway','A NAT instance','An egress-only internet gateway'],0,'Each AZ needs its own NAT gateway.'],
+  ['VPC','Engineers must find which traffic is being rejected in a VPC.',['VPC Flow Logs','CloudTrail','AWS Config','Route 53 query logs'],0,'Flow Logs record accepted and rejected IP traffic.'],
+  ['VPC','Admins need shell access to private instances without SSH keys, a bastion or open inbound ports.',['Systems Manager Session Manager','A bastion host','EC2 Instance Connect with public IPs','A NAT gateway'],0,'Session Manager works through the SSM agent, no inbound ports.'],
+  ['VPC','The app tier must accept traffic only from the web tier, whose IPs change often.',['Security group rule referencing the web tier\'s security group','NACL rule with the web subnet CIDR','Route table entry','A WAF rule'],0,'Security groups can reference other security groups.'],
+  ['Connectivity','Two VPCs with non-overlapping CIDRs must communicate privately at the lowest cost.',['VPC peering','Transit Gateway','PrivateLink','Site-to-Site VPN'],0,'Peering is simple and has no hourly fee.'],
+  ['Connectivity','60 VPCs and an on-prem network must all communicate.',['Transit Gateway','A full mesh of VPC peerings','PrivateLink','Internet gateways'],0,'Transit Gateway is a hub with transitive routing.'],
+  ['Connectivity','EC2 instances in private subnets must reach S3 without the internet and without added cost.',['Gateway VPC endpoint for S3','Interface endpoint for S3','NAT gateway','VPC peering'],0,'Gateway endpoints for S3 are free.'],
+  ['Connectivity','Private instances must call SQS and KMS without a NAT gateway.',['Interface VPC endpoints','Gateway endpoints','An internet gateway','VPC peering'],0,'Interface endpoints cover most AWS services.'],
+  ['Connectivity','A SaaS provider must offer its service to customer VPCs, some with overlapping CIDRs.',['AWS PrivateLink with an NLB','VPC peering','Transit Gateway','Public ALB'],0,'PrivateLink exposes one service and tolerates overlapping CIDRs.'],
+  ['Connectivity','On-prem servers must reach S3 privately over Direct Connect.',['Interface VPC endpoint for S3','Gateway VPC endpoint for S3','NAT gateway','Internet gateway'],0,'Gateway endpoints can\'t be used from on-premises; interface endpoints can.'],
+  ['ELB','Requests for /api must go to one service and /images to another, behind one load balancer.',['Application Load Balancer','Network Load Balancer','Gateway Load Balancer','Classic Load Balancer'],0,'Path-based routing is a Layer 7 feature of the ALB.'],
+  ['ELB','Partners must allow-list fixed IP addresses for your load balancer.',['NLB with Elastic IPs','ALB with Elastic IPs','ALB with sticky sessions','Classic Load Balancer'],0,'An NLB has a static IP per AZ and can use Elastic IPs. An ALB has no static IP (or use Global Accelerator in front of it).'],
+  ['ELB','A multiplayer game uses UDP and needs millions of packets per second at ultra-low latency.',['Network Load Balancer','Application Load Balancer','Gateway Load Balancer','CloudFront'],0,'UDP and extreme performance = Layer 4 = NLB.'],
+  ['ELB','All VPC traffic must pass through third-party firewall appliances that scale automatically.',['Gateway Load Balancer','Network Load Balancer','Application Load Balancer','NAT gateway'],0,'GWLB deploys and scales virtual appliances transparently.'],
+  ['ELB','The application behind an ALB needs the real client IP address.',['Read the X-Forwarded-For header','Enable cross-zone load balancing','Enable sticky sessions','Use a Classic Load Balancer'],0,'An ALB passes the client IP in X-Forwarded-For. An NLB preserves it natively.'],
+  ['ELB','SQL injection and XSS attacks must be blocked at the load balancer.',['AWS WAF on an ALB','AWS WAF on an NLB','Security group on the NLB','Shield Standard'],0,'WAF attaches to ALBs, not NLBs.'],
+  ['ELB','One ALB listener must serve several HTTPS domains, each with its own certificate.',['Server Name Indication (SNI)','Sticky sessions','One ALB per domain','Cross-zone load balancing'],0,'SNI lets one listener present the right certificate per domain.'],
+  ['ELB','In-flight requests fail when instances are removed during scale-in.',['Configure the deregistration delay','Enable sticky sessions','Enable cross-zone load balancing','Lower the health check interval'],0,'Deregistration delay (connection draining, 300 s default) lets requests finish.'],
+  ['Hybrid','The office must connect to a VPC this week, with encryption.',['Site-to-Site VPN','Direct Connect','VPC peering','Transit Gateway alone'],0,'VPN is ready in hours; Direct Connect takes weeks.'],
+  ['Hybrid','A data center needs consistent 10 Gbps private connectivity to AWS.',['AWS Direct Connect','Site-to-Site VPN','Client VPN','Global Accelerator'],0,'Direct Connect provides dedicated, consistent bandwidth.'],
+  ['Hybrid','Traffic over Direct Connect must be encrypted.',['IPsec VPN over Direct Connect (or MACsec)','Direct Connect encrypts by default','A public VIF','Security groups'],0,'Direct Connect alone is not encrypted.'],
+  ['Hybrid','The cheapest backup for a single Direct Connect connection.',['Site-to-Site VPN','A second Direct Connect','Client VPN','Transit Gateway peering'],0,'VPN backup is the low-cost option.'],
+  ['Hybrid','One Direct Connect connection must reach VPCs in several Regions.',['Direct Connect Gateway','VPC peering','A virtual private gateway per Region','Global Accelerator'],0,'A DX Gateway connects to VPCs in many Regions.'],
+  ['Hybrid','Remote employees need secure access from their laptops to a VPC.',['AWS Client VPN','Site-to-Site VPN','Direct Connect','VPC peering'],0,'Client VPN is for individual users.'],
+  ['Hybrid','VPN throughput must exceed one tunnel\'s limit.',['Transit Gateway with ECMP across multiple tunnels','A bigger virtual private gateway','Direct Connect hosted connection','Client VPN'],0,'ECMP on Transit Gateway aggregates tunnels.'],
+  ['Route 53','Send 10% of users to a new version of the app.',['Weighted routing','Latency routing','Geolocation routing','Simple routing'],0,'Weighted routing splits traffic by percentage.'],
+  ['Route 53','Users must be served from the Region with the lowest latency.',['Latency-based routing','Geolocation routing','Failover routing','Multivalue answer'],0,'Latency routing picks the fastest Region.'],
+  ['Route 53','Traffic must go to a DR site only when the primary is unhealthy.',['Failover routing with a health check','Weighted routing 100/0','Geoproximity routing','Simple routing'],0,'Failover routing uses the primary\'s health check.'],
+  ['Route 53','Users in the EU must be served only from EU infrastructure.',['Geolocation routing','Latency routing','Weighted routing','Multivalue answer'],0,'Geolocation routes by the user\'s location.'],
+  ['Route 53','example.com (the zone apex) must point to an ALB.',['Alias record','CNAME record','A record with the ALB IP','MX record'],0,'CNAME isn\'t allowed at the apex; alias records are.'],
+  ['Route 53','On-prem DNS servers must resolve names in a private hosted zone.',['Route 53 Resolver inbound endpoint','Outbound endpoint','Public hosted zone','Alias record'],0,'Inbound endpoints let on-prem resolvers query VPC DNS.'],
+  ['Route 53','A health check must monitor a resource in a private subnet.',['Health check based on a CloudWatch alarm','Endpoint health check','Calculated health check only','Multivalue answer'],0,'Route 53 health checkers can\'t reach private IPs directly.'],
+  ['Edge','A static website in S3 must be served globally, and the bucket reachable only through CloudFront.',['CloudFront with Origin Access Control','Public S3 bucket','Global Accelerator','S3 Transfer Acceleration'],0,'OAC lets only CloudFront read the private bucket.'],
+  ['Edge','Subscribers need access to many premium video files.',['CloudFront signed cookies','Signed URLs per file','Geo restriction','Public bucket'],0,'Signed cookies cover many files at once.'],
+  ['Edge','A UDP game needs static IPs and failover between Regions in seconds.',['AWS Global Accelerator','CloudFront','Route 53 latency routing','NLB only'],0,'Global Accelerator: static anycast IPs, TCP/UDP, fast failover.'],
+  ['Edge','Where must the certificate for a CloudFront custom domain be created?',['ACM in us-east-1','ACM in the origin\'s Region','IAM only','Any Region'],0,'CloudFront uses certificates from us-east-1.'],
+  ['Edge','Content must not be served to users in two countries.',['CloudFront geo restriction','Route 53 geolocation','WAF rate limiting','Signed URLs'],0,'Geo restriction blocks countries at the edge.'],
+  ['Edge','If the primary S3 origin fails, CloudFront must serve from a backup bucket.',['CloudFront origin group','Route 53 failover','Cross-Region Replication only','Global Accelerator'],0,'Origin groups fail over to a secondary origin.']
+];
+
+const FC = [
+  ['VPC','Security group vs NACL?','SG: instance level, stateful, allow only. NACL: subnet level, stateless, allow + deny, numbered rules.'],
+  ['VPC','Ephemeral port range for NACL return traffic?','1024–65535.'],
+  ['VPC','Where does a NAT gateway go?','In a public subnet, one per AZ.'],
+  ['VPC','Reserved IPs per subnet?','5.'],
+  ['VPC','VPC CIDR size range?','/16 to /28.'],
+  ['VPC','Outbound-only internet for IPv6?','Egress-only internet gateway.'],
+  ['Connectivity','Is VPC peering transitive?','No. Overlapping CIDRs aren\'t allowed either.'],
+  ['Connectivity','Gateway endpoint services?','S3 and DynamoDB only. Free.'],
+  ['Connectivity','Interface endpoint?','ENI with private IPs (PrivateLink); most services; costs per hour and GB.'],
+  ['Connectivity','Share a Transit Gateway across accounts?','AWS Resource Access Manager (RAM).'],
+  ['ELB','ALB in one line?','Layer 7 (HTTP/HTTPS/gRPC). Routes by path, host, header. Targets EC2, IPs, Lambda, ECS. No static IP.'],
+  ['ELB','NLB in one line?','Layer 4 (TCP/UDP/TLS). Ultra-low latency, static IP per AZ (Elastic IPs), keeps client source IP.'],
+  ['ELB','GWLB in one line?','Layer 3. Deploys and scales third-party appliances (firewalls, IDS/IPS).'],
+  ['ELB','Cross-zone load balancing defaults?','ALB: on, free. NLB and GWLB: off; inter-AZ data is charged when on.'],
+  ['ELB','Client IP behind an ALB?','In the X-Forwarded-For header.'],
+  ['ELB','Default deregistration delay?','300 seconds (range 0–3600).'],
+  ['Hybrid','VPN tunnel bandwidth?','About 1.25 Gbps per tunnel.'],
+  ['Hybrid','Is Direct Connect encrypted?','No. Add IPsec VPN over DX, or MACsec.'],
+  ['Hybrid','Maximum DX resiliency?','Two connections at each of two locations.'],
+  ['Hybrid','One DX to many Regions?','Direct Connect Gateway.'],
+  ['Route 53','Alias vs CNAME?','Alias: AWS targets, works at the apex, free. CNAME: not at the apex.'],
+  ['Route 53','Multivalue answer returns?','Up to 8 healthy records.'],
+  ['Route 53','Health check for a private resource?','CloudWatch alarm–based health check.'],
+  ['Edge','CloudFront certificate Region?','us-east-1 (ACM).'],
+  ['Edge','Signed URL vs signed cookie?','URL: one file. Cookie: many files.'],
+  ['Edge','Global Accelerator IPs?','2 static anycast IPs.']
+];
+
+const NUMS = [
+  ['5','Reserved IPs per subnet'],['L7 · L4 · L3','ALB · NLB · GWLB'],['300 s','ELB deregistration delay'],['/16 – /28','VPC CIDR sizes'],['1024–65535','Ephemeral ports'],['100 Gbps','NAT gateway max bandwidth'],
+  ['~1.25 Gbps','Per VPN tunnel'],['1 · 10 · 100 Gbps','Dedicated DX speeds'],['2 × 2','DX max resiliency: 2 connections × 2 locations'],
+  ['8','Multivalue answer records'],['2','Global Accelerator static IPs'],['us-east-1','CloudFront certificate Region']
+];
+
+const PAIRS = [
+  ['Security group','Instance, stateful, allow only','NACL','Subnet, stateless, allow + deny'],
+  ['NAT gateway','Managed, per AZ','NAT instance','Self-managed EC2'],
+  ['VPC peering','1-to-1, not transitive','Transit Gateway','Hub, transitive'],
+  ['Gateway endpoint','S3/DynamoDB, free','Interface endpoint','Most services, paid'],
+  ['PrivateLink','Expose one service','Peering','Route whole networks'],
+  ['ALB','L7 routing, WAF, Lambda targets','NLB','L4 speed, static IP, source IP kept'],
+  ['Site-to-Site VPN','Internet, encrypted, fast setup','Direct Connect','Private, consistent, weeks'],
+  ['Alias','AWS targets, apex OK','CNAME','Any name, no apex'],
+  ['Geolocation','Where the user is','Latency','Fastest Region'],
+  ['Signed URL','One file','Signed cookies','Many files'],
+  ['CloudFront','Caches HTTP(S)','Global Accelerator','Static IPs, TCP/UDP, no cache']
+];
+
+const TRAPS = [
+  ['"Private instances need outbound internet"','NAT gateway (public subnet)'],
+  ['"Block a specific IP"','NACL deny rule','Security groups can\'t deny'],
+  ['"Responses fail after adding a NACL"','Allow ephemeral ports outbound'],
+  ['"NAT must survive an AZ failure"','One NAT gateway per AZ'],
+  ['"Which traffic is rejected?"','VPC Flow Logs'],
+  ['"Shell access, no SSH or bastion"','Session Manager'],
+  ['"Allow traffic from the web tier only"','Security group referencing a security group'],
+  ['"Two VPCs, cheapest"','VPC peering'],
+  ['"Dozens of VPCs + on-prem"','Transit Gateway','Peering isn\'t transitive'],
+  ['"Private S3 access from the VPC, free"','Gateway endpoint'],
+  ['"Private access to SQS / KMS / SSM"','Interface endpoint'],
+  ['"S3 privately from on-premises"','Interface endpoint for S3','Gateway endpoints don\'t work from on-prem'],
+  ['"Expose a service, overlapping CIDRs"','PrivateLink'],
+  ['"Route by URL path or hostname"','ALB'],
+  ['"Static IP / allow-list the load balancer"','NLB (Elastic IPs) or Global Accelerator','Not ALB: it has no static IP'],
+  ['"Block SQL injection / XSS at the load balancer"','ALB + AWS WAF','WAF can\'t attach to an NLB'],
+  ['"Third-party firewall appliances"','GWLB'],
+  ['"Client IP behind the load balancer"','X-Forwarded-For (ALB)'],
+  ['"Several HTTPS domains, one listener"','SNI'],
+  ['"Connect the office this week"','Site-to-Site VPN','Not Direct Connect: takes weeks'],
+  ['"Consistent, dedicated bandwidth"','Direct Connect'],
+  ['"Encrypt Direct Connect traffic"','VPN over DX or MACsec'],
+  ['"Cheap DX backup"','Site-to-Site VPN'],
+  ['"One DX to many Regions"','Direct Connect Gateway'],
+  ['"Remote workers on laptops"','Client VPN'],
+  ['"Canary 10% of traffic"','Weighted routing'],
+  ['"Lowest latency Region"','Latency routing'],
+  ['"Active-passive DR"','Failover routing + health check'],
+  ['"Serve users by country for legal reasons"','Geolocation routing','Not latency routing'],
+  ['"Zone apex to ALB / CloudFront"','Alias record','CNAME isn\'t allowed at the apex'],
+  ['"On-prem resolves private hosted zone"','Resolver inbound endpoint'],
+  ['"Only CloudFront may read the bucket"','Origin Access Control'],
+  ['"Premium content, many files"','Signed cookies'],
+  ['"Static IPs, UDP, fast Region failover"','Global Accelerator','CloudFront doesn\'t do UDP'],
+  ['"CloudFront HTTPS certificate"','ACM in us-east-1']
+];
+
+App.start({
+  id: 'networking',
+  title: 'Networking Cheat Sheet',
+  learn: [['pick','Pick a connection','',6],['vpc','VPC basics','vpc',14],['connect','VPC connectivity','tgw',12],['elb','Load Balancing','elb',12],['hybrid','VPN & DX','dx',12],
+          ['route53','Route 53','route53',12],['edge','CloudFront & GA','cloudfront',12]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

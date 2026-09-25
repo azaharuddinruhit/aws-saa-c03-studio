@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Compute Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main">
+
+<!-- =============== LEARN · EC2 =============== -->
+<section class="panel" data-view="ec2" hidden>
+  <div class="head"><img data-ico="ec2" alt="Amazon EC2 icon"><div><div class="eyebrow">Virtual servers</div><h2>Amazon EC2</h2></div></div>
+  <p class="oneliner">Virtual servers you fully control. The exam asks which <b>family</b> fits the workload and which <b>purchasing option</b> fits how steady it is.</p>
+
+  <div>
+    <span class="label">Exam picks it when</span>
+    <div class="picks">
+      <div class="pick">You need full OS control or a custom kernel</div>
+      <div class="pick">Lift-and-shift of existing servers</div>
+      <div class="pick">Special hardware: GPU, huge RAM, local NVMe</div>
+    </div>
+  </div>
+
+  <div class="card xcard">
+    <div class="seg" role="group" aria-label="EC2 explainer">
+      <button data-pane="fam" aria-pressed="true">Instance families</button>
+      <button data-pane="buy" aria-pressed="false">Purchasing options</button>
+      <button data-pane="pg" aria-pressed="false">Placement groups</button>
+    </div>
+    <div class="pane" data-pane="fam">
+      <div class="grid" style="gap:12px">
+        <div class="fam-letters" id="famLetters"></div>
+        <div class="fam-detail" id="famDetail"></div>
+        <div class="aid"><span><b>C</b>ompute · <b>R</b>AM · <b>M</b>iddle · <b>T</b>urbo burst · <b>I</b>OPS · <b>D</b>ense disk · <b>P</b> trains, <b>Inf</b> infers · <b>X</b> = eXtreme memory</span></div>
+      </div>
+    </div>
+    <div class="pane" data-pane="buy" hidden>
+      <div class="grid" style="gap:12px">
+        <div class="bars" id="bars"></div>
+        <div class="aid"><span>Steady for years → <b>RI / Savings Plan</b>. Can be interrupted → <b>Spot</b>. Per-core license → <b>Dedicated Host</b>. Unknown or short → <b>On-Demand</b>.</span></div>
+      </div>
+    </div>
+    <div class="pane" data-pane="pg" hidden>
+      <div class="grid" style="gap:12px">
+        <div class="seg" id="pgSeg"></div>
+        <div id="pgStage"></div>
+        <p class="pane-note" id="pgText"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="traps">
+    <span class="label">Top traps</span>
+    <ol>
+      <li><span><b>Instance store is lost on stop or terminate.</b> If data must survive, the answer is EBS, even when the question says "highest IOPS".</span></li>
+      <li><span><b>Spot gives a 2-minute warning.</b> Never pick it for databases or stateful work that can't be interrupted.</span></li>
+      <li><span><b>A regional RI does not reserve capacity.</b> Guaranteed capacity in one AZ = zonal RI or an On-Demand Capacity Reservation.</span></li>
+    </ol>
+  </div>
+
+  <details class="more">
+    <summary>More details <small>storage, purchasing specifics, other EC2 facts</small></summary>
+    <div class="more-body">
+      <div>
+        <h4>Instance store vs EBS</h4>
+        <div class="vs">
+          <div class="card"><h4>Instance store <span class="pill bad">Ephemeral</span></h4><ul><li>Local NVMe, highest IOPS</li><li>Survives reboot; lost on stop, terminate, host failure</li><li>Caches, scratch, replicated data</li></ul></div>
+          <div class="card"><h4><img class="ico" data-ico="ebs" alt="">EBS <span class="pill good">Persistent</span></h4><ul><li>Network-attached; io2 Block Express up to 256K IOPS</li><li>Root volume deleted on terminate by default; extra volumes kept</li><li>Incremental snapshots in S3</li></ul></div>
+        </div>
+      </div>
+      <div>
+        <h4>Purchasing specifics</h4>
+        <div class="facts">
+          <div class="fact"><b>Compute Savings Plan</b>Covers EC2 in any family/Region, plus Fargate and Lambda.</div>
+          <div class="fact"><b>EC2 Instance Savings Plan</b>One family in one Region, bigger discount.</div>
+          <div class="fact"><b>Standard vs Convertible RI</b>Standard can be sold on the RI Marketplace. Convertible can change family but can't be sold.</div>
+          <div class="fact"><b>Dedicated Host vs Instance</b>Host shows sockets/cores (BYOL). Instance only isolates hardware.</div>
+          <div class="fact"><b>Spot requests</b>Persistent requests relaunch. Cancel the request first, then terminate. Use <code>priceCapacityOptimized</code>.</div>
+          <div class="fact"><b>On-Demand billing</b>Per second, 60-second minimum (Linux).</div>
+        </div>
+      </div>
+      <div>
+        <h4>Other EC2 facts</h4>
+        <div class="facts">
+          <div class="fact"><b>Hibernate</b>RAM saved to the encrypted EBS root volume, so the instance resumes fast with memory intact.</div>
+          <div class="fact"><b>Instance metadata</b><code>169.254.169.254</code>. Enforce IMDSv2 against SSRF.</div>
+          <div class="fact"><b>AMI</b>Region-scoped. A golden AMI boots faster than long user-data scripts.</div>
+          <div class="fact"><b>Networking</b>ENA = enhanced networking. EFA = OS-bypass for HPC/MPI. An ENI is locked to one AZ.</div>
+          <div class="fact"><b>Auto-recovery</b>Alarm on <code>StatusCheckFailed_System</code> → recover. Keeps ID, IPs and metadata.</div>
+          <div class="fact"><b>Graviton &amp; IPv4</b>Graviton is ~20% cheaper. All public IPv4 addresses are billed.</div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="test" data-test="EC2"></div>
+  <div class="pager" data-pager="ec2"></div>
+</section>
+
+<!-- =============== LEARN · ASG =============== -->
+<section class="panel" data-view="asg" hidden>
+  <div class="head"><img data-ico="asg" alt="Amazon EC2 Auto Scaling icon"><div><div class="eyebrow">Elasticity + self-healing</div><h2>EC2 Auto Scaling</h2></div></div>
+  <p class="oneliner">Keeps the right number of healthy instances across AZs in <b>one Region</b>. Most questions ask which <b>scaling policy</b> fits.</p>
+
+  <div>
+    <span class="label">Exam picks it when</span>
+    <div class="picks">
+      <div class="pick">Replace unhealthy instances automatically</div>
+      <div class="pick">Add and remove instances as demand changes</div>
+      <div class="pick">Spread instances across AZs for high availability</div>
+    </div>
+  </div>
+
+  <div class="card xcard">
+    <span class="label" style="margin:0">Which scaling policy? Pick a scenario</span>
+    <div class="seg" id="asgScen"></div>
+    <div id="asgOut"></div>
+  </div>
+
+  <div class="traps">
+    <span class="label">Top traps</span>
+    <ol>
+      <li><span><b>App returns errors but instances aren't replaced?</b> Turn on <b>ELB health checks</b>. By default the ASG only checks EC2 status.</span></li>
+      <li><span><b>Memory and disk aren't native metrics.</b> Install the CloudWatch agent to scale on them.</span></li>
+      <li><span><b>An ASG can't span Regions.</b> Use one ASG per Region behind Route 53.</span></li>
+    </ol>
+  </div>
+
+  <details class="more">
+    <summary>More details <small>mechanics, lifecycle hooks, termination order</small></summary>
+    <div class="more-body">
+      <div class="facts">
+        <div class="fact"><b>Capacity</b>Min ≤ Desired ≤ Max. Never below min.</div>
+        <div class="fact"><b>Defaults</b>Cooldown 300 s, health check grace 300 s, deregistration delay 300 s.</div>
+        <div class="fact"><b>Launch templates</b>The current option. Launch configurations are legacy.</div>
+        <div class="fact"><b>Lifecycle hooks</b>Pause launch or termination to run scripts, drain, copy logs.</div>
+        <div class="fact"><b>Warm pools</b>Pre-initialized instances for apps that boot slowly.</div>
+        <div class="fact"><b>Mixed instances policy</b>On-Demand base plus Spot above it, several instance types.</div>
+        <div class="fact"><b>Instance refresh</b>Rolling replacement to roll out a new AMI.</div>
+        <div class="fact"><b>Scaling on a queue</b>Custom metric: queue depth ÷ running instances.</div>
+        <div class="fact"><b>Load balancers</b>ALB, NLB and GWLB are on the <a href="02-networking.html#elb">Networking page</a>.</div>
+      </div>
+      <div>
+        <h4>Default termination order on scale-in</h4>
+        <ol class="steps">
+          <li>The AZ with the most instances</li>
+          <li>Within it, the oldest launch template or configuration</li>
+          <li>Then the instance closest to its next billing hour</li>
+        </ol>
+      </div>
+    </div>
+  </details>
+
+  <div class="test" data-test="ASG"></div>
+  <div class="pager" data-pager="asg"></div>
+</section>
+
+<!-- =============== LEARN · LAMBDA =============== -->
+<section class="panel" data-view="lambda" hidden>
+  <div class="head"><img data-ico="lambda" alt="AWS Lambda icon"><div><div class="eyebrow">Serverless functions</div><h2>AWS Lambda</h2></div></div>
+  <p class="oneliner">Run code on events with no servers, paying per millisecond. Many questions really ask whether Lambda <b>can't</b> do the job, so learn the limits.</p>
+
+  <div>
+    <span class="label">Exam picks it when</span>
+    <div class="picks">
+      <div class="pick">Short, event-driven work, under 15 minutes</div>
+      <div class="pick">Unpredictable traffic; pay only while code runs</div>
+      <div class="pick">"Least operational overhead", "no servers to manage"</div>
+    </div>
+  </div>
+
+  <div class="card xcard">
+    <div class="seg" role="group" aria-label="Lambda explainer">
+      <button data-pane="lim" aria-pressed="true">Limits</button>
+      <button data-pane="vpc" aria-pressed="false">Lambda in a VPC</button>
+      <button data-pane="conc" aria-pressed="false">Concurrency</button>
+      <button data-pane="inv" aria-pressed="false">Invocation types</button>
+    </div>
+    <div class="pane" data-pane="lim"><div class="limits" id="limits"></div><p class="keys">Orange = know by heart. The rest: recognize them when you see them.</p></div>
+    <div class="pane" data-pane="vpc" hidden>
+      <div class="grid" style="gap:12px">
+        <div class="seg" id="vpcSeg"></div>
+        <div class="vpc-diagram" id="vpcDiagram"></div>
+        <p class="pane-note" id="vpcText"></p>
+      </div>
+    </div>
+    <div class="pane" data-pane="conc" hidden>
+      <div class="grid" style="gap:12px">
+        <div class="vs">
+          <div class="card"><h4>Reserved <span class="pill good">Free</span></h4><p>Guarantees <b>and caps</b> how many copies of one function can run. Protects a database and stops one function starving others.</p></div>
+          <div class="card"><h4>Provisioned <span class="pill warn">Paid</span></h4><p>Keeps environments pre-initialized, so there are <b>no cold starts</b>. For Java, SnapStart does this for free.</p></div>
+        </div>
+        <div class="aid"><span><b>Reserved</b> = reserved seats (a cap). <b>Provisioned</b> = pre-warmed engines (no cold start).</span></div>
+      </div>
+    </div>
+    <div class="pane" data-pane="inv" hidden>
+      <div class="inv">
+        <div><h4>Synchronous</h4><div class="inv-ico"><img data-ico="apigw" alt="API Gateway" title="API Gateway"><img data-ico="elb" alt="ALB" title="ALB"></div>API Gateway, ALB, Function URL. The caller waits and retries itself.</div>
+        <div><h4>Asynchronous</h4><div class="inv-ico"><img data-ico="s3" alt="S3" title="S3"><img data-ico="sns" alt="SNS" title="SNS"><img data-ico="eventbridge" alt="EventBridge" title="EventBridge"></div>S3, SNS, EventBridge. Lambda retries twice, then DLQ or on-failure destination.</div>
+        <div><h4>Poll-based</h4><div class="inv-ico"><img data-ico="sqs" alt="SQS" title="SQS"><img data-ico="kinesis" alt="Kinesis" title="Kinesis"><img data-ico="dynamodb" alt="DynamoDB Streams" title="DynamoDB Streams"></div>SQS, Kinesis, DynamoDB Streams. Lambda polls in batches; streams keep order per shard.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traps">
+    <span class="label">Top traps</span>
+    <ol>
+      <li><span><b>Longer than 15 minutes isn't Lambda.</b> Use Fargate, AWS Batch, or split the work with Step Functions.</span></li>
+      <li><span><b>A public subnet doesn't give Lambda internet.</b> It never gets a public IP. Use a private subnet with a NAT gateway.</span></li>
+      <li><span><b>Too many database connections?</b> Put <b>RDS Proxy</b> between Lambda and RDS.</span></li>
+    </ol>
+  </div>
+
+  <details class="more">
+    <summary>More details <small>features, Lambda vs Fargate vs EC2</small></summary>
+    <div class="more-body">
+      <div class="facts">
+        <div class="fact"><b>Two kinds of permission</b>Execution role = what Lambda can call. Resource policy = who can invoke it.</div>
+        <div class="fact"><b>Layers</b>Share libraries across functions.</div>
+        <div class="fact"><b>Versions &amp; aliases</b>Weighted aliases + CodeDeploy for canary or linear shifts.</div>
+        <div class="fact"><b>Storage</b>Stateless. Use S3, DynamoDB, or mount EFS (needs VPC).</div>
+        <div class="fact"><b>Edge</b>CloudFront Functions: tiny, viewer only. Lambda@Edge: heavier, origin events too.</div>
+        <div class="fact"><b>SQS as a trigger</b>Visibility timeout ≥ 6× function timeout. Put the DLQ on the queue.</div>
+        <div class="fact"><b>Big uploads</b>Sync payload max 6 MB. Upload to S3 with a presigned URL instead.</div>
+        <div class="fact"><b>Cost</b>Graviton (arm64) ~20% cheaper. Compute Savings Plans apply.</div>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th></th><th>Lambda</th><th>Fargate</th><th>EC2</th></tr></thead>
+        <tbody>
+          <tr><td>Best for</td><td>Short, spiky, events</td><td>Long-running containers</td><td>Full control, steady load</td></tr>
+          <tr><td>Billing</td><td>Requests + GB-s (per ms)</td><td>vCPU-s + GB-s</td><td>Per second</td></tr>
+          <tr><td>Limits</td><td>15 min, 10 GB</td><td>16 vCPU, 120 GB, no GPU</td><td>Instance size</td></tr>
+          <tr><td>You manage</td><td>Code</td><td>Container + task size</td><td>OS, patching, scaling</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </details>
+
+  <div class="test" data-test="Lambda"></div>
+  <div class="pager" data-pager="lambda"></div>
+</section>
+
+<!-- =============== LEARN · BEANSTALK =============== -->
+<section class="panel" data-view="beanstalk" hidden>
+  <div class="head"><img data-ico="beanstalk" alt="AWS Elastic Beanstalk icon"><div><div class="eyebrow">PaaS · no extra charge</div><h2>Elastic Beanstalk</h2></div></div>
+  <p class="oneliner">Upload code; Beanstalk builds the EC2 instances, Auto Scaling group and load balancer for you. The exam loves its <b>deployment policies</b>.</p>
+
+  <div>
+    <span class="label">Exam picks it when</span>
+    <div class="picks">
+      <div class="pick">Developers deploy code without managing infrastructure</div>
+      <div class="pick">A traditional web app, and the team still wants EC2 access</div>
+      <div class="pick">Quick deploy with scaling and monitoring built in</div>
+    </div>
+  </div>
+
+  <div class="card xcard">
+    <span class="label" style="margin:0">Deployment policies · read the summary, press Play to see it happen</span>
+    <div class="seg" id="simSeg"></div>
+    <div class="sim-sum" id="simSum"></div>
+    <div class="sim-rows" id="simRows"></div>
+    <div class="sim-foot">
+      <div class="sim-note" id="simNote" aria-live="polite"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="simPrev" aria-label="Previous step">◀</button>
+        <button class="btn primary" id="simPlay">Play</button>
+        <button class="btn" id="simNext" aria-label="Next step">▶</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:#3B82F6"></i>v1 (old)</span>
+      <span><i style="background:var(--accent)"></i>v2 (new)</span>
+      <span><i style="background:var(--warn-soft);border:1.5px dashed var(--warn)"></i>updating</span>
+      <span><i style="border:1.5px dashed var(--accent)"></i>launching</span>
+    </div>
+    <div class="aid"><span>Fast and cheap → safe: <b>All at once → Rolling → Rolling + batch → Immutable / Traffic split → Blue/Green</b></span></div>
+  </div>
+
+  <div class="traps">
+    <span class="label">Top traps</span>
+    <ol>
+      <li><span><b>RDS created inside the environment is deleted with it.</b> For production, create RDS separately and connect to it.</span></li>
+      <li><span><b>Blue/Green isn't a built-in policy.</b> Clone the environment, deploy, then <b>swap environment URLs (CNAME)</b>.</span></li>
+      <li><span><b>"Infrastructure as code for any resource"</b> is CloudFormation, not Beanstalk.</span></li>
+    </ol>
+  </div>
+
+  <details class="more">
+    <summary>More details <small>tiers, roles, environments</small></summary>
+    <div class="more-body">
+      <div class="facts">
+        <div class="fact"><b>Web server tier</b>ELB + ASG + EC2.</div>
+        <div class="fact"><b>Worker tier</b>SQS queue feeds a daemon that posts jobs to your app. For long-running background work.</div>
+        <div class="fact"><b>Two roles</b>Service role for Beanstalk; instance profile for your EC2 instances.</div>
+        <div class="fact"><b>Under the hood</b>A CloudFormation stack. You pay only for the resources.</div>
+        <div class="fact"><b>Environments</b>Single instance for dev; load-balanced for production.</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="test" data-test="Beanstalk"></div>
+  <div class="pager" data-pager="beanstalk"></div>
+</section>
+
+<!-- =============== LEARN · CONTAINERS =============== -->
+<section class="panel" data-view="containers" hidden>
+  <div class="head"><img data-ico="ecs" alt="Amazon ECS icon"><div><div class="eyebrow">ECS · EKS · Fargate</div><h2>Containers</h2></div></div>
+  <p class="oneliner">Two decisions: <b>which orchestrator</b> (ECS or EKS) and <b>who runs the servers</b> (you on EC2, or AWS with Fargate).</p>
+
+  <div>
+    <span class="label">Exam picks it when</span>
+    <div class="picks">
+      <div class="pick"><img data-ico="ecs" alt=""><span>AWS-native containers, simplest option → <b>ECS</b></span></div>
+      <div class="pick"><img data-ico="eks" alt=""><span>"Kubernetes", K8s tooling, portability → <b>EKS</b></span></div>
+      <div class="pick"><img data-ico="fargate" alt=""><span>Containers without managing servers → <b>Fargate</b></span></div>
+    </div>
+  </div>
+
+  <div class="card xcard">
+    <div class="seg" role="group" aria-label="Containers explainer">
+      <button data-pane="orch" aria-pressed="true">ECS vs EKS</button>
+      <button data-pane="launch" aria-pressed="false">Fargate vs EC2</button>
+      <button data-pane="roles" aria-pressed="false">Permissions</button>
+    </div>
+    <div class="pane" data-pane="orch">
+      <div class="cmp">
+        <div class="cmp-row"><span></span><span class="cmp-head"><img class="ico" data-ico="ecs" alt="">ECS</span><span class="cmp-head"><img class="ico" data-ico="eks" alt="">EKS</span></div>
+        <div class="cmp-row"><span>Pick when</span><span>AWS-native, simple</span><span>Kubernetes, portability</span></div>
+        <div class="cmp-row"><span>Control plane</span><span><b>Free</b></span><span>~$0.10/hour per cluster</span></div>
+        <div class="cmp-row"><span>Permissions</span><span>Task role</span><span>IRSA / Pod Identity</span></div>
+        <div class="cmp-row"><span>On-premises</span><span>ECS Anywhere</span><span>EKS Anywhere, Outposts</span></div>
+      </div>
+    </div>
+    <div class="pane" data-pane="launch" hidden>
+      <div class="cmp">
+        <div class="cmp-row"><span></span><span class="cmp-head"><img class="ico" data-ico="fargate" alt="">Fargate</span><span class="cmp-head"><img class="ico" data-ico="ec2" alt="">EC2 launch type</span></div>
+        <div class="cmp-row"><span>Pick when</span><span>Least ops work, variable load</span><span>GPU, host access, cheapest at steady scale</span></div>
+        <div class="cmp-row"><span>You manage</span><span>Tasks only</span><span>Tasks + EC2 fleet</span></div>
+        <div class="cmp-row"><span>Pricing</span><span>Per vCPU/GB second; Fargate Spot ~70% off</span><span>EC2 pricing incl. RI, SP, Spot</span></div>
+        <div class="cmp-row"><span>Limits</span><span>16 vCPU / 120 GB, no GPU, no privileged</span><span>Any instance type</span></div>
+        <div class="cmp-row"><span>Network</span><span><code>awsvpc</code> only</span><span><code>awsvpc</code>, <code>bridge</code>, <code>host</code></span></div>
+      </div>
+    </div>
+    <div class="pane" data-pane="roles" hidden>
+      <div class="grid" style="gap:12px">
+        <div class="roles">
+          <div class="role"><div class="who">Your app code</div><h4><code>Task role</code></h4>Read S3, write DynamoDB: what the application does.</div>
+          <div class="role"><div class="who">ECS / Fargate</div><h4><code>Task execution role</code></h4>Pull the image from ECR, write logs, fetch secrets.</div>
+          <div class="role"><div class="who">EC2 host</div><h4><code>Instance profile</code></h4>For the ECS agent. Never app permissions.</div>
+        </div>
+        <div class="aid"><span><b>Task role = what the task DOES.</b> <b>Execution role = what ECS needs to EXECUTE it.</b></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traps">
+    <span class="label">Top traps</span>
+    <ol>
+      <li><span><b>Task role vs execution role.</b> "Can't pull from ECR / write logs" → execution role. "App needs S3" → task role.</span></li>
+      <li><span><b>Fargate has no GPU, privileged mode or host access.</b> Those need the EC2 launch type.</span></li>
+      <li><span><b>Shared persistent storage across tasks and AZs is EFS</b>, not EBS or instance store.</span></li>
+    </ol>
+  </div>
+
+  <details class="more">
+    <summary>More details <small>scaling, EKS on Fargate, ECR, App Runner</small></summary>
+    <div class="more-body">
+      <div class="facts">
+        <div class="fact"><b>Scaling</b>Service Auto Scaling adds tasks. Capacity providers add EC2 instances when tasks are pending.</div>
+        <div class="fact"><b>Event-driven tasks</b>EventBridge rule → run an ECS task (S3 uploads, cron).</div>
+        <div class="fact"><b>EKS on Fargate limits</b>No DaemonSets, privileged pods, GPU, EBS volumes or Spot.</div>
+        <div class="fact"><b>ECR</b>Private registry with scanning, lifecycle policies, cross-Region replication.</div>
+        <div class="fact"><b>App Runner</b>Source or image → HTTPS app. No cluster, VPC or load balancer setup.</div>
+        <div class="fact"><b>AWS Batch</b>Many queued jobs with priorities, on EC2, Spot or Fargate.</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="test" data-test="Containers"></div>
+  <div class="pager" data-pager="containers"></div>
+</section>
+
+<!-- =============== LEARN · OTHER COMPUTE =============== -->
+<section class="panel" data-view="other" hidden>
+  <div class="head"><img data-ico="batch" alt="AWS Batch icon"><div><div class="eyebrow">Quick-answer services</div><h2>Other compute</h2></div></div>
+  <p class="oneliner">Services that show up as quick answers. For each one, learn the <b>one clue</b> that points to it.</p>
+
+  <div>
+    <span class="label">Exam picks one of these when</span>
+    <div class="picks">
+      <div class="pick"><img data-ico="batch" alt=""><span>"Thousands of queued batch jobs" → <b>AWS Batch</b></span></div>
+      <div class="pick"><img data-ico="apprunner" alt=""><span>"Least effort to run a web app from code or an image" → <b>App Runner</b></span></div>
+      <div class="pick"><img data-ico="outposts" alt=""><span>Low latency in a city, on 5G, or on-premises → <b>Local Zones / Wavelength / Outposts</b></span></div>
+    </div>
+  </div>
+
+  <div class="card xcard">
+    <div class="seg" role="group" aria-label="Other compute explainer">
+      <button data-pane="svc" aria-pressed="true">Services</button>
+      <button data-pane="edge" aria-pressed="false">Edge &amp; hybrid</button>
+    </div>
+    <div class="pane" data-pane="svc"><div class="svcs" id="svcs"></div></div>
+    <div class="pane" data-pane="edge" hidden>
+      <div class="grid" style="gap:12px">
+        <div class="spectrum-axis"><span>← AWS data centers</span><span>Your building →</span></div>
+        <div class="spectrum" id="edgeStops"></div>
+        <div id="edgeOut"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="traps">
+    <span class="label">Top traps</span>
+    <ol>
+      <li><span><b>Local Zones</b> = near users in one city. <b>Wavelength</b> = inside 5G carrier networks. <b>Outposts</b> = in your own data center.</span></li>
+      <li><span><b>App Runner vs Beanstalk.</b> App Runner: containers or source code, zero infrastructure setup. Beanstalk: classic app platforms, with EC2 access.</span></li>
+      <li><span><b>Lightsail is for simple, small workloads.</b> Enterprise scaling, custom networking or complex architectures → EC2.</span></li>
+    </ol>
+  </div>
+
+  <details class="more">
+    <summary>More details <small>Batch, Step Functions, Outposts</small></summary>
+    <div class="more-body">
+      <div class="facts">
+        <div class="fact"><b>Batch compute environments</b>Managed: AWS picks and scales instances, including Spot and Fargate. You pay only for the compute.</div>
+        <div class="fact"><b>Batch vs Lambda</b>Batch for heavy or long jobs. Lambda for short, event-driven work.</div>
+        <div class="fact"><b>Step Functions: Standard vs Express</b>Standard runs up to 1 year. Express runs up to 5 minutes, for high-volume events.</div>
+        <div class="fact"><b>Outposts</b>AWS installs and manages the hardware. You provide power, network and space.</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="test" data-test="Other"></div>
+  <div class="pager" data-pager="other"></div>
+</section>
+
+</main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+const {img, $, $$} = App;
+
+/* ---------- EC2 families ---------- */
+const FAM = [
+  {l:'M',c:'General',name:'General purpose (balanced)',best:'Web and app servers, small databases, dev/test',ratio:'1 vCPU : 4 GiB',clue:'"balanced", "general workload"',aid:'M = Middle'},
+  {l:'T',c:'General',name:'General purpose (burstable)',best:'Low baseline CPU with occasional spikes',ratio:'Baseline % + CPU credits',clue:'"spiky", "occasional burst", "low baseline"',aid:'T = Turbo. It throttles when credits run out, so it\'s wrong for sustained high CPU.'},
+  {l:'C',c:'Compute',name:'Compute optimized',best:'Batch processing, media transcoding, HPC, gaming servers, scientific modeling, high-performance web',ratio:'1 vCPU : 2 GiB',clue:'"CPU-bound", "media encoding", "batch"',aid:'C = Compute'},
+  {l:'R',c:'Memory',name:'Memory optimized',best:'In-memory caches and databases, real-time big data analytics',ratio:'1 vCPU : 8 GiB',clue:'"in-memory", "real-time analytics"',aid:'R = RAM'},
+  {l:'X',c:'Memory',name:'Memory optimized (extreme)',best:'SAP HANA, very large in-memory databases (TiBs of RAM)',ratio:'1 vCPU : 32 GiB',clue:'"SAP HANA", "terabytes of RAM"',aid:'X = eXtreme memory. U (High Memory) goes up to 24 TiB.'},
+  {l:'P',c:'Accel',name:'GPU compute',best:'ML training, HPC on GPUs',ratio:'NVIDIA GPUs',clue:'"deep learning training on GPU"',aid:'P = Parallel processing'},
+  {l:'Inf',c:'Accel',name:'AWS Inferentia',best:'Lowest-cost, high-throughput ML inference',ratio:'Custom AWS chip',clue:'"ML inference at lowest cost"',aid:'Inf = Inference'},
+  {l:'Trn',c:'Accel',name:'AWS Trainium',best:'Cost-effective ML training',ratio:'Custom AWS chip',clue:'"train models, reduce cost"',aid:'Trn = Training'},
+  {l:'I',c:'Storage',name:'Storage optimized (IOPS)',best:'NoSQL (Cassandra), OLTP, search: very high random IOPS on local NVMe',ratio:'NVMe instance store',clue:'"high IOPS", "low-latency local storage"',aid:'I = IOPS. Local disk is ephemeral, so replicate data.'},
+  {l:'D',c:'Storage',name:'Storage optimized (dense HDD)',best:'Hadoop/HDFS, MapReduce, log processing, distributed file systems',ratio:'Dense HDD instance store',clue:'"sequential throughput", "HDFS", "lots of cheap disk"',aid:'D = Dense. H is similar (HDD, high throughput).'}
+];
+let famSel = 'C';
+function renderFam(){
+  $('#famLetters').innerHTML = FAM.map(f=>`<button aria-pressed="${f.l===famSel}" data-f="${f.l}">${f.l}<small>${f.c}</small></button>`).join('');
+  const f = FAM.find(x=>x.l===famSel);
+  $('#famDetail').innerHTML = `<div class="fam-big">${f.l}</div><div><h4 style="font-size:18px;margin-bottom:10px">${f.name}</h4><dl>
+    <dt>Best for</dt><dd>${f.best}</dd><dt>Shape</dt><dd>${f.ratio}</dd><dt>Clue words</dt><dd>${f.clue}</dd><dt>Memory aid</dt><dd><b>${f.aid}</b></dd></dl></div>`;
+}
+$('#famLetters').addEventListener('click', e=>{const b=e.target.closest('[data-f]'); if(b){famSel=b.dataset.f; renderFam();}});
+renderFam();
+
+/* ---------- discount bars ---------- */
+const BARS = [['On-Demand',0,'No commitment'],['Convertible RI',66,'1–3 yr, can change family'],['Compute Savings Plan',66,'1–3 yr, EC2 + Fargate + Lambda'],['EC2 Instance Savings Plan',72,'1–3 yr, one family + Region'],['Standard RI',72,'1–3 yr, fixed family'],['Spot',90,'Can be interrupted (2-min notice)']];
+$('#bars').innerHTML = BARS.map(b=>`<div class="bar-row"><div><b>${b[0]}</b><div class="bar-note">${b[2]}</div></div>
+  <div class="bar-track"><div class="bar-fill ${b[0]==='Spot'?'spot':''} ${b[1]===0?'zero':''}" style="width:${b[1]}%">${b[1]}%</div></div></div>`).join('')
+  + `<div class="bar-axis"><div></div><div><span>0%</span><span>50%</span><span>100%</span></div></div>`;
+
+/* ---------- placement groups ---------- */
+const inst = n => Array.from({length:n},()=>'<i class="inst"></i>').join('');
+const rack = (n,l='') => `<div class="rack">${inst(n)}${l?`<span class="lbl">${l}</span>`:''}</div>`;
+const PG = {
+  Cluster:{
+    html:()=>`<div class="pg-stage"><div class="az"><span class="az-label">AZ-a</span><div class="racks">${rack(4,'r1')}${rack(4,'r2')}</div></div>
+      <div class="az" style="opacity:.45"><span class="az-label">AZ-b (not used)</span></div></div>`,
+    t:'<b>Cluster</b>: packed close together in <b>one AZ</b>. Lowest latency, highest throughput between nodes, ideal for HPC with EFA. <span class="pill bad">Risk</span> one hardware failure can hit many instances.'},
+  Spread:{
+    html:()=>`<div class="pg-stage"><div class="az"><span class="az-label">AZ-a · max 7</span><div class="racks">${[1,2,3,4].map(i=>rack(1,'r'+i)).join('')}</div></div>
+      <div class="az"><span class="az-label">AZ-b · max 7</span><div class="racks">${[5,6,7].map(i=>rack(1,'r'+i)).join('')}</div></div></div>`,
+    t:'<b>Spread</b>: every instance on <b>its own rack</b>. A hardware failure hits one instance at most. Limit: <b>7 running instances per AZ</b>. For a few critical instances.'},
+  Partition:{
+    html:()=>`<div class="pg-stage"><div class="az"><span class="az-label">AZ-a · up to 7 partitions</span><div class="racks">
+      <div class="part"><span class="lbl">P1</span>${rack(3)}${rack(3)}</div><div class="part"><span class="lbl">P2</span>${rack(3)}${rack(3)}</div><div class="part"><span class="lbl">P3</span>${rack(3)}</div></div></div></div>`,
+    t:'<b>Partition</b>: groups of racks that <b>never share hardware</b>. A rack failure hits one partition only. Up to <b>7 partitions per AZ</b>. For <b>Hadoop, HDFS, Cassandra, Kafka</b>.'}
+};
+let pgSel='Cluster';
+function renderPG(){
+  $('#pgSeg').innerHTML = Object.keys(PG).map(k=>`<button aria-pressed="${k===pgSel}" data-pg="${k}">${k}</button>`).join('');
+  $('#pgStage').innerHTML = PG[pgSel].html(); $('#pgText').innerHTML = PG[pgSel].t;
+}
+$('#pgSeg').addEventListener('click',e=>{const b=e.target.closest('[data-pg]'); if(b){pgSel=b.dataset.pg; renderPG();}});
+renderPG();
+
+/* ---------- ASG policy picker ---------- */
+const POL = {
+  tt:{n:'Target tracking',tag:'AWS default choice',d:'Keeps a metric at a target, like a thermostat. ASG creates and manages the alarms.',note:'The metric must grow with load per instance (CPU, RequestCountPerTarget).'},
+  step:{n:'Step scaling',tag:'Tiered',d:'Different adjustments for different breach sizes. You create the CloudWatch alarms.',note:'Keeps reacting during a scaling activity (uses instance warm-up).'},
+  sched:{n:'Scheduled',tag:'Known time',d:'Sets min/desired/max at a date or recurring time.',note:'Does nothing for unexpected load.'},
+  pred:{n:'Predictive',tag:'ML forecast',d:'Learns daily and weekly patterns and adds capacity before the load arrives.',note:'Needs history to learn from. Pair it with a dynamic policy for surprises.'},
+  simple:{n:'Simple scaling',tag:'Legacy',d:'One alarm, one adjustment, then waits for the 300 s cooldown.',note:'Slow. Usually a distractor.'}
+};
+const SCEN = [['"Keep CPU at 50%"','tt'],['"+2 at 60% CPU, +4 above 85%"','step'],['"Every Monday 9 AM"','sched'],['"Daily pattern, be ready early"','pred'],['"1,000 requests per target"','tt'],['"One alarm, then wait"','simple']];
+let scenSel = 0;
+function renderASG(){
+  const hit = SCEN[scenSel][1];
+  $('#asgScen').innerHTML = SCEN.map((s,i)=>`<button aria-pressed="${i===scenSel}" data-s="${i}">${s[0]}</button>`).join('');
+  $('#asgOut').innerHTML = `<div class="pol-list">${Object.entries(POL).map(([k,x])=> k===hit
+    ? `<div class="pol hit"><b>${x.n}<br><span class="pill acc" style="margin-top:4px">${x.tag}</span></b><span>${x.d}<br><span class="muted">${x.note}</span></span></div>`
+    : `<div class="pol"><b>${x.n}</b><span class="muted">${x.d.split('.')[0]}.</span></div>`).join('')}</div>`;
+}
+$('#asgScen').addEventListener('click',e=>{const b=e.target.closest('[data-s]'); if(b){scenSel=+b.dataset.s; renderASG();}});
+renderASG();
+
+/* ---------- Lambda limits ---------- */
+const LIM = [
+  ['15 min','Max timeout (default 3 s)',1],['10 GB','Max memory; CPU scales with it',1],['6 MB','Sync request / response payload',1],['1,000','Concurrent executions per Region (soft)',1],
+  ['10 GB','/tmp storage (512 MB default)'],['256 KB','Async payload (exam value)'],['250 MB','Unzipped package incl. layers'],['10 GB','Container image size']
+];
+$('#limits').innerHTML = LIM.map(l=>`<div class="limit ${l[2]?'key':''}"><div class="n">${l[0]}</div><div class="k">${l[1]}</div></div>`).join('');
+
+/* ---------- VPC explainer ---------- */
+const node = (ico,t) => `<span class="node">${ico?img(ico,'',''):''}${t}</span>`;
+const ok = t => `<span class="pill good res">✓ ${t}</span>`, no = t => `<span class="pill bad res">✕ ${t}</span>`;
+const VPC = {
+  'Default (no VPC)':{
+    r:[`${node('lambda','Lambda')}<span class="arrow">→</span>${node('','AWS network')}<span class="arrow">→</span>${node('','Internet')}${ok('Internet')}`,
+       `${node('lambda','Lambda')}<span class="arrow x">✕</span>${node('rds','Private RDS')}${no('Private resources')}`],
+    t:'By default Lambda can reach the internet but <b>not your private resources</b> (RDS, ElastiCache, private EC2).'},
+  'Public subnet':{
+    r:[`${node('lambda','Lambda')}<span class="arrow">→</span>${node('','Public subnet')}<span class="arrow x">✕</span>${node('igw','Internet gateway')}${no('Internet')}`,
+       `${node('lambda','Lambda')}<span class="arrow">→</span>${node('rds','RDS')}${ok('Private resources')}`],
+    t:'<span class="pill bad">Trap</span> Lambda <b>never gets a public IP</b>, so a public subnet gives it no internet access.'},
+  'Private subnet + NAT':{
+    r:[`${node('lambda','Lambda')}<span class="arrow">→</span>${node('','Private subnet')}<span class="arrow">→</span>${node('nat','NAT gateway')}<span class="arrow">→</span>${node('igw','IGW')}${ok('Internet')}`,
+       `${node('lambda','Lambda')}<span class="arrow">→</span>${node('rdsproxy','RDS Proxy')}<span class="arrow">→</span>${node('rds','RDS')}${ok('Private resources')}`],
+    t:'<span class="pill good">Correct</span> Private subnets in 2+ AZs, default route to a <b>NAT gateway</b>. For S3/DynamoDB a gateway VPC endpoint avoids NAT.'}
+};
+let vpcSel = 'Public subnet';
+function renderVPC(){
+  $('#vpcSeg').innerHTML = Object.keys(VPC).map(k=>`<button aria-pressed="${k===vpcSel}" data-v="${k}">${k}</button>`).join('');
+  $('#vpcDiagram').innerHTML = VPC[vpcSel].r.map(r=>`<div class="route">${r}</div>`).join('');
+  $('#vpcText').innerHTML = VPC[vpcSel].t;
+}
+$('#vpcSeg').addEventListener('click',e=>{const b=e.target.closest('[data-v]'); if(b){vpcSel=b.dataset.v; renderVPC();}});
+renderVPC();
+
+/* ---------- Beanstalk simulator ---------- */
+const r4 = s => [s,s,s,s];
+const SIM = {
+  'All at once':{rows:['Environment'],steps:[
+    {c:[r4('v1')],n:'Four instances run version 1.'},
+    {c:[r4('upd')],n:'<b>Every instance updates at the same time.</b> Nothing is serving: an outage.'},
+    {c:[r4('v2')],n:'Done. Fastest and cheapest, but with downtime. Fine for dev/test.'}]},
+  'Rolling':{rows:['Environment'],steps:[
+    {c:[r4('v1')],n:'Four instances run version 1. Batch size = 2.'},
+    {c:[['upd','upd','v1','v1']],n:'Batch 1 is out of service while it updates. <b>Capacity is halved.</b>'},
+    {c:[['v2','v2','upd','upd']],n:'Batch 2 updates. Users hit a mix of v1 and v2.'},
+    {c:[r4('v2')],n:'Done. No outage, no extra cost, but reduced capacity during the deploy.'}]},
+  'Rolling + batch':{rows:['Environment'],steps:[
+    {c:[['v1','v1','v1','v1','empty','empty']],n:'Four instances run version 1.'},
+    {c:[['v1','v1','v1','v1','boot','boot']],n:'<b>An extra batch launches first</b> with v2.'},
+    {c:[['upd','upd','v1','v1','v2','v2']],n:'Batch 1 updates while the extra batch covers. Still 4 serving.'},
+    {c:[['v2','v2','upd','upd','v2','v2']],n:'Batch 2 updates. Full capacity the whole time.'},
+    {c:[['v2','v2','v2','v2','empty','empty']],n:'The extra batch is terminated. Full capacity for a small extra cost.'}]},
+  'Immutable':{rows:['Current ASG','Temporary ASG'],steps:[
+    {c:[r4('v1'),r4('empty')],n:'Four instances run version 1.'},
+    {c:[r4('v1'),r4('boot')],n:'A <b>brand-new set of instances</b> launches in a temporary ASG.'},
+    {c:[r4('v1'),r4('v2')],n:'New instances pass health checks. Capacity is briefly doubled.'},
+    {c:[r4('empty'),r4('v2')],n:'Old instances are terminated. <b>Rollback = terminate the temporary ASG.</b>'}]},
+  'Traffic splitting':{rows:['Current','Canary (new)'],steps:[
+    {c:[r4('v1'),r4('empty')],t:['100%','0%'],n:'Four instances run version 1.'},
+    {c:[r4('v1'),r4('boot')],t:['100%','0%'],n:'A full new set of instances launches.'},
+    {c:[r4('v1'),r4('v2')],t:['90%','10%'],n:'<b>A small share of traffic</b> goes to v2 for the evaluation period: a canary test.'},
+    {c:[r4('empty'),r4('v2')],t:['0%','100%'],n:'Healthy, so all traffic moves to v2 and the old instances go.'}]},
+  'Blue/Green':{rows:['Blue (prod URL)','Green'],steps:[
+    {c:[r4('v1'),r4('empty')],t:['100%','0%'],n:'Blue is production.'},
+    {c:[r4('v1'),r4('boot')],t:['100%','0%'],n:'Clone the environment as Green and deploy v2 there.'},
+    {c:[r4('v1'),r4('v2')],t:['100%','0%'],n:'Test Green on its own URL. Production is untouched.'},
+    {c:[r4('v1'),r4('v2')],t:['0%','100%'],n:'<b>Swap environment URLs (CNAME swap).</b> Rollback = swap back instantly.'}]}
+};
+const SIMSUM = {
+  'All at once':[['bad','Downtime'],['bad','Capacity drops to 0'],['','Rollback: redeploy'],['good','No extra cost']],
+  'Rolling':[['good','No downtime'],['warn','Capacity minus one batch'],['','Rollback: redeploy'],['good','No extra cost']],
+  'Rolling + batch':[['good','No downtime'],['good','Full capacity'],['','Rollback: redeploy'],['warn','Small extra cost']],
+  'Immutable':[['good','No downtime'],['good','Full capacity'],['good','Rollback: terminate new ASG'],['bad','High cost (double briefly)']],
+  'Traffic splitting':[['good','No downtime'],['good','Full capacity, canary %'],['good','Rollback: reroute traffic'],['bad','High cost']],
+  'Blue/Green':[['good','Zero downtime'],['good','Full capacity'],['good','Rollback: swap URLs back'],['bad','Highest cost']]
+};
+let simSel='Rolling', simStep=0, simTimer=null;
+function renderSim(){
+  $('#simSeg').innerHTML = Object.keys(SIM).map(k=>`<button aria-pressed="${k===simSel}" data-sim="${k}">${k}</button>`).join('');
+  const P = SIM[simSel], S = P.steps[simStep];
+  $('#simSum').innerHTML = SIMSUM[simSel].map(([c,t])=>`<span class="pill ${c}">${t}</span>`).join('');
+  let serving = 0;
+  $('#simRows').innerHTML = P.rows.map((r,i)=>{
+    const cells = S.c[i];
+    cells.forEach(c=>{ if(c==='v1'||c==='v2') serving++; });
+    return `<div class="sim-row"><span class="rl">${r}</span><div class="cells">${cells.map(c=>`<span class="cell ${c}">${c==='v1'||c==='v2'?c:(c==='upd'?'···':(c==='boot'?'+':''))}</span>`).join('')}</div><span class="traffic">${S.t?S.t[i]:''}</span></div>`;
+  }).join('');
+  const badge = serving===0 ? '<span class="pill bad">0 serving · outage</span>' : `<span class="pill ${serving<4?'warn':'good'}">${serving} serving</span>`;
+  $('#simNote').innerHTML = `<span class="pill">Step ${simStep+1}/${P.steps.length}</span> ${badge}<div style="margin-top:6px">${S.n}</div>`;
+  $('#simPrev').disabled = simStep===0; $('#simNext').disabled = simStep===P.steps.length-1;
+  $('#simPlay').textContent = simTimer ? 'Pause' : (simStep===P.steps.length-1 ? 'Replay' : 'Play');
+}
+function stopSim(){ if(simTimer){ clearInterval(simTimer); simTimer=null; renderSim(); } }
+$('#simSeg').addEventListener('click',e=>{const b=e.target.closest('[data-sim]'); if(b){stopSim(); simSel=b.dataset.sim; simStep=0; renderSim();}});
+$('#simPrev').onclick=()=>{stopSim(); simStep=Math.max(0,simStep-1); renderSim();};
+$('#simNext').onclick=()=>{stopSim(); simStep=Math.min(SIM[simSel].steps.length-1,simStep+1); renderSim();};
+$('#simPlay').onclick=()=>{
+  if (simTimer){ stopSim(); return; }
+  if (simStep===SIM[simSel].steps.length-1) simStep=0;
+  simTimer=setInterval(()=>{ if(simStep<SIM[simSel].steps.length-1){simStep++; renderSim();} if(simStep===SIM[simSel].steps.length-1) stopSim(); },1800);
+  renderSim();
+};
+renderSim();
+
+/* ---------- Other compute ---------- */
+const SVCS = [
+  ['batch','AWS Batch','Runs batch jobs from queues, with priorities and dependencies. Batch provisions EC2, Spot or Fargate for you.','"Thousands of batch jobs", long jobs that don\'t fit Lambda'],
+  ['apprunner','AWS App Runner','Source code or a container image becomes an HTTPS web app, with scaling, load balancing and TLS built in.','"Least effort" to deploy a web app or API'],
+  ['lightsail','Amazon Lightsail','Simple virtual servers, databases and load balancers at a flat monthly price.','Simple website or WordPress, little AWS experience'],
+  ['stepfn','AWS Step Functions','Workflows that chain Lambda and other services, with retries, branches and waits.','Multi-step process, human approval, work past 15 minutes']
+];
+$('#svcs').innerHTML = SVCS.map(s=>`<div class="svc"><h4>${img(s[0],'','')}${s[1]}</h4><p>${s[2]}</p><span class="clue-line">Clue: ${s[3]}</span></div>`).join('');
+const EDGE = [
+  {n:'AWS Region',ico:null,where:'AWS data centers, several AZs',lat:'Normal internet latency',clue:'The default. The three below all extend a Region.'},
+  {n:'Local Zones',ico:'localzones',where:'AWS infrastructure in a large metro area',lat:'Single-digit ms to users in that city',clue:'"Low latency for users in Los Angeles", media rendering, real-time gaming.'},
+  {n:'Wavelength',ico:'wavelength',where:'Inside telecom 5G networks',lat:'Ultra-low latency to mobile devices',clue:'"5G", AR/VR, connected vehicles, live video from phones.'},
+  {n:'Outposts',ico:'outposts',where:'Racks or servers in your own data center',lat:'Local latency to on-premises systems',clue:'"Must stay on-premises", data residency, same AWS APIs on site.'}
+];
+let edgeSel = 1;
+function renderEdge(){
+  $('#edgeStops').innerHTML = EDGE.map((x,i)=>`<button class="stop" aria-pressed="${i===edgeSel}" data-edge="${i}">${x.ico?img(x.ico,'',''):'<span class="rg">AWS</span>'}${x.n}<small>${x.where}</small></button>`).join('');
+  const x = EDGE[edgeSel];
+  $('#edgeOut').innerHTML = `<div class="lb-why"><b>${x.n}</b> · ${x.lat}<div class="muted" style="margin-top:4px">Clue: ${x.clue}</div></div>`;
+}
+$('#edgeStops').addEventListener('click',e=>{const b=e.target.closest('[data-edge]'); if(b){edgeSel=+b.dataset.edge; renderEdge();}});
+renderEdge();
+
+/* ---------- Pick a service: decision tree ---------- */
+const TREE = {
+  start:{q:'Must it run in your own data center, on AWS hardware?', o:[['Yes','R:outposts'],['No','q2']]},
+  q2:{q:'Do you need OS control, a custom kernel, special hardware, or host-bound licenses?', o:[['Yes','q2b'],['No','q3']]},
+  q2b:{q:'Is software licensed per physical socket or core (BYOL)?', o:[['Yes','R:dhost'],['No','R:ec2']]},
+  q3:{q:'Is the app packaged as containers?', o:[['Yes','q4'],['No','q7']]},
+  q4:{q:'Does the scenario mention Kubernetes, K8s tooling, or portability?', o:[['Yes','q5'],['No','q6']]},
+  q5:{q:'Do you want to avoid managing worker nodes?', o:[['Yes','R:eksfargate'],['No','R:eks']]},
+  q6:{q:'Need GPUs, host access, or lowest cost for a large steady fleet?', o:[['Yes','R:ecsec2'],['No','q6b']]},
+  q6b:{q:'Just a web app or API, with no cluster, VPC or load balancer to configure?', o:[['Yes','R:apprunner'],['No','R:ecsfargate']]},
+  q7:{q:'Is it short, event-driven work that finishes within 15 minutes?', o:[['Yes','R:lambda'],['No','q8']]},
+  q8:{q:'Is it a large number of batch jobs from a queue?', o:[['Yes','R:batch'],['No','q9']]},
+  q9:{q:'A traditional web app where AWS should handle deploy and scaling, but you keep EC2 access?', o:[['Yes','R:beanstalk'],['No','q10']]},
+  q10:{q:'Small, simple workload with a flat monthly price?', o:[['Yes','R:lightsail'],['No','R:ec2asg']]}
+};
+const SHORT = {
+  start:'Runs in your own data center?', q2:'Need OS control, special hardware or host licenses?', q2b:'Licensed per socket/core (BYOL)?',
+  q3:'Packaged as containers?', q4:'Kubernetes mentioned?', q5:'Avoid managing nodes?', q6:'GPU, host access, or big steady fleet?',
+  q6b:'Just a web app, zero infra setup?', q7:'Event-driven, under 15 min?', q8:'Many queued batch jobs?',
+  q9:'Web app: AWS deploys it, you keep EC2 access?', q10:'Small workload, flat monthly price?'
+};
+const RESULTS = {
+  outposts:{t:'AWS Outposts',ico:'outposts',w:'AWS racks installed on-premises for low latency to local systems or data residency.',alt:'Also: ECS Anywhere / EKS Anywhere for containers on your own servers.'},
+  dhost:{t:'EC2 Dedicated Host',ico:'ec2',w:'A physical server with visible sockets and cores, so per-socket/per-core licenses stay valid.',alt:'Not Dedicated Instance: it isolates hardware but hides sockets and cores.'},
+  ec2:{t:'Amazon EC2',ico:'ec2',w:'Full OS control and any instance family. Pair it with the right purchasing option.',alt:'Add an Auto Scaling group behind an ALB for elasticity.'},
+  eksfargate:{t:'EKS on Fargate',ico:'eks',w:'Kubernetes API with serverless pods, so there are no nodes to patch.',alt:'Limits: no DaemonSets, GPU, privileged pods or EBS volumes (use EFS).'},
+  eks:{t:'Amazon EKS (managed node groups)',ico:'eks',w:'Kubernetes when you want the K8s API and control of the worker nodes.',alt:'EKS Auto Mode lets AWS manage the nodes for you.'},
+  ecsec2:{t:'ECS on EC2 launch type',ico:'ecs',w:'You pick the instances: GPU, custom AMI, host access, and RI/Spot pricing at scale.',alt:'Use capacity providers so the cluster grows with pending tasks.'},
+  apprunner:{t:'AWS App Runner',ico:'apprunner',w:'Point at source or an image and get a scaled HTTPS service with no infrastructure setup.',alt:'Need more control? ECS on Fargate.'},
+  ecsfargate:{t:'ECS on Fargate',ico:'fargate',w:'AWS-native containers with no servers to manage. Each task gets its own ENI and security group.',alt:'Interruptible work? Fargate Spot, up to ~70% off.'},
+  lambda:{t:'AWS Lambda',ico:'lambda',w:'Event-driven, pay per ms, scales to zero. Front it with API Gateway for HTTP.',alt:'Over 15 minutes? Step Functions, Fargate or Batch.'},
+  batch:{t:'AWS Batch',ico:'batch',w:'Queues, priorities and job scheduling over EC2, Spot or Fargate.',alt:'For a single long job without servers: Fargate.'},
+  beanstalk:{t:'Elastic Beanstalk',ico:'beanstalk',w:'Upload code; Beanstalk creates EC2, ASG, ELB and monitoring. No extra charge.',alt:'Keep the RDS database outside the environment.'},
+  lightsail:{t:'Amazon Lightsail',ico:'lightsail',w:'Simple virtual servers with predictable flat monthly pricing.',alt:'Outgrow it? Move to EC2.'},
+  ec2asg:{t:'EC2 + Auto Scaling',ico:'asg',w:'The default for steady workloads that need control. Save with Savings Plans or RIs.',alt:'Spot for the interruptible part of the fleet.'}
+};
+const nodes = Object.fromEntries(Object.entries(TREE).map(([k,v])=>[k,{...v, s:SHORT[k]}]));
+
+/* ---------- practice + revise data ---------- */
+const Q = [
+  ['EC2','A video transcoding pipeline is CPU-bound and runs around the clock. Which instance family?',['Compute optimized (C)','Memory optimized (R)','Burstable (T)','Storage optimized (I)'],0,'CPU-bound batch and media encoding = C family. T would throttle once credits run out.'],
+  ['EC2','A self-managed SAP HANA database needs several TiB of RAM.',['Memory optimized (X / U)','Compute optimized (C)','Storage optimized (D)','GPU (P)'],0,'X and U (High Memory) offer terabytes of RAM. SAP HANA is the standard clue.'],
+  ['EC2','You need the lowest cost per inference for a high-volume ML model.',['Inf (Inferentia)','P (GPU)','Trn (Trainium)','C (compute)'],0,'Inferentia is built for cheap, high-throughput inference. Trainium is for training.'],
+  ['EC2','A Cassandra cluster needs millions of low-latency IOPS on local disks. Data is replicated across nodes.',['I family with instance store','T family with EBS gp3','D family','R family with EBS'],0,'I = IOPS on local NVMe. Replication makes the ephemeral disks acceptable.'],
+  ['EC2','A dev server is idle most of the day with short CPU bursts. Cheapest fit?',['T (burstable)','C (compute)','M (general)','Dedicated Host'],0,'T instances earn CPU credits while idle and spend them in bursts.'],
+  ['EC2','Licensed software is billed per physical core and must be brought to AWS (BYOL).',['Dedicated Host','Dedicated Instance','Spot Instance','Convertible RI'],0,'Only Dedicated Hosts expose sockets and cores for license counting.'],
+  ['EC2','Stateless CI build jobs can restart at any time. Minimize cost.',['Spot Instances','Standard RI','On-Demand','Dedicated Instance'],0,'Interruptible + fault-tolerant = Spot, up to ~90% off with a 2-minute warning.'],
+  ['EC2','You need guaranteed capacity in one AZ for a 3-day event, without a long-term commitment.',['On-Demand Capacity Reservation','Regional Reserved Instance','Spot Fleet','Compute Savings Plan'],0,'Capacity Reservations can be cancelled any time. Regional RIs give a discount but no capacity guarantee.'],
+  ['EC2','A 3-year commitment should cover EC2 in any Region plus Fargate and Lambda.',['Compute Savings Plan','EC2 Instance Savings Plan','Standard RI','Convertible RI'],0,'Only Compute Savings Plans apply across EC2, Fargate and Lambda.'],
+  ['EC2','Tightly coupled HPC nodes need the lowest possible network latency between them.',['Cluster placement group','Spread placement group','Partition placement group','Instances across 3 AZs'],0,'Cluster packs instances close together in one AZ. Add EFA for MPI.'],
+  ['EC2','Seven critical instances must never share underlying hardware.',['Spread placement group','Cluster placement group','Partition placement group','Dedicated Host'],0,'Spread puts each instance on distinct racks, max 7 per AZ.'],
+  ['EC2','A large Kafka deployment needs rack-aware placement so a rack failure hits only some brokers.',['Partition placement group','Spread placement group','Cluster placement group','Single AZ with EBS'],0,'Partition groups keep partitions on separate racks and expose partition info to the app.'],
+  ['EC2','Data on an instance must survive stopping and starting it.',['EBS volume','Instance store','Placement group','Hibernate without EBS'],0,'Instance store data is lost on stop. EBS persists.'],
+  ['ASG','Keep the average CPU of the group at 50%.',['Target tracking','Step scaling','Scheduled scaling','Simple scaling'],0,'"Keep a metric at a value" = target tracking, the thermostat.'],
+  ['ASG','Add 2 instances when CPU is 60–70%, and 4 when CPU is above 85%.',['Step scaling','Target tracking','Scheduled scaling','Predictive scaling'],0,'Different responses to different breach sizes = step scaling.'],
+  ['ASG','Traffic reliably spikes every Monday at 9 AM.',['Scheduled scaling','Step scaling','Simple scaling','Manual scaling'],0,'Known date/time = scheduled action.'],
+  ['ASG','Load follows a daily pattern and capacity must be ready before the morning peak.',['Predictive scaling','Target tracking','Simple scaling','Lifecycle hooks'],0,'Predictive scaling forecasts from history and provisions ahead of demand.'],
+  ['ASG','The app returns HTTP 500s, but the ASG never replaces the instances.',['Enable ELB health checks on the ASG','Increase the cooldown','Add a lifecycle hook','Use a scheduled action'],0,'By default the ASG only checks EC2 status. ELB health checks catch app failures.'],
+  ['ASG','Log files must be copied off each instance before it terminates.',['Lifecycle hook','Warm pool','User data','Instance refresh'],0,'Lifecycle hooks pause termination (Terminating:Wait) so you can run scripts.'],
+  ['ASG','The group must scale on memory utilization.',['Publish memory with the CloudWatch agent','Use the default memory metric','Use step scaling on CPU','Enable detailed monitoring'],0,'Memory is not a native EC2 metric. Install the CloudWatch agent.'],
+  ['ASG','The app takes 10 minutes to initialize, so scale-out is too slow.',['Warm pool','Lifecycle hook','Larger cooldown','Simple scaling'],0,'Warm pools keep pre-initialized instances ready. A golden AMI also helps.'],
+  ['Lambda','A nightly job takes 40 minutes. The team does not want to manage servers.',['ECS task on Fargate','Lambda with maximum timeout','Lambda with provisioned concurrency','Lambda@Edge'],0,'Lambda stops at 15 minutes. Fargate (or AWS Batch) runs long jobs without servers.'],
+  ['Lambda','A VPC-attached Lambda function can\'t reach a third-party API on the internet.',['Route private subnets to a NAT gateway','Move the function to a public subnet','Attach an Elastic IP to the function','Increase the function timeout'],0,'Lambda never gets a public IP. Private subnet + NAT gateway gives it internet access.'],
+  ['Lambda','Bursts of Lambda invocations exhaust the connections of an RDS database.',['RDS Proxy','Provisioned concurrency','A bigger Lambda memory setting','Lambda layers'],0,'RDS Proxy pools and reuses database connections.'],
+  ['Lambda','A latency-sensitive API sees cold-start spikes that must disappear.',['Provisioned concurrency','Reserved concurrency','More /tmp storage','A dead-letter queue'],0,'Provisioned concurrency keeps environments initialized. Reserved concurrency only caps and guarantees.'],
+  ['Lambda','One function scales so much it starves every other function in the account.',['Set reserved concurrency on it','Enable provisioned concurrency','Add a Lambda layer','Increase the timeout'],0,'Reserved concurrency caps that function and protects the rest.'],
+  ['Lambda','Twenty functions share the same helper libraries.',['Lambda layers','Environment variables','Aliases','Provisioned concurrency'],0,'Layers package shared code (max 5 per function).'],
+  ['Lambda','Users upload 50 MB files through API Gateway + Lambda and it fails.',['S3 presigned URL for direct upload','Raise the Lambda payload limit','Use async invocation','Increase Lambda memory'],0,'Sync payload is limited to 6 MB. Upload straight to S3 instead.'],
+  ['Lambda','Failed asynchronous invocations must be captured for later analysis.',['On-failure destination or DLQ','Reserved concurrency','Function URL','Provisioned concurrency'],0,'Async invocations retry twice, then go to a DLQ or on-failure destination.'],
+  ['Other','Thousands of containerized batch jobs must run with priorities on Spot, with minimal management.',['AWS Batch','AWS Lambda','Elastic Beanstalk worker tier','Amazon Lightsail'],0,'Batch manages job queues and provisions EC2, Spot or Fargate for you.'],
+  ['Other','A small team with little AWS experience wants a WordPress site at a predictable monthly price.',['Amazon Lightsail','EC2 with an Auto Scaling group','EKS','AWS Outposts'],0,'Lightsail bundles server, storage and data transfer at a flat price.'],
+  ['Other','Deploy a web API straight from a source code repository, with the least operational effort.',['AWS App Runner','ECS on EC2','EKS managed node groups','EC2 with user data'],0,'App Runner builds and runs it with scaling and TLS built in.'],
+  ['Other','A factory must process data on-premises with local latency, using the same AWS APIs.',['AWS Outposts','AWS Local Zones','AWS Wavelength','Amazon Lightsail'],0,'Outposts puts AWS hardware in your own facility.'],
+  ['Other','Artists in Los Angeles need single-digit millisecond latency to rendering servers.',['AWS Local Zones','AWS Outposts','AWS Wavelength','A new Region'],0,'Local Zones place AWS infrastructure in large metro areas.'],
+  ['Other','A connected-vehicle app needs ultra-low latency for devices on 5G networks.',['AWS Wavelength','AWS Local Zones','AWS Outposts','CloudFront'],0,'Wavelength runs inside telecom 5G networks.'],
+  ['Other','An order workflow chains several Lambda functions, needs retries and a human approval, and can run for days.',['AWS Step Functions','A single Lambda with a longer timeout','SQS FIFO queue','EventBridge Scheduler'],0,'Step Functions Standard workflows run up to a year with retries and waits.'],
+  ['Beanstalk','Deploy with zero downtime and roll back instantly by switching URLs.',['Blue/Green with CNAME swap','All at once','Rolling','Rolling with additional batch'],0,'Blue/Green uses two environments and swaps their URLs.'],
+  ['Beanstalk','Send 10% of traffic to the new version for evaluation first.',['Traffic splitting','Immutable','Rolling','All at once'],0,'Traffic splitting is Beanstalk\'s canary option.'],
+  ['Beanstalk','Safest in-place deployment: a failure is undone by terminating the new instances.',['Immutable','Rolling','All at once','Rolling with additional batch'],0,'Immutable launches a new ASG. Rollback = terminate it.'],
+  ['Beanstalk','Deploy without downtime and keep full capacity the whole time, at minimum extra cost.',['Rolling with additional batch','Rolling','All at once','Blue/Green'],0,'An extra batch keeps capacity full, and costs less than doubling the fleet.'],
+  ['Beanstalk','The database disappeared after the Beanstalk environment was terminated. How to prevent it?',['Create RDS outside the environment','Enable Multi-AZ RDS','Use immutable deployments','Use the worker tier'],0,'RDS created inside the environment shares its lifecycle. Decouple it.'],
+  ['Beanstalk','Long-running background jobs should be processed from a queue.',['Worker environment tier','Web server tier','Traffic splitting','Single-instance environment'],0,'The worker tier reads from SQS and posts jobs to your app.'],
+  ['Containers','An ECS task\'s application must write to DynamoDB.',['Task role','Task execution role','EC2 instance profile','Access keys in env vars'],0,'The task role grants permissions to the application code.'],
+  ['Containers','ECS tasks fail because they can\'t pull the image from ECR.',['Fix the task execution role','Fix the task role','Open port 443 on the ALB','Add a lifecycle hook'],0,'The execution role lets ECS pull images, write logs and fetch secrets.'],
+  ['Containers','The company runs Kubernetes on-premises and wants the same tooling on AWS.',['Amazon EKS','Amazon ECS','Elastic Beanstalk','App Runner'],0,'Kubernetes / portability = EKS.'],
+  ['Containers','Containers need GPUs.',['ECS on EC2 launch type','ECS on Fargate','EKS on Fargate','App Runner'],0,'Fargate has no GPU support. Use EC2 instances.'],
+  ['Containers','Tasks across several AZs need shared, persistent storage.',['Amazon EFS','Instance store','EBS gp3','Task ephemeral storage'],0,'EFS is multi-AZ and mounts on Fargate and EC2.'],
+  ['Containers','Run a containerized web app with no cluster, VPC or load balancer setup.',['AWS App Runner','ECS on EC2','EKS','Elastic Beanstalk multi-container'],0,'App Runner builds and runs it as a managed HTTPS service.'],
+  ['Containers','Each task needs its own security group.',['awsvpc network mode','bridge network mode','host network mode','A NAT gateway'],0,'awsvpc gives every task its own ENI, so it can have its own security group.']
+];
+
+const FC = [
+  ['Lambda','Maximum Lambda timeout?','15 minutes (900 s). Default is 3 s.'],
+  ['Lambda','Lambda memory range?','128 MB to 10,240 MB (10 GB). CPU scales with memory.'],
+  ['Lambda','Lambda /tmp storage?','512 MB by default, configurable up to 10 GB.'],
+  ['Lambda','Synchronous invocation payload limit?','6 MB request and 6 MB response.'],
+  ['Lambda','Asynchronous invocation payload limit?','256 KB (the value most exam material uses).'],
+  ['Lambda','Deployment package limits?','50 MB zipped direct upload, 250 MB unzipped including layers, 10 GB container image.'],
+  ['Lambda','Default concurrency limit?','1,000 concurrent executions per Region, shared by all functions (soft limit).'],
+  ['Lambda','Async invocation retries?','2 retries, then DLQ or on-failure destination.'],
+  ['Lambda','SQS visibility timeout for a Lambda consumer?','At least 6× the function timeout.'],
+  ['Lambda','Reserved vs provisioned concurrency?','Reserved = cap + guarantee (free). Provisioned = pre-warmed, no cold starts (paid).'],
+  ['EC2','Spot interruption notice?','2 minutes.'],
+  ['EC2','Maximum discounts: Spot / Standard RI / Compute SP?','Spot ~90%, Standard RI & EC2 Instance SP ~72%, Convertible RI & Compute SP ~66%.'],
+  ['EC2','Spread placement group limit?','7 running instances per AZ per group.'],
+  ['EC2','Partition placement group limit?','7 partitions per AZ.'],
+  ['EC2','Instance metadata address?','169.254.169.254. Enforce IMDSv2 against SSRF.'],
+  ['EC2','EC2 billing granularity?','Per second, 60-second minimum (Linux).'],
+  ['EC2','Zonal RI vs Regional RI?','Zonal = discount + capacity reservation in one AZ. Regional = discount only, AZ-flexible.'],
+  ['EC2','Graviton benefit?','About 20% cheaper with better price-performance (EC2, Lambda, Fargate).'],
+  ['ASG','Default ASG cooldown?','300 seconds (applies to simple scaling).'],
+  ['ASG','Default health check grace period?','300 seconds.'],
+  ['ASG','Default deregistration delay (connection draining)?','300 seconds.'],
+  ['ASG','Default termination policy order?','1. AZ with most instances  2. Oldest launch template/config  3. Closest to next billing hour.'],
+  ['Containers','Fargate maximum task size?','16 vCPU and 120 GB memory. No GPU.'],
+  ['Containers','EKS vs ECS control-plane price?','EKS about $0.10/hour per cluster. ECS: no charge.'],
+  ['Containers','Fargate Spot discount?','Up to ~70%.'],
+  ['Containers','Only network mode on Fargate?','awsvpc: every task gets its own ENI and security group.'],
+  ['Other','Local Zones vs Wavelength vs Outposts?','Local Zones: metro city. Wavelength: inside 5G networks. Outposts: your own data center.'],
+  ['Other','Step Functions maximum duration?','Standard workflows: up to 1 year. Express workflows: up to 5 minutes.'],
+  ['Beanstalk','What does Elastic Beanstalk cost?','Nothing extra. You pay only for the resources it creates.']
+];
+
+const NUMS = [
+  ['15 min','Lambda max timeout'],['10 GB','Lambda memory, /tmp, container image'],['6 MB','Lambda sync payload'],['256 KB','Lambda async payload'],
+  ['1,000','Lambda concurrency per Region'],['250 MB','Lambda unzipped package'],['2 min','Spot interruption warning'],['~90%','Spot discount'],
+  ['~72%','Standard RI / EC2 Instance SP'],['~66%','Convertible RI / Compute SP'],['~70%','Fargate Spot'],['7','Spread: instances per AZ'],
+  ['7','Partition: partitions per AZ'],['300 s','ASG cooldown, grace period, dereg delay'],['6×','SQS visibility vs Lambda timeout'],
+  ['16 / 120','Fargate max vCPU / GB'],['$0.10/h','EKS control plane'],['169.254.169.254','Instance metadata'],['1 yr · 5 min','Step Functions Standard · Express']
+];
+const PAIRS = [
+  ['Reserved concurrency','Cap + guarantee, free','Provisioned concurrency','No cold starts, paid'],
+  ['Task role','What the app can do','Execution role','Pull image, logs, secrets'],
+  ['Zonal RI','Discount + capacity','Regional RI','Discount only'],
+  ['Compute SP','EC2 + Fargate + Lambda','EC2 Instance SP','One family, one Region'],
+  ['Dedicated Host','Sockets/cores visible, BYOL','Dedicated Instance','Isolated, no host control'],
+  ['Target tracking','Hold a metric at a value','Step scaling','Tiered by breach size'],
+  ['Immutable','New ASG, same env','Blue/Green','New env, swap CNAME'],
+  ['Lambda execution role','What Lambda can call','Resource policy','Who can invoke Lambda'],
+  ['CloudFront Functions','Tiny, sub-ms, viewer only','Lambda@Edge','Heavier, origin events too'],
+  ['Local Zones','Near users in a city','Wavelength','Inside 5G networks']
+];
+const TRAPS = [
+  ['"Batch processing", "media encoding", "scientific modeling"','C instances'],
+  ['"In-memory database", "SAP HANA"','R / X / U instances'],
+  ['"ML inference, lowest cost"','Inf (Inferentia)'],
+  ['"High IOPS, low-latency local storage"','I instances (instance store)'],
+  ['"Hadoop/HDFS", "sequential throughput"','D / H instances'],
+  ['"Data must survive stop or terminate"','EBS','Not instance store'],
+  ['"BYOL", "per-socket licence"','Dedicated Host','Not Dedicated Instance: no socket/core visibility'],
+  ['"Interruptible, fault-tolerant, cheapest"','Spot','Never for databases or stateful work'],
+  ['"Steady 24/7 for 1–3 years"','Reserved Instances / Savings Plans'],
+  ['"Guaranteed capacity in one AZ, short-term"','On-Demand Capacity Reservation','Regional RI gives no capacity guarantee'],
+  ['"Lowest latency between nodes, HPC"','Cluster placement group + EFA'],
+  ['"Hardware failure must not affect more than one instance"','Spread placement group'],
+  ['"Keep average CPU at X%"','Target tracking','Not simple scaling (legacy)'],
+  ['"Known event every Monday"','Scheduled scaling'],
+  ['"App unhealthy but ASG doesn\'t replace it"','ELB health checks'],
+  ['"Run a script before termination"','Lifecycle hook'],
+  ['"Slow boot, scale-out too slow"','Warm pool / golden AMI'],
+  ['"Scale on memory"','CloudWatch agent custom metric'],
+  ['"Scale across Regions"','One ASG per Region + Route 53','An ASG is single-Region'],
+  ['"Job takes 20–60 minutes, no servers"','Fargate / AWS Batch','Not Lambda: 15-minute cap'],
+  ['"Cold-start sensitive"','Provisioned concurrency / SnapStart'],
+  ['"Lambda to RDS, too many connections"','RDS Proxy'],
+  ['"Lambda in VPC can\'t reach internet"','NAT gateway','Not a public subnet: Lambda gets no public IP'],
+  ['"Payload over 6 MB via API"','S3 presigned URL'],
+  ['"Zero downtime, instant rollback"','Blue/Green (CNAME swap)'],
+  ['"Canary with % of traffic" (Beanstalk)','Traffic splitting'],
+  ['"Long-running background jobs" (Beanstalk)','Worker tier'],
+  ['"Database lost when the environment was deleted"','Create RDS outside Beanstalk'],
+  ['"Infrastructure as code for any resource"','CloudFormation','Not Beanstalk'],
+  ['"Containers without managing servers"','Fargate'],
+  ['"Containers need GPUs or host access"','ECS on EC2 launch type','Not Fargate'],
+  ['"Kubernetes"','EKS'],
+  ['"Container needs to read S3"','Task role','Not the instance profile or access keys'],
+  ['"Can\'t pull from ECR / write logs"','Task execution role'],
+  ['"Shared persistent storage for containers"','EFS'],
+  ['"Simple website, flat monthly price"','Lightsail'],
+  ['"Ultra-low latency on 5G"','Wavelength'],
+  ['"Low latency for users in one city"','Local Zones']
+];
+
+App.start({
+  id: 'compute',
+  title: 'Compute Cheat Sheet',
+  learn: [['pick','Pick a service','',8],['ec2','EC2','ec2',18],['asg','Auto Scaling','asg',12],
+          ['lambda','Lambda','lambda',15],['beanstalk','Beanstalk','beanstalk',10],['containers','Containers','ecs',13],['other','Other compute','batch',7]],
+  topics: {
+    pick: {eyebrow:'Start here', title:'Which compute service?',
+      one:'Most compute questions describe a workload and ask which service fits. Answer yes/no questions below, or read the whole tree.',
+      tree:{nodes, results:RESULTS}, test:'All'}
+  },
+  questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS,
+  onShow: () => stopSim()
+});
+</script>
+</body>
+</html>

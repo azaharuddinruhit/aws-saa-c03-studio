@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Analytics Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Analytics & Data Processing ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which analytics service?',
+  one: 'Analytics questions describe the <b>data</b> and the <b>job</b>: query, transform, process at scale, report, or apply AI. Follow the tree. (Streaming is on the Integration page.)',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Is it machine learning or AI on images, documents, text or audio?', s:'AI / ML?', o:[['Yes','ai1'],['No','q1']]},
+      ai1:   {q:'Do you need to build and train your own models?', s:'Train own models?', o:[['Yes','R:sagemaker'],['No','ai2']]},
+      ai2:   {q:'Extract text, forms or tables from scanned documents?', s:'Documents → text?', o:[['Yes','R:textract'],['No','ai3']]},
+      ai3:   {q:'Analyze images or video (faces, objects, moderation)?', s:'Images / video?', o:[['Yes','R:rekognition'],['No','ai4']]},
+      ai4:   {q:'Understand text: sentiment, entities, PII?', s:'Understand text?', o:[['Yes','R:comprehend'],['No','R:aiother']]},
+      q1:    {q:'Ad hoc SQL on files in S3, serverless, pay per query?', s:'SQL on S3 files?', o:[['Yes','R:athena'],['No','e1']]},
+      e1:    {q:'Do you need to prepare, transform or catalog data (ETL)?', s:'ETL / catalog?', o:[['Yes','e2'],['No','h1']]},
+      e2:    {q:'Should analysts clean data visually, with no code?', s:'No-code cleaning?', o:[['Yes','R:databrew'],['No','R:glue']]},
+      h1:    {q:'Big data frameworks (Spark, Hadoop, Hive) with full control?', s:'Spark / Hadoop control?', o:[['Yes','R:emr'],['No','w1']]},
+      w1:    {q:'Complex, frequent SQL analytics in a data warehouse?', s:'Data warehouse?', o:[['Yes','R:redshift'],['No','b1']]},
+      b1:    {q:'Interactive dashboards for business users?', s:'Business dashboards?', o:[['Yes','R:quicksight'],['No','R:lakeformation']]}
+    },
+    results: {
+      sagemaker:  {t:'Amazon SageMaker', ico:'sagemaker', w:'Build, train and deploy your own ML models.', alt:'Pre-trained APIs need no ML expertise.'},
+      textract:   {t:'Amazon Textract', ico:'textract', w:'Extracts text, forms and tables from scanned documents.', alt:'Then Comprehend to understand the text.'},
+      rekognition:{t:'Amazon Rekognition', ico:'rekognition', w:'Faces, objects, text and unsafe content in images and video.', alt:'Content moderation, face comparison.'},
+      comprehend: {t:'Amazon Comprehend', ico:'comprehend', w:'Sentiment, entities, key phrases, language and PII in text.', alt:'Comprehend Medical for clinical text.'},
+      aiother:    {t:'Other AI services', ico:'lex', w:'Transcribe (speech → text), Polly (text → speech), Translate, Lex (chatbots), Kendra (search).', alt:'Generative AI with foundation models → Bedrock.'},
+      athena:     {t:'Amazon Athena', ico:'athena', w:'Serverless SQL on S3; pay per data scanned.', alt:'Use Parquet + partitions to cut cost.'},
+      databrew:   {t:'AWS Glue DataBrew', ico:'databrew', w:'Visual, no-code data preparation with hundreds of transforms.', alt:'Code-based ETL → Glue jobs.'},
+      glue:       {t:'AWS Glue', ico:'glue', w:'Serverless ETL (Spark) plus the Data Catalog and crawlers.', alt:'Job bookmarks process only new data.'},
+      emr:        {t:'Amazon EMR', ico:'emr', w:'Managed Spark, Hadoop, Hive, Presto clusters.', alt:'Spot for task nodes; data in S3.'},
+      redshift:   {t:'Amazon Redshift', ico:'redshift', w:'Columnar data warehouse for complex, frequent SQL analytics.', alt:'Spectrum queries S3 in place.'},
+      quicksight: {t:'Amazon QuickSight', ico:'quicksight', w:'Serverless BI dashboards for business users.', alt:'SPICE engine, row-level security.'},
+      lakeformation:{t:'AWS Lake Formation', ico:'lakeformation', w:'Builds and secures the data lake with fine-grained permissions.', alt:'Column, row and cell-level access.'}
+    }
+  }
+},
+
+athena: {
+  icon: 'athena', eyebrow: 'SQL on S3', title: 'Amazon Athena', test: 'Athena',
+  one: 'Serverless SQL directly on files in S3; you pay per data scanned. The exam tests <b>how to make it cheap and fast</b>.',
+  picks: [['athena','"Ad hoc SQL on S3 logs, no servers" → <b>Athena</b>'],['athena','"Reduce Athena cost / speed it up" → <b>Parquet + partitions + compression</b>'],['glue','"Table definitions for S3 data" → <b>Glue Data Catalog</b>']],
+  explain: [
+    {tab:'Make it cheap', type:'list', items:[
+      ['Pricing','Per TB of data scanned.'],
+      ['Columnar formats','Parquet / ORC: read only the needed columns, already compressed.'],
+      ['Partitioning','Folders like year=2025/month=09/ let queries skip data.'],
+      ['Compression','Smaller files, less data scanned.'],
+      ['File size','Avoid millions of tiny files; larger files scan faster.'],
+      ['CTAS','CREATE TABLE AS SELECT converts data to Parquet.']]},
+    {tab:'What it queries', type:'list', items:[
+      ['Common sources','CloudTrail, ALB and VPC Flow Logs, Cost and Usage Reports in S3.'],
+      ['Glue Data Catalog','Holds table schemas; crawlers create them.'],
+      ['Federated queries','Query RDS, DynamoDB and more through Lambda connectors.'],
+      ['Workgroups','Separate teams; set per-query data limits.'],
+      ['Dashboards','QuickSight on top of Athena.']]}
+  ],
+  traps: [
+    '<b>Athena bills per data scanned.</b> Convert to Parquet and partition to cut cost dramatically.',
+    '<b>Athena = ad hoc queries.</b> Heavy, repeated BI with complex joins → Redshift.',
+    '<b>Athena needs table definitions:</b> a Glue crawler or CREATE TABLE.'
+  ]
+},
+
+glue: {
+  icon: 'glue', eyebrow: 'Catalog · transform · govern', title: 'Glue & Lake Formation', test: 'Glue',
+  one: 'Serverless data integration: <b>catalog</b> data, <b>transform</b> it (ETL), and <b>govern</b> who can see it.',
+  picks: [['glue','"Serverless ETL from S3 into Redshift" → <b>Glue jobs</b>'],['glue','"Discover schemas automatically" → <b>Glue crawler</b>'],['lakeformation','"Column/row-level permissions on the data lake" → <b>Lake Formation</b>']],
+  explain: [
+    {label:'Pieces', type:'list', items:[
+      ['Data Catalog','Central metadata (databases, tables) used by Athena, EMR and Redshift Spectrum.'],
+      ['Crawlers','Scan S3 or JDBC sources and create or update tables.'],
+      ['ETL jobs','Serverless Spark or Python jobs; pay per DPU-hour.'],
+      ['Job bookmarks','Process only new data on each run.'],
+      ['Glue Studio / DataBrew','Visual job builder; DataBrew is no-code data cleaning.'],
+      ['Workflows & triggers','Chain crawlers and jobs on a schedule or event.'],
+      ['Streaming ETL','Read Kinesis or MSK in near real time.'],
+      ['Lake Formation','Secures the lake: column, row and cell permissions, tag-based access, cross-account sharing.']]}
+  ],
+  traps: [
+    '<b>Glue = serverless ETL; EMR = clusters you control.</b> "Least operational effort ETL" → Glue.',
+    '<b>Fine-grained column/row access across Athena, Redshift, EMR</b> → Lake Formation, not bucket policies.',
+    '<b>A crawler only builds the catalog.</b> It doesn\'t transform data.'
+  ]
+},
+
+emr: {
+  icon: 'emr', eyebrow: 'Big data clusters', title: 'Amazon EMR', test: 'EMR',
+  one: 'Managed clusters for Spark, Hadoop, Hive, Presto and HBase. Pick it when you need the frameworks and control.',
+  picks: [['emr','"Run existing Spark/Hadoop jobs" → <b>EMR</b>'],['spot','"Cut EMR cost" → <b>Spot for task nodes</b>'],['emr','"Spark without managing clusters" → <b>EMR Serverless</b>']],
+  explain: [
+    {tab:'Node types', type:'compare', cols:[['emr','Primary'],['emr','Core'],['emr','Task']], rows:[
+      ['Role','Coordinates the cluster','Runs tasks, stores HDFS','Runs tasks only'],
+      ['Spot?','No','Risky (data loss)','Yes, ideal'],
+      ['Count','1 (3 for HA)','Several','Any']],
+      aid:'Keep data in <b>S3 (EMRFS)</b>, not HDFS, so clusters can be transient: start, process, terminate.'},
+    {tab:'Options', type:'list', items:[
+      ['Transient clusters','Terminate after the job; cheapest.'],
+      ['Long-running clusters','For interactive or constant workloads; use RIs/Savings Plans.'],
+      ['EMR Serverless','Spark and Hive with no cluster management.'],
+      ['EMR on EKS','Run Spark on an existing EKS cluster.'],
+      ['Instance fleets','Mix instance types and Spot/On-Demand.']]}
+  ],
+  traps: [
+    '<b>Spot for task nodes</b>, never the primary node.',
+    '<b>Keep data in S3</b>, not HDFS, so terminating a cluster loses nothing.',
+    '<b>Minimal-ops ETL → Glue</b> (or EMR Serverless). EMR on EC2 means managing clusters.'
+  ]
+},
+
+bi: {
+  icon: 'redshift', eyebrow: 'Warehouse · dashboards', title: 'Redshift & QuickSight', test: 'Warehouse & BI',
+  one: '<b>Redshift</b> for heavy SQL analytics; <b>QuickSight</b> for dashboards business users can explore.',
+  picks: [['redshift','"Complex SQL over petabytes with BI tools" → <b>Redshift</b>'],['redshift','"Query S3 from Redshift without loading" → <b>Redshift Spectrum</b>'],['quicksight','"Interactive dashboards for business users" → <b>QuickSight</b>']],
+  explain: [
+    {tab:'Athena vs Redshift vs EMR', type:'compare', cols:[['athena','Athena'],['redshift','Redshift'],['emr','EMR']], rows:[
+      ['Model','Serverless SQL on S3','Data warehouse','Managed clusters'],
+      ['Best for','Ad hoc queries, logs','Frequent complex BI','Custom big-data jobs'],
+      ['Pricing','Per TB scanned','Per node-hour or serverless use','EC2 + EMR fee'],
+      ['Ops','None','Low','Medium']]},
+    {tab:'Redshift', type:'list', items:[
+      ['Architecture','Columnar, massively parallel: leader node + compute nodes.'],
+      ['Spectrum','Query S3 in place alongside warehouse tables.'],
+      ['Serverless','Pay for use, no cluster sizing.'],
+      ['Concurrency Scaling','Extra capacity for bursts of queries.'],
+      ['Snapshots','Automatic to S3; cross-Region copy for DR.'],
+      ['Zero-ETL','Near-real-time replication from Aurora, RDS and DynamoDB.']]},
+    {tab:'QuickSight', type:'list', items:[
+      ['Serverless BI','Dashboards and visuals; pay per user or session.'],
+      ['SPICE','In-memory engine for fast dashboards.'],
+      ['Sources','Athena, Redshift, RDS, S3, SaaS apps.'],
+      ['Row-level security','Users see only their rows.'],
+      ['ML insights','Anomalies, forecasts, natural-language questions.']]}
+  ],
+  traps: [
+    '<b>Redshift is OLAP.</b> Transactional apps (OLTP) → RDS or Aurora.',
+    '<b>Business dashboards → QuickSight.</b> OpenSearch Dashboards is for logs/search; Grafana for ops metrics.',
+    '<b>S3 from Redshift without loading → Spectrum.</b> Only ad hoc S3 queries, no warehouse → Athena.'
+  ]
+},
+
+ai: {
+  icon: 'sagemaker', eyebrow: 'Pre-trained AI & ML', title: 'AI & ML services', test: 'AI/ML',
+  one: 'Pre-trained AI services: pick by the <b>input</b> (image, document, text, audio). Build your own models with <b>SageMaker</b>.',
+  picks: [['rekognition','"Detect faces or objects in images/video" → <b>Rekognition</b>'],['textract','"Extract text and tables from scanned forms" → <b>Textract</b>'],['comprehend','"Sentiment or entities in text" → <b>Comprehend</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      rekognition:{n:'Rekognition', ico:'rekognition', tag:'Images & video', pts:['Faces, labels, text, moderation']},
+      textract:{n:'Textract', ico:'textract', tag:'Documents', pts:['Text, forms, tables from scans']},
+      comprehend:{n:'Comprehend', ico:'comprehend', tag:'Text meaning', pts:['Sentiment, entities, PII']},
+      transcribe:{n:'Transcribe', ico:'transcribe', tag:'Speech → text', pts:['Call recordings, subtitles']},
+      polly:{n:'Polly', ico:'polly', tag:'Text → speech', pts:['Lifelike voices']},
+      translate:{n:'Translate', ico:'translate', tag:'Languages', pts:['Neural machine translation']},
+      lex:{n:'Lex', ico:'lex', tag:'Chatbots', pts:['Voice and text bots']},
+      kendra:{n:'Kendra', ico:'kendra', tag:'Search', pts:['Natural-language enterprise search']},
+      sagemaker:{n:'SageMaker', ico:'sagemaker', tag:'Custom ML', pts:['Build, train, deploy models']},
+      bedrock:{n:'Bedrock', ico:'bedrock', tag:'Generative AI', pts:['Foundation models via API']}
+    }, scen:[
+      ['"Flag inappropriate images users upload"','rekognition','Rekognition content moderation.'],
+      ['"Pull fields and tables out of scanned invoices"','textract','Textract reads forms and tables.'],
+      ['"Measure customer sentiment in reviews"','comprehend','Comprehend detects sentiment.'],
+      ['"Turn call-center recordings into text"','transcribe','Transcribe converts speech to text.'],
+      ['"Read articles aloud in the app"','polly','Polly converts text to speech.'],
+      ['"Serve product pages in 10 languages"','translate','Translate handles languages.'],
+      ['"Build a chatbot for order status"','lex','Lex builds conversational bots.'],
+      ['"Search internal documents with natural questions"','kendra','Kendra is intelligent enterprise search.'],
+      ['"Train a custom churn model"','sagemaker','SageMaker trains your own models.'],
+      ['"Add a generative AI assistant with foundation models"','bedrock','Bedrock gives API access to foundation models.']
+    ]}
+  ],
+  traps: [
+    '<b>Textract extracts text; Comprehend understands it.</b> Chain them for documents.',
+    '<b>Transcribe = speech → text; Polly = text → speech.</b>',
+    '<b>Pre-trained services need no ML expertise.</b> Custom models → SageMaker.'
+  ],
+  details: {sum:'more AI services', facts:[
+    ['Comprehend Medical','Clinical entities and PHI in medical text.'],
+    ['Personalize','Real-time recommendations.'],
+    ['Forecast / Fraud Detector','Time-series forecasts; online fraud detection.'],
+    ['Augmented AI (A2I)','Human review of low-confidence ML results.']
+  ]}
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['Athena','Analysts want ad hoc SQL on CloudTrail logs in S3 without managing servers.',['Amazon Athena','Amazon Redshift','Amazon EMR','RDS'],0,'Athena queries S3 directly and is serverless.'],
+  ['Athena','Athena queries on CSV logs are slow and expensive.',['Convert to Parquet, compress and partition','Use bigger EC2 instances','Enable S3 versioning','Use Transfer Acceleration'],0,'Columnar, compressed, partitioned data scans far less.'],
+  ['Athena','Queries always filter by date but scan the whole dataset.',['Partition data by date (year=/month=/day=)','Add more workgroups','Use CSV','Use SSE-KMS'],0,'Partitions let Athena skip irrelevant folders.'],
+  ['Athena','Athena needs table definitions for new S3 data automatically.',['Glue crawler updating the Data Catalog','Lake Formation only','EMR','QuickSight'],0,'Crawlers infer schemas and create tables.'],
+  ['Athena','Limit how much data each team\'s queries can scan.',['Athena workgroups with data usage limits','IAM password policy','S3 lifecycle','Budgets only'],0,'Workgroups set per-query and per-workgroup limits.'],
+  ['Athena','Query data in RDS and S3 together from Athena.',['Athena federated query','Redshift Spectrum','DataSync','Glue DataBrew'],0,'Federated queries use Lambda connectors.'],
+  ['Glue','Transform S3 data and load it into Redshift daily with the least operational effort.',['AWS Glue ETL job','EMR cluster','EC2 cron script','DataSync'],0,'Glue is serverless ETL.'],
+  ['Glue','A daily ETL job should process only files added since the last run.',['Glue job bookmarks','Crawler','Lake Formation','Athena workgroups'],0,'Bookmarks track processed data.'],
+  ['Glue','Business analysts must clean and normalize data visually without code.',['Glue DataBrew','Glue Spark job','EMR','Redshift'],0,'DataBrew is no-code data preparation.'],
+  ['Glue','Analysts may see only some columns and rows of data lake tables across Athena and Redshift.',['AWS Lake Formation permissions','S3 bucket policies','IAM groups','KMS key policies'],0,'Lake Formation gives fine-grained access.'],
+  ['Glue','Share data lake tables securely with another account.',['Lake Formation cross-account sharing','Make the bucket public','Copy the data','DataSync'],0,'Lake Formation shares catalog tables and permissions.'],
+  ['Glue','Near-real-time ETL on data arriving in Kinesis.',['Glue streaming ETL','Glue crawler','Athena','DataBrew'],0,'Glue can process streams.'],
+  ['EMR','Existing Spark and Hive jobs must move to AWS with full framework control.',['Amazon EMR','AWS Glue DataBrew','Athena','QuickSight'],0,'EMR runs the Hadoop ecosystem.'],
+  ['EMR','Reduce cost of a large EMR cluster without risking HDFS data.',['Spot Instances for task nodes','Spot for the primary node','Spot for all core nodes','Bigger primary node'],0,'Task nodes hold no HDFS data.'],
+  ['EMR','Clusters should run only while jobs run, without losing data.',['Store data in S3 (EMRFS) and use transient clusters','Store data in HDFS','Keep clusters running 24/7','Use instance store only'],0,'S3 keeps data after termination.'],
+  ['EMR','Run Spark jobs without provisioning or managing clusters.',['EMR Serverless','EMR on EC2','Redshift','Kinesis'],0,'EMR Serverless removes cluster management.'],
+  ['Warehouse & BI','Frequent complex SQL across petabytes for BI tools.',['Amazon Redshift','Amazon Athena','DynamoDB','RDS for MySQL'],0,'Redshift is built for heavy analytics.'],
+  ['Warehouse & BI','Query data in S3 from Redshift without loading it.',['Redshift Spectrum','Athena federated query','DataSync','Glue crawler only'],0,'Spectrum reads S3 in place.'],
+  ['Warehouse & BI','Business users need interactive dashboards on Athena data.',['Amazon QuickSight','OpenSearch Dashboards','CloudWatch dashboards','Managed Grafana'],0,'QuickSight is BI for business users.'],
+  ['Warehouse & BI','Each sales manager should see only their region\'s rows in dashboards.',['QuickSight row-level security','Separate buckets per region','IAM groups only','Athena workgroups'],0,'Row-level security filters data per user.'],
+  ['Warehouse & BI','A warehouse faces unpredictable query bursts at month-end.',['Redshift Concurrency Scaling (or Serverless)','Bigger S3 bucket','Athena workgroups','EMR task nodes'],0,'Extra capacity is added for bursts.'],
+  ['Warehouse & BI','Operational data in Aurora must reach Redshift in near real time without pipelines.',['Zero-ETL integration','Nightly DMS task','Glue crawler','Snowball'],0,'Zero-ETL replicates automatically.'],
+  ['AI/ML','Flag inappropriate images uploaded by users.',['Amazon Rekognition','Amazon Textract','Amazon Comprehend','Amazon Polly'],0,'Rekognition does content moderation.'],
+  ['AI/ML','Extract fields and tables from scanned invoices.',['Amazon Textract','Amazon Rekognition','Amazon Translate','Amazon Lex'],0,'Textract reads forms and tables.'],
+  ['AI/ML','Analyze the sentiment of customer reviews.',['Amazon Comprehend','Amazon Transcribe','Amazon Kendra','Amazon Polly'],0,'Comprehend detects sentiment.'],
+  ['AI/ML','Convert call-center recordings to text, then find the sentiment.',['Transcribe, then Comprehend','Polly, then Comprehend','Textract, then Translate','Lex only'],0,'Speech → text → meaning.'],
+  ['AI/ML','Read news articles aloud in a mobile app.',['Amazon Polly','Amazon Transcribe','Amazon Lex','Amazon Comprehend'],0,'Polly converts text to speech.'],
+  ['AI/ML','Build a chatbot that answers order-status questions.',['Amazon Lex','Amazon Kendra','Amazon Polly','Amazon Translate'],0,'Lex builds conversational interfaces.'],
+  ['AI/ML','Train a custom model to predict customer churn.',['Amazon SageMaker','Amazon Comprehend','Amazon Rekognition','Amazon Forecast only'],0,'SageMaker builds and trains custom models.'],
+  ['AI/ML','Employees must search internal documents with natural-language questions.',['Amazon Kendra','Amazon Athena','OpenSearch without ML','Amazon Lex'],0,'Kendra is intelligent enterprise search.']
+];
+
+const FC = [
+  ['Athena','How is Athena priced?','Per TB of data scanned.'],
+  ['Athena','Three ways to cut Athena cost?','Columnar format (Parquet/ORC), partitioning, compression.'],
+  ['Athena','Where do Athena table schemas live?','Glue Data Catalog.'],
+  ['Glue','Glue crawler job?','Scans sources and creates/updates Data Catalog tables.'],
+  ['Glue','Process only new data?','Glue job bookmarks.'],
+  ['Glue','No-code data cleaning?','Glue DataBrew.'],
+  ['Glue','Fine-grained data lake permissions?','Lake Formation (column, row, cell).'],
+  ['EMR','Which EMR nodes suit Spot?','Task nodes.'],
+  ['EMR','Where should EMR data live?','S3 (EMRFS), so clusters can be transient.'],
+  ['Warehouse & BI','Query S3 from Redshift?','Redshift Spectrum.'],
+  ['Warehouse & BI','QuickSight fast engine?','SPICE (in-memory).'],
+  ['Warehouse & BI','Athena vs Redshift?','Athena: ad hoc, serverless, per TB. Redshift: frequent complex BI.'],
+  ['AI/ML','Textract vs Comprehend?','Textract extracts text from documents; Comprehend understands text.'],
+  ['AI/ML','Transcribe vs Polly?','Transcribe: speech → text. Polly: text → speech.'],
+  ['AI/ML','Custom ML models?','SageMaker.'],
+  ['AI/ML','Generative AI with foundation models?','Amazon Bedrock.']
+];
+
+const NUMS = [
+  ['Per TB','Athena pricing (data scanned)'],['3','Ways to cut Athena cost: Parquet, partitions, compression'],['1 / 3','EMR primary nodes (single / HA)']
+];
+
+const PAIRS = [
+  ['Athena','Ad hoc SQL on S3','Redshift','Frequent complex BI'],
+  ['Glue','Serverless ETL','EMR','Clusters you control'],
+  ['Glue job','Transforms data','Crawler','Builds the catalog'],
+  ['Lake Formation','Fine-grained lake access','Bucket policy','Whole objects/prefixes'],
+  ['Spectrum','Redshift reads S3','Athena','Serverless SQL on S3'],
+  ['QuickSight','Business dashboards','Managed Grafana','Ops metrics dashboards'],
+  ['Textract','Documents → text','Comprehend','Text → meaning'],
+  ['Transcribe','Speech → text','Polly','Text → speech'],
+  ['Rekognition','Images & video','SageMaker','Your own models']
+];
+
+const TRAPS = [
+  ['"Ad hoc SQL on S3, serverless"','Athena'],
+  ['"Athena too slow / expensive"','Parquet + partitions + compression'],
+  ['"Table schemas for S3 data"','Glue crawler → Data Catalog'],
+  ['"Serverless ETL, least ops"','AWS Glue','Not EMR'],
+  ['"Only new files each run"','Glue job bookmarks'],
+  ['"No-code data cleaning"','Glue DataBrew'],
+  ['"Column/row-level lake permissions"','Lake Formation','Not bucket policies'],
+  ['"Existing Spark/Hadoop jobs"','EMR'],
+  ['"Cheaper EMR"','Spot task nodes','Not the primary node'],
+  ['"Terminate clusters, keep data"','Data in S3 (EMRFS)'],
+  ['"Complex BI over petabytes"','Redshift'],
+  ['"Redshift queries S3 in place"','Redshift Spectrum'],
+  ['"Business dashboards"','QuickSight'],
+  ['"Moderate images"','Rekognition'],
+  ['"Scanned forms → data"','Textract'],
+  ['"Sentiment / entities / PII in text"','Comprehend'],
+  ['"Speech to text"','Transcribe'],
+  ['"Text to speech"','Polly'],
+  ['"Chatbot"','Lex'],
+  ['"Natural-language document search"','Kendra'],
+  ['"Train a custom model"','SageMaker'],
+  ['"Foundation models / generative AI"','Bedrock']
+];
+
+App.start({
+  id: 'analytics',
+  title: 'Analytics Cheat Sheet',
+  learn: [['pick','Pick a service','',6],['athena','Athena','athena',8],['glue','Glue & Lake Formation','glue',8],['emr','EMR','emr',6],
+          ['bi','Redshift & QuickSight','redshift',8],['ai','AI & ML','sagemaker',8]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

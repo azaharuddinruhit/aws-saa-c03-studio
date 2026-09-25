@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Databases Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Databases & Caching ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which database?',
+  one: 'Database questions describe the <b>shape</b> of the data and how it is used. Match that to the service.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Is the data relational, with SQL, joins and transactions?', s:'Relational SQL?', o:[['Yes','rel'],['No','kv']]},
+      rel:   {q:'Is it analytics over large datasets (a data warehouse), not transactions?', s:'Analytics / warehouse?', o:[['Yes','R:redshift'],['No','rel2']]},
+      rel2:  {q:'Do you need up to 15 fast replicas, global reads, or the highest MySQL/PostgreSQL performance?', s:'Max performance / global?', o:[['Yes','rel3'],['No','R:rds']]},
+      rel3:  {q:'Is the load unpredictable or intermittent, and you want to pay per use?', s:'Unpredictable load?', o:[['Yes','R:aurorasls'],['No','R:aurora']]},
+      kv:    {q:'Is it key-value access at any scale, serverless, single-digit ms?', s:'Key-value at scale?', o:[['Yes','kv2'],['No','mem']]},
+      kv2:   {q:'Do reads also need microsecond latency?', s:'Microsecond reads?', o:[['Yes','R:dax'],['No','R:dynamodb']]},
+      mem:   {q:'Is it a cache or in-memory data (sessions, leaderboards)?', s:'Cache / in-memory?', o:[['Yes','mem2'],['No','graph']]},
+      mem2:  {q:'Must it be durable enough to be the primary database?', s:'Durable primary DB?', o:[['Yes','R:memorydb'],['No','R:elasticache']]},
+      graph: {q:'Is the data highly connected (social graph, fraud rings, recommendations)?', s:'Highly connected?', o:[['Yes','R:neptune'],['No','doc']]},
+      doc:   {q:'JSON documents with MongoDB compatibility?', s:'MongoDB documents?', o:[['Yes','R:docdb'],['No','cass']]},
+      cass:  {q:'An Apache Cassandra (CQL) workload?', s:'Cassandra?', o:[['Yes','R:keyspaces'],['No','ts']]},
+      ts:    {q:'Time-series data from IoT devices or metrics?', s:'Time series?', o:[['Yes','R:timestream'],['No','search']]},
+      search:{q:'Full-text search or log analytics?', s:'Search / logs?', o:[['Yes','R:opensearch'],['No','R:dynamodb']]}
+    },
+    results: {
+      redshift:  {t:'Amazon Redshift', ico:'redshift', w:'Columnar data warehouse for complex SQL analytics (OLAP) at petabyte scale.', alt:'SQL directly on S3 files, pay per query → Athena.'},
+      rds:       {t:'Amazon RDS', ico:'rds', w:'Managed MySQL, PostgreSQL, MariaDB, Oracle, SQL Server or Db2.', alt:'Multi-AZ for HA, read replicas for read scaling.'},
+      aurora:    {t:'Amazon Aurora', ico:'aurora', w:'MySQL/PostgreSQL-compatible, 6-way storage across 3 AZs, up to 15 replicas.', alt:'Global Database for multi-Region reads and fast Region failover.'},
+      aurorasls: {t:'Aurora Serverless v2', ico:'aurora', w:'Capacity scales in seconds with the load; pay for what you use.', alt:'Good for spiky, intermittent or unpredictable workloads.'},
+      dax:       {t:'DynamoDB + DAX', ico:'dynamodb', w:'DAX caches DynamoDB reads in memory: microseconds, same API.', alt:'Only for DynamoDB; other databases use ElastiCache.'},
+      dynamodb:  {t:'Amazon DynamoDB', ico:'dynamodb', w:'Serverless key-value/document database with single-digit ms latency.', alt:'Global Tables for multi-Region active-active.'},
+      memorydb:  {t:'Amazon MemoryDB', ico:'memorydb', w:'Redis-compatible in-memory database with Multi-AZ durability.', alt:'Use it as the primary database, not only as a cache.'},
+      elasticache:{t:'Amazon ElastiCache', ico:'elasticache', w:'Managed Redis OSS / Valkey or Memcached cache in front of a database.', alt:'Redis/Valkey for HA, persistence and rich data types.'},
+      neptune:   {t:'Amazon Neptune', ico:'neptune', w:'Graph database for relationship-heavy queries.', alt:'Gremlin, openCypher and SPARQL.'},
+      docdb:     {t:'Amazon DocumentDB', ico:'documentdb', w:'Managed JSON document database, MongoDB-compatible.', alt:'Storage architecture like Aurora.'},
+      keyspaces: {t:'Amazon Keyspaces', ico:'keyspaces', w:'Serverless Apache Cassandra–compatible database.', alt:'Keep CQL, drop cluster management.'},
+      timestream:{t:'Amazon Timestream', ico:'timestream', w:'Time-series database for IoT and operational metrics.', alt:'Built-in time-series functions.'},
+      opensearch:{t:'Amazon OpenSearch Service', ico:'opensearch', w:'Full-text search and log analytics with dashboards.', alt:'Often fed by DynamoDB Streams or Firehose.'}
+    }
+  }
+},
+
+rds: {
+  icon: 'rds', eyebrow: 'Managed relational', title: 'Amazon RDS', test: 'RDS',
+  one: 'Managed MySQL, PostgreSQL, MariaDB, Oracle, SQL Server and Db2. The favourite question: <b>Multi-AZ</b> or <b>read replica</b>?',
+  picks: [['rds','"High availability, automatic failover" → <b>Multi-AZ</b>'],['rds','"Offload reads or reporting" → <b>read replicas</b>'],['rds','"Too many connections from Lambda" → <b>RDS Proxy</b>']],
+  explain: [
+    {tab:'Multi-AZ vs replicas', type:'compare', cols:[['','Multi-AZ instance'],['','Multi-AZ cluster'],['','Read replica']], rows:[
+      ['Purpose','High availability','HA + readable standbys','Read scaling'],
+      ['Replication','Synchronous','Semi-synchronous','Asynchronous'],
+      ['Readable?','No (standby)','Yes, 2 readers','Yes'],
+      ['Failover','Automatic, 1–2 min, same DNS name','Automatic, ~35 s','Manual promotion'],
+      ['Where','Other AZ, same Region','3 AZs','Same or other Region']],
+      aid:'Multi-AZ = <b>availability</b> (sync standby). Read replica = <b>read scaling</b> (async, can be cross-Region and promoted for DR).'},
+    {tab:'Backups & restore', type:'list', items:[
+      ['Automated backups','Daily snapshot + transaction logs, kept 1–35 days. Point-in-time restore to any second (RPO ~5 min).'],
+      ['Manual snapshots','Kept until you delete them; copy to other Regions or share with other accounts.'],
+      ['Restores','Always create a new DB instance with a new endpoint.'],
+      ['Encryption','Chosen at creation (KMS). Existing DB: snapshot → encrypted copy → restore.'],
+      ['Cross-Region DR','Cross-Region read replica or cross-Region automated backups.']]},
+    {tab:'Scaling & access', type:'list', items:[
+      ['Storage autoscaling','Grows storage automatically up to a limit you set.'],
+      ['Instance class change','Vertical scaling with a short outage (shorter with Multi-AZ).'],
+      ['RDS Proxy','Pools connections, speeds up failover, supports IAM auth. Ideal for Lambda.'],
+      ['IAM database auth','Token-based login for MySQL and PostgreSQL instead of passwords.'],
+      ['Secrets Manager','Stores DB credentials and rotates them automatically.'],
+      ['RDS Custom','OS and database access for Oracle / SQL Server customizations.']]}
+  ],
+  traps: [
+    '<b>A Multi-AZ instance standby can\'t serve reads.</b> "Scale reads" → read replicas.',
+    '<b>Read replicas are asynchronous</b> and need manual promotion. They aren\'t the automatic-failover answer.',
+    '<b>You can\'t encrypt an existing DB in place.</b> Snapshot → copy with encryption → restore a new DB.'
+  ],
+  details: {sum:'limits, maintenance, upgrades', facts:[
+    ['Read replica count','Up to 15 for MySQL, MariaDB and PostgreSQL.'],
+    ['Replication cost','Free within a Region; cross-Region transfer is charged.'],
+    ['Maintenance window','You pick it; Multi-AZ patches the standby first.'],
+    ['Blue/Green deployments','Staging copy for upgrades; switchover in about a minute.'],
+    ['Stopped instances','Restart automatically after 7 days.'],
+    ['Performance Insights','Shows DB load and slow queries.']
+  ]}
+},
+
+aurora: {
+  icon: 'aurora', eyebrow: 'Cloud-native relational', title: 'Amazon Aurora', test: 'Aurora',
+  one: 'MySQL- and PostgreSQL-compatible, with storage shared across 3 AZs. The exam tests <b>replicas</b>, <b>endpoints</b>, <b>Serverless</b> and <b>Global Database</b>.',
+  picks: [['aurora','"Up to 15 low-lag replicas, fast failover" → <b>Aurora</b>'],['aurora','"Unpredictable or intermittent load" → <b>Aurora Serverless v2</b>'],['aurora','"Global reads, Region failover in ~1 min" → <b>Global Database</b>']],
+  explain: [
+    {tab:'Numbers', type:'tiles', items:[['6 copies','Of your data across 3 AZs',1],['15','Aurora Replicas on shared storage',1],['~30 s','Typical failover to a replica',1],['<1 s','Global Database replication lag',1],['~1 min','Global Database Region failover'],['128 TiB','Max storage; grows automatically']]},
+    {tab:'Endpoints', type:'list', items:[
+      ['Cluster (writer) endpoint','Always points to the current primary. Use it for writes.'],
+      ['Reader endpoint','Spreads connections across the replicas.'],
+      ['Custom endpoint','A chosen group of instances, e.g. larger ones for analytics.'],
+      ['Instance endpoint','One specific instance, for troubleshooting.']]},
+    {tab:'Features', type:'list', items:[
+      ['Serverless v2','Capacity (ACUs) scales in seconds in small steps; pay per use.'],
+      ['Global Database','1 primary Region + up to 5 read-only secondaries; storage replication under 1 s.'],
+      ['Cloning','Copy-on-write clone in minutes: cheap test copies of production.'],
+      ['Backtrack','Rewind an Aurora MySQL cluster in place, without restoring a backup.'],
+      ['Replica auto scaling','Adds and removes replicas based on CPU or connections.'],
+      ['I/O-Optimized','Flat pricing for I/O-heavy workloads (no per-I/O charges).']]}
+  ],
+  traps: [
+    '"Cross-Region reads with &lt;1 s lag and fast Region failover" → <b>Aurora Global Database</b>, not RDS cross-Region replicas.',
+    '<b>Send reads to the reader endpoint.</b> The cluster endpoint always goes to the writer.',
+    '<b>Aurora is only MySQL- or PostgreSQL-compatible.</b> Oracle or SQL Server → RDS.'
+  ],
+  details: {sum:'failover priority, storage, analytics', facts:[
+    ['Failover priority','Tiers 0–15 decide which replica is promoted first.'],
+    ['Self-healing storage','Survives losing 2 copies for writes and 3 for reads.'],
+    ['Zero-ETL to Redshift','Analyze Aurora data in Redshift without building pipelines.'],
+    ['Backups','Continuous backup to S3; point-in-time restore within the retention period.']
+  ]}
+},
+
+dynamodb: {
+  icon: 'dynamodb', eyebrow: 'Serverless NoSQL', title: 'Amazon DynamoDB', test: 'DynamoDB',
+  one: 'Serverless key-value / document database with single-digit ms latency at any scale. The exam tests <b>capacity modes</b>, <b>DAX</b>, <b>Global Tables</b> and <b>Streams</b>.',
+  picks: [['dynamodb','"Serverless, massive scale, key-value" → <b>DynamoDB</b>'],['dynamodb','"Microsecond reads, read-heavy, no code change" → <b>DAX</b>'],['dynamodb','"Multi-Region, active-active writes" → <b>Global Tables</b>']],
+  explain: [
+    {tab:'Capacity modes', type:'compare', cols:[['','On-demand'],['','Provisioned']], rows:[
+      ['Pick when','Unpredictable, spiky, or new apps','Steady, predictable traffic'],
+      ['Billing','Per request','Per RCU/WCU-hour; reserved capacity discounts'],
+      ['Scaling','Instant, automatic','Auto scaling with target tracking'],
+      ['Throttling','Rare','When you exceed provisioned capacity']],
+      aid:'1 RCU = 1 strongly consistent read/s (or 2 eventually consistent) of up to 4 KB. 1 WCU = 1 write/s of up to 1 KB.'},
+    {tab:'Features', type:'list', items:[
+      ['DAX','In-memory cache for DynamoDB: microsecond reads, same API, no app rewrite.'],
+      ['Global Tables','Multi-Region, multi-active replication; write in any Region.'],
+      ['Streams','Ordered item changes kept 24 h → trigger Lambda (audit, notify, replicate).'],
+      ['TTL','Deletes expired items automatically, free.'],
+      ['PITR','Continuous backups; restore to any second in the last 35 days.'],
+      ['Export to S3','Table export for Athena analytics without using capacity.'],
+      ['Transactions','ACID across multiple items and tables.']]},
+    {tab:'Indexes', type:'compare', cols:[['','LSI'],['','GSI']], rows:[
+      ['Key','Same partition key, different sort key','Any partition and sort key'],
+      ['Created','Only with the table','Any time'],
+      ['Capacity','Shares the table\'s','Its own'],
+      ['Reads','Strong or eventual','Eventual only']]}
+  ],
+  traps: [
+    '<b>DAX only works with DynamoDB</b> and speeds up reads, not writes. Other databases → ElastiCache.',
+    '<b>Max item size is 400 KB.</b> Store large objects in S3 and keep a pointer in DynamoDB.',
+    '<b>LSIs can only be created with the table.</b> A new access pattern later → GSI.'
+  ],
+  details: {sum:'partition keys, consistency, access', facts:[
+    ['Hot partitions','Pick a high-cardinality partition key to spread load.'],
+    ['Consistency','Reads are eventually consistent by default (half the cost); strong reads on request.'],
+    ['Kinesis Data Streams for DynamoDB','Longer retention and more consumers than DynamoDB Streams.'],
+    ['Table classes','Standard-IA for rarely accessed tables.'],
+    ['VPC access','Gateway VPC endpoint, free.'],
+    ['Fine-grained access','IAM conditions on partition key values (each user sees only their items).']
+  ]}
+},
+
+cache: {
+  icon: 'elasticache', eyebrow: 'In-memory', title: 'ElastiCache', test: 'Caching',
+  one: 'Managed in-memory cache that takes read load off databases and stores sessions. The exam asks <b>Redis vs Memcached</b> and which <b>caching strategy</b>.',
+  picks: [['elasticache','"Reduce database read load, sub-ms latency" → <b>ElastiCache</b>'],['elasticache','"Sessions, leaderboards, HA, backups" → <b>Redis OSS / Valkey</b>'],['elasticache','"Simple multithreaded cache, data loss OK" → <b>Memcached</b>']],
+  explain: [
+    {tab:'Redis vs Memcached', type:'compare', cols:[['','Redis OSS / Valkey'],['','Memcached']], rows:[
+      ['High availability','Replicas, Multi-AZ auto-failover','None'],
+      ['Persistence','Snapshots and backups','None'],
+      ['Data types','Strings, hashes, lists, sorted sets, pub/sub','Simple key-value'],
+      ['Threads','Single-threaded per shard','Multithreaded'],
+      ['Pick when','Sessions, leaderboards, HA','Simple cache, scale out']]},
+    {tab:'Caching strategies', type:'compare', cols:[['','Lazy loading'],['','Write-through']], rows:[
+      ['How','On a miss, read the DB and fill the cache','Write to the cache on every DB write'],
+      ['Good','Caches only what\'s requested','Cache is never stale'],
+      ['Bad','Miss penalty; data can go stale','Slower writes; caches unread data'],
+      ['Add','A TTL to expire stale data','A TTL to evict unused data']]}
+  ],
+  traps: [
+    '<b>ElastiCache needs code changes</b> (the app talks to the cache). "DynamoDB, no code changes" → DAX.',
+    '<b>Memcached has no replication or backups.</b> "HA" or "persistence" → Redis/Valkey.',
+    '<b>Lazy loading can serve stale data.</b> Add a TTL, or use write-through for always-fresh reads.'
+  ],
+  details: {sum:'cluster mode, global, security', facts:[
+    ['Cluster mode','Shards Redis data across node groups to scale writes.'],
+    ['Global Datastore','Cross-Region replication for Redis/Valkey.'],
+    ['ElastiCache Serverless','No node sizing; scales automatically.'],
+    ['Security','Encryption in transit and at rest, Redis AUTH / RBAC, security groups.'],
+    ['Stateless web tier','Sessions in ElastiCache let an ASG scale in without logging users out.']
+  ]}
+},
+
+purpose: {
+  icon: 'redshift', eyebrow: 'Right tool per data shape', title: 'Purpose-built databases', test: 'Purpose-built',
+  one: 'AWS has a database for each <b>data shape</b>. Match the shape in the question to the service.',
+  picks: [['redshift','Analytics / data warehouse (OLAP) → <b>Redshift</b>'],['neptune','Relationships / graph → <b>Neptune</b>'],['documentdb','JSON documents, MongoDB → <b>DocumentDB</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      redshift:{n:'Amazon Redshift', short:'Redshift', ico:'redshift', tag:'Data warehouse', pts:['Columnar, massively parallel SQL','Petabyte scale; Serverless option','Spectrum queries data in S3','Not for OLTP']},
+      neptune:{n:'Amazon Neptune', short:'Neptune', ico:'neptune', tag:'Graph', pts:['Highly connected data','Gremlin, openCypher, SPARQL','Social, fraud, knowledge graphs']},
+      docdb:{n:'Amazon DocumentDB', short:'DocumentDB', ico:'documentdb', tag:'Document · MongoDB', pts:['JSON documents','MongoDB API compatible','Aurora-style storage']},
+      keyspaces:{n:'Amazon Keyspaces', short:'Keyspaces', ico:'keyspaces', tag:'Wide-column · Cassandra', pts:['Cassandra-compatible (CQL)','Serverless','No clusters to manage']},
+      timestream:{n:'Amazon Timestream', short:'Timestream', ico:'timestream', tag:'Time series', pts:['IoT and operational metrics','Time-series functions','Memory and magnetic tiers']},
+      opensearch:{n:'Amazon OpenSearch', short:'OpenSearch', ico:'opensearch', tag:'Search · logs', pts:['Full-text and fuzzy search','Log analytics with dashboards','Fed by Streams or Firehose']}
+    }, scen:[
+      ['"Analysts run complex SQL over petabytes"','redshift','Redshift is the columnar warehouse for OLAP.'],
+      ['"Recommend products from friends\' purchases"','neptune','Relationship-heavy queries need a graph database.'],
+      ['"Move a MongoDB app to a managed service"','docdb','DocumentDB is MongoDB-compatible.'],
+      ['"Migrate a Cassandra cluster and go serverless"','keyspaces','Keyspaces speaks CQL.'],
+      ['"Analyze IoT sensor readings over time"','timestream','Time-series data belongs in Timestream.'],
+      ['"Full-text search over a product catalog"','opensearch','OpenSearch provides full-text search.']
+    ]}
+  ],
+  aid: 'Relational → RDS/Aurora · Key-value → DynamoDB · Cache → ElastiCache · Warehouse → Redshift · Graph → Neptune · Documents → DocumentDB · Cassandra → Keyspaces · Time series → Timestream · Search → OpenSearch',
+  traps: [
+    '<b>Redshift is for analytics (OLAP), not transactions (OLTP).</b> Transactional apps → RDS or Aurora.',
+    '"Ad hoc SQL on files in S3, serverless, pay per query" → <b>Athena</b>, not Redshift.',
+    '<b>DynamoDB can\'t do full-text search.</b> Stream it into OpenSearch.'
+  ],
+  details: {sum:'Redshift, Neptune, OpenSearch extras', facts:[
+    ['Redshift snapshots','Automatic snapshots to S3; cross-Region copy for DR.'],
+    ['Redshift Concurrency Scaling','Adds capacity automatically for bursts of queries.'],
+    ['Neptune','Up to 15 read replicas, Multi-AZ.'],
+    ['OpenSearch','Runs in a VPC; warm and cold tiers for older data.'],
+    ['MemoryDB','Durable Redis-compatible primary database.']
+  ]}
+},
+
+migrate: {
+  icon: 'dms', eyebrow: 'Move databases', title: 'Database migration', test: 'Migration',
+  one: 'Move databases into AWS with minimal downtime. <b>DMS</b> copies the data; <b>SCT</b> converts the schema when the engines differ.',
+  picks: [['dms','"Migrate with minimal downtime" → <b>DMS with CDC</b>'],['dms','"Oracle → Aurora PostgreSQL" → <b>SCT + DMS</b>'],['dms','"Keep replicating changes to another store" → <b>DMS ongoing replication</b>']],
+  explain: [
+    {tab:'Same or different engine', type:'compare', cols:[['','Homogeneous'],['','Heterogeneous']], rows:[
+      ['Example','MySQL → RDS for MySQL','Oracle → Aurora PostgreSQL'],
+      ['Schema','No conversion','Convert with SCT (or DMS Schema Conversion)'],
+      ['Data','DMS full load + CDC','DMS full load + CDC']]},
+    {tab:'Minimal-downtime steps', type:'steps', items:[
+      'Convert the schema with SCT if the engines differ',
+      'Full load of existing data with DMS',
+      'CDC replicates ongoing changes while the source stays live',
+      'Test, then point applications at the new database'],
+      aid:'CDC = change data capture. The source keeps serving users until cutover.'}
+  ],
+  traps: [
+    '<b>DMS doesn\'t convert schemas between engines.</b> That\'s SCT (or DMS Schema Conversion).',
+    '<b>Huge database, slow link?</b> Snowball Edge for the initial load, then DMS CDC for changes.',
+    '<b>The source stays online during migration.</b> Downtime is only the final cutover.'
+  ],
+  details: {sum:'replication instance, targets', facts:[
+    ['Replication instance','An EC2 instance that runs DMS tasks; Multi-AZ option.'],
+    ['DMS Serverless','No replication instance sizing.'],
+    ['Targets','RDS, Aurora, Redshift, DynamoDB, S3, OpenSearch, Kinesis and more.'],
+    ['Validation','DMS can check that source and target data match.']
+  ]}
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['RDS','The database must fail over automatically if the primary instance or its AZ fails.',['RDS Multi-AZ deployment','Read replica in another AZ','Nightly snapshots','Larger instance class'],0,'Multi-AZ keeps a synchronous standby and fails over automatically.'],
+  ['RDS','Reporting queries slow down the production database.',['Send reports to a read replica','Enable Multi-AZ','Increase storage','Use RDS Proxy'],0,'Read replicas offload read-only work. The Multi-AZ instance standby can\'t be read.'],
+  ['RDS','Users in another Region need low-latency reads, and the copy should be usable for DR.',['Cross-Region read replica','Multi-AZ in the same Region','Manual snapshots only','ElastiCache'],0,'Cross-Region replicas serve local reads and can be promoted in a disaster.'],
+  ['RDS','Thousands of Lambda invocations exhaust database connections.',['RDS Proxy','Multi-AZ','A read replica','Bigger storage'],0,'RDS Proxy pools and shares connections.'],
+  ['RDS','An existing unencrypted RDS database must be encrypted.',['Snapshot → encrypted copy → restore a new DB','Enable encryption on the instance','Create an encrypted read replica','Turn on EBS encryption by default'],0,'Encryption is set at creation. Restoring an encrypted snapshot copy gives an encrypted DB.'],
+  ['RDS','A bad deployment corrupted data 10 minutes ago. Restore the database to just before it.',['Point-in-time restore from automated backups','Promote a read replica','Fail over Multi-AZ','Restore last night\'s manual snapshot'],0,'PITR restores to any second within the retention window (as a new instance).'],
+  ['RDS','Database credentials must be rotated automatically without code changes to rotation logic.',['AWS Secrets Manager','SSM Parameter Store standard tier','Environment variables','KMS key rotation'],0,'Secrets Manager has built-in rotation for RDS.'],
+  ['Aurora','A MySQL app needs up to 15 low-latency read replicas and failover in about 30 seconds.',['Amazon Aurora MySQL','RDS for MySQL Multi-AZ instance','DynamoDB','Redshift'],0,'Aurora replicas share storage, so lag is low and failover is fast.'],
+  ['Aurora','A relational workload is intermittent and unpredictable. Minimize cost and management.',['Aurora Serverless v2','Aurora provisioned with 15 replicas','RDS on the largest instance','Redshift'],0,'Serverless v2 scales capacity with demand and bills per use.'],
+  ['Aurora','A global app needs low-latency reads in 3 Regions and recovery from a Region outage in about a minute.',['Aurora Global Database','RDS cross-Region read replicas','DynamoDB Streams','Multi-AZ'],0,'Global Database replicates storage in under 1 s and promotes a secondary Region quickly.'],
+  ['Aurora','Analytics queries should run only on two large replicas, not the ones serving the app.',['Aurora custom endpoint','Reader endpoint','Cluster endpoint','A new cluster'],0,'Custom endpoints target a chosen group of instances.'],
+  ['Aurora','Testers need a full copy of the production database quickly and cheaply.',['Aurora cloning','Restore from snapshot to a new cluster','DMS full load','Create read replicas'],0,'Clones use copy-on-write and are ready in minutes.'],
+  ['Aurora','A bad update must be undone in seconds, without restoring a backup (Aurora MySQL).',['Aurora Backtrack','Point-in-time restore','Fail over to a replica','Global Database failover'],0,'Backtrack rewinds the cluster in place.'],
+  ['DynamoDB','A new app\'s traffic is unpredictable, and the team wants no capacity planning.',['On-demand capacity mode','Provisioned with fixed RCUs','Reserved capacity','DAX'],0,'On-demand scales instantly and bills per request.'],
+  ['DynamoDB','A read-heavy app needs microsecond reads from DynamoDB without rewriting code.',['DynamoDB Accelerator (DAX)','ElastiCache for Redis','A GSI','Global Tables'],0,'DAX is API-compatible with DynamoDB and caches reads in memory.'],
+  ['DynamoDB','Users in several Regions must write to the same table with low latency.',['DynamoDB Global Tables','Cross-Region read replicas','DynamoDB Streams to S3','DAX in each Region'],0,'Global Tables are multi-Region and multi-active.'],
+  ['DynamoDB','Every item change must trigger a Lambda function.',['DynamoDB Streams','TTL','PITR','Export to S3'],0,'Streams capture item changes and can invoke Lambda.'],
+  ['DynamoDB','Session items should be deleted automatically 24 hours after creation, at no cost.',['Time to Live (TTL)','A scheduled Lambda scan','DynamoDB Streams','A lifecycle rule'],0,'TTL deletes expired items for free.'],
+  ['DynamoDB','Each record includes an image of several MB.',['Store images in S3 and keep the key in DynamoDB','Increase the item size limit','Use a GSI','Use DAX'],0,'Items max out at 400 KB.'],
+  ['DynamoDB','A new query pattern by a different key is needed on an existing table.',['Add a global secondary index','Add a local secondary index','Create a new table','Use strongly consistent reads'],0,'GSIs can be added any time; LSIs only at table creation.'],
+  ['Caching','Frequently read data puts too much load on an RDS database.',['Add ElastiCache in front of the database','Enable Multi-AZ','Increase storage','Use DAX'],0,'A cache offloads repeated reads. DAX only works with DynamoDB.'],
+  ['Caching','Web servers must be stateless, with user sessions stored in a highly available service.',['ElastiCache for Redis with Multi-AZ','Memcached','Instance store','Sticky sessions only'],0,'Redis replicates and fails over; Memcached doesn\'t.'],
+  ['Caching','Cached data must never be stale after a database write.',['Write-through caching','Lazy loading','A longer TTL','Memcached'],0,'Write-through updates the cache on every write.'],
+  ['Caching','A game needs a real-time leaderboard.',['ElastiCache for Redis sorted sets','Memcached','DynamoDB scans','Redshift'],0,'Redis sorted sets are built for rankings.'],
+  ['Purpose-built','Business analysts run complex SQL over petabytes of historical data.',['Amazon Redshift','RDS for PostgreSQL','DynamoDB','ElastiCache'],0,'Redshift is the columnar data warehouse for OLAP.'],
+  ['Purpose-built','Fraud detection must find links between accounts, devices and payments.',['Amazon Neptune','DynamoDB','Redshift','Timestream'],0,'Highly connected data fits a graph database.'],
+  ['Purpose-built','A MongoDB application must move to a managed AWS service with minimal code change.',['Amazon DocumentDB','Amazon Keyspaces','DynamoDB','Aurora'],0,'DocumentDB is MongoDB-compatible.'],
+  ['Purpose-built','An Apache Cassandra cluster must move to a serverless service.',['Amazon Keyspaces','DocumentDB','Neptune','Redshift'],0,'Keyspaces is Cassandra-compatible and serverless.'],
+  ['Purpose-built','Millions of IoT sensor readings per minute must be stored and analyzed over time.',['Amazon Timestream','Amazon Neptune','RDS for MySQL','DocumentDB'],0,'Timestream is built for time-series data.'],
+  ['Purpose-built','A product catalog in DynamoDB needs full-text search.',['Stream changes into Amazon OpenSearch Service','Add a GSI','Use DAX','Use Athena'],0,'OpenSearch adds full-text search; DynamoDB can\'t.'],
+  ['Migration','Migrate Oracle to Aurora PostgreSQL with minimal downtime.',['SCT for the schema, then DMS full load + CDC','DMS alone','Snapshot and restore','DataSync'],0,'Different engines need schema conversion; DMS CDC keeps the source live.'],
+  ['Migration','Migrate on-prem MySQL to RDS for MySQL with minimal downtime.',['DMS full load + ongoing replication (CDC)','Stop the app and dump the data','SCT only','Storage Gateway'],0,'DMS CDC replicates changes until cutover.'],
+  ['Migration','A 60 TB database must migrate, and the network is slow.',['Snowball Edge for the initial load, then DMS CDC','DMS over the internet only','DataSync','Transfer Family'],0,'Ship the bulk data, then catch up with CDC.'],
+  ['Migration','Changes in an RDS database must continuously land in an S3 data lake.',['DMS ongoing replication to S3','Manual snapshots','Read replica','AWS Backup'],0,'DMS can target S3 and replicate changes continuously.']
+];
+
+const FC = [
+  ['RDS','Multi-AZ instance: replication and readability?','Synchronous; the standby can\'t be read.'],
+  ['RDS','Read replica: replication and failover?','Asynchronous; manual promotion.'],
+  ['RDS','Automated backup retention?','1–35 days, with point-in-time restore.'],
+  ['RDS','How many read replicas (MySQL/MariaDB/PostgreSQL)?','Up to 15.'],
+  ['RDS','Encrypt an existing unencrypted DB?','Snapshot → encrypted copy → restore a new DB.'],
+  ['Aurora','How many copies of data?','6 copies across 3 AZs.'],
+  ['Aurora','Max Aurora Replicas?','15.'],
+  ['Aurora','Global Database lag and failover?','Under 1 s replication; Region failover in about a minute.'],
+  ['Aurora','Four endpoint types?','Cluster (writer), reader, custom, instance.'],
+  ['DynamoDB','1 RCU / 1 WCU?','RCU: 1 strong read/s (or 2 eventual) up to 4 KB. WCU: 1 write/s up to 1 KB.'],
+  ['DynamoDB','Max item size?','400 KB.'],
+  ['DynamoDB','Streams retention?','24 hours.'],
+  ['DynamoDB','PITR window?','Any second in the last 35 days.'],
+  ['DynamoDB','LSI vs GSI?','LSI: same partition key, only at creation. GSI: any key, any time, own capacity.'],
+  ['Caching','Redis vs Memcached in one line?','Redis/Valkey: HA, persistence, data types. Memcached: simple, multithreaded, no replication.'],
+  ['Caching','Lazy loading vs write-through?','Lazy: fill on miss, may be stale. Write-through: update on write, never stale.'],
+  ['Purpose-built','Graph database?','Neptune.'],
+  ['Purpose-built','MongoDB-compatible?','DocumentDB.'],
+  ['Purpose-built','Cassandra-compatible?','Keyspaces.'],
+  ['Migration','DMS vs SCT?','DMS moves data (full load + CDC). SCT converts schemas between engines.']
+];
+
+const NUMS = [
+  ['1–35 days','RDS automated backup retention'],['15','RDS read replicas (MySQL/MariaDB/PostgreSQL)'],['6 · 3','Aurora copies · AZs'],
+  ['15','Aurora Replicas'],['~30 s','Aurora failover'],['<1 s','Aurora Global Database lag'],['5','Aurora Global secondary Regions'],
+  ['400 KB','DynamoDB max item'],['4 KB / 1 KB','RCU / WCU unit size'],['24 h','DynamoDB Streams retention'],['35 days','DynamoDB PITR window'],['7 days','Stopped RDS restarts after']
+];
+
+const PAIRS = [
+  ['Multi-AZ','HA, sync, no reads','Read replica','Scale reads, async'],
+  ['RDS','6 engines incl. Oracle, SQL Server','Aurora','MySQL/PostgreSQL, 15 replicas'],
+  ['Reader endpoint','Spread reads','Cluster endpoint','Always the writer'],
+  ['DAX','DynamoDB only, no code change','ElastiCache','Any DB, code changes'],
+  ['On-demand','Unpredictable traffic','Provisioned','Steady traffic, cheaper'],
+  ['LSI','With the table only','GSI','Any time, own capacity'],
+  ['Redis / Valkey','HA, persistence','Memcached','Simple, no replication'],
+  ['Lazy loading','Fill on miss','Write-through','Update on write'],
+  ['Redshift','Warehouse, OLAP','RDS / Aurora','Transactions, OLTP'],
+  ['DMS','Moves data','SCT','Converts schema']
+];
+
+const TRAPS = [
+  ['"Automatic failover in the same Region"','RDS Multi-AZ','Not read replicas: manual promotion'],
+  ['"Offload reporting / read traffic"','Read replicas','Not the Multi-AZ instance standby: it can\'t be read'],
+  ['"Low-latency reads in another Region + DR"','Cross-Region read replica (or Aurora Global)'],
+  ['"Lambda exhausts DB connections"','RDS Proxy'],
+  ['"Encrypt an existing unencrypted DB"','Snapshot → encrypted copy → restore'],
+  ['"Restore to 10 minutes ago"','Point-in-time restore'],
+  ['"Rotate DB passwords automatically"','Secrets Manager'],
+  ['"15 replicas, ~30 s failover, MySQL-compatible"','Aurora'],
+  ['"Intermittent, unpredictable relational load"','Aurora Serverless v2'],
+  ['"Global reads, Region failover in ~1 min"','Aurora Global Database'],
+  ['"Analytics on some replicas only"','Aurora custom endpoint'],
+  ['"Quick, cheap copy of prod"','Aurora cloning'],
+  ['"Serverless key-value, any scale"','DynamoDB'],
+  ['"Microsecond reads on DynamoDB, no code change"','DAX','Not ElastiCache'],
+  ['"Multi-Region active-active writes"','DynamoDB Global Tables'],
+  ['"React to every item change"','DynamoDB Streams + Lambda'],
+  ['"Expire old items automatically"','DynamoDB TTL'],
+  ['"Item larger than 400 KB"','S3 object + pointer in DynamoDB'],
+  ['"Cache for RDS reads"','ElastiCache'],
+  ['"Session store, highly available"','ElastiCache for Redis / Valkey','Not Memcached: no replication'],
+  ['"Cache must never be stale"','Write-through'],
+  ['"Leaderboard"','Redis sorted sets'],
+  ['"Data warehouse, complex SQL analytics"','Redshift','Not RDS'],
+  ['"SQL on S3 files, pay per query"','Athena','Not Redshift'],
+  ['"Graph / relationships"','Neptune'],
+  ['"MongoDB-compatible"','DocumentDB'],
+  ['"Cassandra-compatible"','Keyspaces'],
+  ['"Time-series IoT data"','Timestream'],
+  ['"Full-text search"','OpenSearch'],
+  ['"Oracle → Aurora PostgreSQL"','SCT + DMS','DMS alone doesn\'t convert schemas'],
+  ['"Migrate with minimal downtime"','DMS with CDC']
+];
+
+App.start({
+  id: 'databases',
+  title: 'Databases Cheat Sheet',
+  learn: [['pick','Pick a database','',6],['rds','RDS','rds',14],['aurora','Aurora','aurora',12],['dynamodb','DynamoDB','dynamodb',14],
+          ['cache','ElastiCache','elasticache',8],['purpose','Purpose-built','redshift',8],['migrate','Migration','dms',6]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Integration Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Application Integration ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which integration service?',
+  one: 'Integration questions are about <b>how parts of a system talk</b>: queues, pub/sub, events, streams, APIs or workflows. Follow the tree.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Is it real-time streaming data at high volume (clickstream, logs, IoT)?', s:'High-volume streaming?', o:[['Yes','s1'],['No','a1']]},
+      s1:    {q:'Do you just need to load it into S3, Redshift or OpenSearch, with no code?', s:'Just load into storage?', o:[['Yes','R:firehose'],['No','s2']]},
+      s2:    {q:'Do existing Apache Kafka applications produce or consume it?', s:'Existing Kafka apps?', o:[['Yes','R:msk'],['No','R:kds']]},
+      a1:    {q:'Are you exposing an API to clients?', s:'Expose an API?', o:[['Yes','a2'],['No','w1']]},
+      a2:    {q:'Is it a GraphQL API?', s:'GraphQL?', o:[['Yes','R:appsync'],['No','R:apigw']]},
+      w1:    {q:'Orchestrating several steps with retries, branches, waits or human approval?', s:'Multi-step workflow?', o:[['Yes','R:stepfn'],['No','q1']]},
+      q1:    {q:'Decoupling a producer from workers with a queue that absorbs spikes?', s:'Queue between tiers?', o:[['Yes','q2'],['No','p1']]},
+      q2:    {q:'Must messages be processed exactly once and in order?', s:'Exactly once, in order?', o:[['Yes','R:sqsfifo'],['No','R:sqs']]},
+      p1:    {q:'Migrating apps that use JMS, AMQP, MQTT or STOMP brokers?', s:'Existing broker protocols?', o:[['Yes','R:mq'],['No','p2']]},
+      p2:    {q:'Routing AWS service or SaaS events by content, or running on a schedule?', s:'Route events / schedule?', o:[['Yes','R:eb'],['No','R:sns']]}
+    },
+    results: {
+      firehose:{t:'Amazon Data Firehose', ico:'firehose', w:'Loads streaming data into S3, Redshift, OpenSearch or Splunk with no code.', alt:'Near real time; can convert to Parquet.'},
+      msk:     {t:'Amazon MSK', ico:'msk', w:'Managed Apache Kafka for existing Kafka producers and consumers.', alt:'MSK Serverless removes broker sizing.'},
+      kds:     {t:'Kinesis Data Streams', ico:'kinesis', w:'Real-time stream with multiple custom consumers and replay (up to 365 days).', alt:'Scale with shards or on-demand mode.'},
+      appsync: {t:'AWS AppSync', ico:'appsync', w:'Managed GraphQL APIs with real-time subscriptions.', alt:'Data from DynamoDB, Lambda, Aurora, HTTP.'},
+      apigw:   {t:'Amazon API Gateway', ico:'apigw', w:'REST, HTTP and WebSocket APIs with auth, throttling and caching.', alt:'29 s integration timeout, 10 MB payload.'},
+      stepfn:  {t:'AWS Step Functions', ico:'stepfn', w:'State machines that coordinate services with retries, branches and waits.', alt:'Standard up to 1 year; Express up to 5 minutes.'},
+      sqsfifo: {t:'Amazon SQS FIFO', ico:'sqs', w:'Strict ordering per message group and exactly-once processing.', alt:'300 msg/s per action, 3,000 with batching (exam values).'},
+      sqs:     {t:'Amazon SQS Standard', ico:'sqs', w:'Nearly unlimited queue that decouples tiers and absorbs spikes.', alt:'At-least-once: make consumers idempotent.'},
+      mq:      {t:'Amazon MQ', ico:'mq', w:'Managed ActiveMQ or RabbitMQ for existing protocol-based apps.', alt:'New cloud-native apps → SQS/SNS.'},
+      eb:      {t:'Amazon EventBridge', ico:'eventbridge', w:'Event bus with content-based rules for AWS, custom and SaaS events, plus schedules.', alt:'Archive and replay events.'},
+      sns:     {t:'Amazon SNS', ico:'sns', w:'Pub/sub push to many subscribers: SQS, Lambda, HTTP, email, SMS.', alt:'SNS → SQS queues = fan-out.'}
+    }
+  }
+},
+
+sqs: {
+  icon: 'sqs', eyebrow: 'Queues', title: 'Amazon SQS', test: 'SQS',
+  one: 'A managed queue that decouples producers from consumers and absorbs spikes. The exam tests <b>Standard vs FIFO</b>, <b>visibility timeout</b>, <b>DLQs</b> and <b>scaling consumers</b>.',
+  picks: [['sqs','"Decouple tiers, absorb traffic spikes" → <b>SQS</b>'],['sqs','"Strict order, no duplicates" → <b>SQS FIFO</b>'],['sqs','"Some messages keep failing" → <b>dead-letter queue</b>']],
+  explain: [
+    {tab:'Standard vs FIFO', type:'compare', cols:[['sqs','Standard'],['sqs','FIFO']], rows:[
+      ['Throughput','Nearly unlimited','300 msg/s per action; 3,000 with batching'],
+      ['Order','Best effort','Strict, per message group'],
+      ['Delivery','At least once (duplicates possible)','Exactly-once processing'],
+      ['Name','Anything','Must end in .fifo'],
+      ['Pick when','Max scale, idempotent workers','Payments, commands, order matters']],
+      aid:'FIFO numbers are the exam values; high-throughput FIFO mode goes much higher.'},
+    {tab:'Numbers', type:'tiles', items:[['30 s','Default visibility timeout (max 12 h)',1],['4 days','Default retention (1 min – 14 days)',1],['256 KB','Max message (exam value); bigger → S3',1],['20 s','Max long-polling wait'],['15 min','Max delay-queue delay'],['6×','Visibility vs Lambda timeout']]},
+    {tab:'Patterns', type:'list', items:[
+      ['Visibility timeout','A received message is hidden while a worker processes it; if not deleted in time it reappears.'],
+      ['Dead-letter queue','After maxReceiveCount failures, the message moves aside for inspection; redrive it later.'],
+      ['Long polling','Wait up to 20 s for messages: fewer empty responses, lower cost.'],
+      ['Scaling workers','ASG target tracking on backlog per instance, or Lambda event source mapping.'],
+      ['Large payloads','Store the body in S3 and send a pointer (Extended Client Library).'],
+      ['Access & encryption','Queue policy for cross-account, SNS or S3 senders; SSE with KMS.']]}
+  ],
+  traps: [
+    '<b>Messages processed twice?</b> The visibility timeout is shorter than processing time. Raise it, and keep workers idempotent.',
+    '<b>Standard queues can duplicate and reorder.</b> "Exactly once, in order" → FIFO.',
+    '<b>SQS gives each message to one consumer.</b> "Every subscriber gets every message" → SNS fan-out.'
+  ],
+  details: {sum:'dedup, groups, batches', facts:[
+    ['FIFO deduplication','Content-based or a deduplication ID; 5-minute window.'],
+    ['Message group ID','Order per group; different groups run in parallel.'],
+    ['Delete after processing','Consumers must delete messages, or they reappear.'],
+    ['Partial batch responses','Lambda reports only the failed messages in a batch.']
+  ]}
+},
+
+sns: {
+  icon: 'sns', eyebrow: 'Pub/sub', title: 'Amazon SNS', test: 'SNS',
+  one: 'Pub/sub: one message pushed to many subscribers at once. The classic pattern is <b>SNS → several SQS queues</b> (fan-out).',
+  picks: [['sns','"One event, many independent consumers" → <b>SNS fan-out</b> to SQS'],['sns','"Send email or SMS alerts" → <b>SNS</b>'],['sns','"Each subscriber gets only some messages" → <b>filter policies</b>']],
+  explain: [
+    {tab:'Fan-out', type:'steps', label:'How fan-out works', items:[
+      'The producer publishes once to an SNS topic',
+      'SNS pushes a copy to every subscribed SQS queue',
+      'Each service reads its own queue at its own pace',
+      'New consumer = new queue; the producer doesn\'t change'],
+      aid:'The SQS queue policy must allow the topic to send. Ordered fan-out → SNS FIFO → SQS FIFO.'},
+    {tab:'Features', type:'list', items:[
+      ['Subscribers','SQS, Lambda, HTTP(S), email, SMS, mobile push, Firehose.'],
+      ['Filter policies','Per subscription, on message attributes or body.'],
+      ['FIFO topics','Ordering and deduplication; subscribers are SQS queues.'],
+      ['Retries & DLQ','Retries per protocol; failed deliveries can go to an SQS DLQ.'],
+      ['Encryption','KMS at rest, HTTPS in transit.']]},
+    {tab:'SQS vs SNS vs EventBridge', type:'compare', cols:[['sqs','SQS'],['sns','SNS'],['eventbridge','EventBridge']], rows:[
+      ['Model','Queue, pull','Pub/sub, push','Event bus, rules'],
+      ['Consumers','One per message','Every subscriber','Rule-matched targets'],
+      ['Stores messages','Up to 14 days','No','Archive & replay'],
+      ['Best for','Buffering, decoupling','Fan-out, alerts','AWS/SaaS events, routing, schedules']]}
+  ],
+  traps: [
+    '<b>SNS doesn\'t store messages.</b> If consumers work at their own pace or retry later, put SQS queues behind it.',
+    '<b>One S3 event to several processors:</b> S3 → SNS → SQS queues (or EventBridge).',
+    '<b>Filter per subscriber without code</b> → SNS filter policies.'
+  ],
+  details: {sum:'raw delivery, cross-account', facts:[
+    ['Raw message delivery','Send the message without the SNS JSON wrapper.'],
+    ['Cross-account','Topic policy lets other accounts publish or subscribe.'],
+    ['Mobile push','APNs and FCM through platform endpoints.']
+  ]}
+},
+
+eventbridge: {
+  icon: 'eventbridge', eyebrow: 'Event bus', title: 'Amazon EventBridge', test: 'EventBridge',
+  one: 'Serverless event bus that routes events from AWS services, your apps and SaaS partners to targets using <b>rules</b>, plus <b>schedules</b>.',
+  picks: [['eventbridge','"React to AWS events (EC2 state change, GuardDuty finding)" → <b>rule</b>'],['eventbridge','"Run a task on a cron schedule" → <b>EventBridge Scheduler</b>'],['eventbridge','"Receive events from a SaaS app" → <b>partner event bus</b>']],
+  explain: [
+    {label:'Building blocks', type:'list', items:[
+      ['Event buses','Default (AWS services), custom (your apps), partner (SaaS).'],
+      ['Rules','Match event content → up to 5 targets: Lambda, SQS, SNS, Step Functions, ECS tasks, API destinations.'],
+      ['Scheduler','One-time or recurring (cron / rate) invocations at scale, with time zones.'],
+      ['Archive & replay','Keep events and replay them after a fix or for testing.'],
+      ['Pipes','Point-to-point: SQS, Kinesis or DynamoDB Streams → filter/enrich → target, no glue code.'],
+      ['Cross-account / Region','Send events to a bus in another account or Region.'],
+      ['Schema registry','Discover event shapes; generate code bindings.'],
+      ['API destinations','Call external HTTP APIs with auth and rate limits.']]}
+  ],
+  traps: [
+    '<b>Scheduled jobs → EventBridge Scheduler</b>, not a cron job on an EC2 instance.',
+    '<b>AWS or SaaS events routed by content to different targets</b> → EventBridge rules.',
+    '<b>EventBridge doesn\'t buffer for slow consumers.</b> Use an SQS queue as the target.'
+  ],
+  details: {sum:'CloudTrail events, retries', facts:[
+    ['CloudTrail-based rules','Any API call CloudTrail records can trigger a rule.'],
+    ['Retries & DLQ','Retries for up to 24 hours; failed events go to an SQS DLQ.'],
+    ['Global endpoints','Automatic Region failover for event ingestion.']
+  ]}
+},
+
+kinesis: {
+  icon: 'kinesis', eyebrow: 'Streaming data', title: 'Kinesis & MSK', test: 'Streaming',
+  one: 'Real-time streaming data: ingest it, keep it for replay, and deliver it. The exam asks <b>Data Streams vs Firehose vs MSK</b>.',
+  picks: [['kinesis','"Real-time processing, custom consumers, replay" → <b>Kinesis Data Streams</b>'],['firehose','"Load streaming data into S3/Redshift/OpenSearch, no code" → <b>Data Firehose</b>'],['msk','"Existing Kafka applications" → <b>Amazon MSK</b>']],
+  explain: [
+    {tab:'Which one?', type:'compare', cols:[['kinesis','Data Streams'],['firehose','Data Firehose'],['msk','MSK']], rows:[
+      ['Latency','Real time','Near real time (buffers)','Real time'],
+      ['Consumers','Your apps, Lambda, Flink; many; replay','Delivers to S3, Redshift, OpenSearch, Splunk, HTTP','Kafka consumers'],
+      ['Stores data','24 h default, up to 365 days','No, delivery only','Yes, configurable'],
+      ['Scaling','Shards or on-demand','Automatic','Brokers or Serverless'],
+      ['Pick when','Custom real-time processing','Easiest path to storage','Kafka compatibility']]},
+    {tab:'Data Streams', type:'list', items:[
+      ['Shard capacity','In: 1 MB/s or 1,000 records/s. Out: 2 MB/s.'],
+      ['Ordering','Per partition key within a shard.'],
+      ['Enhanced fan-out','Each consumer gets its own 2 MB/s per shard, pushed.'],
+      ['Retention','24 hours by default, up to 365 days; consumers can replay.'],
+      ['Capacity modes','Provisioned shards, or on-demand.'],
+      ['Hot shards','Use a partition key with many distinct values.']]},
+    {tab:'Processing', type:'list', items:[
+      ['Managed Service for Apache Flink','Real-time analytics on streams (formerly Kinesis Data Analytics).'],
+      ['Lambda consumer','Event source mapping; in-order batches per shard.'],
+      ['Firehose transforms','Lambda transforms, Parquet/ORC conversion, compression.'],
+      ['Kinesis Video Streams','Video from devices for playback and ML.']]}
+  ],
+  traps: [
+    '<b>Firehose can\'t replay and isn\'t instant.</b> "Replay" or "several custom consumers" → Data Streams.',
+    '<b>ProvisionedThroughputExceeded</b> → hot shard or too few shards: better partition key, more shards, or on-demand.',
+    '<b>SQS vs Kinesis:</b> SQS = separate tasks, one consumer each. Kinesis = ordered stream that many consumers read and replay.'
+  ],
+  details: {sum:'KPL/KCL, destinations', facts:[
+    ['KPL / KCL','Producer and consumer libraries: batching and checkpointing (in DynamoDB).'],
+    ['Firehose to Redshift','Stages data in S3, then runs COPY.'],
+    ['MSK Connect','Managed Kafka Connect connectors.'],
+    ['Encryption','KMS at rest and TLS in transit for all three.']
+  ]}
+},
+
+apigw: {
+  icon: 'apigw', eyebrow: 'APIs', title: 'API Gateway', test: 'APIs',
+  one: 'The front door for APIs: authentication, throttling, caching, and routing to Lambda, HTTP backends or AWS services.',
+  picks: [['apigw','"Serverless REST API in front of Lambda" → <b>API Gateway</b>'],['apigw','"Real-time two-way chat" → <b>WebSocket API</b>'],['appsync','"GraphQL with real-time subscriptions" → <b>AppSync</b>']],
+  explain: [
+    {tab:'API types', type:'compare', cols:[['apigw','REST'],['apigw','HTTP'],['apigw','WebSocket']], rows:[
+      ['Features','Caching, API keys, usage plans, WAF, validation','Cheaper and faster, fewer features','Persistent two-way connections'],
+      ['Auth','IAM, Cognito, Lambda authorizer','IAM, JWT, Lambda','IAM, Lambda'],
+      ['Pick when','Need caching, quotas, WAF','Simple Lambda/HTTP proxy','Chat, live dashboards, games']]},
+    {tab:'Limits & protection', type:'tiles', items:[['29 s','Integration timeout (default)',1],['10 MB','Max request payload',1],['10,000 rps','Account throttle (5,000 burst)',1],['429','Error when throttled'],['300 s','Default cache TTL (max 3,600)']]},
+    {tab:'Endpoints & auth', type:'list', items:[
+      ['Edge-optimized','Through CloudFront for global clients.'],
+      ['Regional','For clients in the same Region.'],
+      ['Private','Only from a VPC, through an interface endpoint.'],
+      ['Cognito authorizer','Validates user pool tokens with no code.'],
+      ['Lambda authorizer','Custom logic for tokens or headers.'],
+      ['Usage plans & API keys','Quotas and throttles per customer.']]}
+  ],
+  traps: [
+    '<b>29-second integration timeout.</b> Long jobs: return a job ID and process asynchronously (SQS, Step Functions).',
+    '<b>10 MB payload limit.</b> Big uploads → S3 presigned URL.',
+    '<b>Only REST APIs have caching, usage plans/API keys and WAF.</b> HTTP APIs are cheaper but lighter.'
+  ],
+  details: {sum:'stages, direct integrations', facts:[
+    ['Stages & canary','dev/prod stages, stage variables, canary releases.'],
+    ['Direct integrations','Call SQS, Step Functions or DynamoDB without Lambda.'],
+    ['Mapping templates','Transform requests and responses (REST).'],
+    ['CORS','Enable it for browser clients on other domains.']
+  ]}
+},
+
+workflow: {
+  icon: 'stepfn', eyebrow: 'Orchestration · brokers · GraphQL', title: 'Step Functions, MQ & AppSync', test: 'Workflows',
+  one: 'Coordinating multi-step work, and moving existing messaging systems to AWS.',
+  picks: [['stepfn','"Multi-step workflow with retries, branches, human approval" → <b>Step Functions</b>'],['mq','"Existing app uses JMS, AMQP, MQTT, STOMP" → <b>Amazon MQ</b>'],['appsync','"GraphQL API with real-time updates" → <b>AppSync</b>']],
+  explain: [
+    {tab:'Step Functions', type:'compare', cols:[['stepfn','Standard'],['stepfn','Express']], rows:[
+      ['Max duration','1 year','5 minutes'],
+      ['Execution','Exactly-once','At-least-once'],
+      ['Pricing','Per state transition','Per execution and duration'],
+      ['Pick when','Long, auditable, human approval','High-volume event processing']],
+      aid:'Wait for a human → <b>task token</b> (.waitForTaskToken). Process many items in parallel → <b>Map state</b>.'},
+    {tab:'Amazon MQ', type:'compare', cols:[['mq','Amazon MQ'],['sqs','SQS / SNS']], rows:[
+      ['Protocols','JMS, AMQP, MQTT, STOMP, OpenWire','AWS APIs'],
+      ['Engines','ActiveMQ, RabbitMQ','AWS native'],
+      ['Scale','Broker instances, active/standby','Serverless, nearly unlimited'],
+      ['Pick when','Lift-and-shift existing messaging','New cloud-native apps']]},
+    {tab:'AppSync', type:'list', items:[
+      ['GraphQL','One endpoint; clients request exactly the fields they need.'],
+      ['Real-time','Subscriptions push updates over WebSockets.'],
+      ['Data sources','DynamoDB, Lambda, Aurora, OpenSearch, HTTP.'],
+      ['Offline sync','Amplify DataStore for mobile apps.']]}
+  ],
+  traps: [
+    '<b>Lambda functions calling each other in a chain are fragile.</b> Coordinated steps with retries → Step Functions.',
+    '<b>Amazon MQ is for migrating protocol-based apps.</b> New apps scale better on SQS/SNS.',
+    '<b>Express workflows stop at 5 minutes.</b> Long or human-in-the-loop flows → Standard.'
+  ],
+  details: {sum:'integrations, errors, HA', facts:[
+    ['SDK integrations','Step Functions calls 200+ AWS services directly.'],
+    ['Error handling','Retry and Catch on each state.'],
+    ['Amazon MQ HA','Active/standby brokers across two AZs.'],
+    ['EventBridge Pipes','Point-to-point integrations without Lambda glue.']
+  ]}
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['SQS','Traffic spikes from the web tier overwhelm the order-processing tier.',['Put an SQS queue between the tiers','Scale the web tier','Use SNS only','Increase the RDS instance'],0,'The queue absorbs spikes; workers process at their own pace.'],
+  ['SQS','Payment commands must be processed exactly once and in order.',['SQS FIFO queue','SQS Standard queue','SNS standard topic','Kinesis Firehose'],0,'FIFO gives ordering and exactly-once processing.'],
+  ['SQS','Workers sometimes process the same message twice because processing takes longer than expected.',['Increase the visibility timeout','Enable long polling','Use a delay queue','Reduce retention'],0,'The message reappears if the visibility timeout expires before deletion.'],
+  ['SQS','A few malformed messages fail forever and block progress.',['Dead-letter queue with maxReceiveCount','Longer retention','FIFO queue','Delay queue'],0,'DLQs set failing messages aside.'],
+  ['SQS','Consumers make many empty ReceiveMessage calls, raising cost.',['Enable long polling (WaitTimeSeconds up to 20)','Short polling','Delay queue','More consumers'],0,'Long polling waits for messages and cuts empty responses.'],
+  ['SQS','Messages must carry 5 MB payloads.',['Store the payload in S3 and send a pointer','Raise the SQS size limit','Use SNS','Use FIFO'],0,'Use S3 for large bodies (Extended Client Library).'],
+  ['SQS','EC2 workers must scale with the number of waiting messages.',['ASG target tracking on backlog per instance','Scale on CPU only','Scheduled scaling','Lambda reserved concurrency'],0,'Queue depth ÷ instances is the right scaling metric.'],
+  ['SNS','A new order must be processed independently by billing, shipping and analytics.',['SNS topic fanning out to three SQS queues','One SQS queue shared by all','Three Lambda calls from the producer','Kinesis Firehose'],0,'Fan-out gives each service its own durable queue.'],
+  ['SNS','The operations team must receive email alerts.',['SNS email subscription','SQS queue','EventBridge archive','Kinesis stream'],0,'SNS pushes to email and SMS.'],
+  ['SNS','The shipping service should receive only orders where type = physical.',['SNS subscription filter policy','A Lambda that filters every message','Separate topics per type only','SQS FIFO'],0,'Filter policies deliver only matching messages.'],
+  ['SNS','One S3 upload event must trigger three different processors.',['S3 → SNS → three SQS queues','Three S3 notifications for the same event','S3 → one SQS queue','S3 → Firehose'],0,'Fan-out through SNS (or EventBridge) reaches several consumers.'],
+  ['SNS','Fan-out must preserve message order.',['SNS FIFO topic → SQS FIFO queues','SNS standard → SQS standard','EventBridge','Kinesis Firehose'],0,'FIFO topics keep order for FIFO queue subscribers.'],
+  ['EventBridge','A Lambda function must run every night at 2 AM.',['EventBridge Scheduler','A cron job on an EC2 instance','SQS delay queue','SNS'],0,'EventBridge Scheduler runs cron and rate schedules.'],
+  ['EventBridge','Run automation whenever an EC2 instance changes to stopped.',['EventBridge rule on the EC2 state-change event','CloudWatch Logs subscription','SQS queue','Config rule'],0,'AWS service events land on the default bus.'],
+  ['EventBridge','Events from a SaaS help-desk app must trigger workflows in AWS.',['EventBridge partner event bus','SNS HTTP subscription','API Gateway only','SQS'],0,'Partner integrations deliver SaaS events to EventBridge.'],
+  ['EventBridge','After a bug fix, last week\'s events must be processed again.',['EventBridge archive and replay','SQS DLQ redrive','CloudTrail Lake','Kinesis retention'],0,'Archive stores events; replay resends them.'],
+  ['EventBridge','Route DynamoDB Stream records to Step Functions with filtering, without writing Lambda glue.',['EventBridge Pipes','SNS','SQS','Firehose'],0,'Pipes connect sources to targets with filtering and enrichment.'],
+  ['Streaming','Clickstream data must be processed in real time by several apps and replayed for 7 days.',['Kinesis Data Streams with extended retention','Data Firehose','SQS Standard','SNS'],0,'Data Streams supports multiple consumers and replay.'],
+  ['Streaming','Application logs must land in S3 as Parquet with no custom code.',['Amazon Data Firehose with format conversion','Kinesis Data Streams + custom consumer','SQS','EventBridge'],0,'Firehose delivers and converts without code.'],
+  ['Streaming','An on-prem Apache Kafka workload must move to a managed service with minimal code change.',['Amazon MSK','Kinesis Data Streams','SQS FIFO','Amazon MQ'],0,'MSK is managed Kafka.'],
+  ['Streaming','One shard throws ProvisionedThroughputExceeded while others are idle.',['Use a partition key with more distinct values','Add a DLQ','Increase retention','Switch to Firehose'],0,'A hot partition key overloads one shard.'],
+  ['Streaming','Several consumers each need the full read throughput of the stream.',['Enhanced fan-out','More producers','Longer retention','Firehose'],0,'Enhanced fan-out gives each consumer its own 2 MB/s per shard.'],
+  ['Streaming','Streaming data needs real-time SQL/Java analytics.',['Amazon Managed Service for Apache Flink','Athena','Redshift','Glue batch jobs'],0,'Flink processes streams in real time.'],
+  ['Streaming','Logs must reach OpenSearch dashboards within about a minute, with no servers.',['Data Firehose to OpenSearch','Kinesis Data Streams alone','SQS','EventBridge Scheduler'],0,'Firehose delivers near real time to OpenSearch.'],
+  ['APIs','A serverless REST API needs response caching and per-customer quotas.',['API Gateway REST API with usage plans and caching','HTTP API','ALB','AppSync'],0,'REST APIs support caching, usage plans and API keys.'],
+  ['APIs','A chat app needs persistent two-way connections.',['API Gateway WebSocket API','REST API polling','SQS','SNS SMS'],0,'WebSocket APIs keep connections open.'],
+  ['APIs','Clients receive HTTP 429 errors during peaks.',['Throttling limits exceeded: raise limits, add caching or usage plans','Lambda timeout','Missing CORS','Wrong IAM role'],0,'429 = Too Many Requests from API Gateway throttling.'],
+  ['APIs','Some requests take 2 minutes to finish.',['Return a job ID and process asynchronously (SQS or Step Functions)','Raise Lambda memory','Use an edge-optimized endpoint','Enable caching'],0,'The integration timeout is 29 s by default.'],
+  ['APIs','An internal API must be reachable only from within a VPC.',['Private API with an interface VPC endpoint','Edge-optimized API','Regional API with WAF','Public ALB'],0,'Private APIs are only reachable through VPC endpoints.'],
+  ['APIs','Validate Cognito user pool tokens without writing code.',['Cognito authorizer','Lambda authorizer','IAM users','API keys'],0,'Cognito authorizers validate JWTs natively.'],
+  ['Workflows','An order process chains several Lambdas with retries and human approval, and may take days.',['Step Functions Standard workflow','Lambda calling Lambda','SQS delay queue','Express workflow'],0,'Standard workflows run up to a year with task tokens for approval.'],
+  ['Workflows','Very high-volume, short IoT event workflows (under a minute each).',['Step Functions Express workflow','Standard workflow','Amazon MQ','SNS'],0,'Express is built for high-volume, short executions.'],
+  ['Workflows','An app using ActiveMQ and JMS must move to AWS with minimal changes.',['Amazon MQ','SQS','Kinesis','EventBridge'],0,'Amazon MQ runs ActiveMQ and RabbitMQ protocols.'],
+  ['Workflows','A mobile app needs a GraphQL API with real-time updates.',['AWS AppSync','API Gateway REST','SQS','Amazon MQ'],0,'AppSync provides GraphQL and subscriptions.'],
+  ['Workflows','A workflow must process 10,000 S3 objects in parallel.',['Step Functions Map state (distributed map)','One Lambda loop','SQS FIFO','SNS'],0,'Map states fan out over items in parallel.']
+];
+
+const FC = [
+  ['SQS','Standard vs FIFO?','Standard: unlimited, at-least-once, best-effort order. FIFO: strict order, exactly-once, 300/3,000 msg/s.'],
+  ['SQS','Default and max visibility timeout?','30 seconds default, 12 hours max.'],
+  ['SQS','Message retention?','4 days default; 1 minute to 14 days.'],
+  ['SQS','Max long-polling wait?','20 seconds.'],
+  ['SQS','Max delay-queue delay?','15 minutes.'],
+  ['SQS','FIFO deduplication window?','5 minutes.'],
+  ['SQS','Visibility timeout for a Lambda consumer?','At least 6× the function timeout.'],
+  ['SNS','Fan-out pattern?','Publish once to SNS; each subscribed SQS queue gets a copy.'],
+  ['SNS','Filter per subscriber?','Subscription filter policy.'],
+  ['EventBridge','Targets per rule?','Up to 5.'],
+  ['EventBridge','Replay old events?','Archive and replay.'],
+  ['Streaming','Shard write / read capacity?','Write 1 MB/s or 1,000 records/s; read 2 MB/s.'],
+  ['Streaming','Data Streams retention?','24 hours default, up to 365 days.'],
+  ['Streaming','Firehose destinations?','S3, Redshift, OpenSearch, Splunk, HTTP endpoints.'],
+  ['Streaming','Enhanced fan-out?','Each consumer gets 2 MB/s per shard, pushed.'],
+  ['APIs','API Gateway timeout and payload?','29 s integration timeout (default); 10 MB payload.'],
+  ['APIs','Account throttle limits?','10,000 requests/s with 5,000 burst (soft).'],
+  ['APIs','Which API type has caching and usage plans?','REST APIs.'],
+  ['Workflows','Standard vs Express max duration?','Standard 1 year; Express 5 minutes.'],
+  ['Workflows','When Amazon MQ?','Migrating apps that use JMS, AMQP, MQTT, STOMP (ActiveMQ/RabbitMQ).']
+];
+
+const NUMS = [
+  ['256 KB','SQS / SNS max message (exam value)'],['4 · 14 days','SQS default · max retention'],['30 s · 12 h','Visibility timeout default · max'],
+  ['20 s','Long polling max wait'],['15 min','Delay queue max'],['300 / 3,000','FIFO msg/s without / with batching'],['5 min','FIFO dedup window'],
+  ['1 MB/s · 1,000','Shard write capacity'],['2 MB/s','Shard read capacity'],['24 h → 365 d','Data Streams retention'],
+  ['29 s','API Gateway integration timeout'],['10 MB','API Gateway payload'],['10,000 / 5,000','API Gateway rps / burst'],['1 yr / 5 min','Step Functions Standard / Express']
+];
+
+const PAIRS = [
+  ['SQS Standard','Max scale, duplicates possible','SQS FIFO','Order, exactly once'],
+  ['SQS','Queue, one consumer per message','SNS','Push to all subscribers'],
+  ['SNS','Fan-out, alerts','EventBridge','Content rules, AWS/SaaS events, schedules'],
+  ['Data Streams','Real time, replay, custom consumers','Firehose','Delivery to storage, no code'],
+  ['Kinesis','Ordered stream, many readers','SQS','Separate tasks, one reader'],
+  ['Visibility timeout','Hide while processing','Delay queue','Hide when first sent'],
+  ['REST API','Caching, keys, WAF','HTTP API','Cheaper, lighter'],
+  ['Standard workflow','1 year, exactly once','Express workflow','5 min, high volume'],
+  ['Amazon MQ','Existing protocols','SQS / SNS','New cloud-native apps'],
+  ['API Gateway','REST / HTTP / WebSocket','AppSync','GraphQL']
+];
+
+const TRAPS = [
+  ['"Decouple tiers, absorb spikes"','SQS'],
+  ['"Exactly once, in order"','SQS FIFO','Standard queues can duplicate'],
+  ['"Messages processed twice"','Increase visibility timeout'],
+  ['"Poison messages"','Dead-letter queue'],
+  ['"Too many empty receives"','Long polling'],
+  ['"Message larger than 256 KB"','S3 + pointer'],
+  ['"Scale workers on queue depth"','Backlog per instance metric'],
+  ['"One event, many consumers"','SNS → SQS fan-out','Not one shared queue'],
+  ['"Email / SMS alerts"','SNS'],
+  ['"Subscriber gets only some messages"','SNS filter policy'],
+  ['"Ordered fan-out"','SNS FIFO → SQS FIFO'],
+  ['"Run on a schedule"','EventBridge Scheduler','Not a cron EC2 instance'],
+  ['"React to AWS service events"','EventBridge rule'],
+  ['"SaaS events into AWS"','EventBridge partner bus'],
+  ['"Replay last week\'s events"','EventBridge archive & replay'],
+  ['"Real-time stream, several consumers, replay"','Kinesis Data Streams','Not Firehose'],
+  ['"Load stream into S3/Redshift, no code"','Data Firehose'],
+  ['"Existing Kafka"','Amazon MSK'],
+  ['"Hot shard / throughput exceeded"','Better partition key, more shards'],
+  ['"Each consumer needs full throughput"','Enhanced fan-out'],
+  ['"Real-time stream analytics"','Managed Service for Apache Flink'],
+  ['"API caching, quotas per customer"','API Gateway REST + usage plans'],
+  ['"Two-way real-time chat"','WebSocket API'],
+  ['"429 Too Many Requests"','API Gateway throttling'],
+  ['"Request takes minutes"','Async: SQS / Step Functions','29 s integration timeout'],
+  ['"API only from inside the VPC"','Private API + interface endpoint'],
+  ['"Multi-step, retries, human approval"','Step Functions Standard','Not Lambda chains'],
+  ['"Existing JMS / AMQP / MQTT app"','Amazon MQ'],
+  ['"GraphQL, real-time"','AppSync']
+];
+
+App.start({
+  id: 'integration',
+  title: 'Integration Cheat Sheet',
+  learn: [['pick','Pick a service','',6],['sqs','SQS','sqs',12],['sns','SNS','sns',8],['eventbridge','EventBridge','eventbridge',8],
+          ['kinesis','Kinesis & MSK','kinesis',12],['apigw','API Gateway','apigw',10],['workflow','Step Functions & MQ','stepfn',8]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

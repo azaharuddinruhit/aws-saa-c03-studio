@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Cost Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Cost Management & Optimization ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which cost tool or lever?',
+  one: 'Cost questions either ask how to <b>see</b> spend, how to <b>control</b> it, or how to <b>cut</b> it. Follow the tree.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Do you want to see or analyze where the money is going?', s:'See where money goes?', o:[['Yes','v1'],['No','c1']]},
+      v1:    {q:'Charts and forecasts, grouped by service, account or tag?', s:'Charts & forecasts?', o:[['Yes','R:explorer'],['No','v2']]},
+      v2:    {q:'The most detailed line-item data, queried with SQL?', s:'Line items + SQL?', o:[['Yes','R:cur'],['No','R:anomaly']]},
+      c1:    {q:'Alerts or automatic actions when spend passes a limit?', s:'Alerts / actions on a limit?', o:[['Yes','R:budgets'],['No','s1']]},
+      s1:    {q:'Steady usage you can commit to for 1–3 years?', s:'Steady for 1–3 years?', o:[['Yes','s2'],['No','s3']]},
+      s2:    {q:'Should the commitment cover any EC2 family/Region plus Fargate and Lambda?', s:'EC2 + Fargate + Lambda?', o:[['Yes','R:computesp'],['No','R:ri']]},
+      s3:    {q:'Is the work interruptible and fault-tolerant?', s:'Interruptible work?', o:[['Yes','R:spot'],['No','r1']]},
+      r1:    {q:'Are instances over-sized, or is the right size unclear?', s:'Right size unclear?', o:[['Yes','R:computeopt'],['No','d1']]},
+      d1:    {q:'Are NAT gateway or data transfer charges high?', s:'High data transfer?', o:[['Yes','R:endpoints'],['No','R:trusted']]}
+    },
+    results: {
+      explorer:  {t:'AWS Cost Explorer', ico:'costexplorer', w:'Charts spend by service, account, tag or Region, with forecasts and RI/SP recommendations.', alt:'Most detailed data → Cost and Usage Report.'},
+      cur:       {t:'Cost and Usage Report', ico:'cur', w:'Hourly line items delivered to S3; query with Athena, chart with QuickSight.', alt:'The most granular billing data.'},
+      anomaly:   {t:'Cost Anomaly Detection', ico:'costexplorer', w:'Machine learning flags unusual spend and alerts you, no threshold needed.', alt:'Known limits → AWS Budgets.'},
+      budgets:   {t:'AWS Budgets', ico:'budgets', w:'Alerts on actual or forecasted cost and usage; budget actions can stop resources.', alt:'Budget actions apply IAM/SCP policies or stop EC2/RDS.'},
+      computesp: {t:'Compute Savings Plan', ico:'savings', w:'Up to ~66% off, flexible across EC2 families, Regions, Fargate and Lambda.', alt:'Databases need their own reserved instances.'},
+      ri:        {t:'EC2 Instance SP / Standard RI', ico:'savings', w:'Up to ~72% off for one instance family in one Region.', alt:'Standard RIs can be sold on the RI Marketplace.'},
+      spot:      {t:'Spot Instances', ico:'spot', w:'Up to ~90% off, with a 2-minute interruption warning.', alt:'Batch, CI, big data, stateless containers.'},
+      computeopt:{t:'AWS Compute Optimizer', ico:'computeopt', w:'Right-sizing recommendations for EC2, ASG, EBS, Lambda and Fargate.', alt:'Memory data needs the CloudWatch agent.'},
+      endpoints: {t:'VPC endpoints & CloudFront', ico:'vpce', w:'Gateway endpoints remove NAT charges for S3/DynamoDB; CloudFront cuts internet transfer.', alt:'Keep chatty traffic in one AZ.'},
+      trusted:   {t:'AWS Trusted Advisor', ico:'trustedadvisor', w:'Best-practice checks: idle resources, unattached IPs, under-used reservations.', alt:'Full checks need Business Support or higher.'}
+    }
+  }
+},
+
+track: {
+  icon: 'costexplorer', eyebrow: 'See the spend', title: 'Cost visibility', test: 'Visibility',
+  one: 'See where money goes before cutting it. The exam asks <b>Cost Explorer vs Cost and Usage Report</b>, and how <b>tags</b> split costs.',
+  picks: [['costexplorer','"Visualize and forecast spend" → <b>Cost Explorer</b>'],['cur','"Most detailed billing data, query with Athena" → <b>Cost and Usage Report</b>'],['costexplorer','"Alert on unusual spend automatically" → <b>Cost Anomaly Detection</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      explorer:{n:'Cost Explorer', short:'Cost Explorer', ico:'costexplorer', tag:'Charts & forecasts', pts:['Spend by service, account, tag, Region','Forecasts future spend','RI / Savings Plans recommendations']},
+      cur:{n:'Cost and Usage Report', short:'CUR', ico:'cur', tag:'Raw line items', pts:['Hourly line items, most granular','Delivered to S3','Query with Athena, chart with QuickSight']},
+      anomaly:{n:'Cost Anomaly Detection', short:'Anomaly Detection', ico:'costexplorer', tag:'ML alerts', pts:['Finds unusual spend patterns','Email or SNS alerts','Monitors by service, account or tag']},
+      tags:{n:'Cost allocation tags', short:'Cost allocation tags', ico:'costexplorer', tag:'Split costs', pts:['Activate tags in Billing to see them in reports','AWS-generated and user-defined tags','Enforce with tag policies']}
+    }, scen:[
+      ['"Show 6 months of EC2 spend by team and forecast next quarter"','explorer','Cost Explorer charts and forecasts spend.'],
+      ['"Load every billing line item into S3 and query it with SQL"','cur','The Cost and Usage Report lands in S3 for Athena.'],
+      ['"Alert us when one service\'s spend suddenly spikes"','anomaly','Anomaly Detection finds spikes without a fixed threshold.'],
+      ['"Charge costs back to each project"','tags','Cost allocation tags split the bill by project.']
+    ]}
+  ],
+  traps: [
+    '<b>Tags only show in cost reports after you activate them</b> as cost allocation tags. Tagging alone isn\'t enough.',
+    '<b>Cost Explorer = charts and forecasts. CUR = the most detailed data</b>, queried with Athena.',
+    '<b>Budgets alert on limits you set; Anomaly Detection finds surprises</b> without a threshold.'
+  ],
+  details: {sum:'calculator, billing alarm, conductor', facts:[
+    ['Pricing Calculator','Estimate costs before you build.'],
+    ['Billing alarm','CloudWatch EstimatedCharges metric, in us-east-1.'],
+    ['Billing Conductor','Custom pricing and showback for groups of accounts.'],
+    ['Cost Categories','Group costs into business units with rules.']
+  ]}
+},
+
+control: {
+  icon: 'budgets', eyebrow: 'Stop surprises', title: 'Budgets & billing', test: 'Control',
+  one: 'Alert on thresholds, act automatically, and bill many accounts as one.',
+  picks: [['budgets','"Alert when forecast spend exceeds $X" → <b>AWS Budgets</b>'],['budgets','"Stop resources automatically when over budget" → <b>budget actions</b>'],['orgs','"One bill, shared discounts across accounts" → <b>consolidated billing</b>']],
+  explain: [
+    {tab:'Alert options', type:'compare', cols:[['budgets','Budgets'],['costexplorer','Anomaly Detection'],['cloudwatch','Billing alarm']], rows:[
+      ['Trigger','Threshold (actual or forecast)','Unusual spend (ML)','EstimatedCharges threshold'],
+      ['Actions','Alerts + budget actions','Alerts','SNS alarm actions'],
+      ['Pick when','Known limits per team','Catch surprises','Simple total-bill alert']]},
+    {tab:'Budgets & billing', type:'list', items:[
+      ['Budget types','Cost, usage, and RI / Savings Plans utilization or coverage.'],
+      ['Alerts','On actual or forecasted amounts; email, SNS or chat.'],
+      ['Budget actions','Apply an IAM policy or SCP, or stop EC2 / RDS instances.'],
+      ['Consolidated billing','One payer account; volume tiers and RI/SP discounts shared across the organization.'],
+      ['Discount sharing','On by default; can be turned off for chosen accounts.'],
+      ['SCPs for cost','Block expensive instance types or unused Regions.']]}
+  ],
+  traps: [
+    '<b>Budgets only alert</b> unless you configure budget actions.',
+    '<b>RI and Savings Plans discounts are shared across the organization</b> by default.',
+    '<b>Billing alarms live in us-east-1</b> (the EstimatedCharges metric).'
+  ]
+},
+
+commit: {
+  icon: 'savings', eyebrow: 'Buy smarter', title: 'Commitments & Spot', test: 'Commitments',
+  one: 'The biggest savings come from matching the <b>purchase model</b> to how steady the workload is. More detail is on the Compute page.',
+  picks: [['savings','Steady 24/7 usage for 1–3 years → <b>Savings Plans / RIs</b>'],['spot','Interruptible, fault-tolerant work → <b>Spot</b> (up to ~90%)'],['savings','"Flexible across EC2, Fargate, Lambda" → <b>Compute Savings Plan</b>']],
+  explain: [
+    {tab:'Commitments', type:'compare', cols:[['savings','Compute SP'],['savings','EC2 Instance SP'],['savings','Standard RI'],['savings','Convertible RI']], rows:[
+      ['Max discount','~66%','~72%','~72%','~66%'],
+      ['Flexibility','Any family, Region, OS','Size and OS in one family/Region','Fixed type','Exchange family/OS'],
+      ['Covers','EC2, Fargate, Lambda','EC2','EC2','EC2'],
+      ['Resell','No','No','RI Marketplace','No']],
+      aid:'Databases (RDS, ElastiCache, Redshift, OpenSearch) use their own <b>reserved instances</b>; Compute Savings Plans don\'t cover them.'},
+    {tab:'Spot', type:'list', items:[
+      ['Discount','Up to ~90% off On-Demand.'],
+      ['Interruption','2-minute warning via instance metadata and EventBridge.'],
+      ['Best for','Batch, CI/CD, EMR task nodes, stateless containers and web servers.'],
+      ['Mixed instances ASG','On-Demand base + Spot, many instance types, capacity-optimized.'],
+      ['Spot Fleet / EC2 Fleet','Launch across many capacity pools.'],
+      ['Not for','Databases or work that can\'t restart.']]}
+  ],
+  traps: [
+    '<b>Compute Savings Plans don\'t cover databases.</b> Buy RDS/ElastiCache/Redshift reserved instances.',
+    '<b>Spot isn\'t for stateful databases</b> or jobs that can\'t be interrupted.',
+    '<b>Only Standard RIs can be resold</b> on the Marketplace.'
+  ]
+},
+
+rightsize: {
+  icon: 'computeopt', eyebrow: 'Stop paying for idle', title: 'Right-sizing', test: 'Right-sizing',
+  one: 'Pay for what you use: right-size, scale in, turn off idle resources, and move to <b>serverless</b> or <b>Graviton</b>.',
+  picks: [['computeopt','"Which instance size should we use?" → <b>Compute Optimizer</b>'],['trustedadvisor','"Find idle resources" → <b>Trusted Advisor</b>'],['ec2','"Better price-performance" → <b>Graviton</b> (~20% cheaper)']],
+  explain: [
+    {label:'Levers', type:'list', items:[
+      ['Compute Optimizer','ML right-sizing for EC2, ASGs, EBS, Lambda and Fargate, from CloudWatch metrics.'],
+      ['Trusted Advisor','Idle load balancers, low-use EC2, unattached Elastic IPs, reservation checks.'],
+      ['Scale in','Auto Scaling policies and schedules; stop dev/test outside office hours.'],
+      ['Serverless','Lambda, Fargate, DynamoDB on-demand, Aurora Serverless: no paying for idle.'],
+      ['Graviton','~20% cheaper with better price-performance on EC2, Lambda, Fargate, RDS.'],
+      ['Storage','gp2 → gp3, delete unattached EBS volumes and old snapshots.']]}
+  ],
+  traps: [
+    '<b>Compute Optimizer needs metric history</b>, and memory-based advice needs the CloudWatch agent.',
+    '<b>Stopped instances still pay</b> for EBS volumes and Elastic IPs.',
+    '<b>Unused public IPv4 addresses cost money.</b> Release Elastic IPs you don\'t need.'
+  ],
+  details: {sum:'scheduler, Storage Lens, licenses', facts:[
+    ['Instance Scheduler','Start and stop instances on a schedule.'],
+    ['S3 Storage Lens','Finds cold data and incomplete multipart uploads.'],
+    ['License Manager','Track licenses and avoid over-buying BYOL.'],
+    ['Trusted Advisor tiers','Full checks need Business Support or higher.']
+  ]}
+},
+
+data: {
+  icon: 'vpce', eyebrow: 'Hidden charges', title: 'Storage & data transfer', test: 'Data costs',
+  one: 'Storage and network charges add up quietly. Know which transfers are <b>free</b> and which paths are <b>cheapest</b>.',
+  picks: [['s3','Old data rarely read → <b>lifecycle</b> to cheaper classes'],['vpce','High NAT charges for S3/DynamoDB traffic → <b>gateway endpoints</b> (free)'],['cloudfront','High transfer out to the internet → <b>CloudFront</b>']],
+  explain: [
+    {tab:'Data transfer', type:'list', items:[
+      ['Inbound','Data into AWS from the internet is free.'],
+      ['Same AZ','Free over private IPs.'],
+      ['Across AZs','Charged in each direction.'],
+      ['Across Regions','Charged per GB.'],
+      ['Out to the internet','The most expensive path; CloudFront is usually cheaper, and origin → CloudFront is free.'],
+      ['NAT gateway','Hourly + per-GB processing; S3/DynamoDB gateway endpoints avoid it.']]},
+    {tab:'Storage savings', type:'list', items:[
+      ['S3 lifecycle','Move to IA/Glacier by age; expire old versions and incomplete multipart uploads.'],
+      ['Intelligent-Tiering','Unknown access patterns, no retrieval fees.'],
+      ['EBS','gp2 → gp3; delete unattached volumes; archive old snapshots.'],
+      ['EFS','Lifecycle to Infrequent Access or Archive.'],
+      ['DynamoDB','On-demand for spiky, provisioned + auto scaling for steady; Standard-IA table class.'],
+      ['Logs','Set CloudWatch Logs retention; export old logs to S3.']]}
+  ],
+  traps: [
+    '<b>Cross-AZ traffic is charged.</b> Chatty services spread across AZs add up.',
+    '<b>S3/DynamoDB traffic through a NAT gateway costs per GB.</b> Gateway endpoints are free.',
+    '<b>CloudWatch Logs never expire by default</b>, so they bill forever until you set retention.'
+  ],
+  details: {sum:'Requester Pays, Direct Connect', facts:[
+    ['S3 Requester Pays','Downloaders pay for the transfer.'],
+    ['Direct Connect','Lower data-transfer-out rates for heavy hybrid traffic.'],
+    ['Interface endpoints','Hourly + per GB, often still cheaper than NAT for AWS APIs.']
+  ]}
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['Visibility','Visualize monthly spend by service and forecast the next quarter.',['AWS Cost Explorer','Cost and Usage Report','AWS Budgets','Trusted Advisor'],0,'Cost Explorer charts history and forecasts.'],
+  ['Visibility','Finance wants every hourly billing line item in S3 to query with SQL.',['Cost and Usage Report + Athena','Cost Explorer','Budgets','CloudWatch billing alarm'],0,'CUR is the most granular data and lands in S3.'],
+  ['Visibility','Costs must be charged back to each project.',['Activate cost allocation tags','Separate Regions per project','Budgets only','Trusted Advisor'],0,'Cost allocation tags split the bill by tag value.'],
+  ['Visibility','Resources are tagged, but the tags don\'t appear in cost reports.',['Activate them as cost allocation tags in Billing','Re-tag the resources','Enable CloudTrail','Use AWS Config'],0,'Tags must be activated for billing.'],
+  ['Visibility','Get alerted when spend suddenly spikes, without choosing thresholds.',['Cost Anomaly Detection','AWS Budgets','CloudWatch billing alarm','Compute Optimizer'],0,'Anomaly Detection uses ML to find unusual spend.'],
+  ['Visibility','Estimate the monthly cost of an architecture before building it.',['AWS Pricing Calculator','Cost Explorer','CUR','Budgets'],0,'The Pricing Calculator estimates costs up front.'],
+  ['Control','Alert the team when forecasted monthly cost will exceed $10,000.',['AWS Budgets forecast alert','Cost Explorer report','Trusted Advisor','Compute Optimizer'],0,'Budgets alerts on forecasted amounts.'],
+  ['Control','Automatically stop development instances when their budget is exceeded.',['Budget actions','Cost Anomaly Detection','Billing alarm only','Trusted Advisor'],0,'Budget actions can stop EC2/RDS or apply policies.'],
+  ['Control','Many accounts should get volume discounts and share Reserved Instances.',['Consolidated billing in AWS Organizations','Separate payment methods','Cost allocation tags','Budgets'],0,'Consolidated billing combines usage and shares discounts.'],
+  ['Control','No account may launch very large, expensive instance types.',['SCP that denies those instance types','Budgets alert','Cost Explorer','Trusted Advisor'],0,'SCPs enforce limits across accounts.'],
+  ['Control','A simple alarm on the total AWS bill.',['CloudWatch billing alarm on EstimatedCharges (us-east-1)','CUR','Compute Optimizer','Config rule'],0,'Billing metrics live in us-east-1.'],
+  ['Commitments','Steady EC2, Fargate and Lambda usage for 3 years; instance families will change.',['Compute Savings Plan','EC2 Instance Savings Plan','Standard RI','Spot'],0,'Compute SPs cover all three and any family.'],
+  ['Commitments','Steady m5 usage in one Region; get the highest discount.',['EC2 Instance Savings Plan or Standard RI','Compute Savings Plan','On-Demand','Spot'],0,'The less flexible options give up to ~72%.'],
+  ['Commitments','Fault-tolerant batch jobs must run as cheaply as possible.',['Spot Instances','Reserved Instances','Dedicated Hosts','On-Demand'],0,'Spot is up to ~90% off for interruptible work.'],
+  ['Commitments','An RDS database runs 24/7 for the next 3 years.',['RDS Reserved Instances','Compute Savings Plan','Spot','EC2 Instance SP'],0,'Compute SPs don\'t cover RDS.'],
+  ['Commitments','The team may need to sell an unused commitment later.',['Standard Reserved Instances','Compute Savings Plan','Convertible RI','EC2 Instance SP'],0,'Only Standard RIs can be sold on the RI Marketplace.'],
+  ['Commitments','A web tier has a steady baseline with unpredictable peaks.',['Savings Plan for the baseline; On-Demand/Spot for peaks','All Reserved Instances','All Spot','Dedicated Hosts'],0,'Commit to the baseline and flex the rest.'],
+  ['Right-sizing','EC2 instances seem over-provisioned. Which sizes should they be?',['AWS Compute Optimizer','Cost Explorer','Budgets','CloudTrail'],0,'Compute Optimizer recommends right sizes.'],
+  ['Right-sizing','Find idle load balancers and unattached Elastic IPs.',['AWS Trusted Advisor','Compute Optimizer','Budgets','Cost Anomaly Detection'],0,'Trusted Advisor runs cost best-practice checks.'],
+  ['Right-sizing','Dev instances run 24/7 but are used only during office hours.',['Stop them on a schedule (Instance Scheduler)','Buy Reserved Instances','Use Dedicated Hosts','Move to Spot Fleet'],0,'Stopping idle hours saves the most.'],
+  ['Right-sizing','Get better price-performance for EC2 and Lambda with little effort.',['Move to Graviton (ARM)','Use larger instances','Use Dedicated Instances','Enable detailed monitoring'],0,'Graviton is ~20% cheaper with better performance.'],
+  ['Right-sizing','An API is idle most of the day with occasional spikes.',['Lambda + API Gateway (serverless)','Large always-on EC2 fleet','Reserved Instances','Dedicated Hosts'],0,'Serverless doesn\'t bill for idle time.'],
+  ['Right-sizing','Compute Optimizer ignores memory usage in its advice.',['Install the CloudWatch agent to publish memory metrics','Enable CloudTrail','Use Trusted Advisor','Buy Savings Plans'],0,'Memory isn\'t a native EC2 metric.'],
+  ['Data costs','NAT gateway charges are high because instances download lots of data from S3.',['Add a gateway VPC endpoint for S3','Bigger NAT gateway','Add an internet gateway','Use Direct Connect'],0,'Gateway endpoints are free and bypass NAT.'],
+  ['Data costs','Data transfer to internet users for static assets is expensive.',['Serve through CloudFront','Add more EC2 instances','Use S3 Transfer Acceleration','Use a NAT gateway'],0,'CloudFront caches and has cheaper transfer out.'],
+  ['Data costs','S3 data is never read after 90 days but must be kept for years.',['Lifecycle rule to Glacier Deep Archive','Keep it in Standard','Intelligent-Tiering only','Delete it'],0,'Lifecycle moves aging data to the cheapest class.'],
+  ['Data costs','Microservices in different AZs exchange a lot of traffic.',['Keep chatty traffic within the same AZ where possible','Add NAT gateways','Use public IPs','Use Global Accelerator'],0,'Cross-AZ data transfer is charged.'],
+  ['Data costs','CloudWatch Logs costs keep growing.',['Set log retention and export old logs to S3','Disable CloudTrail','Use Budgets','Use bigger instances'],0,'Default retention is never expire.'],
+  ['Data costs','A bucket is billed for storage that no object listing shows.',['Lifecycle rule to abort incomplete multipart uploads','Enable versioning','Use Transfer Acceleration','Enable Object Lock'],0,'Incomplete multipart uploads take hidden space.'],
+  ['Data costs','EBS gp2 volumes should cost less without losing performance.',['Change them to gp3 with Elastic Volumes','Change to st1','Use instance store','Take more snapshots'],0,'gp3 is ~20% cheaper and sets IOPS independently.']
+];
+
+const FC = [
+  ['Visibility','Cost Explorer vs CUR?','Explorer: charts and forecasts. CUR: hourly line items in S3 for Athena.'],
+  ['Visibility','Tags don\'t show in reports?','Activate them as cost allocation tags.'],
+  ['Visibility','Anomaly Detection vs Budgets?','Anomaly: ML finds surprises. Budgets: thresholds you set.'],
+  ['Control','What can budget actions do?','Apply IAM policies or SCPs, or stop EC2/RDS instances.'],
+  ['Control','Billing alarm Region?','us-east-1 (EstimatedCharges metric).'],
+  ['Control','Consolidated billing benefit?','One bill, volume tiers, shared RI/SP discounts.'],
+  ['Commitments','Compute SP vs EC2 Instance SP discount?','Compute SP ~66%, flexible. EC2 Instance SP ~72%, one family and Region.'],
+  ['Commitments','Which commitment can be resold?','Standard RIs (RI Marketplace).'],
+  ['Commitments','Do Compute Savings Plans cover RDS?','No. Buy RDS reserved instances.'],
+  ['Commitments','Spot discount and warning?','Up to ~90%; 2-minute warning.'],
+  ['Right-sizing','Compute Optimizer covers?','EC2, Auto Scaling groups, EBS, Lambda, ECS on Fargate.'],
+  ['Right-sizing','Graviton saving?','About 20% cheaper, better price-performance.'],
+  ['Right-sizing','Do stopped instances cost anything?','Yes: attached EBS volumes and Elastic IPs.'],
+  ['Data costs','Which data transfer is free?','Inbound from the internet; same-AZ over private IPs; origin to CloudFront.'],
+  ['Data costs','Cheapest path from VPC to S3?','Gateway VPC endpoint (free).'],
+  ['Data costs','CloudWatch Logs default retention?','Never expire.']
+];
+
+const NUMS = [
+  ['~66%','Compute SP / Convertible RI'],['~72%','EC2 Instance SP / Standard RI'],['~90%','Spot'],['2 min','Spot warning'],
+  ['~20%','Graviton / gp3 savings'],['us-east-1','Billing alarm Region'],['$0','Inbound data, gateway endpoints, origin → CloudFront']
+];
+
+const PAIRS = [
+  ['Cost Explorer','Charts, forecasts','CUR','Line items, SQL'],
+  ['Budgets','Thresholds you set','Anomaly Detection','ML finds surprises'],
+  ['Compute SP','Flexible, EC2 + Fargate + Lambda','EC2 Instance SP','One family, bigger discount'],
+  ['Standard RI','Can resell','Convertible RI','Can exchange'],
+  ['Compute Optimizer','Right-size','Trusted Advisor','Idle resources, checks'],
+  ['Gateway endpoint','Free, S3/DynamoDB','NAT gateway','Per-GB charge']
+];
+
+const TRAPS = [
+  ['"Visualize and forecast spend"','Cost Explorer'],
+  ['"Every line item, query with SQL"','CUR + Athena'],
+  ['"Split costs by project/team"','Cost allocation tags','Must be activated'],
+  ['"Unexpected spend spikes"','Cost Anomaly Detection'],
+  ['"Alert at a forecasted threshold"','AWS Budgets'],
+  ['"Stop resources when over budget"','Budget actions','Budgets alone only alert'],
+  ['"Shared discounts across accounts"','Consolidated billing'],
+  ['"Block expensive instance types org-wide"','SCP'],
+  ['"Commit across EC2, Fargate, Lambda"','Compute Savings Plan'],
+  ['"Highest discount, one family/Region"','EC2 Instance SP / Standard RI'],
+  ['"Steady database for 3 years"','RDS reserved instances','Not Compute Savings Plans'],
+  ['"Interruptible batch, cheapest"','Spot'],
+  ['"Which instance size?"','Compute Optimizer'],
+  ['"Idle LBs, unattached EIPs"','Trusted Advisor'],
+  ['"Used only office hours"','Stop on a schedule'],
+  ['"Better price-performance"','Graviton'],
+  ['"NAT charges for S3 traffic"','Gateway VPC endpoint'],
+  ['"Expensive internet transfer"','CloudFront'],
+  ['"Logs cost keeps growing"','Set log retention'],
+  ['"Hidden S3 storage"','Abort incomplete multipart uploads']
+];
+
+App.start({
+  id: 'cost',
+  title: 'Cost Cheat Sheet',
+  learn: [['pick','Pick a tool','',6],['track','Visibility','costexplorer',8],['control','Budgets & billing','budgets',6],['commit','Commitments & Spot','savings',8],
+          ['rightsize','Right-sizing','computeopt',6],['data','Storage & transfer','vpce',8]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>

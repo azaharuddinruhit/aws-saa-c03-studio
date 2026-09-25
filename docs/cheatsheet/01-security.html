@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAA-C03 Security Cheat Sheet</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Crect%20x%3D%279.5%27%20y%3D%279.5%27%20width%3D%2713%27%20height%3D%2713%27%20rx%3D%272%27%20fill%3D%27none%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.6%27/%3E%3Crect%20x%3D%2713.5%27%20y%3D%2713.5%27%20width%3D%275%27%20height%3D%275%27%20rx%3D%271%27%20fill%3D%27%230F172A%27/%3E%3Cpath%20d%3D%27M13%205v3M19%205v3M13%2024v3M19%2024v3M5%2013h3M5%2019h3M24%2013h3M24%2019h3%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap" id="main"></main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+/* ================= Security, Identity & Compliance ================= */
+const topics = {
+
+pick: {
+  eyebrow: 'Start here', title: 'Which security service?',
+  one: 'Security questions usually ask one thing: <b>who can access</b>, <b>how data is protected</b>, <b>how attacks are blocked</b>, or <b>how threats are found</b>. Follow the tree.',
+  test: 'All',
+  tree: {
+    nodes: {
+      start: {q:'Is it about who can access what (identities and permissions)?', s:'Identities & permissions?', o:[['Yes','i1'],['No','d1']]},
+      i1:    {q:'Is it end users signing in to your web or mobile app?', s:'App end users?', o:[['Yes','i2'],['No','i3']]},
+      i2:    {q:'Do they need temporary AWS credentials to call AWS directly (e.g. upload to S3)?', s:'Need AWS credentials?', o:[['Yes','R:idpool'],['No','R:userpool']]},
+      i3:    {q:'Do you need guardrails (maximum permissions) across many accounts?', s:'Guardrails for many accounts?', o:[['Yes','R:scp'],['No','i4']]},
+      i4:    {q:'Workforce single sign-on to many accounts or business apps?', s:'Workforce SSO?', o:[['Yes','R:idc'],['No','R:iamrole']]},
+      d1:    {q:'Is it about protecting data with keys, secrets or certificates?', s:'Keys, secrets, certs?', o:[['Yes','k1'],['No','n1']]},
+      k1:    {q:'Passwords or API keys that should rotate automatically?', s:'Rotating secrets?', o:[['Yes','R:secrets'],['No','k2']]},
+      k2:    {q:'Single-tenant hardware, FIPS 140-2 Level 3, keys only you control?', s:'Dedicated HSM?', o:[['Yes','R:cloudhsm'],['No','k3']]},
+      k3:    {q:'TLS certificates for ALB, CloudFront or API Gateway?', s:'TLS certificates?', o:[['Yes','R:acm'],['No','R:kms']]},
+      n1:    {q:'Is it about blocking attacks on apps or networks?', s:'Block attacks?', o:[['Yes','n2'],['No','f1']]},
+      n2:    {q:'Web attacks: SQL injection, XSS, bots, rate limits (Layer 7)?', s:'Layer 7 web attacks?', o:[['Yes','R:waf'],['No','n3']]},
+      n3:    {q:'Large DDoS attacks, with a 24/7 response team and cost protection?', s:'Big DDoS, expert help?', o:[['Yes','R:shieldadv'],['No','R:netfw']]},
+      f1:    {q:'Is it about finding threats, vulnerabilities or sensitive data?', s:'Find threats or data?', o:[['Yes','f2'],['No','a1']]},
+      f2:    {q:'Threats spotted in account and network logs (compromised keys, crypto-mining)?', s:'Threats in logs?', o:[['Yes','R:guardduty'],['No','f3']]},
+      f3:    {q:'Sensitive data (PII) sitting in S3?', s:'PII in S3?', o:[['Yes','R:macie'],['No','R:inspector']]},
+      a1:    {q:'Do you need a record of who made which API call?', s:'Who called which API?', o:[['Yes','R:cloudtrail'],['No','R:config']]}
+    },
+    results: {
+      idpool:    {t:'Cognito identity pool', ico:'cognito', w:'Exchanges a sign-in token for temporary AWS credentials (an IAM role).', alt:'Often paired with a user pool.'},
+      userpool:  {t:'Cognito user pool', ico:'cognito', w:'Sign-up, sign-in, MFA and social/SAML login for your app\'s users.', alt:'Returns JWTs; ALB and API Gateway can check them.'},
+      scp:       {t:'Service control policies', ico:'orgs', w:'Set the maximum permissions for every account or OU in AWS Organizations.', alt:'They never grant permissions.'},
+      idc:       {t:'IAM Identity Center', ico:'idc', w:'Single sign-on to many AWS accounts and apps with permission sets.', alt:'Connects to AD or an external IdP like Okta.'},
+      iamrole:   {t:'IAM roles & policies', ico:'iamrole', w:'Temporary credentials for services, apps and other accounts, with least-privilege policies.', alt:'Never put access keys in code.'},
+      secrets:   {t:'AWS Secrets Manager', ico:'secrets', w:'Stores secrets and rotates them automatically (built-in for RDS).', alt:'Cheap config values → Parameter Store.'},
+      cloudhsm:  {t:'AWS CloudHSM', ico:'cloudhsm', w:'Single-tenant HSMs in your VPC; only you can access the keys.', alt:'Can back a KMS custom key store.'},
+      acm:       {t:'AWS Certificate Manager', ico:'acm', w:'Free public TLS certificates that renew automatically.', alt:'CloudFront certificates must be in us-east-1.'},
+      kms:       {t:'AWS KMS', ico:'kms', w:'Managed encryption keys built into most AWS services, with CloudTrail audit.', alt:'Customer managed keys for control and cross-account use.'},
+      waf:       {t:'AWS WAF', ico:'waf', w:'Layer 7 rules against SQL injection, XSS, bad bots and request floods.', alt:'Attach to CloudFront, ALB, API Gateway or AppSync.'},
+      shieldadv: {t:'AWS Shield Advanced', ico:'shield', w:'DDoS protection with a 24/7 response team and cost protection.', alt:'Shield Standard is free and automatic.'},
+      netfw:     {t:'AWS Network Firewall', ico:'netfw', w:'Stateful inspection, IPS and domain filtering for VPC traffic.', alt:'Central rules across accounts → Firewall Manager.'},
+      guardduty: {t:'Amazon GuardDuty', ico:'guardduty', w:'Threat detection from CloudTrail, VPC Flow Logs and DNS logs.', alt:'Automate responses with EventBridge.'},
+      macie:     {t:'Amazon Macie', ico:'macie', w:'Finds PII and other sensitive data in S3 using machine learning.', alt:'Also flags public or unencrypted buckets.'},
+      inspector: {t:'Amazon Inspector', ico:'inspector', w:'Scans EC2, container images and Lambda for software vulnerabilities.', alt:'Continuous and automatic.'},
+      cloudtrail:{t:'AWS CloudTrail', ico:'cloudtrail', w:'Records API calls: who, what, when and from where.', alt:'Organization trail to S3 for long-term logs.'},
+      config:    {t:'AWS Config', ico:'config', w:'Records resource configurations over time and checks them against rules.', alt:'Auto-remediate with SSM Automation.'}
+    }
+  }
+},
+
+iam: {
+  icon: 'iam', eyebrow: 'Identities & permissions', title: 'IAM', test: 'IAM',
+  one: 'Who can do what in an account. The exam tests <b>roles vs users</b>, <b>how policies are evaluated</b>, <b>cross-account access</b> and <b>least privilege</b>.',
+  picks: [['iamrole','Apps and AWS services get permissions from <b>roles</b>, never access keys'],['iamrole','"Access resources in another account" → assume a <b>cross-account role</b>'],['iam','"Limit what developers can grant" → <b>permission boundary</b>']],
+  explain: [
+    {tab:'Policy evaluation', type:'steps', label:'How AWS decides', items:[
+      'Everything starts as <b>denied</b> (implicit deny)',
+      'An explicit <b>Deny</b> in any policy always wins',
+      'SCPs, permission boundaries and session policies set the <b>maximum</b>',
+      'Inside those limits, an identity or resource policy must <b>Allow</b> the action'],
+      aid:'Explicit Deny beats Allow, which beats implicit deny. Effective permissions are the overlap of every limit.'},
+    {tab:'Policy types', type:'list', items:[
+      ['Identity-based','Attached to users, groups or roles.'],
+      ['Resource-based','Attached to a resource (S3 bucket, SQS queue, KMS key, Lambda). Names a principal; allows cross-account access without assuming a role.'],
+      ['Permission boundary','Maximum permissions for a user or role. Grants nothing by itself.'],
+      ['Service control policy','Maximum permissions for accounts in an organization.'],
+      ['Session policy','Narrows a temporary session when a role is assumed.'],
+      ['Conditions','aws:SourceIp, aws:PrincipalOrgID, aws:MultiFactorAuthPresent, aws:RequestedRegion, tags (ABAC).']]},
+    {tab:'Roles & STS', type:'list', items:[
+      ['IAM role','An identity with temporary credentials, assumed by users, services or other accounts.'],
+      ['Instance profile','How an EC2 instance receives a role.'],
+      ['Cross-account access','Account B\'s role trusts account A; A\'s users call sts:AssumeRole.'],
+      ['External ID','Stops the "confused deputy" when a third party assumes your role.'],
+      ['Federation','SAML 2.0 or OIDC identities assume roles; no IAM users needed.'],
+      ['IAM Roles Anywhere','Servers outside AWS use X.509 certificates to get temporary credentials.']]}
+  ],
+  traps: [
+    '<b>Never put access keys in code or on EC2.</b> Use roles: instance profiles, task roles, Lambda execution roles.',
+    '<b>An explicit Deny always wins</b>, even over an Allow in another policy.',
+    '<b>Permission boundaries and SCPs grant nothing.</b> They only cap what other policies allow.'
+  ],
+  details: {sum:'root user, Access Analyzer, ABAC', facts:[
+    ['Root user','Use only for a few account tasks. MFA on, no access keys.'],
+    ['IAM Access Analyzer','Finds resources shared outside your account or organization; validates policies.'],
+    ['Credential report / Access Advisor','Find unused users, keys and permissions.'],
+    ['ABAC','Grant access by matching tags on principals and resources.'],
+    ['Groups','Can\'t be nested and can\'t be a principal in a policy.'],
+    ['Password policy','Length, complexity, rotation and reuse rules.']
+  ]}
+},
+
+orgs: {
+  icon: 'orgs', eyebrow: 'Multi-account', title: 'Organizations & governance', test: 'Organizations',
+  one: 'Running many accounts: one organization, <b>guardrails</b> from the top, and <b>shared</b> resources.',
+  picks: [['orgs','"No account may use Regions outside the EU" → <b>SCP</b>'],['controltower','"Set up a governed multi-account landing zone" → <b>Control Tower</b>'],['ram','"Share subnets or a Transit Gateway with other accounts" → <b>RAM</b>']],
+  explain: [
+    {tab:'SCPs', type:'list', items:[
+      ['What they do','Set the maximum permissions for accounts or OUs. They never grant anything.'],
+      ['Who they affect','Every user and role in member accounts, including the root user.'],
+      ['Who they don\'t','The management account, and service-linked roles.'],
+      ['Inheritance','Attach at root, OU or account; an action must be allowed at every level.'],
+      ['Typical uses','Deny unused Regions, block disabling CloudTrail, block leaving the organization.']]},
+    {tab:'Organizations', type:'list', items:[
+      ['Consolidated billing','One bill, volume discounts, RI and Savings Plan sharing.'],
+      ['OUs','Group accounts (Prod, Dev, Security) to apply policies together.'],
+      ['Delegated administrator','A member account runs GuardDuty, Security Hub and others for the org.'],
+      ['aws:PrincipalOrgID','Resource-policy condition allowing any principal in the organization.'],
+      ['Organization trail','One CloudTrail logging every account.'],
+      ['Other policy types','Tag, backup and AI opt-out policies.']]},
+    {tab:'Control Tower & RAM', type:'list', items:[
+      ['Control Tower','Automated landing zone: accounts, OUs, guardrails, central logging, Account Factory.'],
+      ['Preventive controls','SCP-based guardrails that block actions.'],
+      ['Detective controls','AWS Config rules that flag drift.'],
+      ['AWS RAM','Share subnets, Transit Gateways, Resolver rules and more without copying them.']]}
+  ],
+  traps: [
+    '<b>SCPs don\'t grant permissions.</b> The account still needs IAM policies that allow the action.',
+    '<b>SCPs don\'t apply to the management account.</b> Keep workloads out of it.',
+    '"Allow every account in our organization" in a bucket policy → <b>aws:PrincipalOrgID</b>, not a list of accounts.'
+  ],
+  details: {sum:'account factory, log archive', facts:[
+    ['Account Factory','Creates standardized accounts in Control Tower.'],
+    ['Security account pattern','Separate log archive and audit accounts.'],
+    ['Tag policies','Standardize tag keys and values across accounts.']
+  ]}
+},
+
+encrypt: {
+  icon: 'kms', eyebrow: 'Keys · secrets · certificates', title: 'Encryption & secrets', test: 'Encryption',
+  one: 'Protecting data with keys and secrets. The exam asks <b>which key type</b>, <b>KMS vs CloudHSM</b>, and <b>Secrets Manager vs Parameter Store</b>.',
+  picks: [['kms','Encryption keys for AWS services, audited → <b>KMS</b>'],['cloudhsm','"Single-tenant HSM, FIPS 140-2 Level 3, only we control keys" → <b>CloudHSM</b>'],['secrets','"Rotate database passwords automatically" → <b>Secrets Manager</b>']],
+  explain: [
+    {tab:'KMS key types', type:'compare', cols:[['','AWS owned'],['','AWS managed'],['','Customer managed']], rows:[
+      ['Managed by','AWS, invisible','AWS, per service (aws/s3)','You'],
+      ['Key policy','None','View only','Full control'],
+      ['Rotation','AWS decides','Yearly, automatic','Optional, you pick'],
+      ['Cross-account','No','No','Yes, via key policy'],
+      ['Pick when','Default','Simple, no management','Control, audit, sharing']],
+      aid:'Sharing encrypted data (snapshots, S3 objects) with another account needs a <b>customer managed key</b> whose key policy allows that account.'},
+    {tab:'KMS vs CloudHSM', type:'compare', cols:[['kms','KMS'],['cloudhsm','CloudHSM']], rows:[
+      ['Tenancy','Multi-tenant, AWS-managed HSMs','Single-tenant HSMs in your VPC'],
+      ['Key control','You and the KMS service','Only you'],
+      ['Integration','Built into most AWS services','Your apps (PKCS#11, JCE); KMS custom key store'],
+      ['Pick when','Default','Rules require exclusive key control']],
+      aid:'Exam clue "FIPS 140-2 Level 3, single tenant, we manage the keys" → CloudHSM.'},
+    {tab:'Secrets & certificates', type:'compare', cols:[['secrets','Secrets Manager'],['ssm','Parameter Store'],['acm','ACM']], rows:[
+      ['Stores','DB passwords, API keys','Config values, SecureString','TLS certificates'],
+      ['Rotation','Built-in','None built-in','Auto-renews public certs'],
+      ['Cost','Per secret per month','Standard tier free','Public certs free'],
+      ['Pick when','Rotate credentials','Cheap config / simple secrets','HTTPS on ALB, CloudFront, API GW']]}
+  ],
+  traps: [
+    '<b>KMS keys are Regional.</b> Using data in another Region needs a key there, or multi-Region keys.',
+    '"Rotate database credentials automatically" → <b>Secrets Manager</b>, not Parameter Store.',
+    '<b>ACM public certificates can\'t be installed on EC2.</b> Use them on ALB, CloudFront or API Gateway.'
+  ],
+  details: {sum:'envelope encryption, deletion, grants', facts:[
+    ['Envelope encryption','KMS encrypts a data key; the data key encrypts the data. Needed for data over 4 KB.'],
+    ['Multi-Region keys','Same key material in several Regions for global apps and DR.'],
+    ['Key deletion','7–30 day waiting period; disable the key first to test.'],
+    ['Grants','Temporary delegated key permissions, used by services like EBS.'],
+    ['Request quotas','High request rates can throttle; S3 Bucket Keys cut KMS calls.'],
+    ['Imported key material','Bring your own key material into KMS.']
+  ]}
+},
+
+protect: {
+  icon: 'waf', eyebrow: 'Block attacks', title: 'WAF, Shield & firewalls', test: 'Protection',
+  one: 'Blocking attacks at the edge and inside the VPC. Match the <b>layer</b> of the attack to the service.',
+  picks: [['waf','SQL injection, XSS, bots, rate limits (Layer 7) → <b>AWS WAF</b>'],['shield','Big DDoS, 24/7 response team, cost protection → <b>Shield Advanced</b>'],['netfw','Inspect VPC traffic, filter by domain → <b>Network Firewall</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      waf:{n:'AWS WAF', short:'WAF', ico:'waf', tag:'Layer 7', pts:['SQLi, XSS, IP sets, geo, headers','Rate-based rules','Managed rules, Bot Control','CloudFront, ALB, API Gateway, AppSync']},
+      shieldstd:{n:'Shield Standard', short:'Shield Standard', ico:'shield', tag:'Layer 3/4 · free', pts:['Automatic for everyone','Common network DDoS']},
+      shieldadv:{n:'Shield Advanced', short:'Shield Advanced', ico:'shield', tag:'Paid DDoS', pts:['24/7 Shield Response Team','DDoS cost protection','Advanced detection, WAF included']},
+      fm:{n:'Firewall Manager', short:'Firewall Manager', ico:'fwmanager', tag:'Central policies', pts:['WAF, Shield, SG, Network Firewall rules org-wide','New accounts get rules automatically']},
+      netfw:{n:'Network Firewall', short:'Network Firewall', ico:'netfw', tag:'VPC traffic', pts:['Stateful/stateless rules, IPS','Domain allow/deny for egress','Firewall subnets per AZ']}
+    }, scen:[
+      ['"Block SQL injection on the ALB"','waf','WAF inspects HTTP requests.'],
+      ['"Stop one IP sending thousands of requests"','waf','A rate-based WAF rule blocks floods from single IPs.'],
+      ['"Big DDoS protection with expert help and cost refunds"','shieldadv','Shield Advanced adds the response team and cost protection.'],
+      ['"Basic network DDoS protection at no cost"','shieldstd','Shield Standard is automatic and free.'],
+      ['"Same WAF rules in every account automatically"','fm','Firewall Manager enforces policies across the organization.'],
+      ['"Outbound traffic only to approved domains"','netfw','Network Firewall filters egress by domain name.']
+    ]}
+  ],
+  aid: 'Web attacks → WAF · DDoS → Shield · Many accounts → Firewall Manager · VPC traffic inspection → Network Firewall',
+  traps: [
+    '<b>WAF can\'t attach to an NLB or EC2.</b> Use CloudFront, ALB, API Gateway or AppSync.',
+    '<b>Security groups and NACLs can\'t see HTTP content.</b> "Block SQL injection" → WAF.',
+    '<b>Shield Standard is already on.</b> "24/7 DDoS response team" or "cost protection" → Shield Advanced.'
+  ],
+  details: {sum:'geo match, logging, DDoS design', facts:[
+    ['Geo match','WAF rule that blocks or allows countries.'],
+    ['WAF logging','To CloudWatch Logs, S3 or Firehose.'],
+    ['Network Firewall routing','Route tables send traffic through firewall endpoints.'],
+    ['DDoS-resilient design','CloudFront + Route 53 + Shield + Auto Scaling absorb attacks.']
+  ]}
+},
+
+detect: {
+  icon: 'guardduty', eyebrow: 'Find · audit · comply', title: 'Detection & audit', test: 'Detection',
+  one: 'Finding threats, vulnerabilities, sensitive data and misconfigurations, and recording activity. Each service has <b>one clear job</b>.',
+  picks: [['guardduty','Threats from account and network logs → <b>GuardDuty</b>'],['macie','PII in S3 → <b>Macie</b>'],['cloudtrail','"Who made this API call?" → <b>CloudTrail</b>']],
+  explain: [
+    {label:'Pick a scenario', type:'picker', opts:{
+      guardduty:{n:'GuardDuty', ico:'guardduty', tag:'Threat detection', pts:['Reads CloudTrail, VPC Flow Logs, DNS logs','Crypto-mining, stolen keys, bad IPs','Findings → EventBridge']},
+      inspector:{n:'Inspector', ico:'inspector', tag:'Vulnerabilities', pts:['Scans EC2, ECR images, Lambda for CVEs','Network reachability','Continuous']},
+      macie:{n:'Macie', ico:'macie', tag:'Sensitive data', pts:['Finds PII and secrets in S3','Flags public or unencrypted buckets']},
+      config:{n:'AWS Config', ico:'config', tag:'Configuration', pts:['Configuration history','Rules flag non-compliance','Auto-remediation with SSM']},
+      cloudtrail:{n:'CloudTrail', ico:'cloudtrail', tag:'API activity', pts:['Who did what, when, where','90 days of history by default','Trail to S3 for longer']},
+      hub:{n:'Security Hub', ico:'securityhub', tag:'Dashboard', pts:['Aggregates findings','CIS and AWS best-practice checks']},
+      detective:{n:'Detective', ico:'detective', tag:'Investigation', pts:['Behavior graphs to find root causes']}
+    }, scen:[
+      ['"Detect crypto-mining or compromised credentials"','guardduty','GuardDuty analyzes logs for threats.'],
+      ['"Scan EC2 and container images for vulnerabilities"','inspector','Inspector finds CVEs.'],
+      ['"Find credit card numbers stored in S3"','macie','Macie discovers sensitive data in S3.'],
+      ['"Show the history of a security group and flag 0.0.0.0/0"','config','Config records configuration and evaluates rules.'],
+      ['"Which user deleted the database?"','cloudtrail','CloudTrail logs every API call with the identity.'],
+      ['"One dashboard of findings across accounts"','hub','Security Hub aggregates findings.'],
+      ['"Investigate the root cause of a finding"','detective','Detective builds a behavior graph.']
+    ]}
+  ],
+  traps: [
+    '<b>CloudTrail = who called which API. Config = what a resource looked like</b>, and whether it complies.',
+    '<b>GuardDuty detects; it doesn\'t block.</b> Automate responses with EventBridge + Lambda.',
+    '<b>Inspector scans for software vulnerabilities; Macie scans S3 for sensitive data.</b>'
+  ],
+  details: {sum:'CloudTrail options, Config packs', facts:[
+    ['CloudTrail data events','S3 object-level and Lambda invoke events; off by default, extra cost.'],
+    ['Log file validation','Detects tampering with CloudTrail log files.'],
+    ['CloudTrail Insights','Flags unusual API activity volumes.'],
+    ['CloudTrail Lake','Query events with SQL.'],
+    ['Config conformance packs','Bundles of rules deployed together.'],
+    ['Trusted Advisor','Best-practice checks for security, cost and limits.']
+  ]}
+},
+
+cognito: {
+  icon: 'cognito', eyebrow: 'App users · directories · SSO', title: 'Cognito & directories', test: 'Identity',
+  one: 'Signing in the end users of your apps, and connecting corporate directories to AWS.',
+  picks: [['cognito','App sign-up and sign-in, social login → <b>Cognito user pool</b>'],['cognito','Temporary AWS credentials for app users → <b>Cognito identity pool</b>'],['dirsvc','Windows workloads need Active Directory → <b>Directory Service</b>']],
+  explain: [
+    {tab:'User vs identity pools', type:'compare', cols:[['cognito','User pool'],['cognito','Identity pool']], rows:[
+      ['Answers','Who are you? (authentication)','What may you use? (authorization)'],
+      ['Returns','JWT tokens','Temporary AWS credentials'],
+      ['Features','Sign-up, MFA, social + SAML login','Guest access, per-user IAM roles'],
+      ['Used with','ALB, API Gateway authorizers','Direct calls to S3, DynamoDB']],
+      aid:'Common pattern: the user pool signs users in, then the identity pool swaps the token for AWS credentials.'},
+    {tab:'Directories', type:'compare', cols:[['dirsvc','Managed Microsoft AD'],['dirsvc','AD Connector'],['dirsvc','Simple AD']], rows:[
+      ['What','Real AD in AWS','Proxy to on-prem AD','Small Samba-based AD'],
+      ['On-prem trust','Yes','Uses on-prem AD directly','No'],
+      ['Pick when','AD-aware apps in AWS','Reuse on-prem AD, no sync','Small, low-cost, basic']]},
+    {tab:'Workforce SSO', type:'list', items:[
+      ['IAM Identity Center','Single sign-on to many AWS accounts and business apps; permission sets map to roles.'],
+      ['Identity sources','Built-in directory, Active Directory, or an external IdP (Okta, Entra ID).'],
+      ['SAML 2.0 federation','Older per-account alternative to Identity Center.']]}
+  ],
+  traps: [
+    '<b>User pools sign users in; identity pools hand out AWS credentials.</b> "App uploads straight to S3" → identity pool.',
+    '<b>Workforce access to many accounts → IAM Identity Center</b>, not IAM users in each account.',
+    '<b>AD Connector stores nothing.</b> If on-prem AD is unreachable, sign-in fails.'
+  ],
+  details: {sum:'ALB auth, triggers', facts:[
+    ['Cognito + ALB','An ALB can authenticate users with a user pool before forwarding requests.'],
+    ['Lambda triggers','Customize sign-up, token contents and user migration.'],
+    ['Adaptive authentication','Risk-based MFA in user pools.'],
+    ['Verified Permissions','Fine-grained app authorization with Cedar policies.']
+  ]}
+}
+};
+
+/* ================= practice data ================= */
+const Q = [
+  ['IAM','An app on EC2 needs S3 access, and security forbids long-term credentials.',['IAM role through an instance profile','Access keys in environment variables','Access keys in the AMI','An IAM user per instance'],0,'Roles give temporary, automatically rotated credentials.'],
+  ['IAM','Developers in account A need to manage resources in account B.',['Role in account B that trusts account A; users assume it','Create IAM users in account B','Share root credentials','Use an SCP'],0,'Cross-account roles are the standard pattern.'],
+  ['IAM','A third-party vendor assumes a role in your account. Prevent the confused deputy problem.',['Require an external ID in the trust policy','Give the vendor an IAM user','Use a permission boundary','Rotate the role'],0,'External IDs ensure the vendor acts only for you.'],
+  ['IAM','Developers may create roles for their apps but must not grant more than their own limits.',['Permission boundaries','SCPs only','Resource-based policies','IAM groups'],0,'Boundaries cap what created roles can do.'],
+  ['IAM','An S3 bucket must accept requests only from the corporate IP range.',['Bucket policy with an aws:SourceIp condition','Security group on S3','NACL','CloudFront geo restriction'],0,'Condition keys restrict by source IP.'],
+  ['IAM','A user\'s policy allows s3:*, but the bucket policy explicitly denies DeleteObject. Can the user delete?',['No, explicit Deny wins','Yes, identity policies win','Yes, if MFA is used','Only in the same Region'],0,'An explicit Deny always overrides an Allow.'],
+  ['IAM','Find buckets, roles and keys shared with principals outside the organization.',['IAM Access Analyzer','Credential report','Trusted Advisor only','CloudWatch'],0,'Access Analyzer reports external access.'],
+  ['Organizations','No account in the organization may use Regions outside the EU.',['SCP that denies actions outside EU Regions','IAM policy in each account','AWS Config rule','Permission boundaries'],0,'SCPs enforce guardrails across accounts.'],
+  ['Organizations','An SCP allows EC2, but a user has no IAM policy. Can the user launch instances?',['No, SCPs don\'t grant permissions','Yes, the SCP allows it','Only the root user can','Yes, in the management account'],0,'SCPs only set the maximum.'],
+  ['Organizations','A bucket must be readable by every account in the organization, including future ones.',['aws:PrincipalOrgID condition in the bucket policy','List every account ID','Make the bucket public','Use RAM'],0,'PrincipalOrgID covers all current and future member accounts.'],
+  ['Organizations','Quickly set up a governed multi-account environment with guardrails and central logging.',['AWS Control Tower','Create accounts manually','AWS Config only','IAM Identity Center only'],0,'Control Tower automates the landing zone.'],
+  ['Organizations','Several accounts must launch resources into centrally managed VPC subnets.',['Share the subnets with AWS RAM','VPC peering','Transit Gateway','Copy the VPC'],0,'RAM shares subnets across accounts.'],
+  ['Organizations','Member accounts must be prevented from stopping CloudTrail.',['SCP denying cloudtrail:StopLogging and DeleteTrail','IAM password policy','Config rule only','GuardDuty'],0,'SCPs apply even to member account admins.'],
+  ['Encryption','Regulations require single-tenant HSMs and exclusive control of keys (FIPS 140-2 Level 3).',['AWS CloudHSM','KMS with AWS managed keys','Secrets Manager','ACM'],0,'CloudHSM gives dedicated HSMs only you control.'],
+  ['Encryption','RDS passwords must rotate automatically.',['AWS Secrets Manager','Parameter Store SecureString','KMS key rotation','IAM password policy'],0,'Secrets Manager has built-in RDS rotation.'],
+  ['Encryption','Store application config values cheaply, some encrypted.',['SSM Parameter Store (SecureString)','Secrets Manager for everything','DynamoDB','S3 with SSE-C'],0,'Parameter Store standard tier is free.'],
+  ['Encryption','An encrypted EBS snapshot must be shared with another account.',['Encrypt with a customer managed key and allow the account in its key policy','Share the AWS managed key','Share the snapshot only','Decrypt first'],0,'AWS managed keys can\'t be shared across accounts.'],
+  ['Encryption','Data encrypted in one Region must be decrypted in another with the same key.',['KMS multi-Region keys','Copy the key ID','CloudHSM','SSE-S3'],0,'Multi-Region keys share key material across Regions.'],
+  ['Encryption','An app must encrypt 10 MB files with KMS.',['Envelope encryption with a data key (GenerateDataKey)','KMS Encrypt directly','SSE-C','ACM'],0,'KMS encrypts at most 4 KB directly.'],
+  ['Encryption','An ALB needs a free HTTPS certificate that renews automatically.',['AWS Certificate Manager','CloudHSM','Self-signed certificate on EC2','KMS'],0,'ACM public certificates are free and auto-renew.'],
+  ['Protection','SQL injection attempts must be blocked in front of an ALB.',['AWS WAF on the ALB','Security groups','NACLs','Shield Standard'],0,'WAF inspects HTTP requests.'],
+  ['Protection','One IP sends thousands of requests per minute to an API.',['WAF rate-based rule','Security group rule','Shield Standard','GuardDuty'],0,'Rate-based rules block floods.'],
+  ['Protection','The company needs DDoS experts on call and protection from scaling costs during attacks.',['AWS Shield Advanced','Shield Standard','AWS WAF only','GuardDuty'],0,'Shield Advanced includes the response team and cost protection.'],
+  ['Protection','The same WAF rules must apply to every account, including new ones.',['AWS Firewall Manager','WAF in each account manually','SCPs','Config rules'],0,'Firewall Manager enforces rules across the organization.'],
+  ['Protection','Outbound traffic from VPCs may only go to an approved list of domains.',['AWS Network Firewall','Security groups','NACLs','WAF'],0,'Network Firewall filters by domain.'],
+  ['Detection','Detect compromised credentials and crypto-mining activity in the account.',['Amazon GuardDuty','Amazon Inspector','Amazon Macie','AWS Config'],0,'GuardDuty finds threats in logs.'],
+  ['Detection','Find credit card numbers stored in S3 buckets.',['Amazon Macie','Amazon GuardDuty','Amazon Inspector','CloudTrail'],0,'Macie discovers sensitive data in S3.'],
+  ['Detection','Scan EC2 instances and ECR images for software vulnerabilities.',['Amazon Inspector','Amazon Macie','GuardDuty','Trusted Advisor'],0,'Inspector scans for CVEs.'],
+  ['Detection','Find out which user deleted an S3 bucket.',['AWS CloudTrail','AWS Config','VPC Flow Logs','CloudWatch metrics'],0,'CloudTrail records API calls and who made them.'],
+  ['Detection','Flag any EBS volume that isn\'t encrypted and keep a history of changes.',['AWS Config rule','CloudTrail','GuardDuty','Inspector'],0,'Config evaluates and records resource configuration.'],
+  ['Detection','Security groups opened to 0.0.0.0/0 must be fixed automatically.',['Config rule with SSM Automation remediation','CloudTrail alarm only','GuardDuty','Macie'],0,'Config can trigger automatic remediation.'],
+  ['Detection','Respond automatically when GuardDuty reports a finding.',['EventBridge rule that invokes Lambda','GuardDuty blocks it by itself','Config rule','CloudTrail Insights'],0,'GuardDuty findings flow to EventBridge.'],
+  ['Detection','Prove that CloudTrail log files weren\'t modified.',['CloudTrail log file integrity validation','S3 versioning only','Macie','Config'],0,'Validation uses digest files to detect tampering.'],
+  ['Identity','Mobile app users must sign up and log in with Google or Facebook.',['Cognito user pool','Cognito identity pool alone','IAM users','IAM Identity Center'],0,'User pools handle sign-up, sign-in and social login.'],
+  ['Identity','A mobile app must upload each user\'s files directly to S3.',['Cognito identity pool for temporary AWS credentials','Embed access keys in the app','Public bucket','IAM user per customer'],0,'Identity pools vend scoped, temporary credentials.'],
+  ['Identity','Employees must sign in once with Okta to 40 AWS accounts.',['IAM Identity Center with Okta as the identity source','IAM users in each account','Cognito user pool','AD Connector'],0,'Identity Center provides workforce SSO across accounts.'],
+  ['Identity','Windows apps in AWS need Active Directory with a trust to on-prem AD.',['AWS Managed Microsoft AD','Simple AD','AD Connector','Cognito'],0,'Managed Microsoft AD supports trusts.'],
+  ['Identity','Users must sign in to AWS with existing on-prem AD accounts, without copying the directory.',['AD Connector','Simple AD','Cognito user pool','IAM users'],0,'AD Connector proxies to on-prem AD.']
+];
+
+const FC = [
+  ['IAM','Policy evaluation order?','Explicit Deny → then limits (SCP, boundary, session) → then an Allow is needed. Default is implicit deny.'],
+  ['IAM','Resource-based vs identity-based?','Resource-based: on the resource, names a principal, allows cross-account without assuming a role.'],
+  ['IAM','Permission boundary?','Maximum permissions for a user or role; grants nothing.'],
+  ['IAM','External ID?','Trust policy condition that prevents the confused deputy problem.'],
+  ['IAM','How does EC2 get a role?','Instance profile.'],
+  ['Organizations','Does an SCP apply to the management account?','No.'],
+  ['Organizations','Does an SCP grant permissions?','No, it only limits them.'],
+  ['Organizations','Allow every account in the org in a bucket policy?','aws:PrincipalOrgID condition.'],
+  ['Encryption','AWS managed key rotation?','Automatic every year.'],
+  ['Encryption','KMS key deletion window?','7–30 days.'],
+  ['Encryption','Max data KMS encrypts directly?','4 KB. Larger → envelope encryption.'],
+  ['Encryption','Share encrypted data across accounts?','Customer managed key with a key policy allowing the other account.'],
+  ['Encryption','Secrets Manager vs Parameter Store?','Secrets Manager rotates secrets (paid). Parameter Store: cheap config, no built-in rotation.'],
+  ['Protection','Where can WAF attach?','CloudFront, ALB, API Gateway, AppSync, Cognito user pools. Not NLB or EC2.'],
+  ['Protection','Shield Standard vs Advanced?','Standard: free, automatic L3/L4. Advanced: paid, 24/7 SRT, cost protection.'],
+  ['Detection','GuardDuty data sources?','CloudTrail, VPC Flow Logs, DNS logs (plus optional S3, EKS, RDS, runtime).'],
+  ['Detection','CloudTrail vs Config?','CloudTrail: who called which API. Config: resource configuration history and compliance.'],
+  ['Detection','CloudTrail default history?','90 days of management events in Event history.'],
+  ['Identity','User pool vs identity pool?','User pool: sign-in, JWTs. Identity pool: temporary AWS credentials.'],
+  ['Identity','AD Connector vs Managed AD?','Connector: proxy to on-prem AD. Managed AD: real AD in AWS, supports trusts.']
+];
+
+const NUMS = [
+  ['1 year','AWS managed key rotation'],['7–30 days','KMS key deletion waiting period'],['4 KB','Largest KMS direct encrypt'],
+  ['90 days','CloudTrail event history'],['FIPS 140-2 L3','CloudHSM clue'],['us-east-1','CloudFront ACM certificates']
+];
+
+const PAIRS = [
+  ['Identity policy','On the user/role','Resource policy','On the resource, cross-account'],
+  ['Permission boundary','Caps one user/role','SCP','Caps whole accounts'],
+  ['AWS managed key','No control, no sharing','Customer managed key','Key policy, cross-account'],
+  ['KMS','Multi-tenant, integrated','CloudHSM','Single-tenant, you only'],
+  ['Secrets Manager','Rotation built in','Parameter Store','Cheap config'],
+  ['WAF','Layer 7 web attacks','Shield','DDoS'],
+  ['Shield Standard','Free, automatic','Shield Advanced','SRT + cost protection'],
+  ['GuardDuty','Threats in logs','Inspector','Software vulnerabilities'],
+  ['Macie','PII in S3','GuardDuty','Threat detection'],
+  ['CloudTrail','Who called which API','Config','Resource config + compliance'],
+  ['User pool','Sign-in, JWT','Identity pool','AWS credentials'],
+  ['AD Connector','Proxy to on-prem AD','Managed Microsoft AD','Real AD in AWS']
+];
+
+const TRAPS = [
+  ['"No long-term credentials on EC2"','IAM role (instance profile)','Never access keys'],
+  ['"Access another account\'s resources"','Cross-account role (sts:AssumeRole)'],
+  ['"Third party assumes our role"','External ID'],
+  ['"Developers can\'t exceed their permissions when creating roles"','Permission boundary'],
+  ['"Allow only from our IP range"','aws:SourceIp condition'],
+  ['"Allow in one policy, Deny in another"','Deny wins'],
+  ['"Find resources shared externally"','IAM Access Analyzer'],
+  ['"Restrict Regions for all accounts"','SCP'],
+  ['"SCP allows it but the user can\'t"','SCPs don\'t grant; add an IAM policy'],
+  ['"Every account in the organization"','aws:PrincipalOrgID'],
+  ['"Governed landing zone"','Control Tower'],
+  ['"Share subnets / TGW across accounts"','AWS RAM'],
+  ['"Single-tenant HSM, FIPS 140-2 Level 3"','CloudHSM','Not KMS'],
+  ['"Rotate DB passwords automatically"','Secrets Manager','Not Parameter Store'],
+  ['"Share an encrypted snapshot with another account"','Customer managed KMS key','AWS managed keys can\'t be shared'],
+  ['"Same key in several Regions"','KMS multi-Region keys'],
+  ['"Encrypt more than 4 KB with KMS"','Envelope encryption'],
+  ['"Free, auto-renewing TLS certificate"','ACM'],
+  ['"SQL injection / XSS"','AWS WAF','Not security groups or NACLs'],
+  ['"Request floods from one IP"','WAF rate-based rule'],
+  ['"DDoS response team, cost protection"','Shield Advanced'],
+  ['"Same firewall rules in every account"','Firewall Manager'],
+  ['"Filter VPC egress by domain"','Network Firewall'],
+  ['"Compromised credentials, crypto-mining"','GuardDuty'],
+  ['"PII in S3"','Macie'],
+  ['"CVEs on EC2 / container images"','Inspector'],
+  ['"Who deleted it?"','CloudTrail','Not Config'],
+  ['"Is this resource compliant? History?"','AWS Config'],
+  ['"Auto-fix non-compliant resources"','Config + SSM Automation'],
+  ['"Central dashboard of findings"','Security Hub'],
+  ['"App users sign in / social login"','Cognito user pool'],
+  ['"App users need AWS credentials"','Cognito identity pool'],
+  ['"Workforce SSO to many accounts"','IAM Identity Center'],
+  ['"Use on-prem AD without syncing"','AD Connector']
+];
+
+App.start({
+  id: 'security',
+  title: 'Security Cheat Sheet',
+  learn: [['pick','Pick a service','',6],['iam','IAM','iam',14],['orgs','Organizations','orgs',10],['encrypt','Encryption','kms',14],
+          ['protect','WAF & Shield','waf',8],['detect','Detection','guardduty',12],['cognito','Cognito & AD','cognito',8]],
+  topics, questions: Q, cards: FC, nums: NUMS, pairs: PAIRS, traps: TRAPS
+});
+</script>
+</body>
+</html>
