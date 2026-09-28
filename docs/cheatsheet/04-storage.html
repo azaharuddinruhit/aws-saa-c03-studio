@@ -27,7 +27,7 @@ pick: {
     nodes: {
       start: {q:'Is it block storage for one EC2 instance, like a boot volume or a database disk?', s:'Block storage for one instance?', o:[['Yes','blk'],['No','fs']]},
       blk:   {q:'Do you need the fastest possible local disk, and can you lose the data on stop?', s:'Fastest disk, data disposable?', o:[['Yes','R:istore'],['No','blk2']]},
-      blk2:  {q:'Is it a critical database needing more than 16,000 IOPS or sub-millisecond latency?', s:'Critical DB, >16K IOPS?', o:[['Yes','R:io2'],['No','R:gp3']]},
+      blk2:  {q:'Does a critical database need consistent sub-millisecond latency (or more than 80,000 IOPS)?', s:'Critical DB, sub-ms latency?', o:[['Yes','R:io2'],['No','R:gp3']]},
       fs:    {q:'Must many servers mount the same file system at once?', s:'Shared file system?', o:[['Yes','fs2'],['No','obj']]},
       fs2:   {q:'Are the clients Linux (NFS)?', s:'Linux / NFS clients?', o:[['Yes','fs3'],['No','fs4']]},
       fs3:   {q:'Is it HPC or ML needing hundreds of GB/s, often with data in S3?', s:'HPC / ML throughput?', o:[['Yes','R:lustre'],['No','R:efs']]},
@@ -43,7 +43,7 @@ pick: {
     results: {
       istore:  {t:'EC2 instance store', ico:'ec2', w:'Local NVMe on the host: highest IOPS, but data is lost on stop or terminate.', alt:'Only for caches, scratch space or data replicated elsewhere.'},
       io2:     {t:'EBS io2 Block Express', ico:'ebs', w:'Up to 256,000 IOPS with sub-millisecond latency for critical databases.', alt:'Also the only type with Multi-Attach (with io1).'},
-      gp3:     {t:'EBS gp3', ico:'ebs', w:'The default SSD: 3,000 IOPS baseline, and you set IOPS and throughput separately from size.', alt:'~20% cheaper than gp2.'},
+      gp3:     {t:'EBS gp3', ico:'ebs', w:'The default SSD: 3,000 IOPS baseline, up to 80,000 IOPS, set separately from size.', alt:'~20% cheaper than gp2; single-digit ms latency.'},
       lustre:  {t:'FSx for Lustre', ico:'fsxlustre', w:'HPC file system with hundreds of GB/s that links to an S3 bucket.', alt:'Scratch for temporary data, Persistent for long-lived data.'},
       efs:     {t:'Amazon EFS', ico:'efs', w:'Serverless NFS for Linux, shared across AZs, grows and shrinks automatically.', alt:'Lifecycle to Infrequent Access cuts cost.'},
       fsxwin:  {t:'FSx for Windows File Server', ico:'fsxwin', w:'SMB file shares with Active Directory, NTFS permissions and DFS.', alt:'Multi-AZ option for high availability.'},
@@ -134,6 +134,7 @@ s3feat: {
     '"Audit key usage" or "control key rotation" → <b>SSE-KMS</b>, not SSE-S3.'
   ],
   details: {sum:'Batch Operations, consistency, CORS', facts:[
+    ['Multipart limits','Up to 10,000 parts of 5 MB–5 GB each, so part size ≥ object size ÷ 10,000.'],
     ['S3 Batch Operations','One action (copy, tag, restore, invoke Lambda) across billions of objects.'],
     ['Consistency','Strong read-after-write consistency for all operations.'],
     ['CORS','Needed when a browser page on another domain calls the bucket.'],
@@ -149,11 +150,12 @@ ebs: {
   explain: [
     {tab:'Volume types', type:'compare', cols:[['','gp3'],['','io2 BE'],['','st1'],['','sc1']], rows:[
       ['Media','SSD','SSD','HDD','HDD'],
-      ['Max IOPS','16,000','256,000','500','250'],
-      ['Max MiB/s','1,000','4,000','500','250'],
+      ['Max IOPS','80,000','256,000','500','250'],
+      ['Max MiB/s','2,000','4,000','500','250'],
+      ['Latency','Single-digit ms','Sub-millisecond','—','—'],
       ['Boot volume','Yes','Yes','No','No'],
       ['Pick when','Default','Critical DBs, Multi-Attach','Big data, logs','Cheapest, cold']],
-      aid:'SSD = IOPS (random, small I/O). HDD = throughput (large, sequential I/O). gp3 numbers are the exam values.'},
+      aid:'SSD = IOPS (random, small I/O). HDD = throughput (large, sequential I/O). gp3 now reaches 80,000 IOPS, so pick io2 for <b>consistent sub-millisecond latency</b>, not just IOPS.'},
     {tab:'Snapshots', type:'list', items:[
       ['Incremental','Only changed blocks after the first snapshot; stored in S3 by AWS.'],
       ['Restore anywhere','New volume in any AZ; copy the snapshot to another Region (and re-encrypt).'],
@@ -177,6 +179,8 @@ ebs: {
   details: {sum:'gp2, RAID, durability', facts:[
     ['gp2 vs gp3','gp2 IOPS grow with size (3 IOPS per GiB). gp3 sets IOPS and throughput independently and costs ~20% less.'],
     ['RAID 0','Stripe volumes for more IOPS than one volume gives.'],
+    ['io1 ratio','Up to 50 provisioned IOPS per GiB, so high IOPS needs a big enough volume.'],
+    ['Instance limits','The instance\'s own EBS bandwidth caps performance too; size both together.'],
     ['io2 durability','99.999%, versus 99.8–99.9% for other types.'],
     ['Instance store vs EBS','Instance store is faster but lost on stop; EBS persists.']
   ]}
@@ -298,7 +302,7 @@ const Q = [
   ['S3 features','New objects must be copied automatically to a bucket in another Region for DR.',['Cross-Region Replication with versioning on both buckets','Same-Region Replication','S3 Lifecycle rule','S3 Inventory'],0,'CRR copies new objects to another Region; both buckets need versioning.'],
   ['S3 features','Millions of objects already in the bucket must be copied to a new replica bucket.',['S3 Batch Replication','Enable CRR only','S3 Inventory','Transfer Acceleration'],0,'Replication rules only cover new objects. Batch Replication copies existing ones.'],
   ['S3 features','EC2 instances in a private subnet must reach S3 without internet access and without extra cost.',['Gateway VPC endpoint for S3','NAT gateway','Interface endpoint in every AZ','Internet gateway'],0,'Gateway endpoints for S3 are free and keep traffic private.'],
-  ['EBS','A database needs 100,000 IOPS with sub-millisecond latency.',['io2 Block Express','gp3','st1','Instance store only'],0,'io2 Block Express reaches 256,000 IOPS. gp3 tops out at 16,000 (exam value).'],
+  ['EBS','A database needs 100,000 IOPS with sub-millisecond latency.',['io2 Block Express','gp3','st1','Instance store only'],0,'io2 Block Express gives consistent sub-millisecond latency and up to 256,000 IOPS; gp3 (up to 80,000 IOPS) targets single-digit ms latency.'],
   ['EBS','Most cost-effective volume for general workloads needing 5,000 IOPS on a small volume.',['gp3 with provisioned IOPS','gp2 sized large enough','io2','sc1'],0,'gp3 sets IOPS independently of size and costs less than gp2.'],
   ['EBS','Sequential log processing needs high throughput at low cost; it is not a boot volume.',['st1','gp3','io2','sc1 as the boot volume'],0,'Throughput-optimized HDD fits large sequential I/O.'],
   ['EBS','An EBS volume must be used by an instance in a different AZ.',['Snapshot it and create a volume in the target AZ','Detach and attach it in the other AZ','Enable Multi-Attach','Move it with DataSync'],0,'Volumes are AZ-locked. Snapshots can be restored in any AZ.'],
@@ -334,7 +338,7 @@ const FC = [
   ['S3 features','What does replication require?','Versioning on both buckets. Only new objects unless you use Batch Replication.'],
   ['S3 features','SSE-S3 vs SSE-KMS?','SSE-S3: S3-managed keys (default). SSE-KMS: your KMS keys, audited in CloudTrail.'],
   ['S3 features','Presigned URL?','Time-limited access to a private object, using the signer\'s permissions.'],
-  ['EBS','gp3 baseline and max?','Baseline 3,000 IOPS and 125 MiB/s at any size; up to 16,000 IOPS (exam value).'],
+  ['EBS','gp3 baseline and max?','Baseline 3,000 IOPS and 125 MiB/s at any size; up to 80,000 IOPS and 2,000 MiB/s. Single-digit ms latency.'],
   ['EBS','io2 Block Express max?','256,000 IOPS, 4,000 MiB/s, sub-millisecond latency.'],
   ['EBS','Which types can boot?','SSD types (gp2, gp3, io1, io2). Not st1 or sc1.'],
   ['EBS','Multi-Attach?','io1/io2 only, up to 16 Nitro instances in one AZ.'],
@@ -352,7 +356,7 @@ const NUMS = [
   ['11 9s','S3 durability'],['5 TB','Largest S3 object'],['5 GB','Largest single PUT'],['100 MB','Use multipart above'],
   ['3,500 / 5,500','PUT / GET per second per prefix'],['30 · 90 · 180 d','Minimum days: IA · Glacier · Deep Archive'],
   ['1–5 min','Glacier expedited retrieval'],['12 h / 48 h','Deep Archive standard / bulk'],['3,000 · 125','gp3 baseline IOPS · MiB/s'],
-  ['16,000','gp3 max IOPS (exam value)'],['256,000','io2 Block Express max IOPS'],['16','Multi-Attach instances (io1/io2)'],['15 min','S3 RTC replication SLA']
+  ['80,000','gp3 max IOPS'],['50 per GiB','io1 provisioned IOPS ratio'],['256,000','io2 Block Express max IOPS'],['16','Multi-Attach instances (io1/io2)'],['15 min','S3 RTC replication SLA']
 ];
 
 const PAIRS = [

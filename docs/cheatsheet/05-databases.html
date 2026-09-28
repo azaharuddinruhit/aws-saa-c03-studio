@@ -43,7 +43,7 @@ pick: {
       redshift:  {t:'Amazon Redshift', ico:'redshift', w:'Columnar data warehouse for complex SQL analytics (OLAP) at petabyte scale.', alt:'SQL directly on S3 files, pay per query → Athena.'},
       rds:       {t:'Amazon RDS', ico:'rds', w:'Managed MySQL, PostgreSQL, MariaDB, Oracle, SQL Server or Db2.', alt:'Multi-AZ for HA, read replicas for read scaling.'},
       aurora:    {t:'Amazon Aurora', ico:'aurora', w:'MySQL/PostgreSQL-compatible, 6-way storage across 3 AZs, up to 15 replicas.', alt:'Global Database for multi-Region reads and fast Region failover.'},
-      aurorasls: {t:'Aurora Serverless v2', ico:'aurora', w:'Capacity scales in seconds with the load; pay for what you use.', alt:'Good for spiky, intermittent or unpredictable workloads.'},
+      aurorasls: {t:'Aurora Serverless v2', ico:'aurora', w:'Capacity scales in seconds with the load; pay for what you use.', alt:'Can scale to 0 ACUs and auto-pause when idle.'},
       dax:       {t:'DynamoDB + DAX', ico:'dynamodb', w:'DAX caches DynamoDB reads in memory: microseconds, same API.', alt:'Only for DynamoDB; other databases use ElastiCache.'},
       dynamodb:  {t:'Amazon DynamoDB', ico:'dynamodb', w:'Serverless key-value/document database with single-digit ms latency.', alt:'Global Tables for multi-Region active-active.'},
       memorydb:  {t:'Amazon MemoryDB', ico:'memorydb', w:'Redis-compatible in-memory database with Multi-AZ durability.', alt:'Use it as the primary database, not only as a cache.'},
@@ -110,7 +110,7 @@ aurora: {
       ['Custom endpoint','A chosen group of instances, e.g. larger ones for analytics.'],
       ['Instance endpoint','One specific instance, for troubleshooting.']]},
     {tab:'Features', type:'list', items:[
-      ['Serverless v2','Capacity (ACUs) scales in seconds in small steps; pay per use.'],
+      ['Serverless v2','Capacity (ACUs) scales in seconds; can scale to 0 ACUs with auto-pause, so idle dev databases cost almost nothing.'],
       ['Global Database','1 primary Region + up to 5 read-only secondaries; storage replication under 1 s.'],
       ['Cloning','Copy-on-write clone in minutes: cheap test copies of production.'],
       ['Backtrack','Rewind an Aurora MySQL cluster in place, without restoring a backup.'],
@@ -161,7 +161,7 @@ dynamodb: {
     '<b>LSIs can only be created with the table.</b> A new access pattern later → GSI.'
   ],
   details: {sum:'partition keys, consistency, access', facts:[
-    ['Hot partitions','Pick a high-cardinality partition key to spread load.'],
+    ['Hot partitions','One partition (so one item) caps at 1,000 WCU and 3,000 RCU/s in any capacity mode. Spread load with a high-cardinality key or write sharding.'],
     ['Consistency','Reads are eventually consistent by default (half the cost); strong reads on request.'],
     ['Kinesis Data Streams for DynamoDB','Longer retention and more consumers than DynamoDB Streams.'],
     ['Table classes','Standard-IA for rarely accessed tables.'],
