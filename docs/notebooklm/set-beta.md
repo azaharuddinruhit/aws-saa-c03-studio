@@ -57,7 +57,7 @@ A company is building a new web application on AWS. The application needs to con
 ---
 
 ## BETA-003: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
 
 ### Question
 An analytics company wants to deploy a custom extract, transform, and load (ETL) solution as a containerized application on AWS. The application requires high-performance access to files that are in a centralized repository. File processing can take up to 1 hour to finish. Which solution will meet these requirements?
@@ -111,7 +111,7 @@ A media company stores customer-uploaded videos in an Amazon S3 bucket with the 
 ---
 
 ## BETA-005: Disaster Recovery & Migration
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
 
 ### Question
 A company uses AWS Backup to create weekly backups of Amazon EC2 instances. The company needs to confirm that restored instances function correctly by running automated tests after each restore completes. The company needs an event-driven solution that minimizes operational overhead. Which solution will meet these requirements?
@@ -192,7 +192,7 @@ A financial company wants to automate the failover of a multi-Region application
 ---
 
 ## BETA-008: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability
 
 ### Question
 A company is building a gaming application that needs to send unique events to multiple leaderboards, player matchmaking systems, and authentication services concurrently. The company requires an AWS-based event-driven system that delivers events in order and supports a publish-subscribe model. The gaming application must be the publisher, and the leaderboards, matchmaking systems, and authentication services must be the subscribers. Which solution will meet these requirements?
@@ -383,7 +383,7 @@ A solutions architect is designing the cloud architecture for a new stateless ap
 ---
 
 ## BETA-015: Disaster Recovery & Migration
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
 
 ### Question
 A company recently launched a new product that is highly available in one AWS Region. The product consists of an application that runs on Amazon ECS, a public Application Load Balancer (ALB), and an Amazon DynamoDB table. The company wants a solution that will make the application highly available across Regions. Which combination of steps will meet these requirements? (Select THREE.)
@@ -522,7 +522,7 @@ A company needs a backup strategy for a Multi-AZ deployment for Amazon RDS for S
 ---
 
 ## BETA-020: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
 
 ### Question
 An application team uses an organization in AWS Organizations to manage multiple AWS accounts in a dedicated organizational unit (OU). The accounts do not host production workloads. The application team is implementing an e-commerce solution by using Amazon EC2 instances. A solutions architect needs to implement controls to prevent the application team from exceeding the project budget for the application. Which solution will meet this requirement?
@@ -549,7 +549,7 @@ An application team uses an organization in AWS Organizations to manage multiple
 ---
 
 ## BETA-021: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 
 ### Question
 A company must ensure that all Amazon EBS volumes are encrypted. A recent security audit found multiple EBS volumes that were unencrypted. The company has over 100,000 EBS volumes. The company wants to minimize the cost and operational effort required to check encryption on all existing and future EBS volumes. Which solution will meet these requirements?
@@ -657,7 +657,7 @@ A company recently launched a new service that processes medical images. The com
 ---
 
 ## BETA-025: Application Integration
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security, Cost Optimization
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Cost Optimization
 
 ### Question
 A solutions architect is designing an asynchronous application to process credit card data validation requests for a bank. The application must be secure and be able to process each request at least once. Which solution will meet these requirements MOST cost-effectively?
@@ -684,7 +684,7 @@ A solutions architect is designing an asynchronous application to process credit
 ---
 
 ## BETA-026: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency
 
 ### Question
 An online gaming company hosts its platform on Amazon EC2 instances behind Network Load Balancers (NLBs) across multiple AWS Regions. The NLBs can route requests to targets over the internet. The company wants to improve the customer playing experience by reducing end-to-end load time for its global customer base. Which solution will meet these requirements?
@@ -711,7 +711,7 @@ An online gaming company hosts its platform on Amazon EC2 instances behind Netwo
 ---
 
 ## BETA-027: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
 
 ### Question
 A video streaming service runs on Amazon EC2 instances behind an Application Load Balancer (ALB). The ALB serves as the origin for an Amazon CloudFront distribution. Video thumbnails are stored in an Amazon S3 bucket. The service needs to deliver device-appropriate thumbnail dimensions. The service must serve WebP format to supported browsers and JPEG format to unsupported browsers based on the Accept header. Which solution will meet these requirements with the LEAST operational overhead?
@@ -792,7 +792,7 @@ A company runs an application on premises. The application needs to periodically
 ---
 
 ## BETA-030: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** hard · **Pillars:** Cost Optimization
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
 
 ### Question
 A solutions architect reviews AWS Cost Explorer for an application. The solutions architect observes that Amazon EC2 amortized costs decreased by 15% this month. However, EC2 unblended costs increased by 20% compared to last month. The solutions architect purchased EC2 Reserved Instances 3 months ago to cover baseline workloads. What should the solutions architect do to reduce the EC2 costs?
@@ -819,7 +819,7 @@ A solutions architect reviews AWS Cost Explorer for an application. The solution
 ---
 
 ## BETA-031: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
 
 ### Question
 An e-commerce company is building a near real-time bidding platform on AWS. The company deploys the application as a target of an Application Load Balancer (ALB). The application stores bidding and catalog information in an Amazon DynamoDB table. The DynamoDB table receives heavy read loads. The company wants to add a feature to the application that allows customers to view the items that have received the most bids in the previous 24 hours. The company needs a solution to ensure that the bid prices are updated in near real time. The solution must not affect the performance of the DynamoDB table. Which solution will meet these requirements with the LEAST operational overhead?
@@ -873,7 +873,7 @@ A company is planning to migrate multiple workloads to Amazon EC2 instances and 
 ---
 
 ## BETA-033: Networking & Content Delivery
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
 
 ### Question
 A company operates a citizen services portal on Amazon EC2 instances in an EC2 Auto Scaling group behind Amazon Route 53. Users report timeout errors when submitting applications. A network team identifies that Route 53 returns all configured IP addresses regardless of instance status. The statuses include instances that are undergoing maintenance. The company needs a solution that automatically manages traffic distribution to healthy instances. Which solution will meet these requirements?
@@ -981,7 +981,7 @@ A marketing team wants to build a campaign for an upcoming multi-sport event. Th
 ---
 
 ## BETA-037: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 
 ### Question
 A company runs several custom applications on Amazon EC2 instances. Each team within the company manages its own set of applications and backups. To comply with regulations, the company must be able to report on the status of backups and ensure that backups are encrypted. Which solution will meet these requirements with the LEAST effort?
@@ -1008,7 +1008,7 @@ A company runs several custom applications on Amazon EC2 instances. Each team wi
 ---
 
 ## BETA-038: Storage & Backup
-**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency
 
 ### Question
 An advertising company stores terabytes of data in an Amazon S3 data lake. The company wants to build its own foundation model (FM) and has deployed a training cluster on AWS. The company loads file-based data from Amazon S3 to the training cluster to train the FM. The company wants to reduce data loading time to optimize the overall deployment cycle. The company needs a storage solution that is natively integrated with Amazon S3. The solution must be scalable and provide high throughput. Which storage solution will meet these requirements?
@@ -1116,7 +1116,7 @@ A company uses on-premises virtual machines (VMs) to run a Kubernetes cluster. T
 ---
 
 ## BETA-042: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 
 ### Question
 A company runs a web application in an AWS account. The company also runs a development environment and a production environment in the same account. A solutions architect needs to isolate the application environment and the application resources. The environments must not communicate with each other. The solutions architect must isolate the administration of each environment. Which solution will meet these requirements?
@@ -1170,7 +1170,7 @@ A global e-commerce company is designing a three-tier application on AWS. The ap
 ---
 
 ## BETA-044: Compute & Serverless
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Cost Optimization
 
 ### Question
 A company deployed a three-tier web application in a single Availability Zone in the us-east-1 Region on a single Amazon EC2 instance. Usage of the application is growing. A solutions architect needs to ensure that the application can handle the growing amount of traffic. The solutions architect also needs to ensure the application is resilient. Which solution will meet these requirements MOST cost-effectively?
@@ -1305,7 +1305,7 @@ A company needs a data encryption solution for a machine learning (ML) process. 
 ---
 
 ## BETA-049: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
 
 ### Question
 A solutions architect is building a payment processing application based on AWS Lambda functions. The application runs in private subnets across multiple Availability Zones. The application processes millions of transactions each day. The solutions architect must ensure that the application does not process duplicate payments. Which solution will meet these requirements?
@@ -1359,7 +1359,7 @@ A company runs a large fleet of Amazon EC2 instances. The company's security tea
 ---
 
 ## BETA-051: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 
 ### Question
 A company is developing a highly sensitive application on AWS. The application uses SSH to access Amazon EC2 instances. A security team needs to centrally manage all user access to the application. User management must be fully automated. The team needs to eliminate manual distribution of SSH keys. Which solution will meet these requirements?
@@ -1523,7 +1523,7 @@ A company operates an application that analyzes customer purchase history and pr
 ---
 
 ## BETA-057: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
 
 ### Question
 A company is planning to migrate its on-premises data center to AWS. Each of the company's business units will migrate to a separate AWS account under one organization in AWS Organizations. To comply with local regulations, one of the accounts must use the ap-northeast-3 Region only. The company must not connect VPCs in this account to the internet. Users in this account must not be able to remove the restrictions. Which combination of solutions will meet these requirements? (Select TWO.)
@@ -1633,7 +1633,7 @@ A company runs a database in which application servers write transaction logs an
 ---
 
 ## BETA-061: Databases & Caching
-**Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization
 
 ### Question
 A company uses Amazon DynamoDB as the data store for an e-commerce application. Inventory management tables have very predictable workloads. Workloads for order placement tables vary significantly and can be unpredictable. All tables use provisioned mode and are read-heavy. The company wants to optimize DynamoDB costs for the application. Which solution will meet this requirement?
@@ -1714,7 +1714,7 @@ A company is building a new application. The application runs on Amazon EC2 inst
 ---
 
 ## BETA-064: Databases & Caching
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
 
 ### Question
 A logistics company uses Amazon DocumentDB global clusters to run a package tracking system. The system replicates shipping records across three AWS Regions to provide real-time tracking visibility to customers worldwide. The company needs to perform planned maintenance to upgrade the primary Region's underlying infrastructure. The company needs to maintain application availability during the planned maintenance. Which solution will meet these requirements?
@@ -1741,7 +1741,7 @@ A logistics company uses Amazon DocumentDB global clusters to run a package trac
 ---
 
 ## BETA-065: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
 
 ### Question
 A media company hosts a video streaming platform on AWS. The company uses Amazon EC2, Amazon S3, and Amazon CloudFront. The company wants to protect its AWS workloads from DDoS attacks and filter malicious web traffic. The solution must provide detailed insights about threats and automatically mitigate threats in real time. Which solution will meet these requirements?
@@ -1795,7 +1795,7 @@ A company is planning to use an Amazon CloudFront distribution to deploy an appl
 ---
 
 ## BETA-067: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
 
 ### Question
 A company has a web application that retrieves customer financial information. The application runs on Amazon EC2 instances. The application uses an Amazon RDS for PostgreSQL database to store the confidential information. The company needs to encrypt network traffic between the application and the database. Which solution will meet these requirements?
@@ -1822,23 +1822,23 @@ A company has a web application that retrieves customer financial information. T
 ---
 
 ## BETA-068: Networking & Content Delivery
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
 
 ### Question
 A company has a stateless public web application that is based on AWS Lambda functions that are invoked by an Amazon API Gateway REST API. To achieve high availability, the company deploys the application to multiple AWS Regions. The company needs a solution to route application traffic to multiple Regions. Which solution will meet this requirement?
 
 ### Options
-- **A.** Configure an Amazon Route 53 DNS record that uses a failover routing policy. Create health checks for each application endpoint. Use an active-active failover configuration.
+- **A.** Configure Amazon Route 53 latency-based routing records for the API endpoint in each Region. Create health checks for each application endpoint so that Route 53 routes traffic only to healthy Regions (active-active failover).
 - **B.** Create an Amazon Route 53 Resolver outbound endpoint. Configure clients to use the Resolver endpoint to resolve the local REST API DNS name.
 - **C.** Create a transit gateway. Attach the transit gateway to the REST API endpoint in each Region. Configure the transit gateway to route requests.
 - **D.** Create an Application Load Balancer in the primary Region. Create a target group that includes the REST API endpoint hostnames for each Region.
 
 ### Correct answer: A
 
-**Summary:** Multi-Region routing to Regional endpoints is done with Route 53 records plus health checks.
+**Summary:** Active-active routing across Regions uses Route 53 latency, weighted or multivalue records with health checks; the failover routing policy is active-passive.
 
 ### Explanation
-- A is correct: Route 53 records with health checks send traffic to every healthy Regional API endpoint and stop sending to a failed Region.
+- A is correct: latency-based records with health checks send each user to the nearest healthy Regional API endpoint and stop sending traffic to a failed Region. A failover routing policy would not fit, because it is active-passive: all traffic goes to one primary Region until that Region fails.
 - B is wrong: a Resolver outbound endpoint forwards DNS queries from a VPC to other resolvers; it does not route client traffic.
 - C is wrong: transit gateways connect VPCs and networks; they cannot attach to API Gateway endpoints.
 - D is wrong: an ALB in one Region is a single-Region point of failure and cannot target API endpoints in other Regions.
@@ -1849,7 +1849,7 @@ A company has a stateless public web application that is based on AWS Lambda fun
 ---
 
 ## BETA-069: Storage & Backup
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Operational Excellence
 
 ### Question
 A company operates a multi-account AWS environment in the us-west-2 Region. The environment has separate accounts for development, staging, and production workloads. Each account delivers application logs to an Amazon S3 bucket in each account. The company needs to consolidate all application logs into one S3 bucket in a security account. All source buckets and the destination bucket have object versioning enabled. The solution must continuously capture new logs as the logs are generated. Which solution will meet these requirements with the LEAST operational overhead?
@@ -1986,7 +1986,7 @@ A company hosts a multi-tier inventory reporting application on AWS. The company
 ---
 
 ## BETA-074: Networking & Content Delivery
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
 
 ### Question
 A solutions architect is designing a scalable web application that runs on Amazon EC2. The application users must stay on the same server after login. The application must be protected from common exploits. Which solution will meet these requirements?
@@ -2013,7 +2013,7 @@ A solutions architect is designing a scalable web application that runs on Amazo
 ---
 
 ## BETA-075: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
 
 ### Question
 A company has an e-commerce application that users access through multiple mobile apps and web applications. The company needs a solution that will receive requests from the mobile apps and web applications through an API Request traffic volume varies significantly throughout each day. Traffic spikes during sales events. The solution must be loosely coupled and ensure that no requests are lost. Which solution will meet these requirements?
@@ -2233,7 +2233,7 @@ A company performs a security review of its AWS workloads and finds that all the
 ---
 
 ## BETA-083: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
 
 ### Question
 An online marketplace uses an Application Load Balancer (ALB) as the origin for an Amazon CloudFront distribution. Amazon EC2 instances behind the ALB serve the application. Sellers upload product images to an Amazon S3 bucket. The company recently expanded internationally and needs to dynamically add AWS Region-specific compliance watermarks to images based on the location of the viewer. The solution must not store separate copies for each Region. Which solution will meet these requirements with the LEAST operational overhead?
@@ -2588,7 +2588,7 @@ A company wants to design a microservices architecture for an application. Each 
 ---
 
 ## BETA-096: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
 
 ### Question
 A healthcare company receives de-identified medical records from hospital partners that upload data to a centralized Amazon S3 bucket. A regulatory agency requires encryption of all stored health information. Which solution will meet these requirements?
@@ -2669,10 +2669,10 @@ A company needs to use container images for a new project. A development team re
 ---
 
 ## BETA-099: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** hard · **Pillars:** Cost Optimization, Performance Efficiency
+**Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
 
 ### Question
-A company stores image files in an Amazon S3 bucket. Development teams from multiple AWS accounts need to pull the image files for their application deployments. The company wants to provide access to the image files while reducing costs. Which solution will meet these requirements?
+A company stores image files in an Amazon S3 bucket in one AWS Region. Development teams in multiple AWS accounts that the company owns need to pull the image files repeatedly for their application deployments, from pipelines that run in other AWS Regions and in on-premises data centers. The company wants to provide access to the image files while reducing costs. Which solution will meet these requirements?
 
 ### Options
 - **A.** Configure an interface VPC endpoint for the bucket.
@@ -2682,15 +2682,15 @@ A company stores image files in an Amazon S3 bucket. Development teams from mult
 
 ### Correct answer: C
 
-**Summary:** CloudFront caches frequently downloaded S3 objects, reducing S3 requests, and transfer from S3 to CloudFront is free.
+**Summary:** For repeated downloads from outside the bucket's Region, CloudFront cuts cost: S3-to-CloudFront transfer is free and cached pulls skip S3 entirely.
 
 ### Explanation
 - A is wrong: an interface endpoint adds hourly and per-GB charges, and it only gives private network access; it does not reduce the number of downloads or their cost.
-- B is wrong: Requester Pays only shifts the cost to the other teams; it does not reduce the total.
-- C is correct: CloudFront serves repeated pulls from its cache, which cuts S3 requests; transfer from S3 to CloudFront is free, and CloudFront data transfer out costs less than transfer out directly from S3.
+- B is wrong: Requester Pays only moves the request and transfer charges to the teams' own accounts. The company owns those accounts, so its total cost does not go down.
+- C is correct: the pulls come from other Regions and from on premises, so every direct download from S3 is charged as data transfer out. CloudFront serves repeated pulls from its cache, transfer from S3 to CloudFront is free, and CloudFront data transfer out costs less than transfer out directly from S3.
 - D is wrong: PrivateLink-only access adds endpoint charges and does not reduce the cost of repeated downloads.
 
-**Key phrases:** multiple AWS accounts · pull the image files · reducing costs
+**Key phrases:** multiple AWS accounts · that the company owns · pull the image files repeatedly · other AWS Regions and in on-premises data centers · reducing costs
 **Hint:** Many teams pull the same files again and again. What serves repeated downloads from a cache instead of from S3 each time?
 
 ---

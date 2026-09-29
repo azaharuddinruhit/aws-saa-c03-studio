@@ -78,7 +78,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 3,
     "task": "3.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "An analytics company wants to deploy a custom extract, transform, and load (ETL) solution as a containerized application on AWS. The application requires high-performance access to files that are in a centralized repository. File processing can take up to 1 hour to finish. Which solution will meet these requirements?",
     "hint": "Lambda stops at 15 minutes. Which container platform runs for an hour without servers to manage and can mount a shared file system?",
     "keywords": [
@@ -152,7 +152,7 @@
     "domain": "Disaster Recovery & Migration",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company uses AWS Backup to create weekly backups of Amazon EC2 instances. The company needs to confirm that restored instances function correctly by running automated tests after each restore completes. The company needs an event-driven solution that minimizes operational overhead. Which solution will meet these requirements?",
     "hint": "AWS Backup emits an event when a restore job finishes. What reacts to events, and what runs commands on instances?",
     "keywords": [
@@ -262,7 +262,7 @@
     "domain": "Application Integration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "easy",
+    "difficulty": "medium",
     "question": "A company is building a gaming application that needs to send unique events to multiple leaderboards, player matchmaking systems, and authentication services concurrently. The company requires an AWS-based event-driven system that delivers events in order and supports a publish-subscribe model. The gaming application must be the publisher, and the leaderboards, matchmaking systems, and authentication services must be the subscribers. Which solution will meet these requirements?",
     "hint": "You need both publish-subscribe fan-out and ordering. Which service offers both?",
     "keywords": [
@@ -522,7 +522,7 @@
     "domain": "Disaster Recovery & Migration",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company recently launched a new product that is highly available in one AWS Region. The product consists of an application that runs on Amazon ECS, a public Application Load Balancer (ALB), and an Amazon DynamoDB table. The company wants a solution that will make the application highly available across Regions. Which combination of steps will meet these requirements? (Select THREE.)",
     "hint": "For each tier ask: what runs in the second Region, how does data get there, and how does traffic shift?",
     "keywords": [
@@ -713,7 +713,7 @@
     "domain": "Cost Management & Optimization",
     "exam_domain": 4,
     "task": "4.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "An application team uses an organization in AWS Organizations to manage multiple AWS accounts in a dedicated organizational unit (OU). The accounts do not host production workloads. The application team is implementing an e-commerce solution by using Amazon EC2 instances. A solutions architect needs to implement controls to prevent the application team from exceeding the project budget for the application. Which solution will meet this requirement?",
     "hint": "You need to stop spending, not just report it. Which service can take an action when a budget is reached?",
     "keywords": [
@@ -748,7 +748,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company must ensure that all Amazon EBS volumes are encrypted. A recent security audit found multiple EBS volumes that were unencrypted. The company has over 100,000 EBS volumes. The company wants to minimize the cost and operational effort required to check encryption on all existing and future EBS volumes. Which solution will meet these requirements?",
     "hint": "You need one managed check that evaluates every volume, old and new, and records which ones fail.",
     "keywords": [
@@ -894,7 +894,7 @@
     "domain": "Application Integration",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "question": "A solutions architect is designing an asynchronous application to process credit card data validation requests for a bank. The application must be secure and be able to process each request at least once. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "At-least-once delivery is what a standard queue already gives you. Then ask which permission Lambda actually needs to read messages from a KMS-encrypted queue.",
     "keywords": [
@@ -931,7 +931,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "An online gaming company hosts its platform on Amazon EC2 instances behind Network Load Balancers (NLBs) across multiple AWS Regions. The NLBs can route requests to targets over the internet. The company wants to improve the customer playing experience by reducing end-to-end load time for its global customer base. Which solution will meet these requirements?",
     "hint": "Which service carries user traffic over the AWS global network from the nearest edge location to the best Regional endpoint?",
     "keywords": [
@@ -967,7 +967,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A video streaming service runs on Amazon EC2 instances behind an Application Load Balancer (ALB). The ALB serves as the origin for an Amazon CloudFront distribution. Video thumbnails are stored in an Amazon S3 bucket. The service needs to deliver device-appropriate thumbnail dimensions. The service must serve WebP format to supported browsers and JPEG format to unsupported browsers based on the Accept header. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Resizing and converting images needs code. Policies only manage headers; which option runs code at the edge?",
     "keywords": [
@@ -1077,7 +1077,7 @@
     "domain": "Cost Management & Optimization",
     "exam_domain": 4,
     "task": "4.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "question": "A solutions architect reviews AWS Cost Explorer for an application. The solutions architect observes that Amazon EC2 amortized costs decreased by 15% this month. However, EC2 unblended costs increased by 20% compared to last month. The solutions architect purchased EC2 Reserved Instances 3 months ago to cover baseline workloads. What should the solutions architect do to reduce the EC2 costs?",
     "hint": "Amortized cost spreads Reserved Instance fees over the term; unblended cost shows charges when they are billed. Rising unblended cost with lower amortized cost points to usage beyond the reservations.",
     "keywords": [
@@ -1113,7 +1113,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "question": "An e-commerce company is building a near real-time bidding platform on AWS. The company deploys the application as a target of an Application Load Balancer (ALB). The application stores bidding and catalog information in an Amazon DynamoDB table. The DynamoDB table receives heavy read loads. The company wants to add a feature to the application that allows customers to view the items that have received the most bids in the previous 24 hours. The company needs a solution to ensure that the bid prices are updated in near real time. The solution must not affect the performance of the DynamoDB table. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Ranking items by bids over a rolling 24 hours is a streaming aggregation. Which option computes it from the table's change data instead of reading the table?",
     "keywords": [
@@ -1188,7 +1188,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "easy",
+    "difficulty": "medium",
     "question": "A company operates a citizen services portal on Amazon EC2 instances in an EC2 Auto Scaling group behind Amazon Route 53. Users report timeout errors when submitting applications. A network team identifies that Route 53 returns all configured IP addresses regardless of instance status. The statuses include instances that are undergoing maintenance. The company needs a solution that automatically manages traffic distribution to healthy instances. Which solution will meet these requirements?",
     "hint": "Instances in an Auto Scaling group come and go. What tracks their health and sends traffic only to healthy ones?",
     "keywords": [
@@ -1332,7 +1332,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company runs several custom applications on Amazon EC2 instances. Each team within the company manages its own set of applications and backups. To comply with regulations, the company must be able to report on the status of backups and ensure that backups are encrypted. Which solution will meet these requirements with the LEAST effort?",
     "hint": "Which AWS Backup feature audits backups against controls such as \"encrypted\" and produces reports?",
     "keywords": [
@@ -1369,7 +1369,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 3,
     "task": "3.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "An advertising company stores terabytes of data in an Amazon S3 data lake. The company wants to build its own foundation model (FM) and has deployed a training cluster on AWS. The company loads file-based data from Amazon S3 to the training cluster to train the FM. The company wants to reduce data loading time to optimize the overall deployment cycle. The company needs a storage solution that is natively integrated with Amazon S3. The solution must be scalable and provide high throughput. Which storage solution will meet these requirements?",
     "hint": "Which high-performance file system can link directly to an S3 bucket?",
     "keywords": [
@@ -1513,7 +1513,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company runs a web application in an AWS account. The company also runs a development environment and a production environment in the same account. A solutions architect needs to isolate the application environment and the application resources. The environments must not communicate with each other. The solutions architect must isolate the administration of each environment. Which solution will meet these requirements?",
     "hint": "What is the strongest isolation boundary AWS offers for both network and administration?",
     "keywords": [
@@ -1588,7 +1588,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company deployed a three-tier web application in a single Availability Zone in the us-east-1 Region on a single Amazon EC2 instance. Usage of the application is growing. A solutions architect needs to ensure that the application can handle the growing amount of traffic. The solutions architect also needs to ensure the application is resilient. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "Resilience needs several Availability Zones; handling growth needs horizontal scaling that adds and removes instances.",
     "keywords": [
@@ -1773,7 +1773,7 @@
     "domain": "Application Integration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A solutions architect is building a payment processing application based on AWS Lambda functions. The application runs in private subnets across multiple Availability Zones. The application processes millions of transactions each day. The solutions architect must ensure that the application does not process duplicate payments. Which solution will meet these requirements?",
     "hint": "Which queue type deduplicates messages, and what protects you if processing is retried anyway?",
     "keywords": [
@@ -1845,7 +1845,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company is developing a highly sensitive application on AWS. The application uses SSH to access Amazon EC2 instances. A security team needs to centrally manage all user access to the application. User management must be fully automated. The team needs to eliminate manual distribution of SSH keys. Which solution will meet these requirements?",
     "hint": "Which option removes SSH keys and open inbound ports completely, with access controlled by IAM?",
     "keywords": [
@@ -2068,7 +2068,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company is planning to migrate its on-premises data center to AWS. Each of the company's business units will migrate to a separate AWS account under one organization in AWS Organizations. To comply with local regulations, one of the accounts must use the ap-northeast-3 Region only. The company must not connect VPCs in this account to the internet. Users in this account must not be able to remove the restrictions. Which combination of solutions will meet these requirements? (Select TWO.)",
     "hint": "Restrictions that account users cannot remove must come from outside the account: the organization.",
     "keywords": [
@@ -2220,7 +2220,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 4,
     "task": "4.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company uses Amazon DynamoDB as the data store for an e-commerce application. Inventory management tables have very predictable workloads. Workloads for order placement tables vary significantly and can be unpredictable. All tables use provisioned mode and are read-heavy. The company wants to optimize DynamoDB costs for the application. Which solution will meet this requirement?",
     "hint": "Match each table to a billing model: steady traffic suits a commitment, spiky traffic suits pay-per-request.",
     "keywords": [
@@ -2327,7 +2327,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A logistics company uses Amazon DocumentDB global clusters to run a package tracking system. The system replicates shipping records across three AWS Regions to provide real-time tracking visibility to customers worldwide. The company needs to perform planned maintenance to upgrade the primary Region's underlying infrastructure. The company needs to maintain application availability during the planned maintenance. Which solution will meet these requirements?",
     "hint": "Planned maintenance on the primary Region: move the primary role to another Region without losing data.",
     "keywords": [
@@ -2363,7 +2363,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A media company hosts a video streaming platform on AWS. The company uses Amazon EC2, Amazon S3, and Amazon CloudFront. The company wants to protect its AWS workloads from DDoS attacks and filter malicious web traffic. The solution must provide detailed insights about threats and automatically mitigate threats in real time. Which solution will meet these requirements?",
     "hint": "DDoS protection with detailed insights and automatic mitigation, plus web request filtering. That takes two services.",
     "keywords": [
@@ -2437,7 +2437,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "hard",
     "question": "A company has a web application that retrieves customer financial information. The application runs on Amazon EC2 instances. The application uses an Amazon RDS for PostgreSQL database to store the confidential information. The company needs to encrypt network traffic between the application and the database. Which solution will meet these requirements?",
     "hint": "RDS for PostgreSQL enforces SSL with a database parameter. Where do parameters live, and when does the change apply?",
     "keywords": [
@@ -2472,7 +2472,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company has a stateless public web application that is based on AWS Lambda functions that are invoked by an Amazon API Gateway REST API. To achieve high availability, the company deploys the application to multiple AWS Regions. The company needs a solution to route application traffic to multiple Regions. Which solution will meet this requirement?",
     "hint": "Which service routes users between Regions and can check each endpoint's health?",
     "keywords": [
@@ -2480,19 +2480,19 @@
       "route application traffic to multiple Regions"
     ],
     "options": {
-      "A": "Configure an Amazon Route 53 DNS record that uses a failover routing policy. Create health checks for each application endpoint. Use an active-active failover configuration.",
+      "A": "Configure Amazon Route 53 latency-based routing records for the API endpoint in each Region. Create health checks for each application endpoint so that Route 53 routes traffic only to healthy Regions (active-active failover).",
       "B": "Create an Amazon Route 53 Resolver outbound endpoint. Configure clients to use the Resolver endpoint to resolve the local REST API DNS name.",
       "C": "Create a transit gateway. Attach the transit gateway to the REST API endpoint in each Region. Configure the transit gateway to route requests.",
       "D": "Create an Application Load Balancer in the primary Region. Create a target group that includes the REST API endpoint hostnames for each Region."
     },
     "correct_answer": "A",
     "explanation": [
-      "A is correct: Route 53 records with health checks send traffic to every healthy Regional API endpoint and stop sending to a failed Region.",
+      "A is correct: latency-based records with health checks send each user to the nearest healthy Regional API endpoint and stop sending traffic to a failed Region. A failover routing policy would not fit, because it is active-passive: all traffic goes to one primary Region until that Region fails.",
       "B is wrong: a Resolver outbound endpoint forwards DNS queries from a VPC to other resolvers; it does not route client traffic.",
       "C is wrong: transit gateways connect VPCs and networks; they cannot attach to API Gateway endpoints.",
       "D is wrong: an ALB in one Region is a single-Region point of failure and cannot target API endpoints in other Regions."
     ],
-    "tldr": "Multi-Region routing to Regional endpoints is done with Route 53 records plus health checks.",
+    "tldr": "Active-active routing across Regions uses Route 53 latency, weighted or multivalue records with health checks; the failover routing policy is active-passive.",
     "wrong_reasons": {
       "B": "a Resolver outbound endpoint forwards DNS queries from a VPC to other resolvers; it does not route client traffic.",
       "C": "transit gateways connect VPCs and networks; they cannot attach to API Gateway endpoints.",
@@ -2507,7 +2507,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company operates a multi-account AWS environment in the us-west-2 Region. The environment has separate accounts for development, staging, and production workloads. Each account delivers application logs to an Amazon S3 bucket in each account. The company needs to consolidate all application logs into one S3 bucket in a security account. All source buckets and the destination bucket have object versioning enabled. The solution must continuously capture new logs as the logs are generated. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Versioning is already on everywhere, and everything is in one Region. Which built-in S3 feature copies new objects automatically?",
     "keywords": [
@@ -2693,7 +2693,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A solutions architect is designing a scalable web application that runs on Amazon EC2. The application users must stay on the same server after login. The application must be protected from common exploits. Which solution will meet these requirements?",
     "hint": "Sticky sessions need a layer 7 load balancer, and common web exploits are blocked by a web application firewall.",
     "keywords": [
@@ -2728,7 +2728,7 @@
     "domain": "Application Integration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A company has an e-commerce application that users access through multiple mobile apps and web applications. The company needs a solution that will receive requests from the mobile apps and web applications through an API Request traffic volume varies significantly throughout each day. Traffic spikes during sales events. The solution must be loosely coupled and ensure that no requests are lost. Which solution will meet these requirements?",
     "hint": "Put a durable buffer between the API and the processing so spikes wait in line instead of being dropped.",
     "keywords": [
@@ -3033,7 +3033,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "An online marketplace uses an Application Load Balancer (ALB) as the origin for an Amazon CloudFront distribution. Amazon EC2 instances behind the ALB serve the application. Sellers upload product images to an Amazon S3 bucket. The company recently expanded internationally and needs to dynamically add AWS Region-specific compliance watermarks to images based on the location of the viewer. The solution must not store separate copies for each Region. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Changing image content at request time needs code at the edge. Policies only manage headers.",
     "keywords": [
@@ -3518,7 +3518,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "question": "A healthcare company receives de-identified medical records from hospital partners that upload data to a centralized Amazon S3 bucket. A regulatory agency requires encryption of all stored health information. Which solution will meet these requirements?",
     "hint": "Encryption at rest is requested with a specific header on each PUT. Which condition checks for it?",
     "keywords": [
@@ -3623,12 +3623,14 @@
     "domain": "Cost Management & Optimization",
     "exam_domain": 4,
     "task": "4.4",
-    "difficulty": "hard",
-    "question": "A company stores image files in an Amazon S3 bucket. Development teams from multiple AWS accounts need to pull the image files for their application deployments. The company wants to provide access to the image files while reducing costs. Which solution will meet these requirements?",
+    "difficulty": "medium",
+    "question": "A company stores image files in an Amazon S3 bucket in one AWS Region. Development teams in multiple AWS accounts that the company owns need to pull the image files repeatedly for their application deployments, from pipelines that run in other AWS Regions and in on-premises data centers. The company wants to provide access to the image files while reducing costs. Which solution will meet these requirements?",
     "hint": "Many teams pull the same files again and again. What serves repeated downloads from a cache instead of from S3 each time?",
     "keywords": [
       "multiple AWS accounts",
-      "pull the image files",
+      "that the company owns",
+      "pull the image files repeatedly",
+      "other AWS Regions and in on-premises data centers",
       "reducing costs"
     ],
     "options": {
@@ -3640,14 +3642,14 @@
     "correct_answer": "C",
     "explanation": [
       "A is wrong: an interface endpoint adds hourly and per-GB charges, and it only gives private network access; it does not reduce the number of downloads or their cost.",
-      "B is wrong: Requester Pays only shifts the cost to the other teams; it does not reduce the total.",
-      "C is correct: CloudFront serves repeated pulls from its cache, which cuts S3 requests; transfer from S3 to CloudFront is free, and CloudFront data transfer out costs less than transfer out directly from S3.",
+      "B is wrong: Requester Pays only moves the request and transfer charges to the teams' own accounts. The company owns those accounts, so its total cost does not go down.",
+      "C is correct: the pulls come from other Regions and from on premises, so every direct download from S3 is charged as data transfer out. CloudFront serves repeated pulls from its cache, transfer from S3 to CloudFront is free, and CloudFront data transfer out costs less than transfer out directly from S3.",
       "D is wrong: PrivateLink-only access adds endpoint charges and does not reduce the cost of repeated downloads."
     ],
-    "tldr": "CloudFront caches frequently downloaded S3 objects, reducing S3 requests, and transfer from S3 to CloudFront is free.",
+    "tldr": "For repeated downloads from outside the bucket's Region, CloudFront cuts cost: S3-to-CloudFront transfer is free and cached pulls skip S3 entirely.",
     "wrong_reasons": {
       "A": "an interface endpoint adds hourly and per-GB charges, and it only gives private network access; it does not reduce the number of downloads or their cost.",
-      "B": "Requester Pays only shifts the cost to the other teams; it does not reduce the total.",
+      "B": "Requester Pays only moves the request and transfer charges to the teams' own accounts. The company owns those accounts, so its total cost does not go down.",
       "D": "PrivateLink-only access adds endpoint charges and does not reduce the cost of repeated downloads."
     },
     "pillars": [

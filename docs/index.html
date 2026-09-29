@@ -352,25 +352,36 @@
                     </span>
                 </button>
                 <div id="estimateContent" class="hidden mt-4">
-                <div id="estimateBody"></div>
+                <!-- Both scorings read the same answers, so switching is instant and loses nothing -->
+                <div id="scoringSwitch" role="group" aria-label="Scoring method" class="inline-flex rounded-xl border border-slate-800 overflow-hidden">
+                    <button type="button" data-mode="intelligent" onclick="setScoringMode('intelligent')" class="px-3 py-1.5 text-xs font-semibold transition">Intelligent Scoring</button>
+                    <button type="button" data-mode="simple" onclick="setScoringMode('simple')" class="px-3 py-1.5 text-xs font-semibold transition">Simple Scoring</button>
+                </div>
+                <div id="estimateBody" class="mt-4"></div>
                 <details class="mt-4">
-                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is estimated</summary>
-                    <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
-                        <li>Your answers are fitted to an item-response (Rasch) model, so <em>which</em> questions you answered matters, not just how many you got right: a run of easy questions moves the estimate less than the same run of hard ones.</li>
-                        <li>The model allows for guessing, using the odds of picking the right set at random from the options a question actually has — 25% on a four-option question, 10% on a Select TWO — so the estimate never credits you for a lucky guess.</li>
-                        <li>Your fitted ability is then projected onto the real exam's own mix of easy, medium and hard questions, which is why practising only easy questions will not inflate your score.</li>
-                        <li>Each domain is pulled toward your overall ability, so a domain with two answers isn't trusted like one with twenty. Domains are weighted by the official blueprint: 30% Secure, 26% Resilient, 24% High-Performing, 20% Cost-Optimized.</li>
-                        <li>Recent answers count more (21-day half-life). Repeat attempts count 30%, answers taken after reading the hint count 45%, and mistake-drill answers count 50%, because each is weaker evidence of unaided ability.</li>
-                        <li>A 3,000-run Monte Carlo simulates a 50-question scored exam and maps the result linearly onto AWS's 100–1000 scale, with 720 as the pass mark. Each run draws one shared ability plus a per-domain difference, because the domains rise and fall together, so the range is not artificially narrow. The range is the 10th–90th percentile, and the simulation replays the same random draws each time, so the range and pass chance only move when your answers do.</li>
-                        <li>The headline score is your expected accuracy on the real exam mapped straight onto the same scale, rather than the middle simulated exam, so it moves point by point instead of in 18-point steps (one question of 50).</li>
-                        <li>AWS does not publish its scoring model or its item difficulties, so treat this as a guide rather than a guarantee.</li>
+                    <summary id="howSummary" class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is estimated</summary>
+                    <ul id="howSimple" class="hidden mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>Only your latest answer to each question counts.</li>
+                        <li>Accuracy per exam domain is weighted by the blueprint: 30% Secure, 26% Resilient, 24% High-Performing, 20% Cost-Optimized. Domains you haven't answered are left out.</li>
+                        <li>It maps straight onto 100–1000, so 720 needs 69% correct (35 of 50).</li>
+                        <li>The 80% range is where 80% of 50-question exams would land at that accuracy, allowing for luck on the day and for how many questions you have answered.</li>
+                        <li>Every question counts the same, with no allowance for difficulty, guessing, hints or time, so retrying mistakes inflates it. It appears after 5 answers and swings a lot until you have answered more.</li>
+                    </ul>
+                    <ul id="howIntelligent" class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>A right answer to a hard question counts for more than one to an easy question, and lucky guesses are allowed for (25% on four options, 10% on a Select TWO).</li>
+                        <li>Your level is projected onto the real exam's mix of easy, medium and hard questions, so practising easy ones won't inflate it.</li>
+                        <li>Domains are weighted by the blueprint, and a domain with few answers leans on your overall level.</li>
+                        <li>Recent answers count more (21-day half-life). All retries of a question together count at most 40% of a fresh answer, and less when retried soon after. An answer after reading the hint counts as an easier question.</li>
+                        <li>3,000 simulated 50-question exams give the 80% range and the chance of reaching 720. The range widens the longer you go without practising.</li>
+                        <li>Rounded to the nearest 10, and a refresh never changes it. AWS doesn't publish how answers convert to its scale, so treat it as a guide.</li>
                     </ul>
                 </details>
                 </div>
             </section>
 
-            <!-- Stats -->
-            <div class="bank-only grid grid-cols-3 gap-px rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800">
+            <!-- Stats, with the share of the bank answered correctly underneath -->
+            <div class="bank-only flex flex-col gap-px rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-200 dark:bg-slate-800">
+            <div class="grid grid-cols-3 gap-px">
                 <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
                     <p class="text-xs text-slate-500 dark:text-slate-400">Questions</p>
                     <h3 id="totalQuestionsStat" class="text-2xl font-semibold mt-0.5">0</h3>
@@ -382,6 +393,17 @@
                 <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
                     <p class="text-xs text-slate-500 dark:text-slate-400">Mistakes</p>
                     <h3 id="totalMistakesStat" class="text-2xl font-semibold mt-0.5">0</h3>
+                </div>
+            </div>
+                <!-- a question counts as correct when your latest answer to it was right, the same rule as Mistakes and the section tallies -->
+                <div class="bg-white dark:bg-slate-900 px-3 py-3 sm:px-5 sm:py-4">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Correct <span id="correctTone"></span></p>
+                        <p id="correctStatText" class="text-xs text-slate-500 dark:text-slate-400"></p>
+                    </div>
+                    <div id="correctMeter" role="progressbar" aria-label="Share of the question bank answered correctly" aria-valuemin="0" aria-valuemax="100" class="h-2 mt-2 rounded-full overflow-hidden bg-rose-500/10">
+                        <div id="correctBar" class="h-2 rounded-full transition-all duration-300" style="width:0%"></div>
+                    </div>
                 </div>
             </div>
 
@@ -408,7 +430,8 @@
                 </div>
                 <!-- Top bar -->
                 <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <!-- the question count keeps its width; on a narrow phone the stats on the right wrap instead -->
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                         <button onclick="returnToDashboard()" aria-label="Back to dashboard" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0">
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
@@ -417,9 +440,11 @@
                             <span id="seenChip" class="hidden"></span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3 min-w-0">
                         <p id="quizTimer" class="hidden text-sm font-semibold text-slate-400 whitespace-nowrap"><i class="fa-regular fa-clock text-xs"></i> <span id="quizTimerText">00:00</span></p>
                         <p class="text-sm font-semibold text-emerald-500 whitespace-nowrap"><span id="liveScoreNum">0</span> pts</p>
+                        <!-- the exam score estimate; filled by renderQuizEstimate() -->
+                        <p id="quizEstimate" class="text-sm whitespace-nowrap"></p>
                     </div>
                 </div>
                 <!-- Progress Bar -->
@@ -503,9 +528,12 @@
                         <h3 id="summaryIncorrectCount" class="text-xl sm:text-2xl font-bold text-rose-500 mt-1">0</h3>
                     </div>
                 </div>
-                <p id="summaryTimeLine" class="hidden text-xs text-slate-400 -mt-2">
-                    <i class="fa-regular fa-clock"></i> Completed in <span id="summaryTimeValue" class="font-semibold text-slate-300">00:00</span>
-                </p>
+                <div class="space-y-1.5">
+                    <p id="summaryTimeLine" class="hidden text-xs text-slate-400">
+                        <i class="fa-regular fa-clock"></i> Completed in <span id="summaryTimeValue" class="font-semibold text-slate-300">00:00</span>
+                    </p>
+                    <p id="summaryEstimateLine" class="hidden text-xs text-slate-400"></p>
+                </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
                     <button onclick="returnToDashboard()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-bold px-6 py-3.5 rounded-2xl shadow transition text-sm">
@@ -570,6 +598,7 @@
         let liveIndex = 0;        // the furthest question reached; the ones before it reopen read-only
         let quizFinished = false;
         let score = 0;
+        let sessionStartScores = {};    // each scoring's score when this session began, or null where it was not unlocked yet
         let mistakes = [];
         let flaggedIds = new Set();
         let userAnswers = {};
@@ -723,6 +752,7 @@
                 // nothing saved yet means closed; only an explicit '0' opens it
                 const savedCollapse = localStorage.getItem('saa_estimate_collapsed');
                 estimateCollapsed = savedCollapse === null ? true : savedCollapse === '1';
+                scoringMode = SCORING_MODES[localStorage.getItem('saa_scoring')] ? localStorage.getItem('saa_scoring') : 'intelligent';
 
                 const savedLog = localStorage.getItem(storeKey('attempts'));
                 if (savedLog) attemptLog = JSON.parse(savedLog);
@@ -970,6 +1000,7 @@
 
             renderDomainList();
             renderAnsweredStat();
+            renderCorrectStat();
             renderEstimate();
             renderSmartPlan();
         }
@@ -1019,6 +1050,38 @@
         function renderAnsweredStat() {
             document.getElementById('answeredStat').innerText =
                 questions.filter(q => attemptLog[q.id] && attemptLog[q.id].length).length;
+        }
+
+        // Share of the whole bank whose latest answer was right, as a meter under the stats
+        function renderCorrectStat() {
+            const total = questions.length;
+            const correct = questions.filter(q => {
+                const log = attemptLog[q.id];
+                return log && log.length && log[log.length - 1][0] === 1;
+            }).length;
+            const pct = total ? correct / total * 100 : 0;
+            // never show 0% once something is right, or 100% while something is still left
+            const label = correct && pct < 1 ? '<1' : correct < total && pct > 99 ? '>99' : Math.round(pct);
+            // Colour steps with the percentage shown: green from the accuracy the 720 pass mark needs
+            // (69%), amber from 50%, red below. The word beside "Correct" says the same, so it never rests on colour alone.
+            const shown = Math.round(pct);
+            const tone = shown >= Math.round((PASS_SCORE - 100) / 9)
+                ? { fill: '#10b981', track: 'bg-emerald-500/10', chip: 'bg-emerald-500/10 text-emerald-400', word: 'On track' }
+                : shown >= 50
+                    ? { fill: '#f59e0b', track: 'bg-amber-500/10', chip: 'bg-amber-500/10 text-amber-400', word: 'Getting there' }
+                    : { fill: '#f43f5e', track: 'bg-rose-500/10', chip: 'bg-rose-500/10 text-rose-400', word: 'Needs work' };
+            document.getElementById('correctStatText').innerHTML =
+                '<span class="font-semibold text-slate-800 dark:text-slate-100">' + correct + '</span> of ' + total + ' · ' + label + '%';
+            const chip = document.getElementById('correctTone');
+            chip.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold ' + tone.chip;
+            chip.innerText = tone.word;
+            const bar = document.getElementById('correctBar');
+            bar.style.width = pct + '%';
+            bar.style.backgroundColor = tone.fill;
+            const meter = document.getElementById('correctMeter');
+            meter.className = 'h-2 mt-2 rounded-full overflow-hidden ' + tone.track;
+            meter.setAttribute('aria-valuenow', String(shown));
+            meter.setAttribute('aria-valuetext', correct + ' of ' + total + ' questions correct, ' + tone.word.toLowerCase());
         }
 
 
@@ -1109,6 +1172,7 @@
                     live: liveIndex,
                     finished: quizFinished,
                     score,
+                    estStart: sessionStartScores,
                     answers: userAnswers,
                     reasons: smartReasons,
                     hint: hintUsedThisQuestion,
@@ -1141,6 +1205,7 @@
             currentIndex = Math.min(liveIndex, list.length - 1);
             quizFinished = !!saved.finished;
             score = saved.score || 0;
+            sessionStartScores = saved.estStart && typeof saved.estStart === 'object' ? saved.estStart : {};
             userAnswers = saved.answers || {};
             smartReasons = saved.reasons || {};
             hintUsedThisQuestion = !!saved.hint;
@@ -1157,6 +1222,7 @@
             currentIndex = liveIndex = 0;
             quizFinished = false;
             userAnswers = {};
+            sessionStartScores = {};
             timeWarned = false;
             stopAndHideQuizTimer();
         }
@@ -1396,6 +1462,12 @@
             userAnswers = {};
             hintUsedThisQuestion = false;
             timeWarned = false;
+            // the baseline the quiz bar and the summary measure this session's progress from, for both scorings
+            sessionStartScores = {};
+            for (const mode of Object.keys(SCORING_MODES)) {
+                const s = examScore(mode);
+                sessionStartScores[mode] = s.ready ? s.score : null;
+            }
         }
 
         function startQuizByDomain(domain) {
@@ -1451,11 +1523,16 @@
         const PASS_SCORE = 720;
         const SCORED_QUESTIONS = 50;   // the real exam has 65 questions, 50 of them scored
         const HALF_LIFE_DAYS = 21;     // recent answers count more
-        const REPEAT_WEIGHT = 0.3;     // re-answering a question mostly measures memory, so it counts less
-        const HINT_WEIGHT = 0.45;      // answering after reading the hint says less about unaided ability
-        const DRILL_WEIGHT = 0.5;      // "review mistakes" is a biased sample: you retry until you get it right
+        const REPEAT_MIN = 0.15;       // a repeat straight after the last attempt is nearly all memory...
+        const REPEAT_GAP_DAYS = 14;    // ...and grows toward full weight as the gap since the last attempt widens
+        const REPEAT_CAP = 0.4;        // but all repeats of one question together add at most this much evidence: drilling a set cannot outvote honest first attempts
+        const REPEAT_WARN = 0.4;       // warn when this share of attempts are repeats
+        const HINT_EASE = 0.55;        // a hint makes the question easier: its difficulty drops by this many logits for that attempt
         const MIN_ANSWERED = 5;        // distinct questions needed before an estimate is shown
         const MC_RUNS = 3000;
+        const STALE_GRACE_DAYS = 3;        // no widening for a short break
+        const STALE_SD_PER_SQRT_DAY = 0.05; // logits of extra shared uncertainty per sqrt(day) away from practice
+        const STALE_MAX_SD = 0.6;
         const DAY_MS = 86400000;
 
         // ---- Item-response model ----
@@ -1467,7 +1544,9 @@
         const GUESS_SINGLE = 0.25;                                // 1 of 4 options
         const GUESS_MULTI = 0.10;                                 // 2 of 5 options: 1 / C(5,2)
         const PRIOR_SD = 1.5;                                     // weak prior on overall ability
-        const DOMAIN_SD = 0.7;                                    // how far a domain may drift from your overall ability
+        const TAU_GRID = [0.4, 0.7, 1.0];                         // how far a domain may drift from your overall ability: flat profile, typical, spiky
+        const TAU_PRIOR = [0.3, 0.4, 0.3];
+        const TASK_SD = 0.5;                                      // how far a task statement may drift from its domain
         // Assumed composition of the real exam, independent of this bank's composition.
         const EXAM_MIX = [
             { b: ITEM_B.easy,   c: GUESS_SINGLE, p: 0.22 },
@@ -1479,14 +1558,17 @@
 
         let attemptLog = {};           // question id -> [[1|0, timestamp, flags], ...]
         let estimateCollapsed = true;   // collapsed until the reader opens it
+        // Which scoring the dashboard card, the quiz bar, the summary and the Smart quiz use. A per-browser
+        // preference like the theme, so it is not synced with the progress.
+        const SCORING_MODES = { intelligent: 'Intelligent Scoring', simple: 'Simple Scoring' };
+        let scoringMode = 'intelligent';
         const FLAG_HINT = 1, FLAG_DRILL = 2;
         let hintUsedThisQuestion = false;
         let currentQuizMode = 'all';
 
         const sigmoid = z => 1 / (1 + Math.exp(-z));
         const itemP = (theta, b, c) => c + (1 - c) * sigmoid(theta - b);
-        const itemDP = (theta, b, c) => { const s = sigmoid(theta - b); return (1 - c) * s * (1 - s); };
-
+        
         // Chance of picking the exact correct set at random: 1 / C(options, correct answers).
         // Four options, one answer gives 0.25; five options, choose two gives 0.10; six options, choose two gives 0.067.
         function guessFloor(q) {
@@ -1505,42 +1587,106 @@
             };
         }
 
-        // Weighted MAP estimate of ability, with a Normal(mu, sd) prior. Bisection on the score
-        // function: robust even when a domain has only a couple of observations.
-        function fitAbility(obs, mu, sd) {
-            const score = theta => {
-                let s = -(theta - mu) / (sd * sd);
+        // ---- Hierarchical fit on a grid ----
+        // theta_domain ~ Normal(mu, tau), mu ~ Normal(0, PRIOR_SD), tau on a small grid (flat, typical or spiky profile). Each domain's own answers
+        // are counted once: they update mu only through that domain's marginal likelihood, so a
+        // domain with two answers borrows strength from the others without being dragged by itself.
+        // Everything is exact on a grid, so the skewed likelihood from a guessing floor and small
+        // samples is not squeezed into a Normal, and mu and the domains are sampled jointly, which
+        // keeps the correlation between domains that a shared mu really implies.
+        const GRID = Array.from({ length: 81 }, (_, i) => -4 + i * 0.1);
+        const GRID_STEP = 0.1;
+        const MU_GRID = Array.from({ length: 25 }, (_, i) => -3 + i * 0.25);
+        const logNormal = (x, m, s) => -0.5 * ((x - m) / s) ** 2 - Math.log(s);   // the 1/s term matters now that s varies
+        const TASK_KERNEL = GRID.map(a => GRID.map(b => Math.exp(-0.5 * ((a - b) / TASK_SD) ** 2)));   // Normal(theta_domain, TASK_SD) on the grid
+
+        function gridLogLik(obs) {
+            return GRID.map(theta => {
+                let s = 0;
                 for (const o of obs) {
                     const p = itemP(theta, o.b, o.c);
-                    s += o.w * (o.y - p) / (p * (1 - p)) * itemDP(theta, o.b, o.c);
+                    s += o.w * (o.y ? Math.log(p) : Math.log(1 - p));
                 }
                 return s;
-            };
-            let lo = -4, hi = 4;
-            const sLo = score(lo), sHi = score(hi);
-            let theta;
-            if (sLo <= 0) theta = lo;
-            else if (sHi >= 0) theta = hi;
-            else {
-                for (let i = 0; i < 60; i++) {
-                    const mid = (lo + hi) / 2;
-                    if (score(mid) > 0) lo = mid; else hi = mid;
+            });
+        }
+
+        function normalise(weights) {
+            const total = weights.reduce((a, b) => a + b, 0);
+            return weights.map(v => v / total);
+        }
+
+        function fitHierarchy(domainObs) {
+            const ids = Object.keys(domainObs);
+            const ll = {};
+            for (const id of ids) ll[id] = gridLogLik(domainObs[id]);
+            const muLog = [], cond = [];
+            const combos = [];   // every (spread, overall level) pair: the shared hyperparameters
+            TAU_GRID.forEach((tau, k) => { for (const mu of MU_GRID) combos.push({ tau, mu, prior: Math.log(TAU_PRIOR[k]) }); });
+            for (const { tau, mu, prior } of combos) {
+                let lp = logNormal(mu, 0, PRIOR_SD) + prior;
+                const row = {};
+                for (const id of ids) {
+                    const lw = GRID.map((t, g) => ll[id][g] + logNormal(t, mu, tau));
+                    const mx = Math.max(...lw);
+                    const w = lw.map(v => Math.exp(v - mx));
+                    lp += mx + Math.log(w.reduce((a, b) => a + b, 0));   // marginal likelihood of this domain given mu
+                    row[id] = normalise(w);
                 }
-                theta = (lo + hi) / 2;
+                muLog.push(lp);
+                cond.push(row);
             }
-            // Observed Fisher information gives the standard error.
-            let info = 1 / (sd * sd);
-            for (const o of obs) {
-                const p = itemP(theta, o.b, o.c), d = itemDP(theta, o.b, o.c);
-                info += o.w * d * d / (p * (1 - p));
+            const top = Math.max(...muLog);
+            const muPost = normalise(muLog.map(v => Math.exp(v - top)));
+            const marginal = {};
+            for (const id of ids) {
+                marginal[id] = GRID.map((_, g) => muPost.reduce((a, pm, m) => a + pm * cond[m][id][g], 0));
             }
-            return { theta, se: 1 / Math.sqrt(info) };
+            return { muPost, cond, marginal };
+        }
+
+        function cumulative(weights) {
+            let run = 0;
+            return weights.map(v => (run += v));
+        }
+
+        function pickIndex(cdf, u) {
+            let lo = 0, hi = cdf.length - 1;
+            while (lo < hi) {
+                const mid = (lo + hi) >> 1;
+                if (cdf[mid] >= u) hi = mid; else lo = mid + 1;
+            }
+            return lo;
         }
 
         // Expected accuracy on the real exam's mix of items, for a given ability.
         function projectedAccuracy(theta) {
             return EXAM_MIX.reduce((acc, m) => acc + m.p * itemP(theta, m.b, m.c), 0);
         }
+
+        // Split `total` items by share with largest remainders, so the counts add up exactly.
+        function apportion(shares, total) {
+            const raw = shares.map(s => s * total);
+            const out = raw.map(Math.floor);
+            let left = total - out.reduce((a, b) => a + b, 0);
+            raw.map((v, i) => [v - Math.floor(v), i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (left-- > 0) out[i]++; });
+            return out;
+        }
+
+        // The 50 scored questions of a sitting: domain counts follow the blueprint, and each item's
+        // difficulty and format follow EXAM_MIX. Domains are interleaved against the item types, so
+        // every domain gets a proportional share of easy, hard and multi-select questions.
+        const EXAM_ITEMS = (() => {
+            const domainIds = Object.keys(EXAM_DOMAINS);
+            const perDomain = apportion(domainIds.map(id => EXAM_DOMAINS[id].w), SCORED_QUESTIONS);
+            const slots = [];
+            domainIds.forEach((id, i) => { for (let k = 0; k < perDomain[i]; k++) slots.push({ id, at: (k + 0.5) / perDomain[i] }); });
+            slots.sort((a, b) => a.at - b.at);
+            const perType = apportion(EXAM_MIX.map(m => m.p), SCORED_QUESTIONS);
+            const types = [];
+            EXAM_MIX.forEach((m, i) => { for (let k = 0; k < perType[i]; k++) types.push(m); });
+            return types.map((m, i) => ({ dom: slots[i].id, b: m.b, c: m.c }));
+        })();
 
         function applyEstimateState() {
             document.getElementById('estimateContent').classList.toggle('hidden', estimateCollapsed);
@@ -1651,15 +1797,30 @@
             return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
         }
 
+        // A full estimate takes a noticeable fraction of a second on a phone, and the dashboard, the Smart
+        // quiz and the quiz bar all ask for it, so the last result is reused until your answers change.
+        // The day is part of the key because the range still widens with time away from practice.
+        let estimateCache = { key: null, value: null };
         function estimateExamScore() {
+            let h = 0, n = 0;
+            for (const list of Object.values(attemptLog)) {
+                for (const entry of list) { h = (h * 31 + entry[0] + 2 * (entry[2] || 0) + entry[1]) % 1000000007; n++; }
+            }
+            const key = [bankKey, questions.length, n, h, Math.floor(Date.now() / DAY_MS)].join('|');
+            if (estimateCache.key !== key) estimateCache = { key, value: computeExamEstimate() };
+            return estimateCache.value;
+        }
+
+        function computeExamEstimate() {
             // Ages are measured from your latest answer, not the clock, so the estimate only
             // changes when you answer something; a refresh alone reproduces the same numbers.
             let now = 0;
             for (const list of Object.values(attemptLog)) for (const entry of list) now = Math.max(now, entry[1]);
+            const latest = now;
             const per = {};
             for (const d of Object.keys(EXAM_DOMAINS)) per[d] = { obs: [], n: 0, questions: 0, attempts: 0 };
             const perTask = {};
-            for (const t of Object.keys(EXAM_TASKS)) perTask[t] = { s: 0, n: 0, questions: 0, attempts: 0 };
+            for (const t of Object.keys(EXAM_TASKS)) perTask[t] = { obs: [], n: 0, questions: 0, attempts: 0 };
             const all = [];
             let distinct = 0, totalAttempts = 0;
 
@@ -1667,20 +1828,31 @@
                 const list = attemptLog[q.id];
                 if (!list || !list.length) continue;
                 const d = per[examDomainOf(q)];
-                const t = perTask[taskOf(q)] || null;
+                const tid = taskOf(q);
+                const t = tid && tid[0] === String(examDomainOf(q)) ? perTask[tid] : null;   // a task outside its question's domain (a mistagged import) is left out
                 const { b, c } = itemParams(q);
                 distinct++; d.questions++;
                 if (t) t.questions++;
+                // Repeats mostly measure memory, so each is weighted by the gap since the attempt before it,
+                // and all repeats of a question share one small evidence budget. The budget is spent newest
+                // first: when it runs out, it is the oldest repeats that stop counting, never your latest answer.
+                const repeatW = list.map(() => 1);
+                let repeatBudget = REPEAT_CAP;
+                for (let i = list.length - 1; i > 0; i--) {
+                    const gapDays = Math.max(0, list[i][1] - list[i - 1][1]) / DAY_MS;
+                    repeatW[i] = Math.min(repeatBudget, REPEAT_MIN + (1 - REPEAT_MIN) * (1 - Math.exp(-gapDays / REPEAT_GAP_DAYS)));
+                    repeatBudget -= repeatW[i];
+                }
                 list.forEach((entry, i) => {
                     const correct = entry[0], ts = entry[1], flags = entry[2] || 0;
-                    let w = Math.pow(0.5, Math.max(0, now - ts) / DAY_MS / HALF_LIFE_DAYS);
-                    if (i > 0) w *= REPEAT_WEIGHT;                  // repeats mostly measure memory
-                    if (flags & FLAG_HINT) w *= HINT_WEIGHT;        // hinted answers say less about unaided ability
-                    if (flags & FLAG_DRILL) w *= DRILL_WEIGHT;      // mistake drills are a biased sample
-                    const o = { y: correct, w, b, c };
+                    const w = Math.pow(0.5, Math.max(0, now - ts) / DAY_MS / HALF_LIFE_DAYS) * repeatW[i];
+                    // Mistake drills are always repeats, so the repeat weighting already covers them; no extra penalty.
+                    // A hint is modelled as an easier item, not as weaker data: a right answer then moves
+                    // the estimate less, while a wrong answer even with a hint still counts in full.
+                    const o = { y: correct, w, b: (flags & FLAG_HINT) ? b - HINT_EASE : b, c };
                     d.obs.push(o); all.push(o);
                     d.n += w; d.attempts++; totalAttempts++;
-                    if (t) { t.s += w * correct; t.n += w; t.attempts++; }
+                    if (t) { t.obs.push(o); t.n += w; t.attempts++; }
                 });
             }
             if (distinct < MIN_ANSWERED) return { ready: false, distinct };
@@ -1688,53 +1860,315 @@
             let N = 0;
             for (const d of Object.values(per)) N += d.n;
 
-            // Two-level fit. First your overall ability, then each domain pulled toward it,
-            // so a domain with two answers is not trusted as if it had twenty.
-            const global = fitAbility(all, 0, PRIOR_SD);
+            const domainObs = {};
+            for (const [id, d] of Object.entries(per)) domainObs[id] = d.obs;
+            const fit = fitHierarchy(domainObs);
             const post = {};
-            for (const [id, d] of Object.entries(per)) {
-                const fit = fitAbility(d.obs, global.theta, DOMAIN_SD);
-                post[id] = { theta: fit.theta, se: fit.se, mean: projectedAccuracy(fit.theta) };
+            for (const id of Object.keys(EXAM_DOMAINS)) {
+                const m = fit.marginal[id];
+                post[id] = {
+                    theta: m.reduce((a, w, g) => a + w * GRID[g], 0),
+                    mean: m.reduce((a, w, g) => a + w * projectedAccuracy(GRID[g]), 0)   // posterior-mean accuracy, not a plug-in
+                };
             }
 
-            // Monte Carlo: sample an ability per domain, convert to the accuracy that ability implies
-            // on the real exam's item mix, blend by blueprint weight, then simulate a 50-question exam.
-            // The domains are not independent: they were all shrunk toward one overall ability, so each
-            // draw splits into a shared component and a per-domain residual. Drawing them independently
-            // would let their errors cancel and report a narrower range than the evidence supports.
-            const shared = Math.min(global.se, ...Object.values(post).map(d => d.se));
-            for (const d of Object.values(post)) d.residual = Math.sqrt(Math.max(0, d.se * d.se - shared * shared));
-            // A fixed seed replays the same draws every time, so the range and pass chance move only
-            // when your answers do. Seeding from the answer counts re-rolled them on every answer,
-            // which alone could shift the range by a step.
+            // Each task statement has its own level around its domain's: theta_task ~ Normal(theta_domain, TASK_SD).
+            // The domain side must come from your other answers in that domain, or the task's own answers would
+            // count twice. In the domain fit a task's answers enter only through their likelihood, so dividing
+            // that back out of the domain's posterior gives exactly the domain without this task.
+            for (const [id, t] of Object.entries(perTask)) {
+                if (!t.obs.length) continue;
+                const own = gridLogLik(t.obs);
+                const lr = fit.marginal[id[0]].map((m, g) => Math.log(m) - own[g]);
+                const lrTop = Math.max(...lr);
+                const rest = lr.map(v => Math.exp(v - lrTop));
+                const lw = GRID.map((_, g) => own[g] + Math.log(TASK_KERNEL[g].reduce((a, k, h) => a + k * rest[h], 0)));
+                const top = Math.max(...lw);
+                const w = normalise(lw.map(v => Math.exp(v - top)));
+                t.mean = w.reduce((a, wt, g) => a + wt * projectedAccuracy(GRID[g]), 0);
+            }
+
+            // The headline is the expected score of a sitting: the exact posterior mean of the number
+            // of the 50 scored items you would get right. It is the average of the simulated scores
+            // without their sampling noise, so it moves smoothly with every answer.
+            let expectedCorrect = 0;
+            for (const item of EXAM_ITEMS) {
+                expectedCorrect += fit.marginal[item.dom].reduce((a, w, g) => a + w * itemP(GRID[g], item.b, item.c), 0);
+            }
+
+            // Time away from practice adds shared uncertainty about your level (it may have slipped or
+            // grown) without moving the estimate. Anchoring recency on your latest answer keeps the
+            // number stable on refresh; only the width responds to the calendar.
+            const staleDays = latest ? Math.max(0, Date.now() - latest) / DAY_MS : 0;
+            const staleSd = Math.min(STALE_MAX_SD, STALE_SD_PER_SQRT_DAY * Math.sqrt(Math.max(0, staleDays - STALE_GRACE_DAYS)));
+
+            // Monte Carlo of a 50-question sitting. Draw mu, then each domain's ability given mu (so
+            // domains stay correlated exactly as far as the model says), then answer every item
+            // individually with its own probability. A fixed seed replays the same draws, so the range
+            // and pass chance move only when your answers (or the calendar gap) do.
+            const muCdf = cumulative(fit.muPost);
+            const condCdf = fit.cond.map(row => {
+                const out = {};
+                for (const id of Object.keys(row)) out[id] = cumulative(row[id]);
+                return out;
+            });
             const rng = mulberry32(0x5AA0C03);
             const scores = [];
             for (let r = 0; r < MC_RUNS; r++) {
-                let p = 0;
-                const zShared = normalSample(rng);
-                for (const [id, dom] of Object.entries(EXAM_DOMAINS)) {
-                    const theta = post[id].theta + shared * zShared + post[id].residual * normalSample(rng);
-                    p += dom.w * projectedAccuracy(theta);
+                const m = pickIndex(muCdf, rng() * muCdf[muCdf.length - 1]);
+                const theta = {};
+                for (const id of Object.keys(EXAM_DOMAINS)) {
+                    const cdf = condCdf[m][id];
+                    theta[id] = GRID[pickIndex(cdf, rng() * cdf[cdf.length - 1])] + (rng() - 0.5) * GRID_STEP;
                 }
+                const drift = staleSd ? staleSd * normalSample(rng) : 0;
                 let k = 0;
-                for (let i = 0; i < SCORED_QUESTIONS; i++) if (rng() < p) k++;
+                for (const item of EXAM_ITEMS) if (rng() < itemP(theta[item.dom] + drift, item.b, item.c)) k++;
                 scores.push(Math.round(100 + 900 * k / SCORED_QUESTIONS));
             }
             scores.sort((x, y) => x - y);
             const at = f => scores[Math.min(scores.length - 1, Math.floor(f * scores.length))];
-            // The headline is your expected accuracy mapped straight onto the scale. The simulated
-            // exams can only land on 18-point steps (one question of 50), and their middle value
-            // could step down after a correct answer; this moves smoothly and only ever rises with one.
-            let expected = 0;
-            for (const [id, dom] of Object.entries(EXAM_DOMAINS)) expected += dom.w * post[id].mean;
             return {
-                ready: true, per, post, perTask, distinct, totalAttempts, effectiveN: N,
-                median: Math.round(100 + 900 * expected), lo: at(0.1), hi: at(0.9),
+                ready: true, per, post, perTask, distinct, totalAttempts, effectiveN: N, staleDays,
+                repeatShare: (totalAttempts - distinct) / totalAttempts,
+                score: Math.round(100 + 900 * expectedCorrect / SCORED_QUESTIONS), lo: at(0.1), hi: at(0.9),
                 passProb: scores.filter(s => s >= PASS_SCORE).length / scores.length
             };
         }
 
+        // ===== Simple Scoring =====
+        // The plain alternative to Intelligent Scoring: your latest answer to each question, accuracy per exam
+        // domain, the domains weighted by the blueprint, and the result put on the 100-1000 scale with the
+        // same straight line (so 720 is 69% correct). No allowance for difficulty, guessing, hints or recency.
+        const SIMPLE_MIN_ANSWERED = MIN_ANSWERED;              // unlocks at the same point as Intelligent Scoring
+        const SIMPLE_CLOSE = 4 * 900 / SCORED_QUESTIONS;       // within 4 questions of 50 of the pass mark counts as close
+
+        // Where 80% of 50-question sittings would land at this accuracy: a beta-binomial that allows for luck on the
+        // day and for how few answers the accuracy rests on. Exact arithmetic, no simulation, so it never jitters.
+        // The Jeffreys prior (+0.5) keeps 0% and 100% from looking certain after a handful of answers.
+        function simpleRange(accuracy, answered) {
+            const a = accuracy * answered + 0.5, b = (1 - accuracy) * answered + 0.5, N = SCORED_QUESTIONS;
+            const w = [1];   // relative chance of k right, built up with the ratio P(k+1) / P(k)
+            for (let k = 0; k < N; k++) w.push(w[k] * (N - k) / (k + 1) * (k + a) / (N - k - 1 + b));
+            const total = w.reduce((x, y) => x + y, 0);
+            let run = 0, lo = null, hi = null;
+            w.forEach((v, k) => {
+                run += v / total;
+                if (lo === null && run >= 0.1) lo = k;
+                if (hi === null && run >= 0.9) hi = k;
+            });
+            return [100 + 900 * lo / N, 100 + 900 * hi / N];
+        }
+
+        function simpleExamScore() {
+            const per = {};
+            for (const id of Object.keys(EXAM_DOMAINS)) per[id] = { right: 0, answered: 0, acc: null };
+            let distinct = 0;
+            for (const q of questions) {
+                const list = attemptLog[q.id];
+                if (!list || !list.length) continue;
+                const d = per[examDomainOf(q)];
+                d.answered++; distinct++;
+                if (list[list.length - 1][0]) d.right++;
+            }
+            if (distinct < SIMPLE_MIN_ANSWERED) return { ready: false, distinct, min: SIMPLE_MIN_ANSWERED };
+            // a domain with no answers yet is left out and the other weights are rescaled to 100%
+            let weight = 0, sum = 0;
+            for (const [id, d] of Object.entries(per)) {
+                if (!d.answered) continue;
+                d.acc = d.right / d.answered;
+                weight += EXAM_DOMAINS[id].w;
+                sum += EXAM_DOMAINS[id].w * d.acc;
+            }
+            const accuracy = sum / weight;
+            const [lo, hi] = simpleRange(accuracy, distinct);
+            return { ready: true, per, distinct, accuracy, score: Math.round(100 + 900 * accuracy), lo, hi };
+        }
+
+        // The weighted accuracy behind the score, rounded (a 531 is about 48% correct); 100% only when every answer is right
+        const accuracyPercent = acc => Math.min(Math.round(acc * 100), acc < 1 ? 99 : 100);
+
+        function simpleTone(score) {
+            return score >= PASS_SCORE
+                ? { text: 'text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400', label: 'Passing' }
+                : score >= PASS_SCORE - SIMPLE_CLOSE
+                    ? { text: 'text-amber-400', chip: 'bg-amber-500/10 text-amber-400', label: 'Close' }
+                    : { text: 'text-rose-400', chip: 'bg-rose-500/10 text-rose-400', label: 'Needs work' };
+        }
+
+
+        // ===== The selected scoring =====
+        // Shared by the dashboard card, the quiz bar, the summary and the Smart quiz, so they all show the
+        // same number the same way.
+        const r10 = s => Math.round(s / 10) * 10;   // Intelligent Scoring is not that precise, so do not display it as if it were
+        const shownScore = (s, mode = scoringMode) => (mode === 'simple' ? s : r10(s));   // Simple Scoring is exact arithmetic
+        function estimateTone(passProb) {
+            return passProb >= 0.75
+                ? { text: 'text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400', label: 'Likely pass' }
+                : passProb >= 0.4
+                    ? { text: 'text-amber-400', chip: 'bg-amber-500/10 text-amber-400', label: 'Borderline' }
+                    : { text: 'text-rose-400', chip: 'bg-rose-500/10 text-rose-400', label: 'Needs work' };
+        }
+
+        // One shape for either scoring: ready/distinct/min, the score and how it is shown, its colour, a pass
+        // line for tooltips, and each exam domain's level (null while a domain has nothing to go on).
+        function examScore(mode = scoringMode) {
+            if (mode === 'simple') {
+                const s = simpleExamScore();
+                if (!s.ready) return s;
+                const levels = {};
+                for (const [id, d] of Object.entries(s.per)) levels[id] = d.acc;
+                return { ...s, shown: s.score, tone: simpleTone(s.score), passLine: accuracyPercent(s.accuracy) + '% correct, ' + simpleTone(s.score).label.toLowerCase(), levels };
+            }
+            const e = estimateExamScore();
+            if (!e.ready) return { ...e, min: MIN_ANSWERED };
+            const levels = {};
+            for (const id of Object.keys(EXAM_DOMAINS)) levels[id] = e.post[id].mean;
+            return { ...e, shown: r10(e.score), tone: estimateTone(e.passProb), passLine: Math.round(e.passProb * 100) + '% chance of passing', levels };
+        }
+
+        // The exam domain with the lowest level, ignoring domains with nothing to go on
+        function weakestDomain(levels) {
+            const ids = Object.keys(levels || {}).filter(id => levels[id] !== null);
+            return ids.length ? ids.reduce((a, b) => (levels[a] <= levels[b] ? a : b)) : null;
+        }
+
+        function setScoringMode(mode) {
+            if (!SCORING_MODES[mode] || mode === scoringMode) return;
+            scoringMode = mode;
+            try { localStorage.setItem('saa_scoring', mode); } catch (e) {}
+            renderEstimate();
+            renderSmartPlan();
+        }
+
+        function renderScoringSwitch() {
+            for (const btn of document.getElementById('scoringSwitch').children) {
+                const on = btn.getAttribute('data-mode') === scoringMode;
+                btn.setAttribute('aria-pressed', String(on));
+                btn.className = 'px-3 py-1.5 text-xs font-semibold transition ' + (on ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:text-slate-300');
+            }
+            document.getElementById('howSimple').classList.toggle('hidden', scoringMode !== 'simple');
+            document.getElementById('howIntelligent').classList.toggle('hidden', scoringMode !== 'intelligent');
+            document.getElementById('howSummary').innerText = scoringMode === 'simple' ? 'How this is calculated' : 'How this is estimated';
+        }
+
+        // "▲20" / "▼10" in the units the score is shown in; empty when the shown number has not moved
+        function estimateDelta(from, to) {
+            const d = shownScore(to) - shownScore(from);
+            if (!d) return '';
+            return '<span class="text-[11px] font-semibold ' + (d > 0 ? 'text-emerald-400' : 'text-rose-400') + '">'
+                + (d > 0 ? '▲' : '▼') + Math.abs(d) + '</span>';
+        }
+
+        // The 100-1000 bar with the pass mark, your score and the 80% range
+        function scoreBar(score, lo, hi) {
+            const pct = s => ((s - 100) / 900 * 100).toFixed(1);
+            return `
+                <div class="mt-5">
+                    <div class="relative h-2 rounded-full bg-slate-800">
+                        ${lo === undefined ? '' : `<div class="absolute h-2 rounded-full bg-emerald-500/40" style="left:${pct(lo)}%;width:${(pct(hi) - pct(lo)).toFixed(1)}%"></div>`}
+                        <div class="absolute -top-1 h-4 w-px bg-slate-300" style="left:${pct(PASS_SCORE)}%"></div>
+                        <div class="absolute -top-1 h-4 w-1.5 rounded-full bg-emerald-400" style="left:calc(${pct(score)}% - 3px)"></div>
+                    </div>
+                    <div class="relative mt-1.5 h-4 text-[10px] text-slate-500">
+                        <span class="absolute left-0">100</span>
+                        <span class="absolute" style="left:${pct(PASS_SCORE)}%;transform:translateX(-50%)">${PASS_SCORE} pass</span>
+                        <span class="absolute right-0">1000</span>
+                    </div>
+                </div>`;
+        }
+
+        // The quiz bar's copy of the score. A section of the bank is not an exam domain, so inside any quiz
+        // this is the overall exam score. Only the score is shown, coloured like the dashboard; the pass line
+        // and the change since this session began are in the tooltip, and the change is on the summary.
+        function renderQuizEstimate() {
+            const el = document.getElementById('quizEstimate');
+            const s = examScore();
+            const name = SCORING_MODES[scoringMode];
+            const icon = '<i class="fa-solid fa-chart-line text-xs text-slate-500"></i> ';
+            if (!s.ready) {
+                const left = s.min - s.distinct;
+                el.title = 'Answer ' + left + ' more question' + (left === 1 ? '' : 's') + ' to unlock ' + name;
+                el.innerHTML = icon + '<span class="text-slate-400">' + s.distinct + '/' + s.min + '</span>';
+                return;
+            }
+            const start = sessionStartScores[scoringMode] ?? null;
+            const change = start === null ? 0 : s.shown - shownScore(start);
+            el.title = name + ' (100–1000, pass ' + PASS_SCORE + '): ' + s.passLine
+                + (start === null ? '' : '. ' + shownScore(start) + ' when this session started'
+                    + (change ? ' (' + (change > 0 ? '+' : '') + change + ')' : ''));
+            el.innerHTML = icon + '<span class="font-semibold ' + s.tone.text + '">' + s.shown + '</span>';
+        }
+
+        function renderSummaryEstimate() {
+            const el = document.getElementById('summaryEstimateLine');
+            const s = examScore();
+            if (!s.ready) { el.classList.add('hidden'); return; }
+            const start = sessionStartScores[scoringMode] ?? null;
+            const now = '<span class="font-semibold ' + s.tone.text + '">' + s.shown + '</span>';
+            const delta = start === null ? '' : estimateDelta(start, s.score);
+            el.innerHTML = '<i class="fa-solid fa-chart-line"></i> ' + SCORING_MODES[scoringMode] + ' '
+                + (start === null ? 'unlocked: ' + now
+                    : delta ? '<span class="font-semibold text-slate-300">' + shownScore(start) + '</span> → ' + now + ' ' + delta
+                    : 'unchanged at ' + now);
+            el.classList.remove('hidden');
+        }
+
+        function renderSimpleEstimate() {
+            const body = document.getElementById('estimateBody');
+            const s = simpleExamScore();
+
+            if (!s.ready) {
+                document.getElementById('estimateSummary').innerText = s.distinct + '/' + s.min + ' answered';
+                applyEstimateState();
+                const left = s.min - s.distinct;
+                body.innerHTML = `
+                    <p class="text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} to unlock Simple Scoring: your accuracy in each exam domain, weighted by the real exam blueprint.</p>
+                    <div class="h-1.5 rounded-full bg-slate-800 mt-3"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${Math.round(s.distinct / s.min * 100)}%"></div></div>`;
+                return;
+            }
+
+            const tone = simpleTone(s.score);
+            const need = Math.ceil((PASS_SCORE - 100) / 900 * SCORED_QUESTIONS);
+            document.getElementById('estimateSummary').innerHTML =
+                '<span class="font-semibold ' + tone.text + '">' + s.score + '</span> <span class="text-slate-500">·</span> ' + accuracyPercent(s.accuracy) + '% correct';
+            applyEstimateState();
+
+            const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
+                const d = s.per[id];
+                const acc = d.answered ? Math.round(d.acc * 100) : 0;
+                return `
+                    <div>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="text-slate-300 truncate">${dom.name} <span class="text-slate-500">${Math.round(dom.w * 100)}%</span></span>
+                            <span class="font-semibold text-slate-200">${d.answered ? acc + '%' : '–'}</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${acc}%"></div></div>
+                        <p class="text-[10px] text-slate-500 mt-1">${d.answered ? d.right + ' of ' + d.answered + ' right' : 'No answers yet, so not counted'}</p>
+                    </div>`;
+            }).join('');
+
+            body.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 items-end">
+                    <div>
+                        <p class="text-xs text-slate-400">Simple score</p>
+                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.score}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="text-xs text-slate-400 mt-1" title="Where 80% of 50-question sittings would land at your current accuracy, including luck on the day">80% range ${s.lo}–${s.hi}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400" title="Your accuracy per exam domain, weighted by the blueprint. 720 needs 69%.">Weighted accuracy</p>
+                        <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${accuracyPercent(s.accuracy)}%</p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
+                    </div>
+                </div>
+                ${scoreBar(s.score, s.lo, s.hi)}
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
+                <p class="mt-4 text-[11px] text-slate-500">About ${(s.accuracy * SCORED_QUESTIONS).toFixed(1)} of ${SCORED_QUESTIONS} right on a sitting, ${need} needed to pass · your latest answer to each of ${s.distinct} questions</p>`;
+        }
+
         function renderEstimate() {
+            renderScoringSwitch();
+            if (scoringMode === 'simple') { renderSimpleEstimate(); return; }
             const body = document.getElementById('estimateBody');
             const est = estimateExamScore();
 
@@ -1748,15 +2182,10 @@
                 return;
             }
 
-            const pct = s => ((s - 100) / 900 * 100).toFixed(1);
             const pp = Math.round(est.passProb * 100);
-            const tone = est.passProb >= 0.75
-                ? { text: 'text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400', label: 'Likely pass' }
-                : est.passProb >= 0.4
-                    ? { text: 'text-amber-400', chip: 'bg-amber-500/10 text-amber-400', label: 'Borderline' }
-                    : { text: 'text-rose-400', chip: 'bg-rose-500/10 text-rose-400', label: 'Needs work' };
+            const tone = estimateTone(est.passProb);
             document.getElementById('estimateSummary').innerHTML =
-                '<span class="font-semibold ' + tone.text + '">' + est.median + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
+                '<span class="font-semibold ' + tone.text + '">' + r10(est.score) + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
             applyEstimateState();
             const confidence = est.effectiveN < 15 ? 'Low' : est.effectiveN < 40 ? 'Medium' : 'High';
 
@@ -1777,7 +2206,7 @@
             const taskRows = Object.entries(EXAM_TASKS)
                 .map(([id, name]) => ({ id, name, t: est.perTask[id] }))
                 .filter(x => x.t.n > 0)
-                .map(x => ({ ...x, acc: Math.round(100 * x.t.s / x.t.n) }))
+                .map(x => ({ ...x, acc: Math.round(100 * x.t.mean) }))
                 .sort((a, b) => a.acc - b.acc)   // weakest first: that is what to study next
                 .map(x => `
                     <div class="flex items-center gap-3 text-xs">
@@ -1791,35 +2220,25 @@
             body.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 items-end">
                     <div>
-                        <p class="text-xs text-slate-400">Predicted score</p>
-                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${est.median}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
-                        <p class="text-xs text-slate-400 mt-1">80% range ${est.lo}\u2013${est.hi}</p>
+                        <p class="text-xs text-slate-400">Readiness score</p>
+                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${r10(est.score)}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="text-xs text-slate-400 mt-1" title="Where 80% of simulated sittings land, including luck on the day">80% range ${r10(est.lo)}\u2013${r10(est.hi)}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs text-slate-400">Chance of passing (\u2265${PASS_SCORE})</p>
+                        <p class="text-xs text-slate-400" title="AWS's published pass mark is 720. How correct answers convert to the scaled score is not published; this model assumes a straight line, so 720 needs 35 of 50 correct.">Chance of reaching ${PASS_SCORE}</p>
                         <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${pp}%</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
                     </div>
                 </div>
-                <div class="mt-5">
-                    <div class="relative h-2 rounded-full bg-slate-800">
-                        <div class="absolute h-2 rounded-full bg-emerald-500/40" style="left:${pct(est.lo)}%;width:${(pct(est.hi) - pct(est.lo)).toFixed(1)}%"></div>
-                        <div class="absolute -top-1 h-4 w-px bg-slate-300" style="left:${pct(PASS_SCORE)}%"></div>
-                        <div class="absolute -top-1 h-4 w-1.5 rounded-full bg-emerald-400" style="left:calc(${pct(est.median)}% - 3px)"></div>
-                    </div>
-                    <div class="relative mt-1.5 h-4 text-[10px] text-slate-500">
-                        <span class="absolute left-0">100</span>
-                        <span class="absolute" style="left:${pct(PASS_SCORE)}%;transform:translateX(-50%)">${PASS_SCORE} pass</span>
-                        <span class="absolute right-0">1000</span>
-                    </div>
-                </div>
+                ${scoreBar(est.score, est.lo, est.hi)}
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">By exam guide task statement</summary>
                     <div class="mt-3 space-y-2">${taskRows || '<p class="text-xs text-slate-500">Answer a few more questions to see this breakdown.</p>'}</div>
-                    <p class="mt-3 text-[10px] text-slate-500">Your weighted accuracy per task statement of the official SAA-C03 exam guide, weakest first. Unlike the domain figures above, these are raw and not projected onto the exam's item mix.</p>
+                    <p class="mt-3 text-[10px] text-slate-500">Projected accuracy per task statement of the official SAA-C03 exam guide, weakest first. Like the domain figures, it allows for question difficulty and guessing, and a task with few answers is pulled toward your level on the rest of its domain, so it will not jump to 0% or 100% on two questions.</p>
                 </details>
-                <p class="mt-4 text-[11px] text-slate-500">Confidence: ${confidence} \u00b7 based on ${est.distinct} question${est.distinct === 1 ? '' : 's'} and ${est.totalAttempts} attempt${est.totalAttempts === 1 ? '' : 's'}</p>`;
+                ${est.repeatShare >= REPEAT_WARN ? '<p class="mt-3 text-[11px] text-amber-400">' + Math.round(est.repeatShare * 100) + '% of your attempts are repeats of questions you have already seen. They mostly measure memory, so they carry little weight; fresh questions give a more trustworthy estimate.</p>' : ''}
+                <p class="mt-4 text-[11px] text-slate-500">${est.staleDays >= STALE_GRACE_DAYS ? 'Last practised ' + Math.floor(est.staleDays) + ' days ago, so the range is wider · ' : ''}Confidence: ${confidence} \u00b7 based on ${est.distinct} question${est.distinct === 1 ? '' : 's'} and ${est.totalAttempts} attempt${est.totalAttempts === 1 ? '' : 's'}</p>`;
         }
 
         // ===== Smart quiz =====
@@ -1845,11 +2264,10 @@
 
         function selectSmartQuestions(size) {
             const now = Date.now();
-            const est = estimateExamScore();
-            const mean = id => (est.ready ? est.post[id].mean : 0.6);
-            const weakest = est.ready
-                ? Object.keys(EXAM_DOMAINS).reduce((a, b) => (est.post[a].mean <= est.post[b].mean ? a : b))
-                : null;
+            // the selected scoring's level per domain; a domain with nothing to go on counts as middling
+            const levels = examScore().levels || {};
+            const mean = id => levels[id] ?? 0.6;
+            const weakest = weakestDomain(levels);
 
             const scored = questions.map(q => {
                 const s = questionStanding(q, now);
@@ -1891,11 +2309,9 @@
             if (tally.missed) parts.push(tally.missed + ' to redo');
             if (tally.due) parts.push(tally.due + ' due for review');
             if (tally.new) parts.push(tally.new + ' new');
-            const est = estimateExamScore();
-            if (est.ready) {
-                const weakest = Object.keys(EXAM_DOMAINS).reduce((a, b) => (est.post[a].mean <= est.post[b].mean ? a : b));
-                parts.push('weakest area: ' + EXAM_DOMAINS[weakest].name + ' (' + Math.round(est.post[weakest].mean * 100) + '%)');
-            }
+            const levels = examScore().levels;
+            const weakest = weakestDomain(levels);
+            if (weakest) parts.push('weakest area: ' + EXAM_DOMAINS[weakest].name + ' (' + Math.round(levels[weakest] * 100) + '%)');
             el.innerText = parts.length
                 ? 'Smart quiz picks ' + preferredQuizSize('smart') + ' questions: ' + parts.join(' \u00b7 ')
                 : 'Smart quiz picks the questions that will help you most.';
@@ -1968,6 +2384,7 @@
             document.getElementById('historyLine').classList.add('hidden');
 
             document.getElementById('liveScoreNum').innerText = score;
+            renderQuizEstimate();
             const hintText = document.getElementById('hintText');
             hintText.classList.add('hidden');
             hintText.innerText = q.hint || '';
@@ -2117,6 +2534,8 @@
                 }
                 savePersistedData();
                 saveSession();
+                // after the answer has painted, so working out the new estimate never delays the tap
+                requestAnimationFrame(() => setTimeout(renderQuizEstimate));
             }
 
             // Show explanation
@@ -2208,6 +2627,7 @@
             document.getElementById('summaryScorePercent').innerText = percent + '%';
             document.getElementById('summaryCorrectCount').innerText = score;
             document.getElementById('summaryIncorrectCount').innerText = (total - score);
+            renderSummaryEstimate();
 
             initApp();
         }
