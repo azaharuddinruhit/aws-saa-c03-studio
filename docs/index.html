@@ -361,7 +361,8 @@
                         <li>Your fitted ability is then projected onto the real exam's own mix of easy, medium and hard questions, which is why practising only easy questions will not inflate your score.</li>
                         <li>Each domain is pulled toward your overall ability, so a domain with two answers isn't trusted like one with twenty. Domains are weighted by the official blueprint: 30% Secure, 26% Resilient, 24% High-Performing, 20% Cost-Optimized.</li>
                         <li>Recent answers count more (21-day half-life). Repeat attempts count 30%, answers taken after reading the hint count 45%, and mistake-drill answers count 50%, because each is weaker evidence of unaided ability.</li>
-                        <li>A 3,000-run Monte Carlo simulates a 50-question scored exam and maps the result linearly onto AWS's 100–1000 scale, with 720 as the pass mark. Each run draws one shared ability plus a per-domain difference, because the domains rise and fall together, so the range is not artificially narrow. The range is the 10th–90th percentile.</li>
+                        <li>A 3,000-run Monte Carlo simulates a 50-question scored exam and maps the result linearly onto AWS's 100–1000 scale, with 720 as the pass mark. Each run draws one shared ability plus a per-domain difference, because the domains rise and fall together, so the range is not artificially narrow. The range is the 10th–90th percentile, and the simulation replays the same random draws each time, so the range and pass chance only move when your answers do.</li>
+                        <li>The headline score is your expected accuracy on the real exam mapped straight onto the same scale, rather than the middle simulated exam, so it moves point by point instead of in 18-point steps (one question of 50).</li>
                         <li>AWS does not publish its scoring model or its item difficulties, so treat this as a guide rather than a guarantee.</li>
                     </ul>
                 </details>
@@ -1703,7 +1704,10 @@
             // would let their errors cancel and report a narrower range than the evidence supports.
             const shared = Math.min(global.se, ...Object.values(post).map(d => d.se));
             for (const d of Object.values(post)) d.residual = Math.sqrt(Math.max(0, d.se * d.se - shared * shared));
-            const rng = mulberry32(Math.imul(distinct, 0x9E3779B1) ^ Math.imul(totalAttempts, 0x85EBCA6B) ^ Math.round(N * 1000));
+            // A fixed seed replays the same draws every time, so the range and pass chance move only
+            // when your answers do. Seeding from the answer counts re-rolled them on every answer,
+            // which alone could shift the range by a step.
+            const rng = mulberry32(0x5AA0C03);
             const scores = [];
             for (let r = 0; r < MC_RUNS; r++) {
                 let p = 0;
@@ -1718,9 +1722,14 @@
             }
             scores.sort((x, y) => x - y);
             const at = f => scores[Math.min(scores.length - 1, Math.floor(f * scores.length))];
+            // The headline is your expected accuracy mapped straight onto the scale. The simulated
+            // exams can only land on 18-point steps (one question of 50), and their middle value
+            // could step down after a correct answer; this moves smoothly and only ever rises with one.
+            let expected = 0;
+            for (const [id, dom] of Object.entries(EXAM_DOMAINS)) expected += dom.w * post[id].mean;
             return {
                 ready: true, per, post, perTask, distinct, totalAttempts, effectiveN: N,
-                median: at(0.5), lo: at(0.1), hi: at(0.9),
+                median: Math.round(100 + 900 * expected), lo: at(0.1), hi: at(0.9),
                 passProb: scores.filter(s => s >= PASS_SCORE).length / scores.length
             };
         }
