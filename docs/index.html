@@ -373,7 +373,7 @@
                         <li>Domains are weighted by the blueprint, and a domain with few answers leans on your overall level.</li>
                         <li>Recent answers count more (21-day half-life). All retries of a question together count at most 40% of a fresh answer, and less when retried soon after. An answer after reading the hint counts as an easier question.</li>
                         <li>3,000 simulated 50-question exams give the 80% range and the chance of reaching 720. The range widens the longer you go without practising.</li>
-                        <li>Rounded to the nearest 10, and a refresh never changes it. AWS doesn't publish how answers convert to its scale, so treat it as a guide.</li>
+                        <li>A refresh never changes it, but small moves are within its margin of error. AWS doesn't publish how answers convert to its scale, so treat it as a guide.</li>
                     </ul>
                 </details>
                 </div>
@@ -2000,8 +2000,6 @@
         // ===== The selected scoring =====
         // Shared by the dashboard card, the quiz bar, the summary and the Smart quiz, so they all show the
         // same number the same way.
-        const r10 = s => Math.round(s / 10) * 10;   // Intelligent Scoring is not that precise, so do not display it as if it were
-        const shownScore = (s, mode = scoringMode) => (mode === 'simple' ? s : r10(s));   // Simple Scoring is exact arithmetic
         function estimateTone(passProb) {
             return passProb >= 0.75
                 ? { text: 'text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400', label: 'Likely pass' }
@@ -2024,7 +2022,7 @@
             if (!e.ready) return { ...e, min: MIN_ANSWERED };
             const levels = {};
             for (const id of Object.keys(EXAM_DOMAINS)) levels[id] = e.post[id].mean;
-            return { ...e, shown: r10(e.score), tone: estimateTone(e.passProb), passLine: Math.round(e.passProb * 100) + '% chance of passing', levels };
+            return { ...e, shown: e.score, tone: estimateTone(e.passProb), passLine: Math.round(e.passProb * 100) + '% chance of passing', levels };
         }
 
         // The exam domain with the lowest level, ignoring domains with nothing to go on
@@ -2052,9 +2050,9 @@
             document.getElementById('howSummary').innerText = scoringMode === 'simple' ? 'How this is calculated' : 'How this is estimated';
         }
 
-        // "▲20" / "▼10" in the units the score is shown in; empty when the shown number has not moved
+        // "▲8" / "▼3"; empty when the score has not moved
         function estimateDelta(from, to) {
-            const d = shownScore(to) - shownScore(from);
+            const d = to - from;
             if (!d) return '';
             return '<span class="text-[11px] font-semibold ' + (d > 0 ? 'text-emerald-400' : 'text-rose-400') + '">'
                 + (d > 0 ? '▲' : '▼') + Math.abs(d) + '</span>';
@@ -2093,9 +2091,9 @@
                 return;
             }
             const start = sessionStartScores[scoringMode] ?? null;
-            const change = start === null ? 0 : s.shown - shownScore(start);
+            const change = start === null ? 0 : s.shown - start;
             el.title = name + ' (100–1000, pass ' + PASS_SCORE + '): ' + s.passLine
-                + (start === null ? '' : '. ' + shownScore(start) + ' when this session started'
+                + (start === null ? '' : '. ' + start + ' when this session started'
                     + (change ? ' (' + (change > 0 ? '+' : '') + change + ')' : ''));
             el.innerHTML = icon + '<span class="font-semibold ' + s.tone.text + '">' + s.shown + '</span>';
         }
@@ -2109,7 +2107,7 @@
             const delta = start === null ? '' : estimateDelta(start, s.score);
             el.innerHTML = '<i class="fa-solid fa-chart-line"></i> ' + SCORING_MODES[scoringMode] + ' '
                 + (start === null ? 'unlocked: ' + now
-                    : delta ? '<span class="font-semibold text-slate-300">' + shownScore(start) + '</span> → ' + now + ' ' + delta
+                    : delta ? '<span class="font-semibold text-slate-300">' + start + '</span> → ' + now + ' ' + delta
                     : 'unchanged at ' + now);
             el.classList.remove('hidden');
         }
@@ -2185,7 +2183,7 @@
             const pp = Math.round(est.passProb * 100);
             const tone = estimateTone(est.passProb);
             document.getElementById('estimateSummary').innerHTML =
-                '<span class="font-semibold ' + tone.text + '">' + r10(est.score) + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
+                '<span class="font-semibold ' + tone.text + '">' + est.score + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
             applyEstimateState();
             const confidence = est.effectiveN < 15 ? 'Low' : est.effectiveN < 40 ? 'Medium' : 'High';
 
@@ -2221,8 +2219,8 @@
                 <div class="grid grid-cols-2 gap-4 items-end">
                     <div>
                         <p class="text-xs text-slate-400">Readiness score</p>
-                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${r10(est.score)}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
-                        <p class="text-xs text-slate-400 mt-1" title="Where 80% of simulated sittings land, including luck on the day">80% range ${r10(est.lo)}\u2013${r10(est.hi)}</p>
+                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${est.score}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="text-xs text-slate-400 mt-1" title="Where 80% of simulated sittings land, including luck on the day">80% range ${est.lo}\u2013${est.hi}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-xs text-slate-400" title="AWS's published pass mark is 720. How correct answers convert to the scaled score is not published; this model assumes a straight line, so 720 needs 35 of 50 correct.">Chance of reaching ${PASS_SCORE}</p>
