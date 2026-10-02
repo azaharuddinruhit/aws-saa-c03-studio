@@ -33,10 +33,10 @@
         *::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
         *::-webkit-scrollbar-thumb:hover { background: #10B981; background-clip: content-box; }
         *::-webkit-scrollbar-corner { background: transparent; }
-        /* Dashboard, on every screen size: still scrolls, just without the visible rail. Scoped to
-           the dashboard so the quiz and summary views keep their scrollbars. */
-        main:has(#dashboardView:not(.hidden)) { scrollbar-width: none; }
-        main:has(#dashboardView:not(.hidden))::-webkit-scrollbar { display: none; }
+        /* Dashboard and progress overview, on every screen size: still scroll, just without the visible
+           rail. Scoped to those two so the quiz and summary views keep their scrollbars. */
+        main:has(#dashboardView:not(.hidden)), main:has(#overviewView:not(.hidden)) { scrollbar-width: none; }
+        main:has(#dashboardView:not(.hidden))::-webkit-scrollbar, main:has(#overviewView:not(.hidden))::-webkit-scrollbar { display: none; }
         /* Summary figures: two by two on a phone, one row of four from the sm breakpoint up
            (the prebuilt Tailwind below has no sm:grid-cols-4) */
         @media (min-width: 640px) { #summaryStats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -233,6 +233,7 @@
            cell sizes, and the charts need their own light and dark values. The heatmap steps are one
            emerald hue, light to dark (dark to light on the dark theme), and the line colours sit in
            the readable lightness band; all were checked against each theme's card surface. */
+        .page-tabs { margin-bottom: 1.25rem; }
         .ov-pair { display: grid; gap: 1.5rem; }
         .ov-rule { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ov-grid); }
         @media (min-width: 1024px) { .ov-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
@@ -313,9 +314,9 @@
          always reachable. The quiz view also has its own back arrow. -->
     <header class="bg-slate-900/60 border-b border-slate-800 shrink-0">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-            <!-- logo and title act as the home link; mid-quiz this routes through the same
+            <!-- logo and title act as the home link (the overview); mid-quiz this routes through the same
                  leave-session confirmation as the back arrow -->
-            <button onclick="returnToDashboard()" title="Back to dashboard" class="flex items-center gap-3 min-w-0 text-left">
+            <button onclick="goHome()" title="Progress overview" class="flex items-center gap-3 min-w-0 text-left">
                 <svg class="w-8 h-8 rounded-lg shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo">
                     <rect width="32" height="32" rx="7" fill="#10B981"/>
                     <path d="M9 17l5 5 9-11" stroke="#0F172A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -367,6 +368,18 @@
     </header>
 
     <main class="flex-1 min-h-0 max-w-6xl w-full mx-auto px-4 py-4 sm:px-6 flex flex-col overflow-y-auto">
+
+        <!-- The two pages a visit moves between. Hidden during a quiz and on its summary, which have their
+             own way back; Resume quiz shows on the overview while a quiz is waiting in this tab. -->
+        <nav id="pageTabs" aria-label="Pages" class="page-tabs flex flex-wrap items-center justify-between gap-3">
+            <div class="inline-flex rounded-xl border border-slate-800 overflow-hidden">
+                <button type="button" data-page="overview" onclick="go({ name: 'overview' })">Overview</button>
+                <button type="button" data-page="dashboard" onclick="returnToDashboard()">Practice</button>
+            </div>
+            <button id="resumeQuizBtn" type="button" onclick="resumeQuiz()" class="hidden border border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-400 font-semibold px-4 py-2 rounded-xl transition flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-play text-xs"></i><span id="resumeQuizLabel">Resume quiz</span>
+            </button>
+        </nav>
 
         <!-- VIEW 1: DASHBOARD -->
         <div id="dashboardView" class="space-y-6 animate-fade-in">
@@ -622,11 +635,8 @@
              Every bank together: a readiness verdict, the combined score, what is left and when it will be
              done, the services you are weakest in, and your practice over time. Filled by renderOverview(). -->
         <div id="overviewView" class="hidden space-y-6 animate-fade-in">
-            <div class="pt-2">
-                <button onclick="leaveOverview()" class="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-300 transition">
-                    <i class="fa-solid fa-arrow-left"></i><span>Back</span>
-                </button>
-                <h2 class="text-2xl font-bold tracking-tight mt-3">Progress overview</h2>
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight">Progress overview</h2>
                 <p id="ovVerdict" class="mt-2 text-sm text-slate-300 flex items-center gap-2"></p>
                 <p id="ovNote" class="hidden mt-1 text-xs text-amber-400"></p>
             </div>
@@ -1438,24 +1448,25 @@
 
         // ===== Routes =====
         // The address tracks the screen, so the browser's Back and Forward move through a quiz:
-        //   (no hash)    dashboard
+        //   (no hash)    progress overview, where every visit starts (#/overview, the old address, still works)
+        //   #/dashboard  dashboard
         //   #/quiz/<n>   question n of the session in this tab; answered ones reopen read-only
         //   #/summary    the finished session's summary
         // The address only says where you are. What the session contains (its questions, their
         // order, your answers) lives in sessionStorage, so an address with no session behind it
-        // falls back to the dashboard.
+        // falls back to the overview.
         function parseRoute() {
             const quiz = /^#\/quiz\/(\d+)$/.exec(location.hash);
             if (quiz) return { name: 'quiz', n: parseInt(quiz[1], 10) };
             if (location.hash === '#/summary') return { name: 'summary' };
-            if (location.hash === '#/overview') return { name: 'overview' };
-            return { name: 'dashboard' };
+            if (location.hash === '#/dashboard') return { name: 'dashboard' };
+            return { name: 'overview' };
         }
 
         function routeUrl(route) {
             if (route.name === 'quiz') return '#/quiz/' + route.n;
             if (route.name === 'summary') return '#/summary';
-            if (route.name === 'overview') return '#/overview';
+            if (route.name === 'dashboard') return '#/dashboard';
             return location.pathname + location.search;
         }
 
@@ -1494,9 +1505,9 @@
                 return;
             }
             if (!active) {
-                setRoute({ name: 'dashboard' }, true);
-                showDashboardView();
-                initApp();
+                setRoute({ name: 'overview' }, true);
+                showOverviewView();
+                renderOverview();
                 return;
             }
             if (route.name === 'summary') {
@@ -1530,6 +1541,7 @@
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
+            renderPageTabs('dashboard');
         }
 
         // Named after what was started, matching the dashboard buttons; a section quiz is named after its section
@@ -1545,6 +1557,7 @@
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
+            renderPageTabs(null);
         }
 
         // ===== Quiz size =====
@@ -2516,25 +2529,51 @@
         const READY = { minAnswered: 50, seenNearly: 0.8, seenReady: 0.9, passNearly: 0.5, passReady: 0.8, staleDays: 7 };
         const DATE_SHORT = { day: 'numeric', month: 'short' };
         const DATE_LONG = { weekday: 'short', day: 'numeric', month: 'short' };
-        let overviewFromApp = false;        // opened from the menu in this page, so Back can simply go back
         let overviewWeakAll = false;
         let overviewRun = 0;                // a newer render supersedes one still waiting on the bank files
         let overviewChart = null;           // the progress chart's data, kept so a resize can redraw it
 
         function openOverview() {
             closeHeaderMenu();
-            overviewFromApp = true;
             go({ name: 'overview' });
         }
 
-        function leaveOverview() {
-            if (overviewFromApp) { history.back(); return; }
-            go(currentQuizQuestions.length ? { name: 'quiz', n: liveIndex + 1 } : { name: 'dashboard' });
+        // The logo goes home, which is the overview. Already there, it does nothing, so it can never end a
+        // quiz that is waiting in this tab; from a quiz it asks first, like every other way out.
+        async function goHome() {
+            if (parseRoute().name === 'overview') return;
+            if (await leaveSession('Leave this session?', 'Leave', 'overview')) renderOverview();
+        }
+
+        // Back into the quiz waiting in this tab: its live question, or its summary once finished
+        function resumeQuiz() {
+            go(quizFinished ? { name: 'summary' } : { name: 'quiz', n: liveIndex + 1 });
+        }
+
+        // The Overview / Practice switch above both pages, with Resume quiz while a quiz is waiting
+        function renderPageTabs(page) {
+            // the overview covers every bank, so the header's active-bank label would mislead there
+            document.getElementById('bankLabel').classList.toggle('hidden', page === 'overview');
+            const nav = document.getElementById('pageTabs');
+            nav.classList.toggle('hidden', !page);
+            if (!page) return;
+            for (const btn of nav.querySelectorAll('[data-page]')) {
+                const on = btn.dataset.page === page;
+                if (on) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+                btn.className = 'px-4 py-2 text-sm font-semibold transition ' + (on ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:text-slate-300');
+            }
+            const waiting = page === 'overview' && currentQuizQuestions.length > 0;
+            document.getElementById('resumeQuizBtn').classList.toggle('hidden', !waiting);
+            if (waiting) {
+                document.getElementById('resumeQuizLabel').innerText = quizFinished
+                    ? 'See quiz summary' : 'Resume quiz · ' + (liveIndex + 1) + ' of ' + currentQuizQuestions.length;
+            }
         }
 
         function showOverviewView() {
             for (const id of ['dashboardView', 'quizView', 'summaryView']) document.getElementById(id).classList.add('hidden');
             document.getElementById('overviewView').classList.remove('hidden');
+            renderPageTabs('overview');
         }
 
         // Another browser's progress or settings arrived; the overview reads every bank, so it redraws.
@@ -3620,6 +3659,7 @@
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('summaryView').classList.remove('hidden');
+            renderPageTabs(null);
 
             const budget = quizBudgetMs(), over = quizElapsedMs - budget;
             document.getElementById('summaryTimeValue').innerHTML = formatDuration(quizElapsedMs) + ' of ' + formatDuration(budget)
@@ -3657,10 +3697,10 @@
             document.getElementById('flagText').innerText = flagged ? "Flagged" : "Flag for Review";
         }
 
-        // Ends whatever is on screen and goes back to the dashboard. The summary screen uses this too,
-        // where there is nothing left to abandon, so the warning is limited to a quiz still in progress
-        // that has answers in it. Resolves false if the reader cancels.
-        async function leaveSession(title, confirmLabel) {
+        // Ends whatever is on screen and goes to the dashboard (or the overview, when `to` says so). The
+        // summary screen uses this too, where there is nothing left to abandon, so the warning is limited
+        // to a quiz still in progress that has answers in it. Resolves false if the reader cancels.
+        async function leaveSession(title, confirmLabel, to = 'dashboard') {
             const done = Object.keys(userAnswers).length;
             if (currentQuizQuestions.length > 0 && done > 0 && !quizFinished) {
                 const total = currentQuizQuestions.length;
@@ -3671,8 +3711,8 @@
                 if (!ok) return false;
             }
             endSession();
-            setRoute({ name: 'dashboard' }, false);
-            showDashboardView();
+            setRoute({ name: to }, false);
+            if (to === 'overview') showOverviewView(); else showDashboardView();
             return true;
         }
 
