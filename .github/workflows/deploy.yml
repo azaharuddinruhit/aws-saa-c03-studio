@@ -1,0 +1,47 @@
+# Publishes docs/ to GitHub Pages on every push to develop, stamping the app version and
+# deployment time into index.html on the way (the committed file keeps its placeholders).
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# one deployment at a time; a newer push supersedes a queued one
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp version and deployment time
+        run: |
+          version="v1.${{ github.run_number }}"
+          deployed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          sed -i -e "s/__APP_VERSION__/${version}/" -e "s/__DEPLOYED_AT__/${deployed_at}/" docs/index.html
+          if grep -qE '__APP_VERSION__|__DEPLOYED_AT__' docs/index.html; then
+            echo "::error::Version placeholders were not replaced in docs/index.html"
+            exit 1
+          fi
+          echo "Deploying ${version} at ${deployed_at}"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

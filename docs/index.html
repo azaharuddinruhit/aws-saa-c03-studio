@@ -299,6 +299,9 @@
                     <button onclick="runHeaderAction('resetAllProgress')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition">
                         <i class="fa-solid fa-rotate-left w-4"></i><span>Reset stats</span>
                     </button>
+                    <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
+                    <!-- the deploy workflow stamps both placeholders; left as-is, the page is a local copy -->
+                    <p id="appVersion" data-version="__APP_VERSION__" data-deployed="__DEPLOYED_AT__" class="px-4 py-1 text-[10px] font-mono text-slate-500"></p>
                 </div>
             </div>
         </div>
@@ -668,6 +671,7 @@
                 if (BANKS[savedBank]) bankKey = savedBank;
             } catch (e) {}
             syncMenuLabel();
+            renderAppVersion();
             // pick up progress saved in other browsers first, but never wait long for GitHub
             await Promise.race([syncNow(), new Promise(r => setTimeout(r, 5000))]);
             loadPersistedData();
@@ -680,6 +684,20 @@
                 countOtherBanks();
             });
         };
+
+        // The deploy workflow replaces the placeholders with the version and a UTC timestamp,
+        // shown in the viewer's own time zone; an unstamped page was opened from disk.
+        const DEPLOYED_DATE = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+        function renderAppVersion() {
+            const el = document.getElementById('appVersion');
+            const { version, deployed } = el.dataset;
+            if (version.startsWith('__')) {
+                el.innerText = 'Local build';
+                return;
+            }
+            el.innerText = version + ' · ' + new Date(deployed).toLocaleString(undefined, DEPLOYED_DATE);
+        }
 
         // The menu shows every bank's size, so the banks that are not active are read once in the
         // background; a file that cannot be read simply shows no count.
