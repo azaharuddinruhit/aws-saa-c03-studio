@@ -228,6 +228,61 @@
             html:not(.dark) .lg\:bg-slate-900 { background-color: #ffffff; }
             html:not(.dark) .lg\:border-slate-800 { border-color: #e2e8f0; }
         }
+        /* ===== Progress overview =====
+           Plain CSS, because the prebuilt Tailwind has no two-column grid at lg or the small dot and
+           cell sizes, and the charts need their own light and dark values. The heatmap steps are one
+           emerald hue, light to dark (dark to light on the dark theme), and the line colours sit in
+           the readable lightness band; all were checked against each theme's card surface. */
+        .ov-pair { display: grid; gap: 1.5rem; }
+        .ov-rule { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ov-grid); }
+        @media (min-width: 1024px) { .ov-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
+        html:not(.dark) #overviewView {
+            --ov-surface: #ffffff; --ov-line: #059669; --ov-wash: rgba(5, 150, 105, .10);
+            --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
+            --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0;
+            --ov-heat0: #e2e8f0; --ov-heat1: #29bf88; --ov-heat2: #0b9a6c; --ov-heat3: #06775a; --ov-heat4: #064e3b;
+        }
+        .dark #overviewView {
+            --ov-surface: #101522; --ov-line: #14a874; --ov-wash: rgba(20, 168, 116, .12);
+            --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
+            --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447;
+            --ov-heat0: #212739; --ov-heat1: #065f46; --ov-heat2: #047857; --ov-heat3: #10b981; --ov-heat4: #6ee7b7;
+        }
+        .dark #ovExamDate { color-scheme: dark; }
+        .ov-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 9999px; flex-shrink: 0; }
+        #ovVerdict { align-items: flex-start; }
+        #ovVerdict .ov-dot { margin-top: .4rem; }   /* sits on the first line when the verdict wraps */
+        .ov-dot[data-tone="good"] { background: #10b981; }
+        .ov-dot[data-tone="warn"] { background: #f59e0b; }
+        .ov-dot[data-tone="bad"] { background: #f43f5e; }
+        .ov-dot[data-tone="none"] { background: #64748b; }
+        /* right / missed / unseen: one bar, segments separated by a 2px gap of the card surface */
+        .ov-stack { display: flex; gap: 2px; height: .625rem; border-radius: 9999px; overflow: hidden; }
+        .ov-stack.thin { height: .375rem; }
+        .ov-stack > span { display: block; height: 100%; }
+        .ov-key { display: inline-block; width: .625rem; height: .625rem; border-radius: 2px; flex-shrink: 0; }
+        .ov-heat { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; max-width: 18rem; }
+        .ov-cell { aspect-ratio: 1; border-radius: 3px; background: var(--ov-heat0); }
+        .ov-cell.future { background: transparent; }
+        .ov-cell[data-level="1"] { background: var(--ov-heat1); }
+        .ov-cell[data-level="2"] { background: var(--ov-heat2); }
+        .ov-cell[data-level="3"] { background: var(--ov-heat3); }
+        .ov-cell[data-level="4"] { background: var(--ov-heat4); }
+        .ov-cell.hot { outline: 2px solid var(--ov-ink); outline-offset: 1px; }
+        .ov-chart { position: relative; touch-action: pan-y; }
+        .ov-chart svg { display: block; width: 100%; overflow: visible; }
+        .ov-chart svg:focus-visible { outline: 2px solid #10B981; outline-offset: 4px; border-radius: 4px; }
+        .ov-chart text { font-family: 'Inter', sans-serif; font-size: 10px; fill: var(--ov-muted); font-variant-numeric: tabular-nums; }
+        /* the tooltip keeps a dark surface in both themes, like the toast */
+        .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
+                  border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); white-space: nowrap; }
+        .ov-tip b { font-weight: 600; color: #ffffff; }
+        .ov-tip .muted { color: #94a3b8; }
+        .ov-table { width: 100%; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
+        .ov-table th, .ov-table td { text-align: left; padding: .25rem .5rem .25rem 0; border-bottom: 1px solid var(--ov-grid); }
+        .ov-table th { font-weight: 500; color: var(--ov-muted); }
+        .ov-table td { color: var(--ov-ink); }
+
         @media not all and (min-width: 1024px) {
             .dark .max-lg\:bg-slate-900 { background-color: #101522; }
             .dark .max-lg\:bg-slate-950 { background-color: #050810; }
@@ -280,6 +335,10 @@
                     <p class="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Question bank</p>
                     <div id="bankMenuItems" role="group" aria-label="Question bank"><!-- Populated via JS --></div>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
+                    <!-- Every bank together; opening it mid-quiz keeps the quiz, and Back returns to it -->
+                    <button onclick="openOverview()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i class="fa-solid fa-chart-line w-4"></i><span>Progress overview</span>
+                    </button>
                     <!-- The cheat sheet hub lists every domain; a quiz in progress lives in sessionStorage, so Back resumes it -->
                     <a href="cheatsheet/index.html" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-book-open w-4"></i><span>Cheat sheets</span>
@@ -559,7 +618,49 @@
             </div>
         </div>
 
+        <!-- VIEW 4: PROGRESS OVERVIEW
+             Every bank together: a readiness verdict, the combined score, what is left and when it will be
+             done, the services you are weakest in, and your practice over time. Filled by renderOverview(). -->
+        <div id="overviewView" class="hidden space-y-6 animate-fade-in">
+            <div class="pt-2">
+                <button onclick="leaveOverview()" class="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-300 transition">
+                    <i class="fa-solid fa-arrow-left"></i><span>Back</span>
+                </button>
+                <h2 class="text-2xl font-bold tracking-tight mt-3">Progress overview</h2>
+                <p id="ovVerdict" class="mt-2 text-sm text-slate-300 flex items-center gap-2"></p>
+                <p id="ovNote" class="hidden mt-1 text-xs text-amber-400"></p>
+            </div>
+            <div class="ov-pair">
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold">Combined score</h3>
+                        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                    </div>
+                    <div id="ovScore" class="mt-4"></div>
+                </section>
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Timeline</h3>
+                    <div id="ovTimeline" class="mt-4"></div>
+                </section>
+            </div>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-bold">Weak areas</h3>
+                    <button id="ovWeakToggle" onclick="toggleWeakAll()" class="hidden text-xs text-slate-400 hover:text-slate-300 transition"></button>
+                </div>
+                <div id="ovWeak" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold">Activity</h3>
+                <div id="ovActivity" class="mt-4"></div>
+            </section>
+        </div>
+
     </main>
+
+    <!-- The overview's chart and heatmap tooltip. It lives outside the views because their fade-in
+         animation leaves a transform behind, which would make position: fixed relative to the view. -->
+    <div id="ovTip" class="ov-tip" hidden></div>
 
     <div id="confirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
@@ -702,19 +803,25 @@
 
         // The menu shows every bank's size and the overview combines every bank, so the banks that are
         // not active are read once in the background; a file that cannot be read simply shows no count.
-        async function loadOtherBanks() {
-            for (const [key, bank] of Object.entries(BANKS)) {
-                if (key in bankQuestions) continue;
-                try {
-                    const res = await fetch('./' + bank.file, { cache: 'no-store' });
-                    if (!res.ok) continue;
-                    const parsed = await res.json();
-                    if (!Array.isArray(parsed)) continue;
-                    bankQuestions[key] = parsed;
-                    bankCounts[key] = parsed.length;
-                } catch (e) {}
-            }
-            renderBankMenu();
+        // Callers share the one read in flight, so the overview can wait on it without fetching twice.
+        let otherBanksLoad = null;
+        function loadOtherBanks() {
+            if (otherBanksLoad) return otherBanksLoad;
+            otherBanksLoad = (async () => {
+                for (const [key, bank] of Object.entries(BANKS)) {
+                    if (key in bankQuestions) continue;
+                    try {
+                        const res = await fetch('./' + bank.file, { cache: 'no-store' });
+                        if (!res.ok) continue;
+                        const parsed = await res.json();
+                        if (!Array.isArray(parsed)) continue;
+                        bankQuestions[key] = parsed;
+                        bankCounts[key] = parsed.length;
+                    } catch (e) {}
+                }
+                renderBankMenu();
+            })();
+            return otherBanksLoad;
         }
 
         async function loadQuestionBank() {
@@ -852,9 +959,53 @@
         // Called whenever the active bank's progress changes; the upload follows a moment later.
         function markBankChanged() {
             try { localStorage.setItem(storeKey('updated'), String(Date.now())); } catch (e) {}
+            scheduleSync();
+        }
+
+        function scheduleSync() {
             if (!syncToken()) return;
             clearTimeout(syncTimer);
             syncTimer = setTimeout(() => syncNow(), SYNC_DELAY);
+        }
+
+        // Settings that follow you between browsers (for now just the exam date) travel in the gist's
+        // settings section, newer side wins as with the banks. Older copies of the page push back the
+        // gist they read, so they carry the section along untouched.
+        const EXAM_DATE_KEY = 'saa_exam_date';
+        const SETTINGS_UPDATED_KEY = 'saa_settings_updated';
+
+        function settingsUpdated() {
+            try { return parseInt(localStorage.getItem(SETTINGS_UPDATED_KEY), 10) || 0; } catch (e) { return 0; }
+        }
+
+        // The exam date as YYYY-MM-DD, or null when none is set
+        function examDate() {
+            try {
+                const v = localStorage.getItem(EXAM_DATE_KEY);
+                return /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : null;
+            } catch (e) { return null; }
+        }
+
+        function readLocalSettings() {
+            return { updatedAt: settingsUpdated(), examDate: examDate() };
+        }
+
+        function writeLocalSettings(settings) {
+            const date = /^\d{4}-\d{2}-\d{2}$/.test(settings.examDate || '') ? settings.examDate : null;
+            if (date) localStorage.setItem(EXAM_DATE_KEY, date);
+            else localStorage.removeItem(EXAM_DATE_KEY);
+            localStorage.setItem(SETTINGS_UPDATED_KEY, String(settings.updatedAt));
+        }
+
+        function setExamDate(date) {
+            try { writeLocalSettings({ examDate: date, updatedAt: Date.now() }); } catch (e) {}
+            scheduleSync();
+        }
+
+        // A quiz in this tab, running or saved to resume, is still writing the active bank's answers.
+        function quizHoldsActiveBank() {
+            if (currentQuizQuestions.length) return true;
+            try { return !!sessionStorage.getItem(SESSION_KEY); } catch (e) { return false; }
         }
 
         async function fetchRemote() {
@@ -896,21 +1047,35 @@
             const run = (syncRunning || Promise.resolve()).then(async () => {
                 try {
                     const remote = await fetchRemote();
-                    let pulledActive = false, push = false;
+                    let pulledActive = false, pulled = false, push = false;
+                    // the active bank may be replaced on the dashboard, or on the overview while no quiz needs it
+                    const route = parseRoute().name;
+                    const activeFree = route === 'dashboard' || (route === 'overview' && !quizHoldsActiveBank());
                     for (const key of Object.keys(BANKS)) {
                         const theirs = remote.banks[key];
                         const localAt = bankUpdated(key);
                         const theirAt = theirs ? theirs.updatedAt || 0 : 0;
                         if (theirs && theirAt > localAt) {
-                            if (key === bankKey && parseRoute().name !== 'dashboard') continue;
+                            if (key === bankKey && !activeFree) continue;
                             writeLocalBank(key, theirs);
+                            pulled = true;
                             if (key === bankKey) pulledActive = true;
                         } else if (localAt > theirAt) {
                             remote.banks[key] = readLocalBank(key);
                             push = true;
                         }
                     }
+                    const theirSettings = remote.settings && typeof remote.settings === 'object' ? remote.settings : null;
+                    const theirSetAt = theirSettings ? theirSettings.updatedAt || 0 : 0;
+                    if (theirSettings && theirSetAt > settingsUpdated()) {
+                        writeLocalSettings(theirSettings);
+                        pulled = true;
+                    } else if (settingsUpdated() > theirSetAt) {
+                        remote.settings = readLocalSettings();
+                        push = true;
+                    }
                     if (push) await pushRemote(remote, keepalive);
+                    if (pulled && !pulledActive) syncPulled();
                     return pulledActive;
                 } catch (err) {
                     if (!syncErrorShown) { syncErrorShown = true; alertBox('Sync failed: ' + escapeHtml(err.message) + '. Progress is still saved in this browser.'); }
@@ -929,6 +1094,7 @@
             smartReasons = {};
             loadPersistedData();
             initApp();
+            syncPulled();
         }
 
         function syncMenuLabel() {
@@ -976,6 +1142,10 @@
                     else if (localBankHasData(key) && !bankUpdated(key)) localStorage.setItem(BANKS[key].prefix + 'updated', String(Date.now()));
                 } catch (e) {}
             }
+            try {
+                if (remote.settings) localStorage.setItem(SETTINGS_UPDATED_KEY, '0');
+                else if (examDate() && !settingsUpdated()) localStorage.setItem(SETTINGS_UPDATED_KEY, String(Date.now()));
+            } catch (e) {}
             syncMenuLabel();
             if (await syncNow()) reloadActiveBank();
             alertBox('Sync is on. Progress now follows you to any browser with the token.');
@@ -1278,12 +1448,14 @@
             const quiz = /^#\/quiz\/(\d+)$/.exec(location.hash);
             if (quiz) return { name: 'quiz', n: parseInt(quiz[1], 10) };
             if (location.hash === '#/summary') return { name: 'summary' };
+            if (location.hash === '#/overview') return { name: 'overview' };
             return { name: 'dashboard' };
         }
 
         function routeUrl(route) {
             if (route.name === 'quiz') return '#/quiz/' + route.n;
             if (route.name === 'summary') return '#/summary';
+            if (route.name === 'overview') return '#/overview';
             return location.pathname + location.search;
         }
 
@@ -1302,6 +1474,13 @@
         async function renderRoute() {
             const route = parseRoute();
             const active = currentQuizQuestions.length > 0;
+
+            // The overview sits beside a quiz rather than ending it: Back returns to the question.
+            if (route.name === 'overview') {
+                showOverviewView();
+                renderOverview();
+                return;
+            }
 
             if (route.name === 'dashboard') {
                 // Back past the first question. The dialog cannot stop the browser, so
@@ -1349,6 +1528,7 @@
         function showDashboardView() {
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
         }
 
@@ -1363,6 +1543,7 @@
         function showQuizView() {
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
+            document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('quizView').classList.remove('hidden');
         }
 
@@ -1849,15 +2030,17 @@
             return bankQs.filter(q => log[q.id] && log[q.id].length).map(q => ({ q, log: log[q.id] }));
         }
 
-        // Every bank whose questions have been read. The active bank's answers come from memory, which may be
-        // ahead of storage mid-quiz; the others come from storage, where sync keeps them current.
-        function allBanksAnswered() {
-            const out = [];
-            for (const key of Object.keys(BANKS)) {
-                if (!bankQuestions[key]) continue;
-                out.push(...answeredIn(bankQuestions[key], key === bankKey ? attemptLog : readLocalBank(key).attempts));
-            }
-            return out;
+        // Every bank whose questions have been read, with this browser's answers to them. The active bank's
+        // answers come from memory, which may be ahead of storage mid-quiz; the others come from storage,
+        // where sync keeps them current.
+        function loadedBanks() {
+            return Object.keys(BANKS).filter(key => bankQuestions[key]).map(key => ({
+                key, questions: bankQuestions[key], log: key === bankKey ? attemptLog : readLocalBank(key).attempts
+            }));
+        }
+
+        function allBanksAnswered(banks = loadedBanks()) {
+            return banks.flatMap(b => answeredIn(b.questions, b.log));
         }
 
         // A full estimate takes a noticeable fraction of a second on a phone, and the dashboard, the Smart
@@ -2112,6 +2295,7 @@
             try { localStorage.setItem('saa_scoring', mode); } catch (e) {}
             renderEstimate();
             renderSmartPlan();
+            if (parseRoute().name === 'overview') renderOverview();
         }
 
         function renderScoringSwitch() {
@@ -2313,6 +2497,720 @@
                 ${est.repeatShare >= REPEAT_WARN ? '<p class="mt-3 text-[11px] text-amber-400">' + Math.round(est.repeatShare * 100) + '% of your attempts are repeats of questions you have already seen. They mostly measure memory, so they carry little weight; fresh questions give a more trustworthy estimate.</p>' : ''}
                 <p class="mt-4 text-[11px] text-slate-500">${est.staleDays >= STALE_GRACE_DAYS ? 'Last practised ' + Math.floor(est.staleDays) + ' days ago, so the range is wider · ' : ''}Confidence: ${confidence} \u00b7 based on ${est.distinct} question${est.distinct === 1 ? '' : 's'} and ${est.totalAttempts} attempt${est.totalAttempts === 1 ? '' : 's'}</p>`;
         }
+
+        // ===== Progress overview =====
+        // Every bank at once, read from the same answers as the dashboard, so nothing here is stored except
+        // the exam date: a readiness verdict, the combined score, what is left and when it will be done, the
+        // services and concepts you are weakest in (from each question's services tags), and your practice
+        // over time.
+        const REVIEW_BUFFER_DAYS = 7;       // aim to finish this long before the exam, keeping the last week for review and mock exams
+        const TIGHT_SHARE = 0.8;            // a pace within 20% of the one needed is tight, not behind
+        const PACE_SHORT_DAYS = 7, PACE_LONG_DAYS = 28;
+        const WEAK_MIN_ANSWERED = 3;        // a tag needs this many answered questions before it can be called weak
+        const WEAK_LIST_SIZE = 8;
+        const WEAK_FEATURES_SHOWN = 3;      // weakest features listed under each service
+        const TAG_SD = 0.7;                 // how far a tag's level may sit from your overall level, in logits
+        const TAG_SEP = ' › ';
+        const HEAT_WEEKS = 13;
+        const HEAT_BINS = [1, 10, 25, 50];  // answers in a day for each heat step: 1-9, 10-24, 25-49, 50+
+        const READY = { minAnswered: 50, seenNearly: 0.8, seenReady: 0.9, passNearly: 0.5, passReady: 0.8, staleDays: 7 };
+        const DATE_SHORT = { day: 'numeric', month: 'short' };
+        const DATE_LONG = { weekday: 'short', day: 'numeric', month: 'short' };
+        let overviewFromApp = false;        // opened from the menu in this page, so Back can simply go back
+        let overviewWeakAll = false;
+        let overviewRun = 0;                // a newer render supersedes one still waiting on the bank files
+        let overviewChart = null;           // the progress chart's data, kept so a resize can redraw it
+
+        function openOverview() {
+            closeHeaderMenu();
+            overviewFromApp = true;
+            go({ name: 'overview' });
+        }
+
+        function leaveOverview() {
+            if (overviewFromApp) { history.back(); return; }
+            go(currentQuizQuestions.length ? { name: 'quiz', n: liveIndex + 1 } : { name: 'dashboard' });
+        }
+
+        function showOverviewView() {
+            for (const id of ['dashboardView', 'quizView', 'summaryView']) document.getElementById(id).classList.add('hidden');
+            document.getElementById('overviewView').classList.remove('hidden');
+        }
+
+        // Another browser's progress or settings arrived; the overview reads every bank, so it redraws.
+        function syncPulled() {
+            if (parseRoute().name === 'overview') renderOverview();
+        }
+
+        // Local calendar days, so "today" and the heatmap follow the reader's own midnight.
+        const dayStart = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); };
+        const addDays = (ts, n) => { const d = new Date(ts); d.setDate(d.getDate() + n); return d.getTime(); };
+        const daysBetween = (from, to) => Math.round((dayStart(to) - dayStart(from)) / DAY_MS);
+        const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).getTime(); };
+        const isoDate = ts => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+        // a date outside the current year carries its year, so a finish date next year is not misread as this one
+        const fmtDate = (ts, opts = DATE_SHORT, withYear = true) => new Date(ts).toLocaleDateString(undefined,
+            withYear && opts.day && new Date(ts).getFullYear() !== new Date().getFullYear() ? { ...opts, year: 'numeric' } : opts);
+        const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+        const levelTone = pct => pct >= 70 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400';
+        const perDay = v => (Math.abs(v) >= 10 ? Math.round(v) : Math.round(v * 10) / 10) + '/day';
+
+        async function renderOverview() {
+            const run = ++overviewRun;
+            if (Object.keys(BANKS).some(key => !bankQuestions[key])) {
+                document.getElementById('ovVerdict').innerHTML = '<span class="text-slate-400">Reading the question banks…</span>';
+                await loadOtherBanks();
+                if (run !== overviewRun || parseRoute().name !== 'overview') return;
+            }
+            const banks = loadedBanks();
+            const missing = Object.keys(BANKS).filter(key => !bankQuestions[key]).map(key => BANKS[key].label);
+            const note = document.getElementById('ovNote');
+            note.classList.toggle('hidden', !missing.length);
+            note.innerText = missing.length ? missing.join(' and ') + " couldn't be read, so " + (missing.length === 1 ? 'it is' : 'they are') + ' left out of everything below.' : '';
+            const answered = allBanksAnswered(banks);
+            const tl = overviewTimeline(banks);
+            renderVerdict(answered, tl);
+            renderOverviewScore(banks, answered);
+            renderTimeline(banks, tl);
+            renderWeakAreas(banks, answered);
+            renderActivity(tl);
+        }
+
+        // Where every question stands (latest answer right, wrong, or none yet), when each became done or
+        // slipped back, and what that says about the pace, the finish date and the exam date.
+        function overviewTimeline(banks) {
+            const now = Date.now(), today = dayStart(now);
+            const steps = [];      // [time, +1 | -1]: a question became done, or its latest answer turned wrong
+            const perBank = {};
+            const daily = {};      // day start -> answers given that day
+            let first = null, latest = 0;
+            for (const b of banks) {
+                const c = perBank[b.key] = { total: b.questions.length, right: 0, missed: 0 };
+                for (const q of b.questions) {
+                    const log = b.log[q.id];
+                    if (!log || !log.length) continue;
+                    let done = false;
+                    for (const [right, ts] of log) {
+                        if (!!right !== done) { steps.push([ts, right ? 1 : -1]); done = !!right; }
+                        first = first === null ? ts : Math.min(first, ts);
+                        latest = Math.max(latest, ts);
+                        const day = dayStart(ts);
+                        daily[day] = (daily[day] || 0) + 1;
+                    }
+                    if (done) c.right++; else c.missed++;
+                }
+            }
+            steps.sort((a, b) => a[0] - b[0]);
+            const sum = k => Object.values(perBank).reduce((a, c) => a + c[k], 0);
+            const total = sum('total'), right = sum('right'), missed = sum('missed'), left = total - right;
+            const doneAt = t => { let n = 0; for (const [ts, d] of steps) { if (ts > t) break; n += d; } return n; };
+            // Net questions done per day over the window, so a question that slips back to wrong counts
+            // against it; a history shorter than the window is divided by its own length.
+            const pace = days => {
+                if (first === null) return 0;
+                const span = Math.min(days, Math.max(1, (now - first) / DAY_MS));
+                return (right - doneAt(now - span * DAY_MS)) / span;
+            };
+            const paceShort = pace(PACE_SHORT_DAYS), paceLong = pace(PACE_LONG_DAYS);
+            const finishAt = p => p > 0 ? addDays(today, Math.ceil(left / p)) : null;
+            const exam = examDate();
+            const examAt = exam ? dateOf(exam) : null;
+            const target = examAt === null ? null : addDays(examAt, -REVIEW_BUFFER_DAYS);
+            const daysToExam = examAt === null ? null : daysBetween(now, examAt);
+            const daysToTarget = target === null ? null : daysBetween(now, target);
+            let status = null, needed = null;
+            if (left === 0) status = 'done';
+            else if (examAt !== null) {
+                if (daysToExam < 0) status = 'past';
+                else if (daysToTarget <= 0) { status = 'review'; needed = left / Math.max(1, daysToExam); }
+                else {
+                    needed = left / daysToTarget;
+                    status = paceLong >= needed ? 'on' : paceLong >= TIGHT_SHARE * needed ? 'tight' : 'behind';
+                }
+            }
+            return {
+                now, today, total, right, missed, unseen: total - right - missed, left, perBank, daily, first, latest, doneAt,
+                paceShort, paceLong, finishShort: finishAt(paceShort), finishLong: finishAt(paceLong),
+                exam, examAt, target, daysToExam, daysToTarget, status, needed
+            };
+        }
+
+        // One line at the top. The pass chance always comes from Intelligent Scoring, the only one that gives it.
+        function renderVerdict(answered, tl) {
+            const el = document.getElementById('ovVerdict');
+            const say = (tone, label, detail) => {
+                el.innerHTML = '<span class="ov-dot" data-tone="' + tone + '"></span><span><span class="font-semibold text-slate-200">' + label + '</span>'
+                    + (detail ? '<span class="text-slate-400"> · ' + detail + '</span>' : '') + '</span>';
+            };
+            if (answered.length < READY.minAnswered) {
+                const more = READY.minAnswered - answered.length;
+                say('none', 'Getting started', 'answer ' + plural(more, 'more question') + ' across the banks for a first verdict');
+                return;
+            }
+            const est = estimateExamScore(answered, 'all');
+            const pass = est.ready ? est.passProb : 0;
+            const passText = Math.round(pass * 100) + '% chance of ' + PASS_SCORE + '+';
+            const seen = (tl.right + tl.missed) / tl.total;
+            const stale = tl.latest ? Math.floor((tl.now - tl.latest) / DAY_MS) : 0;
+            const gaps = [];
+            if (seen < READY.seenNearly) gaps.push(plural(tl.unseen, 'question') + ' still unseen');
+            if (pass < READY.passNearly) {
+                const levels = {};
+                for (const id of Object.keys(EXAM_DOMAINS)) levels[id] = est.ready ? est.post[id].mean : null;
+                const weakest = weakestDomain(levels);
+                gaps.push(passText + (weakest ? ', weakest in ' + EXAM_DOMAINS[weakest].name : ''));
+            }
+            if (stale >= READY.staleDays) gaps.push('no practice in ' + stale + ' days');
+            if (gaps.length) say('bad', 'Keep going', gaps.join(' · '));
+            else if (pass >= READY.passReady && seen >= READY.seenReady) say('good', 'Ready to book', passText + ', ' + Math.round(seen * 100) + '% of questions seen');
+            else say('warn', 'Nearly ready', passText + (tl.unseen ? ', ' + plural(tl.unseen, 'question') + ' unseen' : ''));
+        }
+
+        function renderOverviewScore(banks, answered) {
+            const box = document.getElementById('ovScore');
+            const s = examScore(scoringMode, answered, 'all');
+            const modeSwitch = '<div role="group" aria-label="Scoring method" class="inline-flex rounded-xl border border-slate-800 overflow-hidden">'
+                + Object.entries(SCORING_MODES).map(([m, name]) => `<button type="button" onclick="setScoringMode('${m}')" aria-pressed="${m === scoringMode}" class="px-3 py-1.5 text-xs font-semibold transition ${m === scoringMode ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:text-slate-300'}">${name}</button>`).join('')
+                + '</div>';
+            // each bank's own score beside it; a bank keeps its own cached estimate, shared with the dashboard
+            const bankRows = banks.map(b => {
+                const own = answeredIn(b.questions, b.log);
+                const bs = examScore(scoringMode, own, b.key);
+                return `
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                        <span class="text-slate-300 truncate">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
+                        <span class="text-slate-500 shrink-0">${own.length}/${b.questions.length} answered · <span class="font-semibold ${bs.ready ? bs.tone.text : 'text-slate-500'}">${bs.ready ? bs.shown : '–'}</span></span>
+                    </div>`;
+            }).join('');
+            const bankBlock = `<div class="ov-rule space-y-2">${bankRows}</div>`;
+
+            if (!s.ready) {
+                const left = s.min - s.distinct;
+                box.innerHTML = modeSwitch + `
+                    <p class="mt-4 text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} in any bank to unlock the combined score.</p>` + bankBlock;
+                return;
+            }
+            const simple = scoringMode === 'simple';
+            const right = simple
+                ? { label: 'Correct', value: accuracyPercent(s.accuracy) + '%' }
+                : { label: 'Chance of reaching ' + PASS_SCORE, value: Math.round(s.passProb * 100) + '%' };
+            const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
+                const level = s.levels[id];
+                const pct = level === null || level === undefined ? null : Math.round(level * 100);
+                return `
+                    <div>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="text-slate-300 truncate">${dom.name} <span class="text-slate-500">${Math.round(dom.w * 100)}%</span></span>
+                            <span class="font-semibold text-slate-200">${pct === null ? '–' : pct + '%'}</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${pct || 0}%"></div></div>
+                    </div>`;
+            }).join('');
+            box.innerHTML = modeSwitch + `
+                <div class="grid grid-cols-2 gap-4 items-end mt-4">
+                    <div>
+                        <p class="text-xs text-slate-400">${simple ? 'Score' : 'Readiness score'}</p>
+                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.shown}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="text-xs text-slate-400 mt-1">80% range ${Math.round(s.lo)}–${Math.round(s.hi)}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400">${right.label}</p>
+                        <p class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${right.value}</p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.tone.chip}">${s.tone.label}</span>
+                    </div>
+                </div>
+                ${scoreBar(s.shown, s.lo, s.hi)}
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
+                ${bankBlock}
+                <p class="mt-3 text-[11px] text-slate-500">All ${plural(s.distinct, 'answered question')} from every bank count toward one estimate, using the same rules as the dashboard. A bank with fewer than ${MIN_ANSWERED} answers has no score of its own yet.</p>`;
+        }
+
+        function renderTimeline(banks, tl) {
+            const box = document.getElementById('ovTimeline');
+            const segments = c => [[c.right, '--ov-right'], [c.missed, '--ov-missed'], [c.total - c.right - c.missed, '--ov-unseen']]
+                .filter(([n]) => n > 0).map(([n, v]) => `<span style="flex:${n} 1 0;background:var(${v})"></span>`).join('');
+            const stack = (c, thin) => `<div class="ov-stack${thin ? ' thin' : ''}" role="img" aria-label="${c.right} right, ${c.missed} missed, ${c.total - c.right - c.missed} unseen">${segments(c)}</div>`;
+            const key = (v, text) => `<span class="flex items-center gap-1.5"><span class="ov-key" style="background:var(${v})"></span>${text}</span>`;
+            const bankRows = banks.map(b => {
+                const c = tl.perBank[b.key];
+                return `
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="w-20 shrink-0 text-slate-300 truncate">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
+                        <div class="flex-1 min-w-0">${stack(c, true)}</div>
+                        <span class="w-9 text-right shrink-0 text-slate-400">${Math.round(c.right / c.total * 100)}%</span>
+                    </div>`;
+            }).join('');
+
+            let finish;
+            if (tl.left === 0) {
+                finish = `<p class="text-sm font-semibold text-emerald-400">All ${tl.total} questions done</p>`;
+            } else if (!(tl.paceShort > 0) && !(tl.paceLong > 0)) {
+                finish = '<p class="text-sm text-slate-400">No recent progress to project a finish date from.</p>';
+            } else {
+                const dates = [tl.finishShort, tl.finishLong].filter(Boolean).sort((a, b) => a - b);
+                const last = dates[dates.length - 1];
+                const when = daysBetween(dates[0], last) <= 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + '–' + fmtDate(last);
+                finish = `<p class="text-xs text-slate-400">Finish</p><p class="text-xl font-semibold">≈ ${when}</p>`;
+            }
+            const paceLine = tl.first === null ? '' : `<p class="mt-1 text-xs text-slate-400">Pace: ${perDay(tl.paceShort)} over the last ${PACE_SHORT_DAYS} days · ${perDay(tl.paceLong)} over the last ${PACE_LONG_DAYS}</p>`;
+
+            const STATUS = {
+                on: { label: 'On track', chip: 'bg-emerald-500/10 text-emerald-400' },
+                tight: { label: 'Tight', chip: 'bg-amber-500/10 text-amber-400' },
+                behind: { label: 'Behind', chip: 'bg-rose-500/10 text-rose-400' }
+            };
+            let examLine;
+            if (!tl.exam) examLine = 'Set your exam date to see the daily pace you need.';
+            else if (tl.status === 'done') examLine = 'Every question is done; the time before the exam is for review and mock exams.';
+            else if (tl.status === 'past') examLine = 'That date has passed; set your next exam date.';
+            else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left (${perDay(tl.needed)} to finish them first).`;
+            else {
+                const st = STATUS[tl.status];
+                examLine = `Aim to finish by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam: needs ${perDay(tl.needed)}, your ${PACE_LONG_DAYS}-day pace is ${perDay(tl.paceLong)}
+                    <span class="inline-block ml-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.chip}">${st.label}</span>`;
+            }
+
+            box.innerHTML = `
+                <p class="text-3xl font-semibold tracking-tight">${tl.right}<span class="text-base text-slate-500 font-normal"> / ${tl.total} done</span></p>
+                <div class="mt-3">${stack({ total: tl.total, right: tl.right, missed: tl.missed })}</div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
+                    ${key('--ov-right', tl.right + ' right')}${key('--ov-missed', tl.missed + ' missed')}${key('--ov-unseen', tl.unseen + ' unseen')}
+                </div>
+                <div class="mt-4 space-y-2">${bankRows}</div>
+                <div class="ov-rule">${finish}${paceLine}</div>
+                <div class="ov-rule">
+                    <label for="ovExamDate" class="text-xs text-slate-400">Exam date</label>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <input id="ovExamDate" type="date" value="${tl.exam || ''}" onchange="onExamDateChange(this.value)" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm">
+                        ${tl.exam ? '<button type="button" onclick="onExamDateChange(\'\')" class="text-xs text-slate-400 hover:text-slate-300 transition">Clear</button>' : ''}
+                    </div>
+                    <p class="mt-2 text-xs text-slate-400 leading-relaxed">${examLine}</p>
+                </div>
+                <p class="mt-4 text-[11px] text-slate-500">A question is done when your latest answer to it is right. The finish date uses your net pace, so a question that slips back to wrong counts against it.</p>`;
+        }
+
+        function onExamDateChange(value) {
+            if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) return;
+            setExamDate(value || null);
+            renderOverview();
+        }
+
+        // ---- Weak areas ----
+        // A question's tags, plus the service behind each feature tag, so "S3 > Lifecycle rules" also counts toward S3.
+        function tagsOf(q) {
+            const out = new Set();
+            for (const tag of Array.isArray(q.services) ? q.services : []) {
+                out.add(tag);
+                out.add(tag.split(TAG_SEP)[0]);
+            }
+            return [...out];
+        }
+
+        // Each tag's level uses the score's own evidence rules (answerObservations: recent answers count more,
+        // repeats less, a hint makes the question easier), fitted on the ability grid with a prior centred on
+        // your overall level, so a tag with two answers stays near that level instead of jumping to 0% or
+        // 100%. The overall level includes the tag's own answers too, a small double count next to the
+        // prior's width that slightly softens the gaps rather than inventing them.
+        function tagLevels(banks, answered) {
+            const now = latestAnswerTime(answered);
+            const all = [], tags = {}, asked = {};
+            for (const b of banks) for (const q of b.questions) {
+                const qTags = tagsOf(q);
+                for (const t of qTags) asked[t] = (asked[t] || 0) + 1;
+                const log = b.log[q.id];
+                if (!log || !log.length) continue;
+                const obs = answerObservations(q, log, now);
+                all.push(...obs);
+                const right = !!log[log.length - 1][0];
+                for (const t of qTags) {
+                    const e = tags[t] || (tags[t] = { obs: [], answered: 0, right: 0 });
+                    e.obs.push(...obs);
+                    e.answered++;
+                    if (right) e.right++;
+                }
+            }
+            if (!all.length) return null;
+            const posterior = (obs, mean, sd) => {
+                const ll = gridLogLik(obs);
+                const lw = GRID.map((t, g) => ll[g] + logNormal(t, mean, sd));
+                const top = Math.max(...lw);
+                return normalise(lw.map(v => Math.exp(v - top)));
+            };
+            const levelOf = w => w.reduce((a, wt, g) => a + wt * projectedAccuracy(GRID[g]), 0);
+            const overall = posterior(all, 0, PRIOR_SD);
+            const theta = overall.reduce((a, w, g) => a + w * GRID[g], 0);
+            for (const e of Object.values(tags)) e.level = levelOf(posterior(e.obs, theta, TAG_SD));
+            return { overall: levelOf(overall), tags, asked };
+        }
+
+        function toggleWeakAll() {
+            overviewWeakAll = !overviewWeakAll;
+            renderOverview();
+        }
+
+        function renderWeakAreas(banks, answered) {
+            const box = document.getElementById('ovWeak');
+            const toggle = document.getElementById('ovWeakToggle');
+            const lv = tagLevels(banks, answered);
+            if (!lv) {
+                toggle.classList.add('hidden');
+                box.innerHTML = '<p class="text-sm text-slate-400">Answer a few questions to see which services and concepts need work.</p>';
+                return;
+            }
+            const overallPct = Math.round(lv.overall * 100);
+            const services = Object.keys(lv.asked).filter(t => !t.includes(TAG_SEP));
+            const answeredFor = t => (lv.tags[t] ? lv.tags[t].answered : 0);
+            const rated = services.filter(s => answeredFor(s) >= WEAK_MIN_ANSWERED);
+            // below your overall level, the biggest gaps first, weighted by how often the service comes up
+            const gap = s => (lv.overall - lv.tags[s].level) * Math.sqrt(lv.asked[s]);
+            const weak = rated.filter(s => lv.tags[s].level < lv.overall).sort((a, b) => gap(b) - gap(a));
+            const shown = overviewWeakAll ? rated.slice().sort((a, b) => lv.tags[a].level - lv.tags[b].level) : weak.slice(0, WEAK_LIST_SIZE);
+
+            const counts = e => `${e.right}/${e.answered} right${e.answered > e.right ? ' · ' + (e.answered - e.right) + ' missed' : ''}`;
+            const block = s => {
+                const e = lv.tags[s];
+                const pct = Math.round(e.level * 100);
+                const features = Object.keys(lv.tags)
+                    .filter(t => t.startsWith(s + TAG_SEP) && lv.tags[t].answered >= WEAK_MIN_ANSWERED && (overviewWeakAll || lv.tags[t].level < lv.overall))
+                    .sort((a, b) => lv.tags[a].level - lv.tags[b].level)
+                    .slice(0, WEAK_FEATURES_SHOWN)
+                    .map(t => {
+                        const f = lv.tags[t], fp = Math.round(f.level * 100);
+                        return `
+                            <div class="flex items-center gap-2 text-[11px] mt-1.5 pl-4">
+                                <span class="flex-1 min-w-0 truncate text-slate-400" title="${escapeHtml(t)}">› ${escapeHtml(t.slice(s.length + TAG_SEP.length))}</span>
+                                <span class="text-slate-500 shrink-0">${f.right}/${f.answered}</span>
+                                <span class="font-semibold w-9 text-right shrink-0 ${levelTone(fp)}">${fp}%</span>
+                            </div>`;
+                    }).join('');
+                return `
+                    <div>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="text-slate-200 font-semibold truncate">${escapeHtml(s)}</span>
+                            <span class="font-semibold shrink-0 ${levelTone(pct)}">${pct}%</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${pct}%"></div></div>
+                        <p class="text-[10px] text-slate-500 mt-1">${counts(e)} · in ${plural(lv.asked[s], 'question')}</p>
+                        ${features}
+                    </div>`;
+            };
+
+            const untested = services.filter(s => !answeredFor(s)).sort((a, b) => lv.asked[b] - lv.asked[a]);
+            const few = services.filter(s => answeredFor(s) > 0 && answeredFor(s) < WEAK_MIN_ANSWERED).length;
+            const UNTESTED_SHOWN = 8;
+            const footer = [];
+            if (untested.length) {
+                footer.push('<span class="text-slate-500">Not tested yet:</span> ' + untested.slice(0, UNTESTED_SHOWN).map(escapeHtml).join(', ')
+                    + (untested.length > UNTESTED_SHOWN ? ' (+' + (untested.length - UNTESTED_SHOWN) + ' more)' : ''));
+            }
+            if (few) footer.push('<span class="text-slate-500">Too few answers to judge yet:</span> ' + plural(few, 'service'));
+
+            toggle.classList.toggle('hidden', rated.length <= weak.slice(0, WEAK_LIST_SIZE).length && !overviewWeakAll);
+            toggle.innerText = overviewWeakAll ? 'Weakest only' : 'Show all ' + rated.length;
+            const intro = overviewWeakAll
+                ? `Every service with at least ${WEAK_MIN_ANSWERED} answered questions, lowest level first. Your overall level is ${overallPct}%.`
+                : `Services below your overall level of ${overallPct}%, the biggest gaps first, weighted by how often each comes up.`;
+            box.innerHTML = `
+                <p class="text-xs text-slate-400">${intro}</p>
+                ${shown.length
+                    ? `<div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${shown.map(block).join('')}</div>`
+                    : `<p class="mt-4 text-sm text-slate-300">No service is below your overall level yet${rated.length ? '' : ': none has ' + WEAK_MIN_ANSWERED + ' answered questions'}.</p>`}
+                ${footer.length ? `<div class="ov-rule space-y-1.5 text-xs text-slate-400">${footer.map(f => '<p>' + f + '</p>').join('')}</div>` : ''}
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
+                    <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>Every question is tagged with the services and concepts it tests, such as S3 › Lifecycle rules. A feature's answers also count toward its service.</li>
+                        <li>Levels use the same rules as Intelligent Scoring: hard questions count for more, recent answers count more, retries count less, and a hint makes a question count as easier.</li>
+                        <li>A service with few answers leans toward your overall level, so two lucky or unlucky answers don't make it look strong or hopeless. It needs ${WEAK_MIN_ANSWERED} answered questions before it can be listed.</li>
+                        <li>A missed question counts against every service it is tagged with. The counts under each bar are your latest answer to each question.</li>
+                    </ul>
+                </details>`;
+        }
+
+        // ---- Activity ----
+        // One tooltip for the chart and the heatmap. Values lead; text goes in with textContent.
+        function showTip(lines, clientX, clientY) {
+            const tip = document.getElementById('ovTip');
+            tip.replaceChildren(...lines.map(([strong, rest]) => {
+                const row = document.createElement('div');
+                if (strong) { const b = document.createElement('b'); b.textContent = strong; row.append(b); }
+                if (rest) { const m = document.createElement('span'); m.className = 'muted'; m.textContent = (strong ? ' ' : '') + rest; row.append(m); }
+                return row;
+            }));
+            tip.hidden = false;
+            const r = tip.getBoundingClientRect();
+            let left = clientX + 14, top = clientY - r.height - 12;
+            if (left + r.width > window.innerWidth - 8) left = clientX - r.width - 14;
+            if (top < 8) top = clientY + 16;
+            tip.style.left = Math.max(8, left) + 'px';
+            tip.style.top = top + 'px';
+        }
+
+        function hideTip() {
+            document.getElementById('ovTip').hidden = true;
+        }
+
+        // The chart's span: from your first answer to past whichever comes last of the projected finish
+        // and the exam date, at least a week ahead and at most a year.
+        function chartData(tl) {
+            const start = dayStart(tl.first);
+            const days = [];
+            for (let d = start; d <= tl.today; d = addDays(d, 1)) days.push({ day: d, done: tl.doneAt(addDays(d, 1) - 1) });
+            const reach = p => (p > 0 ? Math.ceil(tl.left / p) : Infinity);
+            let horizon = 7;
+            for (const n of [reach(tl.paceShort), reach(tl.paceLong)]) if (isFinite(n)) horizon = Math.max(horizon, n + 2);
+            if (tl.examAt !== null && tl.daysToExam > 0) horizon = Math.max(horizon, tl.daysToExam + 3);
+            horizon = Math.min(horizon, 365);
+            const paces = [tl.paceShort, tl.paceLong].filter(p => p > 0 && tl.left > 0);
+            const projected = k => paces.map(p => Math.min(tl.total, tl.right + p * k));
+            return { start, end: addDays(tl.today, horizon), days, horizon, paces, projected };
+        }
+
+        // Questions done over time: a 2px line with a light wash under it, then dashed projections from today
+        // at the two paces with a wash between them, the total as the goal line, and the aim and exam dates.
+        function drawProgressChart() {
+            const holder = document.getElementById('ovChart');
+            if (!holder || !overviewChart) return;
+            const { tl, data } = overviewChart;
+            const W = Math.max(280, holder.clientWidth), H = 220;
+            const m = { top: 24, right: 10, bottom: 24, left: 34 };
+            const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+            const spanDays = Math.max(1, daysBetween(data.start, data.end));
+            const xd = k => m.left + k / spanDays * iw;                 // k = days since the chart's start
+            const x = ts => xd(daysBetween(data.start, ts));
+            const y = v => m.top + ih - v / tl.total * ih;
+            const todayK = daysBetween(data.start, tl.today);
+            const parts = [];
+
+            // grid and y ticks, then the goal line at the total
+            const step = tl.total > 600 ? 200 : tl.total > 200 ? 100 : 50;
+            for (let v = 0; v < tl.total; v += step) {
+                parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${m.left - 6}" y="${y(v) + 3}" text-anchor="end">${v}</text>`);
+            }
+            parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(tl.total)}" y2="${y(tl.total)}" stroke="var(--ov-muted)" stroke-width="1"/>`);
+            parts.push(`<text x="${m.left - 6}" y="${y(tl.total) + 3}" text-anchor="end">${tl.total}</text>`);
+
+            // x ticks: month starts over a long span, weeks (Mondays) over a short one, never crowded
+            const ticks = [];
+            for (let d = data.start; d <= data.end; d = addDays(d, 1)) {
+                const date = new Date(d);
+                if (spanDays > 60 ? date.getDate() === 1 : date.getDay() === 1) ticks.push(d);
+            }
+            let lastX = -Infinity;
+            for (const d of ticks) {
+                const tx = x(d);
+                if (tx - lastX < 44 || tx > W - m.right - 14) continue;
+                lastX = tx;
+                parts.push(`<text x="${tx}" y="${H - 6}" text-anchor="middle">${escapeHtml(fmtDate(d, spanDays > 60 ? { month: 'short' } : DATE_SHORT, false))}</text>`);
+            }
+
+            // the projection: a wash between the two paces, then each pace dashed, stopping at the total
+            if (data.paces.length) {
+                const ks = [];
+                for (let k = 0; k <= data.horizon; k++) ks.push(k);
+                if (data.paces.length === 2) {
+                    const hi = ks.map(k => `${xd(todayK + k)},${y(Math.max(...data.projected(k)))}`);
+                    const lo = ks.slice().reverse().map(k => `${xd(todayK + k)},${y(Math.min(...data.projected(k)))}`);
+                    parts.push(`<polygon points="${hi.concat(lo).join(' ')}" fill="var(--ov-wash)"/>`);
+                }
+                for (const p of data.paces) {
+                    const reachK = Math.min(data.horizon, Math.ceil(tl.left / p));
+                    parts.push(`<line x1="${xd(todayK)}" y1="${y(tl.right)}" x2="${xd(todayK + reachK)}" y2="${y(Math.min(tl.total, tl.right + p * reachK))}" stroke="var(--ov-line)" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" opacity=".75"/>`);
+                }
+            }
+
+            // aim and exam markers; when the two labels would touch, they lean apart
+            const marks = [];
+            if (tl.target !== null && tl.target >= data.start && tl.target <= data.end && tl.status !== 'done') marks.push({ at: tl.target, label: 'Aim' });
+            if (tl.examAt !== null && tl.examAt >= data.start && tl.examAt <= data.end) marks.push({ at: tl.examAt, label: 'Exam' });
+            const close = marks.length === 2 && x(marks[1].at) - x(marks[0].at) < 40;
+            marks.forEach((mk, i) => {
+                const mx = x(mk.at);
+                const anchor = close ? (i === 0 ? 'end' : 'start') : 'middle';
+                parts.push(`<line x1="${mx}" x2="${mx}" y1="${m.top - 4}" y2="${m.top + ih}" stroke="var(--ov-muted)" stroke-width="1"/>`);
+                parts.push(`<text x="${mx + (close ? (i === 0 ? -3 : 3) : 0)}" y="${m.top - 9}" text-anchor="${anchor}">${mk.label}</text>`);
+            });
+
+            // done so far: a wash under the line, the 2px line, and the end dot ringed in the card surface
+            const pts = data.days.map(d => `${x(d.day)},${y(d.done)}`);
+            if (pts.length > 1) {
+                parts.push(`<polygon points="${x(data.start)},${y(0)} ${pts.join(' ')} ${x(tl.today)},${y(0)}" fill="var(--ov-wash)"/>`);
+                parts.push(`<polyline points="${pts.join(' ')}" fill="none" stroke="var(--ov-line)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`);
+            }
+            const ex = x(tl.today), ey = y(tl.right);
+            parts.push(`<circle cx="${ex}" cy="${ey}" r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/>`);
+            const labelLeft = ex > m.left + 70;
+            parts.push(`<text x="${ex + (labelLeft ? -8 : 8)}" y="${Math.max(m.top + 10, ey - 8)}" text-anchor="${labelLeft ? 'end' : 'start'}" style="fill:var(--ov-ink);font-weight:600">${tl.right} done</text>`);
+
+            // the crosshair, moved by pointer or arrow keys
+            parts.push(`<g id="ovCross" visibility="hidden"><line y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-ink)" stroke-width="1" opacity=".5"/><circle r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/></g>`);
+
+            const summary = `${tl.right} of ${tl.total} questions done` + (data.paces.length ? ', projected finish shown as dashed lines' : '');
+            holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
+            wireChart(holder.querySelector('svg'), { m, iw, spanDays, xd, y, todayK, data, tl });
+        }
+
+        function wireChart(svg, c) {
+            const cross = svg.querySelector('#ovCross');
+            let focusK = c.todayK;
+            const valueAt = k => {
+                if (k <= c.todayK) return { done: c.data.days[Math.max(0, Math.min(k, c.data.days.length - 1))].done };
+                const v = c.data.projected(k - c.todayK).map(Math.round).sort((a, b) => a - b);
+                return { projected: v };
+            };
+            const show = (k, clientX, clientY) => {
+                k = Math.max(0, Math.min(c.spanDays, k));
+                focusK = k;
+                const day = addDays(c.data.start, k);
+                const v = valueAt(k);
+                const val = v.done !== undefined ? v.done : v.projected.length ? v.projected[v.projected.length - 1] : null;
+                cross.setAttribute('visibility', val === null ? 'hidden' : 'visible');
+                if (val !== null) {
+                    cross.querySelector('line').setAttribute('x1', c.xd(k));
+                    cross.querySelector('line').setAttribute('x2', c.xd(k));
+                    cross.querySelector('circle').setAttribute('cx', c.xd(k));
+                    cross.querySelector('circle').setAttribute('cy', c.y(val));
+                }
+                const lines = [[null, fmtDate(day, DATE_LONG)]];
+                if (v.done !== undefined) lines.push([String(v.done), 'done']);
+                else if (v.projected.length) lines.push([v.projected[0] === v.projected[v.projected.length - 1] ? String(v.projected[0]) : v.projected[0] + '–' + v.projected[v.projected.length - 1], 'projected']);
+                else lines.push([null, 'No projection']);
+                if (c.tl.examAt !== null && daysBetween(day, c.tl.examAt) === 0) lines.push([null, 'Exam day']);
+                else if (c.tl.target !== null && daysBetween(day, c.tl.target) === 0) lines.push([null, 'Aim to finish']);
+                if (clientX === undefined) {
+                    const r = svg.getBoundingClientRect();
+                    clientX = r.left + c.xd(k) * r.width / svg.viewBox.baseVal.width;
+                    clientY = r.top + c.y(val || 0) * r.height / svg.viewBox.baseVal.height;
+                }
+                showTip(lines, clientX, clientY);
+            };
+            const kAt = e => {
+                const r = svg.getBoundingClientRect();
+                const px = (e.clientX - r.left) * svg.viewBox.baseVal.width / r.width;
+                return Math.round((px - c.m.left) / c.iw * c.spanDays);
+            };
+            const hide = () => { cross.setAttribute('visibility', 'hidden'); hideTip(); };
+            svg.addEventListener('pointermove', e => show(kAt(e), e.clientX, e.clientY));
+            svg.addEventListener('pointerleave', hide);
+            svg.addEventListener('focus', () => show(c.todayK));
+            svg.addEventListener('blur', hide);
+            svg.addEventListener('keydown', e => {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                e.preventDefault();
+                show(focusK + (e.key === 'ArrowRight' ? 1 : -1));
+            });
+        }
+
+        // The table twin of the chart: done at the end of each week, then the projected finish dates.
+        function chartTable(tl, data) {
+            const rows = [];
+            for (let i = data.days.length - 1; i >= 0 && rows.length < 12; i -= 7) {
+                rows.push(`<tr><td>${escapeHtml(fmtDate(data.days[i].day, DATE_LONG))}</td><td>${data.days[i].done}</td></tr>`);
+            }
+            const finish = [['Projected finish, ' + PACE_SHORT_DAYS + '-day pace', tl.finishShort], ['Projected finish, ' + PACE_LONG_DAYS + '-day pace', tl.finishLong]]
+                .map(([label, at]) => `<tr><td>${label}</td><td>${tl.left === 0 ? 'Done' : at ? escapeHtml(fmtDate(at, DATE_LONG)) : 'No projection'}</td></tr>`).join('');
+            return `<table class="ov-table"><thead><tr><th>Day</th><th>Questions done</th></tr></thead><tbody>${rows.join('')}${finish}</tbody></table>`;
+        }
+
+        // Answers per day for the last 13 weeks: columns are weeks starting Monday, today in the last one.
+        function heatmapHtml(tl) {
+            const monday = addDays(tl.today, -((new Date(tl.today).getDay() + 6) % 7));
+            const start = addDays(monday, -7 * (HEAT_WEEKS - 1));
+            const cells = [], months = [];
+            let total = 0, active = 0, prevMonth = null;
+            for (let i = 0; i < HEAT_WEEKS * 7; i++) {
+                const day = addDays(start, i);
+                if (i % 7 === 0) {
+                    // a month label over the first week that starts in it
+                    const mo = new Date(day).getMonth();
+                    months.push(mo !== prevMonth ? `<span class="text-[10px] text-slate-500 whitespace-nowrap">${escapeHtml(fmtDate(day, { month: 'short' }))}</span>` : '<span></span>');
+                    prevMonth = mo;
+                }
+                if (day > tl.today) { cells.push('<span class="ov-cell future"></span>'); continue; }
+                const n = tl.daily[day] || 0;
+                total += n;
+                if (n) active++;
+                const level = HEAT_BINS.filter(b => n >= b).length;
+                cells.push(`<span class="ov-cell" data-level="${level}" data-day="${day}" data-n="${n}"></span>`);
+            }
+            const legend = [0, 1, 2, 3, 4].map(l => `<span class="ov-cell" data-level="${l}" style="width:10px"></span>`).join('');
+            const days = Object.keys(tl.daily).map(Number).filter(d => d >= start).sort((a, b) => b - a);
+            const table = days.length
+                ? `<table class="ov-table"><thead><tr><th>Day</th><th>Answers</th></tr></thead><tbody>${days.map(d => `<tr><td>${escapeHtml(fmtDate(d, DATE_LONG))}</td><td>${tl.daily[d]}</td></tr>`).join('')}</tbody></table>`
+                : '<p class="text-xs text-slate-500">No answers in these weeks.</p>';
+            return `
+                <div class="ov-heat-wrap mt-3">
+                    <div class="ov-heat-months" style="display:grid;grid-template-columns:repeat(${HEAT_WEEKS},minmax(0,1fr));gap:3px;max-width:18rem">${months.join('')}</div>
+                    <div id="ovHeat" class="ov-heat mt-1">${cells.join('')}</div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mt-2" style="max-width:18rem">
+                    <span class="flex items-center gap-1 text-[10px] text-slate-500">Less <span class="flex items-center gap-1" aria-hidden="true">${legend}</span> More</span>
+                </div>
+                <p class="mt-2 text-xs text-slate-400">${plural(total, 'answer')} on ${plural(active, 'day')} in the last ${HEAT_WEEKS} weeks</p>
+                <details class="mt-2">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
+                    <div class="mt-2">${table}</div>
+                </details>`;
+        }
+
+        // The whole grid is the hit area: the pointer picks the cell under it, gaps included.
+        function wireHeatmap() {
+            const grid = document.getElementById('ovHeat');
+            if (!grid) return;
+            let hot = null;
+            const clear = () => { if (hot) hot.classList.remove('hot'); hot = null; hideTip(); };
+            grid.addEventListener('pointermove', e => {
+                const r = grid.getBoundingClientRect();
+                const col = Math.floor((e.clientX - r.left) / r.width * HEAT_WEEKS);
+                const row = Math.floor((e.clientY - r.top) / r.height * 7);
+                const cell = grid.children[Math.max(0, Math.min(HEAT_WEEKS - 1, col)) * 7 + Math.max(0, Math.min(6, row))];
+                if (!cell || !cell.dataset.day) { clear(); return; }
+                if (hot !== cell) { if (hot) hot.classList.remove('hot'); hot = cell; cell.classList.add('hot'); }
+                const n = Number(cell.dataset.n);
+                showTip([[n ? String(n) : null, n ? (n === 1 ? 'answer' : 'answers') : 'No answers'], [null, fmtDate(Number(cell.dataset.day), DATE_LONG)]], e.clientX, e.clientY);
+            });
+            grid.addEventListener('pointerleave', clear);
+        }
+
+        function renderActivity(tl) {
+            const box = document.getElementById('ovActivity');
+            hideTip();
+            if (tl.first === null) {
+                overviewChart = null;
+                box.innerHTML = '<p class="text-sm text-slate-400">Your practice shows up here once you answer some questions.</p>';
+                return;
+            }
+            const data = chartData(tl);
+            overviewChart = { tl, data };
+            const lineKey = dashed => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="var(--ov-line)" stroke-width="2" stroke-linecap="round"${dashed ? ' stroke-dasharray="4 4"' : ''}/></svg>`;
+            box.innerHTML = `
+                <p class="text-xs text-slate-400">Questions done over time, and where your pace leads.</p>
+                <div id="ovChart" class="ov-chart mt-3"></div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400">
+                    <span class="flex items-center gap-1.5">${lineKey(false)}Done so far</span>
+                    ${data.paces.length ? `<span class="flex items-center gap-1.5">${lineKey(true)}Projected at your ${PACE_SHORT_DAYS}- and ${PACE_LONG_DAYS}-day pace</span>` : ''}
+                </div>
+                <details class="mt-2">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
+                    <div class="mt-2">${chartTable(tl, data)}</div>
+                </details>
+                <div class="ov-rule">
+                    <p class="text-xs text-slate-400">Answers per day</p>
+                    ${heatmapHtml(tl)}
+                </div>`;
+            drawProgressChart();
+            wireHeatmap();
+        }
+
+        // The chart is drawn to its container's width, so a resize redraws it.
+        let overviewResizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(overviewResizeTimer);
+            overviewResizeTimer = setTimeout(() => {
+                if (!document.getElementById('overviewView').classList.contains('hidden')) drawProgressChart();
+            }, 150);
+        });
 
         // ===== Smart quiz =====
         // Builds a session from what will help most: questions you missed last time, questions you have not seen,
@@ -2720,6 +3618,7 @@
         function showSummary() {
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('quizView').classList.add('hidden');
+            document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('summaryView').classList.remove('hidden');
 
             const budget = quizBudgetMs(), over = quizElapsedMs - budget;
@@ -2762,9 +3661,8 @@
         // where there is nothing left to abandon, so the warning is limited to a quiz still in progress
         // that has answers in it. Resolves false if the reader cancels.
         async function leaveSession(title, confirmLabel) {
-            const inQuiz = !document.getElementById('quizView').classList.contains('hidden');
             const done = Object.keys(userAnswers).length;
-            if (inQuiz && done > 0 && !quizFinished) {
+            if (currentQuizQuestions.length > 0 && done > 0 && !quizFinished) {
                 const total = currentQuizQuestions.length;
                 const ok = await showConfirm(
                     'You have answered ' + done + ' of ' + total + '. Those answers are already counted in your stats, '
