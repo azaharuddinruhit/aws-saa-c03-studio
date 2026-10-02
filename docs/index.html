@@ -235,6 +235,10 @@
            the readable lightness band; all were checked against each theme's card surface. */
         .page-tabs { margin-bottom: 1.25rem; }
         .ov-pair { display: grid; gap: 1.5rem; }
+        /* placeholder blocks at about each card's finished height, shown until the first render */
+        .ov-skel { border-radius: .75rem; background: var(--ov-grid); animation: ovPulse 1.4s ease-in-out infinite; }
+        @keyframes ovPulse { 50% { opacity: .55; } }
+        @media (prefers-reduced-motion: reduce) { .ov-skel { animation: none; } }
         .ov-rule { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ov-grid); }
         @media (min-width: 1024px) { .ov-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
         html:not(.dark) #overviewView {
@@ -314,8 +318,8 @@
          always reachable. The quiz view also has its own back arrow. -->
     <header class="bg-slate-900/60 border-b border-slate-800 shrink-0">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-            <!-- logo and title act as the home link (the overview); mid-quiz this routes through the same
-                 leave-session confirmation as the back arrow -->
+            <!-- logo and title act as the home link (the overview). Mid-quiz they open it beside the quiz, which
+                 keeps going: the overview offers Resume quiz, and the quiz's back arrow or Practice end it -->
             <button onclick="goHome()" title="Progress overview" class="flex items-center gap-3 min-w-0 text-left">
                 <svg class="w-8 h-8 rounded-lg shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo">
                     <rect width="32" height="32" rx="7" fill="#10B981"/>
@@ -336,10 +340,6 @@
                     <p class="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Question bank</p>
                     <div id="bankMenuItems" role="group" aria-label="Question bank"><!-- Populated via JS --></div>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
-                    <!-- Every bank together; opening it mid-quiz keeps the quiz, and Back returns to it -->
-                    <button onclick="openOverview()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
-                        <i class="fa-solid fa-chart-line w-4"></i><span>Progress overview</span>
-                    </button>
                     <!-- The cheat sheet hub lists every domain; a quiz in progress lives in sessionStorage, so Back resumes it -->
                     <a href="cheatsheet/index.html" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-book-open w-4"></i><span>Cheat sheets</span>
@@ -373,16 +373,17 @@
              own way back; Resume quiz shows on the overview while a quiz is waiting in this tab. -->
         <nav id="pageTabs" aria-label="Pages" class="page-tabs flex flex-wrap items-center justify-between gap-3">
             <div class="inline-flex rounded-xl border border-slate-800 overflow-hidden">
-                <button type="button" data-page="overview" onclick="go({ name: 'overview' })">Overview</button>
-                <button type="button" data-page="dashboard" onclick="returnToDashboard()">Practice</button>
+                <button type="button" data-page="overview" onclick="go({ name: 'overview' })" class="px-4 py-2 text-sm font-semibold transition text-slate-400 hover:text-slate-300">Overview</button>
+                <button type="button" data-page="dashboard" onclick="returnToDashboard()" class="px-4 py-2 text-sm font-semibold transition text-slate-400 hover:text-slate-300">Practice</button>
             </div>
             <button id="resumeQuizBtn" type="button" onclick="resumeQuiz()" class="hidden border border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-400 font-semibold px-4 py-2 rounded-xl transition flex items-center space-x-2 text-sm">
                 <i class="fa-solid fa-play text-xs"></i><span id="resumeQuizLabel">Resume quiz</span>
             </button>
         </nav>
 
-        <!-- VIEW 1: DASHBOARD -->
-        <div id="dashboardView" class="space-y-6 animate-fade-in">
+        <!-- VIEW 1: DASHBOARD (hidden until the script picks the page for this address, so a visit that
+             starts on the overview never flashes it) -->
+        <div id="dashboardView" class="hidden space-y-6 animate-fade-in">
             <!-- Hero -->
             <section class="pt-2">
                 <div class="bank-only flex flex-wrap gap-2">
@@ -773,10 +774,13 @@
             } catch (e) {}
         }
 
-        // Initialization on window load: the question bank always comes from the JSON file
-        // that ships next to this page -- there is no import step and nothing bank-related is
-        // cached, so editing that file and refreshing is the only way the bank changes.
-        window.onload = async function() {
+        // Initialization once the page is parsed (not window load, which would also wait for the fonts and
+        // icons from other sites): the question bank always comes from the JSON file that ships next to this
+        // page -- there is no import step, and each file is checked with the server on every visit (see
+        // fetchBank), so editing that file and refreshing is the only way the bank changes.
+        document.addEventListener('DOMContentLoaded', async function() {
+            // every bank file is read at once, while sync talks to GitHub
+            for (const key of Object.keys(BANKS)) fetchBank(key).catch(() => {});
             migrateLegacyStorage();
             try {
                 const savedBank = localStorage.getItem('saa_bank');
@@ -795,7 +799,7 @@
                 window.addEventListener('popstate', renderRoute);
                 loadOtherBanks();
             });
-        };
+        });
 
         // The deploy workflow replaces the placeholders with the version and a UTC timestamp,
         // shown in the viewer's own time zone; an unstamped page was opened from disk.
@@ -817,29 +821,34 @@
         let otherBanksLoad = null;
         function loadOtherBanks() {
             if (otherBanksLoad) return otherBanksLoad;
-            otherBanksLoad = (async () => {
-                for (const [key, bank] of Object.entries(BANKS)) {
-                    if (key in bankQuestions) continue;
-                    try {
-                        const res = await fetch('./' + bank.file, { cache: 'no-store' });
-                        if (!res.ok) continue;
-                        const parsed = await res.json();
-                        if (!Array.isArray(parsed)) continue;
-                        bankQuestions[key] = parsed;
-                        bankCounts[key] = parsed.length;
-                    } catch (e) {}
-                }
-                renderBankMenu();
-            })();
+            otherBanksLoad = Promise.all(Object.keys(BANKS).filter(key => !(key in bankQuestions)).map(async key => {
+                try {
+                    const parsed = await fetchBank(key);
+                    if (!Array.isArray(parsed)) return;
+                    bankQuestions[key] = parsed;
+                    bankCounts[key] = parsed.length;
+                } catch (e) {}
+            })).then(() => renderBankMenu());
             return otherBanksLoad;
+        }
+
+        // Each bank file is read once per page load, and all of them start together; a failed read is
+        // forgotten, so Retry reads again. 'no-cache' still asks the server every time, so an edited file is
+        // never stale, but an unchanged one comes back as a quick 304 instead of a full download.
+        const bankFetches = {};
+        function fetchBank(key) {
+            if (!bankFetches[key]) {
+                bankFetches[key] = fetch('./' + BANKS[key].file, { cache: 'no-cache' })
+                    .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+                    .catch(err => { delete bankFetches[key]; throw err; });
+            }
+            return bankFetches[key];
         }
 
         async function loadQuestionBank() {
             const file = BANKS[bankKey].file;
             try {
-                const res = await fetch('./' + file, { cache: 'no-store' });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const parsed = await res.json();
+                const parsed = await fetchBank(bankKey);
                 if (!Array.isArray(parsed) || parsed.length === 0) {
                     throw new Error(file + ' must be a non-empty array of questions.');
                 }
@@ -2532,17 +2541,12 @@
         let overviewWeakAll = false;
         let overviewRun = 0;                // a newer render supersedes one still waiting on the bank files
         let overviewChart = null;           // the progress chart's data, kept so a resize can redraw it
+        let overviewPainted = false;        // filled once in this page; until then the cards hold placeholders
 
-        function openOverview() {
-            closeHeaderMenu();
+        // The logo goes home, which is the overview. It never ends a quiz: the quiz waits in this tab and the
+        // overview offers Resume quiz; the quiz's own back arrow and Practice are the ways to end one.
+        function goHome() {
             go({ name: 'overview' });
-        }
-
-        // The logo goes home, which is the overview. Already there, it does nothing, so it can never end a
-        // quiz that is waiting in this tab; from a quiz it asks first, like every other way out.
-        async function goHome() {
-            if (parseRoute().name === 'overview') return;
-            if (await leaveSession('Leave this session?', 'Leave', 'overview')) renderOverview();
         }
 
         // Back into the quiz waiting in this tab: its live question, or its summary once finished
@@ -2594,10 +2598,21 @@
         const levelTone = pct => pct >= 70 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400';
         const perDay = v => (Math.abs(v) >= 10 ? Math.round(v) : Math.round(v * 10) / 10) + '/day';
 
+        // Blocks at about each card's finished height, so the page does not jump when the content arrives
+        function overviewPlaceholders() {
+            if (overviewPainted) return;
+            const block = (h, w = '100%') => '<div class="ov-skel" style="height:' + h + 'rem;width:' + w + '"></div>';
+            document.getElementById('ovVerdict').innerHTML = block(1.25, '60%');
+            document.getElementById('ovScore').innerHTML = block(24);
+            document.getElementById('ovTimeline').innerHTML = block(28);
+            document.getElementById('ovWeak').innerHTML = block(16);
+            document.getElementById('ovActivity').innerHTML = block(28);
+        }
+
         async function renderOverview() {
             const run = ++overviewRun;
+            overviewPlaceholders();
             if (Object.keys(BANKS).some(key => !bankQuestions[key])) {
-                document.getElementById('ovVerdict').innerHTML = '<span class="text-slate-400">Reading the question banks…</span>';
                 await loadOtherBanks();
                 if (run !== overviewRun || parseRoute().name !== 'overview') return;
             }
@@ -2613,6 +2628,7 @@
             renderTimeline(banks, tl);
             renderWeakAreas(banks, answered);
             renderActivity(tl);
+            overviewPainted = true;
         }
 
         // Where every question stands (latest answer right, wrong, or none yet), when each became done or
@@ -3697,10 +3713,10 @@
             document.getElementById('flagText').innerText = flagged ? "Flagged" : "Flag for Review";
         }
 
-        // Ends whatever is on screen and goes to the dashboard (or the overview, when `to` says so). The
-        // summary screen uses this too, where there is nothing left to abandon, so the warning is limited
-        // to a quiz still in progress that has answers in it. Resolves false if the reader cancels.
-        async function leaveSession(title, confirmLabel, to = 'dashboard') {
+        // Ends whatever is on screen and goes back to the dashboard. The summary screen uses this too,
+        // where there is nothing left to abandon, so the warning is limited to a quiz still in progress
+        // that has answers in it. Resolves false if the reader cancels.
+        async function leaveSession(title, confirmLabel) {
             const done = Object.keys(userAnswers).length;
             if (currentQuizQuestions.length > 0 && done > 0 && !quizFinished) {
                 const total = currentQuizQuestions.length;
@@ -3711,8 +3727,8 @@
                 if (!ok) return false;
             }
             endSession();
-            setRoute({ name: to }, false);
-            if (to === 'overview') showOverviewView(); else showDashboardView();
+            setRoute({ name: 'dashboard' }, false);
+            showDashboardView();
             return true;
         }
 
@@ -3896,6 +3912,14 @@
             document.addEventListener('touchcancel', () => {
                 active = false; dist = 0; place(0, true);
             }, { passive: true });
+        })();
+
+        // The page this address asks for is shown before any data arrives: the overview with placeholder
+        // blocks, or the dashboard's frame. A quiz or summary address waits for its session to be restored.
+        (function paintStartFrame() {
+            const route = parseRoute().name;
+            if (route === 'overview') { showOverviewView(); overviewPlaceholders(); }
+            else if (route === 'dashboard') showDashboardView();
         })();
     </script>
 </body>
