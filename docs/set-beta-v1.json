@@ -5,6 +5,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "easy",
+    "services": [
+      "Secrets Manager › Rotation",
+      "Systems Manager › Parameter Store"
+    ],
     "question": "A company is developing a web application that requires secure storage for database credentials and API tokens. The application runs on Amazon EC2 instances. The company must ensure that the secrets are securely stored. The company must be able to rotate the secrets without updating the application code. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "One service stores secrets and rotates them on a schedule by itself. Which option needs no rotation workflow that you build?",
     "keywords": [
@@ -42,6 +46,10 @@
     "exam_domain": 4,
     "task": "4.1",
     "difficulty": "easy",
+    "services": [
+      "Storage Gateway › File Gateway",
+      "Storage Gateway › Volume Gateway"
+    ],
     "question": "A company is building a new web application on AWS. The application needs to consume files from a legacy on-premises application that runs a batch process and outputs approximately 1 GB of data every night to an NFS file mount. A solutions architect needs to design a storage solution that requires minimal changes to the legacy application and keeps costs low. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "The legacy app writes to NFS. Which gateway presents an NFS share on premises and stores the files as S3 objects?",
     "keywords": [
@@ -79,6 +87,11 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "easy",
+    "services": [
+      "Fargate",
+      "EFS",
+      "Lambda › Limits"
+    ],
     "question": "An analytics company wants to deploy a custom extract, transform, and load (ETL) solution as a containerized application on AWS. The application requires high-performance access to files that are in a centralized repository. File processing can take up to 1 hour to finish. Which solution will meet these requirements?",
     "hint": "Lambda stops at 15 minutes. Which container platform runs for an hour without servers to manage and can mount a shared file system?",
     "keywords": [
@@ -117,6 +130,9 @@
     "exam_domain": 4,
     "task": "4.1",
     "difficulty": "medium",
+    "services": [
+      "S3 › Lifecycle rules"
+    ],
     "question": "A media company stores customer-uploaded videos in an Amazon S3 bucket with the Standard storage class. The company wants to create an S3 Lifecycle configuration. The company will set the maximum retention time to 7 days. However, the configuration must delete any video that is more than 1 TB in size after 48 hours. Which solution will meet these requirements?",
     "hint": "A bucket has only one lifecycle configuration, and a rule can filter on object size.",
     "keywords": [
@@ -153,6 +169,11 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "EventBridge",
+      "Backup",
+      "Systems Manager › Run Command"
+    ],
     "question": "A company uses AWS Backup to create weekly backups of Amazon EC2 instances. The company needs to confirm that restored instances function correctly by running automated tests after each restore completes. The company needs an event-driven solution that minimizes operational overhead. Which solution will meet these requirements?",
     "hint": "AWS Backup emits an event when a restore job finishes. What reacts to events, and what runs commands on instances?",
     "keywords": [
@@ -190,6 +211,9 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "RDS › Encryption"
+    ],
     "question": "A company is using an Amazon RDS for MySQL DB instance for its internal applications. A security audit shows that the DB instance is not encrypted at rest. The company's solutions architect needs to encrypt the DB instance. What should the solutions architect do to meet this requirement?",
     "hint": "You cannot turn on encryption for an existing RDS instance or its snapshot directly. Which step creates an encrypted copy?",
     "keywords": [
@@ -225,6 +249,9 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
+    "services": [
+      "Application Recovery Controller"
+    ],
     "question": "A financial company wants to automate the failover of a multi-Region application that spans three AWS accounts. The company wants to orchestrate recovery across the three accounts from a central account. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Look for the managed feature that runs a multi-Region recovery plan across accounts from one place.",
     "keywords": [
@@ -263,6 +290,10 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "medium",
+    "services": [
+      "SNS › FIFO topics",
+      "SQS › FIFO queues"
+    ],
     "question": "A company is building a gaming application that needs to send unique events to multiple leaderboards, player matchmaking systems, and authentication services concurrently. The company requires an AWS-based event-driven system that delivers events in order and supports a publish-subscribe model. The gaming application must be the publisher, and the leaderboards, matchmaking systems, and authentication services must be the subscribers. Which solution will meet these requirements?",
     "hint": "You need both publish-subscribe fan-out and ordering. Which service offers both?",
     "keywords": [
@@ -299,6 +330,10 @@
     "exam_domain": 3,
     "task": "3.3",
     "difficulty": "medium",
+    "services": [
+      "Aurora › Babelfish",
+      "DMS › Schema conversion"
+    ],
     "question": "A company uses a Microsoft SQL Server database. The company's applications are connected to the database. The company wants to migrate to an Amazon Aurora PostgreSQL database with minimal changes to the application code. Which combination of steps will meet these requirements? (Select TWO.)",
     "hint": "One feature lets Aurora PostgreSQL understand SQL Server queries; another pair of tools moves the schema and data.",
     "keywords": [
@@ -341,6 +376,9 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "Redshift"
+    ],
     "question": "A healthcare analytics company runs an Amazon Redshift cluster that contains patient outcome data and clinical research records. Regulations require the company to have the ability to restore the data warehouse to a separate AWS Region in the event of an emergency. Which solution will meet these requirements?",
     "hint": "Which option puts a restorable copy of the cluster in another Region?",
     "keywords": [
@@ -375,6 +413,11 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "easy",
+    "services": [
+      "S3 › Static website hosting",
+      "API Gateway",
+      "DynamoDB"
+    ],
     "question": "A company wants to launch a website based on a serverless architecture on AWS. Each day, the website will feature one product on sale for a period of 24 hours. The website content will consist of static HTML and JavaScript files. The backend will handle API requests for product information and order processing. The company wants to handle millions of requests each hour with millisecond latency during peak hours. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Static files, an API, and order data, all serverless and able to absorb huge bursts.",
     "keywords": [
@@ -413,6 +456,9 @@
     "exam_domain": 4,
     "task": "4.4",
     "difficulty": "medium",
+    "services": [
+      "VPC › NAT gateways"
+    ],
     "question": "A company hosts its applications in multiple private and public subnets in a VPC. The applications in the private subnets need to access an API. The API is available on the internet and is hosted in the company's on-premises data center. A solutions architect needs to establish connectivity for applications in the private subnets. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "The API is already reachable over the internet. What is the simplest way out of a private subnet?",
     "keywords": [
@@ -449,6 +495,9 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "medium",
+    "services": [
+      "Lambda › Concurrency"
+    ],
     "question": "A company has a serverless web application that is comprised of AWS Lambda functions. The application experiences spikes in traffic that cause increased latency because of cold starts. The company wants to improve the application's ability to handle traffic spikes and to minimize latency. The solution must optimize costs during periods when traffic is low. Which solution will meet these requirements?",
     "hint": "Pre-warmed environments remove cold starts. How do you avoid paying for peak capacity all day?",
     "keywords": [
@@ -486,6 +535,10 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "easy",
+    "services": [
+      "SQS",
+      "EC2 Auto Scaling"
+    ],
     "question": "A solutions architect is designing the cloud architecture for a new stateless application that will be deployed on AWS. The solutions architect created an Amazon Machine Image (AMI) and launch template for the application. Based on the number of jobs that need to be processed, the processing must run in parallel while adding and removing application Amazon EC2 instances as needed. The application must be loosely coupled. The job items must be durably stored. Which solution will meet these requirements?",
     "hint": "Jobs must wait durably until a worker takes them, and the fleet should grow with the backlog.",
     "keywords": [
@@ -523,6 +576,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "DynamoDB › Global tables",
+      "Route 53 › Failover & health checks"
+    ],
     "question": "A company recently launched a new product that is highly available in one AWS Region. The product consists of an application that runs on Amazon ECS, a public Application Load Balancer (ALB), and an Amazon DynamoDB table. The company wants a solution that will make the application highly available across Regions. Which combination of steps will meet these requirements? (Select THREE.)",
     "hint": "For each tier ask: what runs in the second Region, how does data get there, and how does traffic shift?",
     "keywords": [
@@ -568,6 +625,9 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "FSx › Windows File Server"
+    ],
     "question": "A media company is migrating a Microsoft Windows-based application to the AWS Cloud. The company uses the application to analyze media files. The company requires a resilient shared storage solution that the company can access by using the SMB protocol. Which storage solution will meet these requirements?",
     "hint": "Windows plus SMB plus resilient shared storage points to one managed file system.",
     "keywords": [
@@ -604,6 +664,9 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "easy",
+    "services": [
+      "EC2 Auto Scaling › Target tracking"
+    ],
     "question": "A company runs a stateless application that is hosted on an Amazon EC2 instance. Users are reporting performance issues. A solutions architect reviews the Amazon CloudWatch metrics for the application and notices that the instance's CPU utilization frequently reaches 90% during business hours. What is the MOST operationally efficient solution that will improve the application's responsiveness?",
     "hint": "A stateless app on one busy instance. How do you add capacity automatically?",
     "keywords": [
@@ -641,6 +704,9 @@
     "exam_domain": 3,
     "task": "3.1",
     "difficulty": "easy",
+    "services": [
+      "EFS"
+    ],
     "question": "A company is migrating a Linux-based web server group to AWS. The web servers must access shared files by using the NFS protocol. The company must not make any changes to the web server application. Which solution will meet these requirements?",
     "hint": "Linux servers sharing files over NFS.",
     "keywords": [
@@ -677,6 +743,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
+    "services": [
+      "Backup",
+      "RDS › Backups & PITR"
+    ],
     "question": "A company needs a backup strategy for a Multi-AZ deployment for Amazon RDS for SQL Server. The company must keep data available for 1 year to maintain compliance. The company must be able to restore the database from the backup. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "RDS automated backups are kept for at most 35 days. Which service schedules backups and keeps them for a year?",
     "keywords": [
@@ -714,6 +784,10 @@
     "exam_domain": 4,
     "task": "4.2",
     "difficulty": "easy",
+    "services": [
+      "Budgets",
+      "Organizations › SCPs"
+    ],
     "question": "An application team uses an organization in AWS Organizations to manage multiple AWS accounts in a dedicated organizational unit (OU). The accounts do not host production workloads. The application team is implementing an e-commerce solution by using Amazon EC2 instances. A solutions architect needs to implement controls to prevent the application team from exceeding the project budget for the application. Which solution will meet this requirement?",
     "hint": "You need to stop spending, not just report it. Which service can take an action when a budget is reached?",
     "keywords": [
@@ -749,6 +823,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "easy",
+    "services": [
+      "Config › Rules & remediation",
+      "EBS › Encryption"
+    ],
     "question": "A company must ensure that all Amazon EBS volumes are encrypted. A recent security audit found multiple EBS volumes that were unencrypted. The company has over 100,000 EBS volumes. The company wants to minimize the cost and operational effort required to check encryption on all existing and future EBS volumes. Which solution will meet these requirements?",
     "hint": "You need one managed check that evaluates every volume, old and new, and records which ones fail.",
     "keywords": [
@@ -786,6 +864,10 @@
     "exam_domain": 3,
     "task": "3.5",
     "difficulty": "easy",
+    "services": [
+      "Redshift",
+      "Glue › ETL jobs"
+    ],
     "question": "A company wants to store and perform analytics on structured data in a data warehouse on AWS. The solution must ingest unstructured data from Amazon S3. Which solution will meet these requirements?",
     "hint": "Which service is the data warehouse, and which service extracts, transforms and loads data from S3 into it?",
     "keywords": [
@@ -822,6 +904,9 @@
     "exam_domain": 3,
     "task": "3.3",
     "difficulty": "easy",
+    "services": [
+      "RDS › RDS Proxy"
+    ],
     "question": "A company has a transaction-processing application that is backed by an Amazon RDS MySQL database. When the load on the application increases, a large number of database connections are opened and closed frequently, which causes latency for the database transactions. A solutions architect determines that the root cause of the latency is poor connection handling by the application. The solutions architect cannot modify the application code. The solutions architect needs to manage database connections to improve the database performance during periods of high load. Which solution will meet these requirements?",
     "hint": "Connection churn, and you cannot change the code. What sits between the app and the database and reuses connections?",
     "keywords": [
@@ -858,6 +943,10 @@
     "exam_domain": 4,
     "task": "4.4",
     "difficulty": "easy",
+    "services": [
+      "VPC › Gateway endpoints",
+      "VPC › PrivateLink & interface endpoints"
+    ],
     "question": "A company recently launched a new service that processes medical images. The company scans the images and sends the images from the company's on-premises data center to Amazon EC2 instances through an AWS Direct Connect connection. After processing is complete, the company stores the images in an Amazon S3 bucket. The EC2 instances run in a private subnet. The private subnet has a default route back to the on-premises data center for outbound internet access. The number of images that the company processes is increasing rapidly. The company wants a solution to allow the EC2 instances to save the scanned images to the S3 bucket directly. The solution must not use the public internet. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "Two endpoint types reach S3 privately. One of them is free.",
     "keywords": [
@@ -895,6 +984,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "SQS › FIFO queues",
+      "IAM › Roles"
+    ],
     "question": "A solutions architect is designing an asynchronous application to process credit card data validation requests for a bank. The application must be secure and be able to process each request at least once. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "At-least-once delivery is what a standard queue already gives you. Then ask which permission Lambda actually needs to read messages from a KMS-encrypted queue.",
     "keywords": [
@@ -932,6 +1025,9 @@
     "exam_domain": 3,
     "task": "3.4",
     "difficulty": "easy",
+    "services": [
+      "Global Accelerator"
+    ],
     "question": "An online gaming company hosts its platform on Amazon EC2 instances behind Network Load Balancers (NLBs) across multiple AWS Regions. The NLBs can route requests to targets over the internet. The company wants to improve the customer playing experience by reducing end-to-end load time for its global customer base. Which solution will meet these requirements?",
     "hint": "Which service carries user traffic over the AWS global network from the nearest edge location to the best Regional endpoint?",
     "keywords": [
@@ -968,6 +1064,9 @@
     "exam_domain": 3,
     "task": "3.4",
     "difficulty": "easy",
+    "services": [
+      "CloudFront › Edge functions"
+    ],
     "question": "A video streaming service runs on Amazon EC2 instances behind an Application Load Balancer (ALB). The ALB serves as the origin for an Amazon CloudFront distribution. Video thumbnails are stored in an Amazon S3 bucket. The service needs to deliver device-appropriate thumbnail dimensions. The service must serve WebP format to supported browsers and JPEG format to unsupported browsers based on the Accept header. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Resizing and converting images needs code. Policies only manage headers; which option runs code at the edge?",
     "keywords": [
@@ -1006,6 +1105,9 @@
     "exam_domain": 4,
     "task": "4.3",
     "difficulty": "medium",
+    "services": [
+      "Aurora › Aurora Serverless"
+    ],
     "question": "A company wants to develop a database tool that is compatible with PostgreSQL. The company will run the tool only during business hours. The company wants to deploy the tool to AWS. The company needs to set up a development environment to support development efforts. The development environment must optimize database compute costs during the frequent and prolonged periods of inactivity. Which solution will meet these requirements?",
     "hint": "Which PostgreSQL-compatible option can scale compute all the way to zero when idle, by itself?",
     "keywords": [
@@ -1042,6 +1144,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "medium",
+    "services": [
+      "IAM › Roles"
+    ],
     "question": "A company runs an application on premises. The application needs to periodically upload large files to an Amazon S3 bucket. A solutions architect needs a solution to provide the application with short-lived authenticated access to the S3 bucket. The solution must not use long-term credentials. The solution needs to be secure and scalable. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "You need temporary credentials for a server outside AWS. Which service issues them when a role is assumed?",
     "keywords": [
@@ -1078,6 +1183,10 @@
     "exam_domain": 4,
     "task": "4.2",
     "difficulty": "medium",
+    "services": [
+      "Cost Explorer",
+      "EC2 › Reserved Instances & Savings Plans"
+    ],
     "question": "A solutions architect reviews AWS Cost Explorer for an application. The solutions architect observes that Amazon EC2 amortized costs decreased by 15% this month. However, EC2 unblended costs increased by 20% compared to last month. The solutions architect purchased EC2 Reserved Instances 3 months ago to cover baseline workloads. What should the solutions architect do to reduce the EC2 costs?",
     "hint": "Amortized cost spreads Reserved Instance fees over the term; unblended cost shows charges when they are billed. Rising unblended cost with lower amortized cost points to usage beyond the reservations.",
     "keywords": [
@@ -1114,6 +1223,10 @@
     "exam_domain": 3,
     "task": "3.3",
     "difficulty": "medium",
+    "services": [
+      "Managed Service for Apache Flink",
+      "Kinesis Data Streams"
+    ],
     "question": "An e-commerce company is building a near real-time bidding platform on AWS. The company deploys the application as a target of an Application Load Balancer (ALB). The application stores bidding and catalog information in an Amazon DynamoDB table. The DynamoDB table receives heavy read loads. The company wants to add a feature to the application that allows customers to view the items that have received the most bids in the previous 24 hours. The company needs a solution to ensure that the bid prices are updated in near real time. The solution must not affect the performance of the DynamoDB table. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Ranking items by bids over a rolling 24 hours is a streaming aggregation. Which option computes it from the table's change data instead of reading the table?",
     "keywords": [
@@ -1151,6 +1264,9 @@
     "exam_domain": 4,
     "task": "4.2",
     "difficulty": "easy",
+    "services": [
+      "Organizations › Consolidated billing"
+    ],
     "question": "A company is planning to migrate multiple workloads to Amazon EC2 instances and needs to determine an appropriate AWS account structure. The workloads must be isolated from one another and belong to separate business units. The company needs to be able to perform chargeback to the business units by using a consolidated monthly view. Which solution will meet these requirements with the LEAST administrative overhead?",
     "hint": "Accounts give isolation. What gives one combined bill across accounts?",
     "keywords": [
@@ -1189,6 +1305,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
+    "services": [
+      "Elastic Load Balancing › ALB",
+      "Route 53 › Routing policies"
+    ],
     "question": "A company operates a citizen services portal on Amazon EC2 instances in an EC2 Auto Scaling group behind Amazon Route 53. Users report timeout errors when submitting applications. A network team identifies that Route 53 returns all configured IP addresses regardless of instance status. The statuses include instances that are undergoing maintenance. The company needs a solution that automatically manages traffic distribution to healthy instances. Which solution will meet these requirements?",
     "hint": "Instances in an Auto Scaling group come and go. What tracks their health and sends traffic only to healthy ones?",
     "keywords": [
@@ -1224,6 +1344,9 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "easy",
+    "services": [
+      "VPC › Security groups"
+    ],
     "question": "A company is designing an application to run in a VPC on AWS. The application consists of Amazon EC2 instances that run in private subnets as part of an Auto Scaling group. The application stores data in an Amazon RDS DB instance. The company attaches a security group named web-servers to the EC2 instances. The company attaches a security group named database to the DB instance. The company needs a solution to establish communication between the EC2 instances and the DB instance. Which solution will meet this requirement?",
     "hint": "Instance IPs change as the group scales. What can a security group rule reference instead of IP addresses?",
     "keywords": [
@@ -1260,6 +1383,9 @@
     "exam_domain": 4,
     "task": "4.2",
     "difficulty": "medium",
+    "services": [
+      "EC2 › Spot Instances"
+    ],
     "question": "A company has several backend services that produce a large amount of data every hour. The company stores the data in an Amazon S3 bucket in JSON format. The company must process the data constantly by using a custom Python script. The data processing job is not time sensitive and can tolerate failure. The data processing job usually finishes within 10 to 20 minutes. After the data is processed, it must immediately be deleted from the S3 bucket. Which solution will meet these requirements in the MOST cost-effective way?",
     "hint": "Failure-tolerant batch work is the textbook Spot use case. And a lifecycle rule acts on days, not \"immediately\".",
     "keywords": [
@@ -1297,6 +1423,10 @@
     "exam_domain": 3,
     "task": "3.5",
     "difficulty": "easy",
+    "services": [
+      "Comprehend",
+      "Textract"
+    ],
     "question": "A marketing team wants to build a campaign for an upcoming multi-sport event. The team has news reports from the past five years in PDF format. The team needs a solution to extract insights about the content and the sentiment of the news reports. The solution must use Amazon Textract to process the news reports. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Textract pulls the text out. Which managed service finds sentiment and key phrases in text?",
     "keywords": [
@@ -1333,6 +1463,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "easy",
+    "services": [
+      "Backup › Audit Manager",
+      "Config"
+    ],
     "question": "A company runs several custom applications on Amazon EC2 instances. Each team within the company manages its own set of applications and backups. To comply with regulations, the company must be able to report on the status of backups and ensure that backups are encrypted. Which solution will meet these requirements with the LEAST effort?",
     "hint": "Which AWS Backup feature audits backups against controls such as \"encrypted\" and produces reports?",
     "keywords": [
@@ -1370,6 +1504,9 @@
     "exam_domain": 3,
     "task": "3.1",
     "difficulty": "easy",
+    "services": [
+      "FSx › Lustre"
+    ],
     "question": "An advertising company stores terabytes of data in an Amazon S3 data lake. The company wants to build its own foundation model (FM) and has deployed a training cluster on AWS. The company loads file-based data from Amazon S3 to the training cluster to train the FM. The company wants to reduce data loading time to optimize the overall deployment cycle. The company needs a storage solution that is natively integrated with Amazon S3. The solution must be scalable and provide high throughput. Which storage solution will meet these requirements?",
     "hint": "Which high-performance file system can link directly to an S3 bucket?",
     "keywords": [
@@ -1406,6 +1543,9 @@
     "exam_domain": 3,
     "task": "3.5",
     "difficulty": "easy",
+    "services": [
+      "Athena"
+    ],
     "question": "A company sends AWS CloudTrail logs from multiple AWS accounts to an Amazon S3 bucket in a centralized account. The company must store the CloudTrail logs and must be able to query the logs at any time. Which solution will meet these requirements?",
     "hint": "The logs are already in S3. Which service runs SQL directly against files in S3?",
     "keywords": [
@@ -1441,6 +1581,9 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "Lake Formation"
+    ],
     "question": "A financial services company is building a data lake solution on Amazon S3. The company plans to use analytics offerings from AWS to meet user needs for one-time querying and business intelligence reports. A portion of the columns will contain personally identifiable information (PII). Only authorized users should be able to see plaintext PII data. What is the MOST operationally efficient solution that meets these requirements?",
     "hint": "Which service can grant access to specific columns of a data lake table, enforced for every analytics service that reads it?",
     "keywords": [
@@ -1478,6 +1621,9 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "hard",
+    "services": [
+      "EKS"
+    ],
     "question": "A company uses on-premises virtual machines (VMs) to run a Kubernetes cluster. The company must operate network connectivity for the cluster on premises. The company wants to simplify overall management for the Kubernetes cluster while maintaining control over the underlying infrastructure. Which solution will meet these requirements?",
     "hint": "Two EKS options run workloads on your own machines. Which one keeps the whole cluster, control plane included, on premises?",
     "keywords": [
@@ -1514,6 +1660,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "Organizations"
+    ],
     "question": "A company runs a web application in an AWS account. The company also runs a development environment and a production environment in the same account. A solutions architect needs to isolate the application environment and the application resources. The environments must not communicate with each other. The solutions architect must isolate the administration of each environment. Which solution will meet these requirements?",
     "hint": "What is the strongest isolation boundary AWS offers for both network and administration?",
     "keywords": [
@@ -1551,6 +1700,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
+    "services": [
+      "Aurora › Global Database",
+      "Fargate"
+    ],
     "question": "A global e-commerce company is designing a three-tier application on AWS. The application includes a web tier that serves static content. An application tier handles business logic. A database tier stores product information and user data. The application interacts with a relational database. The company needs a highly available application architecture to serve global users with low latency. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Serve static content from the edge, run the app tier in several Regions, and choose a relational database that spans Regions.",
     "keywords": [
@@ -1589,6 +1742,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "EC2 Auto Scaling",
+      "Elastic Load Balancing › ALB"
+    ],
     "question": "A company deployed a three-tier web application in a single Availability Zone in the us-east-1 Region on a single Amazon EC2 instance. Usage of the application is growing. A solutions architect needs to ensure that the application can handle the growing amount of traffic. The solutions architect also needs to ensure the application is resilient. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "Resilience needs several Availability Zones; handling growth needs horizontal scaling that adds and removes instances.",
     "keywords": [
@@ -1627,6 +1784,10 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "medium",
+    "services": [
+      "EventBridge › Archive & replay",
+      "SNS › Message filtering"
+    ],
     "question": "A company runs a stock trading platform where services process trades, validate pricing, and synchronize inventory across geographic regions. The services must route transaction events and filter events based on transaction type. The company must retain all transaction events for 30 days and needs the ability to replay past events for audit investigations. Which solution will meet these requirements with the LEAST development effort?",
     "hint": "Which event service has routing rules, content filtering and a built-in archive with replay?",
     "keywords": [
@@ -1665,6 +1826,10 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "S3 › Access control",
+      "IAM › Roles"
+    ],
     "question": "A company uses two AWS accounts named Account A and Account B. Account A hosts a data analytics application. Account B hosts a data lake in an Amazon S3 bucket. Data analysts in Account A need to access the data lake in Account B. The access solution must be secure, use temporary credentials, enforce the principle of least privilege, and avoid long-term access keys. Which solution will meet these requirements?",
     "hint": "Cross-account S3 access without keys: a role on one side, a policy that trusts it on the other.",
     "keywords": [
@@ -1702,6 +1867,10 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "easy",
+    "services": [
+      "Route 53 › Private hosted zones",
+      "Elastic Load Balancing › ALB"
+    ],
     "question": "A company hosts an application on Amazon EC2 instances behind an Application Load Balancer (ALB). The company wants the application be accessible only from inside the VPC that hosts the ALB. The company creates an alias record of example.com in Amazon Route 53. The DNS record for the application must be resolvable only in the VPC where the application runs. Which solution will meet these requirements?",
     "hint": "Two choices: whether the load balancer is internal or internet-facing, and whether the hosted zone is public or private.",
     "keywords": [
@@ -1737,6 +1906,9 @@
     "exam_domain": 4,
     "task": "4.1",
     "difficulty": "medium",
+    "services": [
+      "S3 › Encryption"
+    ],
     "question": "A company needs a data encryption solution for a machine learning (ML) process. The solution must use an AWS managed service. The ML process currently reads a large number of objects in Amazon S3 that are encrypted by a customer managed AWS KMS key. The current process incurs significant costs because of excessive calls to AWS KMS to decrypt S3 objects. The company wants to reduce the costs of API calls to decrypt S3 objects. Which solution will meet these requirements?",
     "hint": "Which S3 feature reduces the number of KMS requests that SSE-KMS makes?",
     "keywords": [
@@ -1774,6 +1946,9 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "easy",
+    "services": [
+      "SQS › FIFO queues"
+    ],
     "question": "A solutions architect is building a payment processing application based on AWS Lambda functions. The application runs in private subnets across multiple Availability Zones. The application processes millions of transactions each day. The solutions architect must ensure that the application does not process duplicate payments. Which solution will meet these requirements?",
     "hint": "Which queue type deduplicates messages, and what protects you if processing is retried anyway?",
     "keywords": [
@@ -1809,6 +1984,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "Systems Manager › Run Command",
+      "Systems Manager › Patch Manager"
+    ],
     "question": "A company runs a large fleet of Amazon EC2 instances. The company's security team has discovered a code vulnerability in the software that runs on the EC2 instances. The company must apply an update to the EC2 instances immediately to fix the vulnerability. Which solution will meet these requirements?",
     "hint": "You need to run a one-off command on every instance right now, not wait for a patch schedule.",
     "keywords": [
@@ -1846,6 +2025,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "Systems Manager › Session Manager"
+    ],
     "question": "A company is developing a highly sensitive application on AWS. The application uses SSH to access Amazon EC2 instances. A security team needs to centrally manage all user access to the application. User management must be fully automated. The team needs to eliminate manual distribution of SSH keys. Which solution will meet these requirements?",
     "hint": "Which option removes SSH keys and open inbound ports completely, with access controlled by IAM?",
     "keywords": [
@@ -1883,6 +2065,9 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "easy",
+    "services": [
+      "VPC › PrivateLink & interface endpoints"
+    ],
     "question": "A company has a multi-tier web application. The application's internal service components are deployed on Amazon EC2 instances. The internal service components need to access third-party software as a service (SaaS) APIs that are hosted on AWS. The company needs to provide secure and private connectivity from the application's internal services to the third-party SaaS application. The company needs to ensure that there is minimal public internet exposure. Which solution will meet these requirements?",
     "hint": "The SaaS runs on AWS. How do you reach a service in another VPC privately without peering?",
     "keywords": [
@@ -1920,6 +2105,9 @@
     "exam_domain": 4,
     "task": "4.4",
     "difficulty": "medium",
+    "services": [
+      "CloudFront › Edge functions"
+    ],
     "question": "A company distributes digital content by using an Amazon S3 bucket that is configured as the origin for an Amazon CloudFront distribution. The company plans to launch a promotion that requires all objects under the /promotions/* path to include a custom HTTP response header named X-Promo-Code. The solution must support millions of daily viewer requests and provide low latency. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "Adding a fixed header needs no code. Which CloudFront feature adds headers by configuration?",
     "keywords": [
@@ -1957,6 +2145,10 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "easy",
+    "services": [
+      "Transit Gateway",
+      "Direct Connect › Direct Connect gateway"
+    ],
     "question": "A company wants to use AWS Direct Connect to connect the company's on-premises networks to the AWS Cloud. The company runs several VPCs in a single AWS Region. The company plans to expand its VPC fleet to include hundreds of VPCs. A solutions architect needs to simplify and scale the company's network infrastructure to accommodate future VPCs. Which service or resource will meet these requirements?",
     "hint": "What single hub connects many VPCs and on-premises links together?",
     "keywords": [
@@ -1993,6 +2185,11 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "medium",
+    "services": [
+      "ECS",
+      "Fargate",
+      "Elastic Load Balancing › ALB"
+    ],
     "question": "A company wants to use Amazon ECS to run its on-premises application in a hybrid environment. The application currently runs on containers on premises. The company needs a single container solution that can scale in an on-premises, hybrid, or cloud environment. The company must run new application containers in the AWS Cloud and must use a load balancer for HTTP traffic. Which combination of actions will meet these requirements? (Select TWO.)",
     "hint": "One ECS feature runs tasks on your own servers. Which load balancer handles HTTP?",
     "keywords": [
@@ -2034,6 +2231,9 @@
     "exam_domain": 3,
     "task": "3.3",
     "difficulty": "easy",
+    "services": [
+      "Neptune"
+    ],
     "question": "A company operates an application that analyzes customer purchase history and product relationships to generate personalized recommendations. The application needs to query connections between customers, products, categories, and purchase patterns to identify recommendation opportunities. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Relationships and connections are the key words. Which database is built for them?",
     "keywords": [
@@ -2069,6 +2269,10 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "Organizations › SCPs",
+      "Control Tower"
+    ],
     "question": "A company is planning to migrate its on-premises data center to AWS. Each of the company's business units will migrate to a separate AWS account under one organization in AWS Organizations. To comply with local regulations, one of the accounts must use the ap-northeast-3 Region only. The company must not connect VPCs in this account to the internet. Users in this account must not be able to remove the restrictions. Which combination of solutions will meet these requirements? (Select TWO.)",
     "hint": "Restrictions that account users cannot remove must come from outside the account: the organization.",
     "keywords": [
@@ -2111,6 +2315,10 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "easy",
+    "services": [
+      "Fargate",
+      "ECS"
+    ],
     "question": "A company operates a video transcoding service that processes video uploads. The service uses containers and runs on self-managed servers that use cron-based batch processing. Processing volume varies based on upload patterns. The company wants to migrate to AWS. The company needs a solution that runs containers without managing servers and automatically adjusts capacity across multiple Availability Zones. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Containers and no servers to manage.",
     "keywords": [
@@ -2147,6 +2355,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
+    "services": [
+      "S3 › Multi-Region Access Points",
+      "S3 › Replication"
+    ],
     "question": "A company runs its critical storage application in the AWS Cloud. The application uses Amazon S3 in two AWS Regions. The company wants the application to send remote user data to the nearest S3 bucket with no public network congestion. The company also wants the application to fail over with the least amount of management of Amazon S3. Which solution will meet these requirements?",
     "hint": "Which S3 feature gives one global endpoint that routes to the closest bucket over the AWS network?",
     "keywords": [
@@ -2184,6 +2396,9 @@
     "exam_domain": 3,
     "task": "3.1",
     "difficulty": "medium",
+    "services": [
+      "Storage Gateway › Volume Gateway"
+    ],
     "question": "A company runs a database in which application servers write transaction logs and application data to on-premises iSCSI-based SAN storage. The company wants to avoid costs associated with hardware refresh and on-premises infrastructure expansion. The company needs an automated solution to migrate older log data to AWS. The solution must maintain the iSCSI storage interface and keep frequently accessed logs available locally with minimal latency. Which solution will meet these requirements?",
     "hint": "Volume Gateway has two modes. Which keeps only the hot data on premises and the full data set in AWS?",
     "keywords": [
@@ -2221,6 +2436,9 @@
     "exam_domain": 4,
     "task": "4.3",
     "difficulty": "easy",
+    "services": [
+      "DynamoDB › Capacity modes"
+    ],
     "question": "A company uses Amazon DynamoDB as the data store for an e-commerce application. Inventory management tables have very predictable workloads. Workloads for order placement tables vary significantly and can be unpredictable. All tables use provisioned mode and are read-heavy. The company wants to optimize DynamoDB costs for the application. Which solution will meet this requirement?",
     "hint": "Match each table to a billing model: steady traffic suits a commitment, spiky traffic suits pay-per-request.",
     "keywords": [
@@ -2257,6 +2475,10 @@
     "exam_domain": 3,
     "task": "3.4",
     "difficulty": "easy",
+    "services": [
+      "CloudFront",
+      "S3 › Static website hosting"
+    ],
     "question": "A solutions architect needs to design a high-traffic static website. The website must be highly available and must provide the lowest possible latency to users across the globe. Which solution will meet these requirements?",
     "hint": "Static content for a global audience: an origin, a CDN in front of it, and a DNS alias to the CDN.",
     "keywords": [
@@ -2294,6 +2516,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "IAM › Roles"
+    ],
     "question": "A company is building a new application. The application runs on Amazon EC2 instances and uses an Amazon S3 bucket for document storage. The company needs to ensure that the EC2 instances can access the S3 bucket. Which solution will meet these requirements?",
     "hint": "How does an EC2 instance get AWS credentials without storing keys?",
     "keywords": [
@@ -2328,6 +2553,9 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "DocumentDB"
+    ],
     "question": "A logistics company uses Amazon DocumentDB global clusters to run a package tracking system. The system replicates shipping records across three AWS Regions to provide real-time tracking visibility to customers worldwide. The company needs to perform planned maintenance to upgrade the primary Region's underlying infrastructure. The company needs to maintain application availability during the planned maintenance. Which solution will meet these requirements?",
     "hint": "Planned maintenance on the primary Region: move the primary role to another Region without losing data.",
     "keywords": [
@@ -2364,6 +2592,10 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "easy",
+    "services": [
+      "Shield › Shield Advanced",
+      "WAF"
+    ],
     "question": "A media company hosts a video streaming platform on AWS. The company uses Amazon EC2, Amazon S3, and Amazon CloudFront. The company wants to protect its AWS workloads from DDoS attacks and filter malicious web traffic. The solution must provide detailed insights about threats and automatically mitigate threats in real time. Which solution will meet these requirements?",
     "hint": "DDoS protection with detailed insights and automatic mitigation, plus web request filtering. That takes two services.",
     "keywords": [
@@ -2401,6 +2633,9 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "medium",
+    "services": [
+      "CloudFront › Edge functions"
+    ],
     "question": "A company is planning to use an Amazon CloudFront distribution to deploy an application. The CloudFront distribution uses an Amazon S3 bucket as the origin. Only authorized users should be able to access the application. Files that the company caches at edge locations must be accessible only after a user is authenticated. A solutions architect needs to design a secure and low-latency solution to meet these requirements. Which solution will meet these requirements?",
     "hint": "Authentication must run on every request before CloudFront serves anything, including cached content.",
     "keywords": [
@@ -2438,6 +2673,9 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "hard",
+    "services": [
+      "RDS › Encryption"
+    ],
     "question": "A company has a web application that retrieves customer financial information. The application runs on Amazon EC2 instances. The application uses an Amazon RDS for PostgreSQL database to store the confidential information. The company needs to encrypt network traffic between the application and the database. Which solution will meet these requirements?",
     "hint": "RDS for PostgreSQL enforces SSL with a database parameter. Where do parameters live, and when does the change apply?",
     "keywords": [
@@ -2473,6 +2711,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "Route 53 › Routing policies",
+      "Route 53 › Failover & health checks"
+    ],
     "question": "A company has a stateless public web application that is based on AWS Lambda functions that are invoked by an Amazon API Gateway REST API. To achieve high availability, the company deploys the application to multiple AWS Regions. The company needs a solution to route application traffic to multiple Regions. Which solution will meet this requirement?",
     "hint": "Which service routes users between Regions and can check each endpoint's health?",
     "keywords": [
@@ -2508,6 +2750,9 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "easy",
+    "services": [
+      "S3 › Replication"
+    ],
     "question": "A company operates a multi-account AWS environment in the us-west-2 Region. The environment has separate accounts for development, staging, and production workloads. Each account delivers application logs to an Amazon S3 bucket in each account. The company needs to consolidate all application logs into one S3 bucket in a security account. All source buckets and the destination bucket have object versioning enabled. The solution must continuously capture new logs as the logs are generated. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Versioning is already on everywhere, and everything is in one Region. Which built-in S3 feature copies new objects automatically?",
     "keywords": [
@@ -2545,6 +2790,9 @@
     "exam_domain": 3,
     "task": "3.4",
     "difficulty": "easy",
+    "services": [
+      "CloudFront › Caching"
+    ],
     "question": "A company wants to use Amazon EC2 instances to provide a static website to users all over the world. The company needs to minimize latency for the users. Which solution meets these requirements?",
     "hint": "Users worldwide and static content point to a CDN.",
     "keywords": [
@@ -2581,6 +2829,10 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "easy",
+    "services": [
+      "CloudWatch › Container Insights",
+      "CloudWatch › Agent & custom metrics"
+    ],
     "question": "A company runs a critical public application on Amazon EKS clusters. The application has a microservices architecture. The company needs to implement a solution that collects, aggregates, and summarizes metrics and logs from the application in a centralized location. Which solution will meet these requirements in the MOST operationally efficient way?",
     "hint": "Which CloudWatch feature is built to collect and summarize container metrics and logs?",
     "keywords": [
@@ -2617,6 +2869,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "IAM › MFA"
+    ],
     "question": "The lead member of a DevOps team creates an AWS account. A DevOps engineer shares the account credentials with a solutions architect through a password manager application. The solutions architect needs to secure the root user for the new account. Which actions will meet this requirement? (Select TWO.)",
     "hint": "The root password has been shared. Change it, then add a second factor.",
     "keywords": [
@@ -2658,6 +2913,10 @@
     "exam_domain": 4,
     "task": "4.2",
     "difficulty": "medium",
+    "services": [
+      "Lambda",
+      "SES"
+    ],
     "question": "A company hosts a multi-tier inventory reporting application on AWS. The company needs a cost-effective solution to generate inventory reports on demand. Admin users need to have the ability to generate new reports. Reports take approximately 5-10 minutes to finish. The application must send reports to the email address of the admin user who generates each report. Which solution will meet these requirements?",
     "hint": "A short job run on request, with an email to one specific person. Pick the cheapest compute and the right email service.",
     "keywords": [
@@ -2694,6 +2953,10 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "easy",
+    "services": [
+      "Elastic Load Balancing › Sticky sessions",
+      "WAF"
+    ],
     "question": "A solutions architect is designing a scalable web application that runs on Amazon EC2. The application users must stay on the same server after login. The application must be protected from common exploits. Which solution will meet these requirements?",
     "hint": "Sticky sessions need a layer 7 load balancer, and common web exploits are blocked by a web application firewall.",
     "keywords": [
@@ -2729,6 +2992,10 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "easy",
+    "services": [
+      "SQS › Dead-letter queues",
+      "API Gateway"
+    ],
     "question": "A company has an e-commerce application that users access through multiple mobile apps and web applications. The company needs a solution that will receive requests from the mobile apps and web applications through an API Request traffic volume varies significantly throughout each day. Traffic spikes during sales events. The solution must be loosely coupled and ensure that no requests are lost. Which solution will meet these requirements?",
     "hint": "Put a durable buffer between the API and the processing so spikes wait in line instead of being dropped.",
     "keywords": [
@@ -2765,6 +3032,9 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "S3 › Encryption"
+    ],
     "question": "A company runs an application that generates sensitive archival files and stores them in an Amazon S3 bucket. Partner companies consume the archival files from the S3 bucket. The company wants to rearchitect the application's data storage. The company must ensure that the partner companies do not have access to the data before the company encrypts the data and sends it to the S3 bucket. Which solution will meet these requirements?",
     "hint": "The data must already be encrypted before it reaches S3. Is that server-side or client-side encryption?",
     "keywords": [
@@ -2800,6 +3070,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "medium",
+    "services": [
+      "Aurora › Replicas & failover",
+      "DR strategies › RPO & RTO"
+    ],
     "question": "A company needs a disaster recovery (DR) solution for its Amazon Aurora MySQL database. The solution must have a recovery time objective (RTO) of 20 minutes and a recovery point objective (RPO) of 10 minutes. The solution must minimize costs and ensure data consistency. Which solution will meet these requirements MOST cost-effectively?",
     "hint": "An RPO of minutes rules out daily snapshots. What is the cheapest continuously replicated copy in another Region?",
     "keywords": [
@@ -2837,6 +3111,10 @@
     "exam_domain": 4,
     "task": "4.4",
     "difficulty": "easy",
+    "services": [
+      "VPN › Site-to-Site VPN",
+      "Direct Connect"
+    ],
     "question": "A company wants to run a serverless application in a VPC for a short-term project. The application uses AWS Lambda functions. The application needs to interact with an on-premises database. The company wants to establish secure and cost-effective network connectivity between the Lambda functions and the on-premises database. Which solution will meet these requirements?",
     "hint": "Short-term and cheap, but encrypted. Which connection can be set up in minutes with no long commitment?",
     "keywords": [
@@ -2874,6 +3152,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "RDS › Encryption",
+      "Config › Rules & remediation"
+    ],
     "question": "A company uses Amazon RDS for MySQL as a database engine for its applications. A recent security audit revealed an RDS instance that is not compliant with company policy for encrypting data at rest. A solutions architect at the company needs to ensure that all existing RDS databases are encrypted using server-side encryption and that any future deviations from the policy are detected. Which combination of steps should the solutions architect take to accomplish this? (Select TWO.)",
     "hint": "One step fixes the existing database, the other watches for new problems. Existing RDS instances cannot be encrypted in place.",
     "keywords": [
@@ -2916,6 +3198,9 @@
     "exam_domain": 4,
     "task": "4.1",
     "difficulty": "easy",
+    "services": [
+      "S3 › Lifecycle rules"
+    ],
     "question": "A company wants to optimize Amazon S3 storage costs for the company's video content. The company needs to archive the video content 6 months after the company creates the content. The company must delete the content after 24 months. Which solution will meet these requirements with the LEAST operational effort?",
     "hint": "Moving objects to another storage class and deleting them later are both jobs for one S3 feature.",
     "keywords": [
@@ -2953,6 +3238,11 @@
     "exam_domain": 4,
     "task": "4.1",
     "difficulty": "hard",
+    "services": [
+      "S3 › Lifecycle rules",
+      "S3 › Access control",
+      "S3 › Object Lock"
+    ],
     "question": "A company must save all the email messages that its employees send to customers for a period of 12 months. The messages are stored in a binary format and vary in size from 1 KB to 20 KB. The company has selected Amazon S3 as the storage service for the messages. Which combination of steps will meet these requirements MOST cost-effectively? (Select TWO.)",
     "hint": "You must stop messages being deleted early and delete them automatically at 12 months, as cheaply as possible. Nothing asks for retention that can never be undone.",
     "keywords": [
@@ -2996,6 +3286,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "easy",
+    "services": [
+      "IAM"
+    ],
     "question": "A company performs a security review of its AWS workloads and finds that all the company's IAM users have the AdministratorAccess IAM managed policy directly attached. The company's IAM users belong to either an engineering department or an operations department. Engineering users require full read and write access to all resources. Operations users require only read access to all resources. The company must apply the principle of least privilege to user access. Which solution will meet this requirement in the MOST operationally efficient way?",
     "hint": "Manage permissions per department, not per user.",
     "keywords": [
@@ -3034,6 +3327,9 @@
     "exam_domain": 3,
     "task": "3.4",
     "difficulty": "easy",
+    "services": [
+      "CloudFront › Edge functions"
+    ],
     "question": "An online marketplace uses an Application Load Balancer (ALB) as the origin for an Amazon CloudFront distribution. Amazon EC2 instances behind the ALB serve the application. Sellers upload product images to an Amazon S3 bucket. The company recently expanded internationally and needs to dynamically add AWS Region-specific compliance watermarks to images based on the location of the viewer. The solution must not store separate copies for each Region. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Changing image content at request time needs code at the edge. Policies only manage headers.",
     "keywords": [
@@ -3072,6 +3368,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "hard",
+    "services": [
+      "Organizations › SCPs"
+    ],
     "question": "A company uses an organization in AWS Organizations to manage multiple AWS accounts. Multiple teams access each AWS account by assuming IAM roles. Each team has a unique IAM role. Each IAM role has a unique set of permissions. A security team wants to automate some security tasks by deploying AWS Lambda functions within each AWS account. The security team wants to ensure that only members of the security team can modify the Lambda functions directly. Which solution will meet these requirements?",
     "hint": "SCPs have no Principal element for naming who is exempt. How do you exclude one role from a deny statement?",
     "keywords": [
@@ -3107,6 +3406,9 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "easy",
+    "services": [
+      "SQS › FIFO queues"
+    ],
     "question": "A company wants to build a serverless application in which multiple microservices need to exchange messages. The company needs to ensure that messages that the microservices send to one another are processed exactly once in the exact order the messages are sent. Which solution will meet these requirements in the MOST operationally efficient way?",
     "hint": "Exactly once and in order: which queue type guarantees both?",
     "keywords": [
@@ -3144,6 +3446,10 @@
     "exam_domain": 4,
     "task": "4.1",
     "difficulty": "hard",
+    "services": [
+      "S3 › Storage Lens",
+      "Cost and Usage Reports"
+    ],
     "question": "A company stores data across 200 Amazon S3 buckets that multiple departments use. Each department has prefix-based tenant isolation for each team in the department. The finance team needs to identify which specific buckets and prefixes are driving the highest S3 costs. The finance team needs bucket-level and prefix-level storage usage and request patterns and the dollar costs attributed to each bucket. Which combination of steps will meet these requirements? (Select TWO.)",
     "hint": "One tool shows usage and activity down to the prefix; another shows the dollar cost of each bucket.",
     "keywords": [
@@ -3187,6 +3493,9 @@
     "exam_domain": 3,
     "task": "3.5",
     "difficulty": "medium",
+    "services": [
+      "DataSync"
+    ],
     "question": "A company is migrating an application to the AWS Cloud. The application runs in an on-premises data center and writes thousands of images into a mounted NFS file system each night. After the company migrates the application, the company will host the application on an Amazon EC2 instance with a mounted Amazon EFS file system. The company has established an AWS Direct Connect connection to AWS. Before the migration cutover, a solutions architect must build a process that will replicate the newly created on-premises images to the EFS file system. What is the MOST operationally efficient way to replicate the images?",
     "hint": "Which service copies directly from on-premises NFS to EFS on a schedule, without S3 in the middle?",
     "keywords": [
@@ -3224,6 +3533,9 @@
     "exam_domain": 2,
     "task": "2.1",
     "difficulty": "easy",
+    "services": [
+      "SQS"
+    ],
     "question": "A company is building an e-commerce platform that will allow customers to place orders online. Customer traffic varies significantly. An order-processing microservice is running on a group of Amazon EC2 instances. A solutions architect must ensure that the application remains responsive and decoupled from the frontend. The application must also be able to reprocess orders that the application fails to process on the first attempt. Which solution will meet these requirements?",
     "hint": "What sits between the frontend and the workers, and redelivers a message if processing fails?",
     "keywords": [
@@ -3259,6 +3571,10 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "RDS › Multi-AZ",
+      "RDS › Read replicas"
+    ],
     "question": "A company is running a critical workload on an Amazon RDS DB instance. The company needs the DB instance to be highly available. The company requires a recovery time of less than 5 minutes. Which solution will meet these requirements?",
     "hint": "Which RDS feature keeps a synchronous standby and fails over automatically?",
     "keywords": [
@@ -3294,6 +3610,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "medium",
+    "services": [
+      "KMS › Multi-Region keys",
+      "IAM › ABAC"
+    ],
     "question": "A company runs a multi-tenant software as a service (SaaS) application that stores customer analytics data across two AWS Regions. The company encrypts data at rest and does not want to manage key material directly. The company needs encryption keys that work in both Regions and needs to control key access based on customer tenant identifiers. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "You need the same key usable in two Regions, and access based on tags.",
     "keywords": [
@@ -3332,6 +3652,10 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "easy",
+    "services": [
+      "Certificate Manager",
+      "KMS"
+    ],
     "question": "A company uses Amazon EC2 instances behind an Application Load Balancer (ALB) to serve content to users. The company uses Amazon EBS volumes to store data. The company needs to encrypt data in transit and at rest. Which combination of services will meet these requirements? (Select TWO.)",
     "hint": "One service issues TLS certificates for the ALB; the other manages the keys that encrypt EBS volumes.",
     "keywords": [
@@ -3372,6 +3696,10 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "medium",
+    "services": [
+      "Lambda › Concurrency",
+      "DynamoDB › Capacity modes"
+    ],
     "question": "A company is building a serverless application to process large volumes of sensor data. The application uses an AWS Lambda function and stores data in an Amazon DynamoDB table. The application needs to handle unpredictable traffic patterns with occasional spikes in data ingestion. The company wants to optimize application performance to respond to spikes in demand. Which solution will meet these requirements?",
     "hint": "One setting keeps Lambda ready for bursts, and one DynamoDB mode absorbs unpredictable traffic without planning capacity.",
     "keywords": [
@@ -3408,6 +3736,10 @@
     "exam_domain": 3,
     "task": "3.3",
     "difficulty": "medium",
+    "services": [
+      "DynamoDB › Global tables",
+      "DynamoDB › Streams"
+    ],
     "question": "A social media company is expanding its Amazon DynamoDB backed infrastructure to accommodate increasing user activity. The company manages three data types: user profiles, posts, and comments. The company wants to ensure high performance for write-heavy queries. The new solution must ensure high availability. The new solution needs to provide low latency between the database layer and the application layer. The new solution must be able to handle dynamic traffic patterns for global users. The company must also track changes to items in the DynamoDB tables. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Global users and low latency point to multi-Region tables; tracking item changes has a built-in DynamoDB feature.",
     "keywords": [
@@ -3446,6 +3778,9 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "medium",
+    "services": [
+      "CloudFormation"
+    ],
     "question": "A company uses AWS CloudFormation to provision AWS infrastructure. Multiple application teams create similar networking resources for their workloads. The teams currently copy and modify sections of CloudFormation templates, which causes inconsistent resource configurations across applications. The company needs to provide a reusable standard pattern that the teams can consume. Updates to the pattern must be managed from a central location. Which solution will meet these requirements?",
     "hint": "Which CloudFormation feature packages resources so templates can reuse them, updated in one place?",
     "keywords": [
@@ -3481,6 +3816,10 @@
     "exam_domain": 3,
     "task": "3.2",
     "difficulty": "easy",
+    "services": [
+      "API Gateway › Throttling & usage plans",
+      "Lambda"
+    ],
     "question": "A company wants to design a microservices architecture for an application. Each microservice must perform operations that can be completed within 30 seconds. The microservices need to expose RESTful APIs and must automatically scale in response to varying loads. The APIs must also provide client access control and rate limiting to maintain equitable usage and service availability. Which solution will meet these requirements with the LEAST operational overhead?",
     "hint": "Short operations, automatic scaling, and an API front door with throttling and API keys.",
     "keywords": [
@@ -3519,6 +3858,9 @@
     "exam_domain": 1,
     "task": "1.3",
     "difficulty": "easy",
+    "services": [
+      "S3 › Encryption"
+    ],
     "question": "A healthcare company receives de-identified medical records from hospital partners that upload data to a centralized Amazon S3 bucket. A regulatory agency requires encryption of all stored health information. Which solution will meet these requirements?",
     "hint": "Encryption at rest is requested with a specific header on each PUT. Which condition checks for it?",
     "keywords": [
@@ -3553,6 +3895,9 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "easy",
+    "services": [
+      "GuardDuty"
+    ],
     "question": "A company provides a three-tier web application to its customers. Each customer has an AWS account in which the application is deployed, and These accounts are members of the company's organization in AWS Organizations. To protect its customers' AWS accounts and applications, the company wants to monitor them for unusual and unexpected behavior. The company needs to analyze and monitor customer VPC Flow Logs, AWS CloudTrail logs, and DNS logs. What should a solutions architect do to meet these requirements?",
     "hint": "Which service analyzes exactly these three log sources for threats, with a delegated administrator for the organization?",
     "keywords": [
@@ -3588,6 +3933,10 @@
     "exam_domain": 1,
     "task": "1.1",
     "difficulty": "medium",
+    "services": [
+      "ECR",
+      "IAM › Policy evaluation"
+    ],
     "question": "A company needs to use container images for a new project. A development team requires full access to a new Amazon ECR repository. A solutions architect creates a new IAM role that has the AmazonEC2ContainerRegistryFullAccess policy attached. The solutions architect creates a second ECR repository by using an existing repository as a template. When a developer tries to push a docker image to the second repository by using the new IAM role, the command fails with an authorization error. What is the likely cause of the error?",
     "hint": "The role has full ECR permissions. What could still deny the push, and what did the template copy?",
     "keywords": [
@@ -3624,6 +3973,10 @@
     "exam_domain": 4,
     "task": "4.4",
     "difficulty": "medium",
+    "services": [
+      "CloudFront › Caching",
+      "Data transfer pricing"
+    ],
     "question": "A company stores image files in an Amazon S3 bucket in one AWS Region. Development teams in multiple AWS accounts that the company owns need to pull the image files repeatedly for their application deployments, from pipelines that run in other AWS Regions and in on-premises data centers. The company wants to provide access to the image files while reducing costs. Which solution will meet these requirements?",
     "hint": "Many teams pull the same files again and again. What serves repeated downloads from a cache instead of from S3 each time?",
     "keywords": [
@@ -3663,6 +4016,9 @@
     "exam_domain": 2,
     "task": "2.2",
     "difficulty": "easy",
+    "services": [
+      "Aurora › Global Database"
+    ],
     "question": "A solutions architect is managing an application in the us-west-1 Region and wants to set up disaster recovery in the us-east-1 Region. The Amazon Aurora MySQL DB cluster needs RPO of 1 minute and an RTO of 2 minutes. Which approach meets these requirements with no negative performance impact?",
     "hint": "Which Aurora feature replicates to another Region at the storage layer, usually in under a second?",
     "keywords": [
@@ -3700,6 +4056,9 @@
     "exam_domain": 1,
     "task": "1.2",
     "difficulty": "hard",
+    "services": [
+      "Systems Manager › Session Manager"
+    ],
     "question": "A company runs several Amazon EC2 instances in private subnets. The company needs to be able to copy files directly to the EC2 instances. The company wants to use standard Linux tools such as secure copy protocol (SCP) or SFTP. Security controls prohibit inbound SSH access or public IP address assignment to any EC2 instances. Which solution will meet these requirements while following AWS security best practices?",
     "hint": "Which option needs no inbound port at all, yet can carry an SSH session for SCP?",
     "keywords": [

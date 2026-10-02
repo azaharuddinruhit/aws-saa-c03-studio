@@ -4,6 +4,7 @@
 
 ## GAMMA-001: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Lambda, API Gateway
 
 ### Question
 A company is building a solution to provide customers with an API that accesses financial data. The API backend needs to compute tax data for each request. The company anticipates greater demand to access the data during the last 3 months of each year. A solutions architect needs to design a scalable solution that can meet the regular demand and the peak demand at the end of each year. Which solution will meet these requirements?
@@ -31,6 +32,7 @@ A company is building a solution to provide customers with an API that accesses 
 
 ## GAMMA-002: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** Route 53 › Routing policies
 
 ### Question
 A company uses Amazon Route 53 as its DNS provider. The company hosts a website both on premises and in the AWS Cloud. The company's on-premises data center is near the us-west-1 Region. The company hosts the website on AWS in the eu-central-1 Region. The company wants to optimize load times for the website as much as possible. Which solution will meet these requirements?
@@ -58,6 +60,7 @@ A company uses Amazon Route 53 as its DNS provider. The company hosts a website 
 
 ## GAMMA-003: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Reliability
+**Services:** S3
 
 ### Question
 A company is developing a content sharing platform that currently handles 500 GB of user-generated media files. The company expects the amount of content to grow significantly in the future. The company needs a storage solution that can automatically scale, provide high durability, and allow direct user uploads from web browsers. Which solution will meet these requirements MOST cost-effectively?
@@ -85,6 +88,7 @@ A company is developing a content sharing platform that currently handles 500 GB
 
 ## GAMMA-004: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** Lambda › VPC access, VPC › Security groups
 
 ### Question
 A company has deployed infrastructure on AWS. A solutions architect wants to create an AWS Lambda function that will retrieve data from an Amazon Aurora database. The Amazon Aurora database is in a private subnet in company's VPC. The VPC is named VPC1. The data is relational in nature. The Lambda function needs to access the data securely. Which solution will meet these requirements?
@@ -112,6 +116,7 @@ A company has deployed infrastructure on AWS. A solutions architect wants to cre
 
 ## GAMMA-005: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** Fargate
 
 ### Question
 A media streaming company needs to deploy its video processing application across multiple Availability Zones for high availability. The application consists of containerized microservices that process video files. The microservices must automatically recover from failures. Which solution meets these requirements with the LEAST operational overhead?
@@ -139,6 +144,7 @@ A media streaming company needs to deploy its video processing application acros
 
 ## GAMMA-006: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** VPC › Security groups
 
 ### Question
 A solutions architect is designing a three-tier web application. The architecture consists of an internet-facing Application Load Balancer (ALB) and a web tier that is hosted on Amazon EC2 instances in private subnets. The application tier with the business logic runs on EC2 instances in private subnets. The database tier consists of Microsoft SQL Server that runs on EC2 instances in private subnets. Security is a high priority for the company. Which combination of security group configurations should the solutions architect use? (Select THREE.)
@@ -170,6 +176,7 @@ A solutions architect is designing a three-tier web application. The architectur
 
 ## GAMMA-007: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** EBS › Snapshots
 
 ### Question
 A company uses AWS Cost Explorer to monitor its AWS costs. The company notices that Amazon EBS storage and snapshot costs increase every month. However, the company does not purchase additional EBS storage every month. The company wants to optimize monthly costs for its current storage usage. Which solution will meet these requirements with the LEAST operational overhead?
@@ -197,6 +204,7 @@ A company uses AWS Cost Explorer to monitor its AWS costs. The company notices t
 
 ## GAMMA-008: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EC2 › Hibernation
 
 ### Question
 A company wants to optimize costs for an Amazon EC2 instance that has an attached Amazon EBS volume. The EC2 instance provides compute resources for an application that is often unused for scheduled periods of up to 30 days. The application requires the EC2 instance to retain its private IPv4 address. Additionally, the contents of the instance's RAM must be retained. Which solution will meet these requirements?
@@ -224,6 +232,7 @@ A company wants to optimize costs for an Amazon EC2 instance that has an attache
 
 ## GAMMA-009: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** Aurora › Global Database, Route 53 › Failover & health checks
 
 ### Question
 A company has a regional subscription-based streaming service that runs in a single AWS Region. The architecture consists of web servers and application servers on Amazon EC2 instances. The EC2 instances are in Auto Scaling groups behind Elastic Load Balancing (ELB) load balancers. The architecture includes an Amazon Aurora global database cluster that extends across multiple Availability Zones. The company wants to expand globally and to ensure that its application has minimal downtime. Which solution will provide the MOST fault tolerance?
@@ -251,6 +260,7 @@ A company has a regional subscription-based streaming service that runs in a sin
 
 ## GAMMA-010: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** EFS
 
 ### Question
 A company seeks a storage solution for its application. The solution must be highly available and scalable. The solution also must function as a file system, be mountable by multiple Linux instances in AWS and on premises through native protocols, and have no minimum size requirements. The company has set up a Site-to-Site VPN for access from its on-premises network to its VPC. Which storage solution meets these requirements?
@@ -278,6 +288,7 @@ A company seeks a storage solution for its application. The solution must be hig
 
 ## GAMMA-011: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Services:** Lambda › Concurrency
 
 ### Question
 A company runs several AWS Lambda functions in the same AWS Region. The company notices that some calls to the Lambda functions are throttling. A business-critical function named Function A runs 100 times each second, for an average of 7 seconds. Other Lambda functions that run in the same AWS account exceed the default quota. The quota is 1,000 concurrent invocations across all functions in the same Region. A solutions architect needs to resolve the throttling issue for Function A within the account. The solutions architect must ensure that Function A meets its demands without impacting the other functions. Which combination of configurations will meet these requirements with the LEAST operational overhead? (Select TWO.)
@@ -307,6 +318,7 @@ A company runs several AWS Lambda functions in the same AWS Region. The company 
 
 ## GAMMA-012: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Operational Excellence
+**Services:** Route 53 › Resolver
 
 ### Question
 A company has a single AWS account. The company runs workloads on Amazon EC2 instances in multiple VPCs in one AWS Region. The company also runs workloads in an on-premises data center that connects to the company's AWS account by using AWS Direct Connect. The company needs all EC2 instances in the VPCs to resolve DNS queries for the internal example.com domain to the authoritative DNS server that is located in the on-premises data center. The solution must use private communication between the VPCs and the on-premises network. All route tables, network ACLs, and security groups are configured correctly between AWS and the on-premises data center. Which combination of actions will meet these requirements? (Select THREE.)
@@ -338,6 +350,7 @@ A company has a single AWS account. The company runs workloads on Amazon EC2 ins
 
 ## GAMMA-013: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Operational Excellence, Security
+**Services:** Config
 
 ### Question
 A company runs production workloads in its AWS account. Multiple teams create and maintain the workloads. The company needs to be able to detect changes in resource configurations. The company needs to capture changes as configuration items without changing or modifying the existing resources. Which solution will meet these requirements?
@@ -365,6 +378,7 @@ A company runs production workloads in its AWS account. Multiple teams create an
 
 ## GAMMA-014: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** VPC › Gateway endpoints, VPC › NAT gateways
 
 ### Question
 A company has several Amazon EC2 instances in a private subnet. These EC2 instances host applications that read and write large amounts of data to and from Amazon S3. Subnet routing currently directs all the traffic destined for the internet through a NAT gateway. The company wants to reduce the data transfer costs associated with the Amazon S3 communication. The solution must not affect the ability of the applications to communicate with Amazon S3 or the outside internet. The EC2 instances must continue to reside in a private subnet. Which solution will meet these requirements MOST cost-effectively?
@@ -392,6 +406,7 @@ A company has several Amazon EC2 instances in a private subnet. These EC2 instan
 
 ## GAMMA-015: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** hard · **Pillars:** Cost Optimization
+**Services:** S3 › Storage classes, S3 › Glacier & retrieval, S3 › Event notifications
 
 ### Question
 A company has an application that generates a large number of files. The file sizes vary between 1 KB and 10 MB. The company wants to build a store and forward solution that keeps the files in a temporary Amazon S3 location. The solution must then pre-process the files and archive the files to S3 Glacier Flexible Retrieval. Which combination of steps will meet these requirements MOST cost-effectively? (Select THREE.)
@@ -423,6 +438,7 @@ A company has an application that generates a large number of files. The file si
 
 ## GAMMA-016: Monitoring, Management & Governance
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** X-Ray, CloudFormation
 
 ### Question
 A company is using a loosely coupled serverless architecture on AWS. The architecture consists of multiple web applications and APIs distributed across multiple teams. The company uses AWS Control Tower to provision AWS accounts. The company's development teams use AWS CloudFormation. The company wants to improve trace monitoring and gain insight into how individual services in application stacks are performing. Which solution will meet these requirements?
@@ -450,6 +466,7 @@ A company is using a loosely coupled serverless architecture on AWS. The archite
 
 ## GAMMA-017: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** RDS
 
 ### Question
 An application uses an Amazon RDS MySQL DB instance. The RDS database is becoming low on disk space. A solutions architect wants to increase the disk space without downtime. Which solution meets these requirements with the LEAST amount of effort?
@@ -477,6 +494,7 @@ An application uses an Amazon RDS MySQL DB instance. The RDS database is becomin
 
 ## GAMMA-018: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Organizations › SCPs
 
 ### Question
 A company has multiple AWS accounts. The company uses AWS Organizations with an organizational unit (OU) for the production account and another OU for the development account. Corporate policies state that developers must use only approved AWS services in the production account. What is the MOST operationally efficient solution to control the production account?
@@ -504,6 +522,7 @@ A company has multiple AWS accounts. The company uses AWS Organizations with an 
 
 ## GAMMA-019: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Fargate, EFS
 
 ### Question
 A company runs an application that uses Docker containers in an on-premises data center. The application runs on a container host that stores persistent data files in a local volume. Container instances use the stored persistent data. The company wants to migrate the application to fully managed AWS services. Which solution will meet these requirements?
@@ -531,6 +550,7 @@ A company runs an application that uses Docker containers in an on-premises data
 
 ## GAMMA-020: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** Budgets
 
 ### Question
 A company wants to experiment with individual AWS accounts for its engineer team. The company wants to be notified as soon as the Amazon EC2 instance usage for a given month exceeds a specific threshold for each account. What should a solutions architect do to meet this requirement MOST cost-effectively?
@@ -558,6 +578,7 @@ A company wants to experiment with individual AWS accounts for its engineer team
 
 ## GAMMA-021: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Lambda › SnapStart, Lambda › Concurrency
 
 ### Question
 A company is developing a latency-sensitive application. Part of the application includes several AWS Lambda functions that need to initialize as quickly as possible. The Lambda functions are written in Java and contain initialization code outside the handlers to load libraries, initialize classes, and generate unique IDs. Which solution will meet the startup performance requirement MOST cost-effectively?
@@ -585,6 +606,7 @@ A company is developing a latency-sensitive application. Part of the application
 
 ## GAMMA-022: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** SQS
 
 ### Question
 A media publishing company is building an application on AWS to give users the ability to print their own books. The application frontend runs on a Docker container. The amount of incoming orders varies significantly. The incoming orders can temporarily exceed the throughput of the company's book printing machines. Order-processing payloads are up to 4 MB in size. The company needs to develop a solution that can scale to handle incoming orders. Which solution will meet this requirement?
@@ -612,6 +634,7 @@ A media publishing company is building an application on AWS to give users the a
 
 ## GAMMA-023: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Reliability
+**Services:** Backup › Vault Lock
 
 ### Question
 A company wants to implement a backup strategy for Amazon EC2 data and multiple Amazon S3 buckets. Because of regulatory requirements, the company must retain backup files for a specific time period. The company must not alter the files for the duration of the retention period. Which solution will meet these requirements?
@@ -639,6 +662,7 @@ A company wants to implement a backup strategy for Amazon EC2 data and multiple 
 
 ## GAMMA-024: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** Cost allocation tags, Cost Explorer
 
 ### Question
 A company runs a serverless architecture that supports multiple projects and resources in the company's AWS account. The company wants to use resource tags to monitor and analyze costs contributed by individual projects to the company's AWS bill. Which solution will meet these requirements?
@@ -666,6 +690,7 @@ A company runs a serverless architecture that supports multiple projects and res
 
 ## GAMMA-025: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Security
+**Services:** Elastic Load Balancing › ALB, EC2 Auto Scaling, WAF
 
 ### Question
 A company is moving a legacy data processing application to the AWS Cloud. The application needs to run on Amazon EC2 instances behind an Application Load Balancer (ALB). The application must handle incoming traffic spikes and continue to work in the event of an application fault in one Availability Zone. The company requires that a Web Application Firewall (WAF) must be attached to the ALB. Which solution will meet these requirements?
@@ -693,6 +718,7 @@ A company is moving a legacy data processing application to the AWS Cloud. The a
 
 ## GAMMA-026: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** EBS › Volume types
 
 ### Question
 A company runs a non-production application. The application uses an on-premises Microsoft SQL Server database. The application uses SSD storage. The database needs low-latency access to block-level storage. The company wants to move the application and the database to the AWS Cloud. The company does not want to make any changes to the application and database architecture. Which solution will meet these requirements with the LOWEST storage latency?
@@ -720,6 +746,7 @@ A company runs a non-production application. The application uses an on-premises
 
 ## GAMMA-027: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** RDS › Multi-AZ
 
 ### Question
 A company needs to deploy a Microsoft SQL Server database on AWS. The database must handle real-time transactions. The database must be highly available within an AWS Region. Which solution will meet these requirements with the LEAST operational overhead?
@@ -747,6 +774,7 @@ A company needs to deploy a Microsoft SQL Server database on AWS. The database m
 
 ## GAMMA-028: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** S3 › Access control
 
 ### Question
 A solutions architect has designed an application that gives users the ability to access images that are stored in an Amazon S3 bucket. The application uses an Amazon EC2 instance hosted in a private VPC that has a VPC ID of vpc-11aabb22. The solutions architect enabled the block public access feature on the S3 bucket. The bucket is hosted in the us-west-2 Region of account 123456789012. The solutions architect needs to ensure that only resources within the VPC that hosts the EC2 instance can access the S3 bucket. Which solution will meet this requirement?
@@ -774,6 +802,7 @@ A solutions architect has designed an application that gives users the ability t
 
 ## GAMMA-029: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** RDS
 
 ### Question
 A company is planning to deploy a managed MySQL database solution for its nonproduction applications. The company plans to run the system for several years on AWS. Which solution will meet these requirements MOST cost-effectively?
@@ -801,6 +830,7 @@ A company is planning to deploy a managed MySQL database solution for its nonpro
 
 ## GAMMA-030: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** S3 › Storage classes
 
 ### Question
 An adventure company has launched a new feature on its mobile app. Users can use the feature to upload their hiking and rafting photos and videos anytime. The photos and videos are stored in Amazon S3 Standard storage in an S3 bucket and are served through Amazon CloudFront. The company needs to optimize the cost of the storage. A solutions architect discovers that most of the uploaded photos and videos are accessed infrequently after 30 days. However, some of the uploaded photos and videos are accessed frequently after 30 days. The solutions architect needs to implement a solution that maintains millisecond retrieval availability of the photos and videos at the lowest possible cost. Which solution will meet these requirements?
@@ -828,6 +858,7 @@ An adventure company has launched a new feature on its mobile app. Users can use
 
 ## GAMMA-031: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Secrets Manager › Rotation, Systems Manager › Parameter Store
 
 ### Question
 A solutions architect needs to configure automatic rotation for Amazon RDS database credentials. The credentials must rotate every 30 days. The solution must integrate with Amazon RDS. Which solution will meet these requirements with the LEAST operational overhead?
@@ -855,6 +886,7 @@ A solutions architect needs to configure automatic rotation for Amazon RDS datab
 
 ## GAMMA-032: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Operational Excellence, Cost Optimization
+**Services:** VPC › PrivateLink & interface endpoints, Transit Gateway, Resource Access Manager
 
 ### Question
 A large company runs unique workloads in different Amazon VPCs. Each VPC uses a common set of VPC interface endpoints. The company will add new workloads to new VPCs as the company grows. The company wants to centralize the endpoints and the DNS management of the endpoints. Which solution will meet these requirements with the LEAST operational overhead?
@@ -882,6 +914,7 @@ A large company runs unique workloads in different Amazon VPCs. Each VPC uses a 
 
 ## GAMMA-033: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** RDS › Multi-AZ, Elastic Load Balancing › ALB
 
 ### Question
 A company wants to migrate an on-premises, traditional three-tier web application to AWS. The migrated solution must have high availability because of the large number of transactions that the web application processes. The company plans to use Amazon EC2 instances for the processing tier. The company needs a solution that provides fault tolerance and scalability for the database and load distribution tiers. The web application serves HTTPS traffic and uses URL path-based routing. Which combination of options will meet these requirements? (Select TWO.)
@@ -911,6 +944,7 @@ A company wants to migrate an on-premises, traditional three-tier web applicatio
 
 ## GAMMA-034: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** VPC › Security groups, Resource Access Manager
 
 ### Question
 A company uses an organization in AWS Organizations to manage multiple AWS accounts. Multiple business units use the AWS accounts. The company has multiple offices around the world. The company needs to update security group rules to allow new CIDR ranges or to remove unused CIDR ranges across the organization. Which solution will meet these requirements MOST cost-effectively?
@@ -938,6 +972,7 @@ A company uses an organization in AWS Organizations to manage multiple AWS accou
 
 ## GAMMA-035: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Control Tower, CloudTrail
 
 ### Question
 A company uses an existing AWS account that is dedicated to management. The company needs to create separate accounts for multiple developer teams. Then, the developer accounts can host resources outside of the management account. A security team requires a centralized capability to audit user activity and to identify the resources that the teams create. Additionally, the company must apply a standard set of controls to any new accounts upon creation. Which solution will meet these requirements?
@@ -965,6 +1000,7 @@ A company uses an existing AWS account that is dedicated to management. The comp
 
 ## GAMMA-036: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** RDS › Encryption
 
 ### Question
 A company uses an Amazon Aurora PostgreSQL DB cluster to store structured sensitive data about its customers. To meet compliance requirements, the company introduced a policy that all the customer-related data must be encrypted at rest. Which solution will ensure that the company is compliant with the policy with the LEAST operational overhead?
@@ -992,6 +1028,7 @@ A company uses an Amazon Aurora PostgreSQL DB cluster to store structured sensit
 
 ## GAMMA-037: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Glue › ETL jobs, Step Functions, QuickSight
 
 ### Question
 A company receives data from several sources and stores the data in an Amazon S3 data lake. The company transforms the data and ingests it into multiple downstream data stores, including databases and data warehouses. A solutions architect wants to design an extract, transform, and load (ETL) pipeline to orchestrate a process to prepare and load the data for analytics activities. The processed data must also be available for stakeholders through dashboards and visualizations. Which solution will meet these requirements with the LEAST development effort?
@@ -1019,6 +1056,7 @@ A company receives data from several sources and stores the data in an Amazon S3
 
 ## GAMMA-038: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** S3 › Object Lock
 
 ### Question
 A company is moving data from an on-premises data center to the AWS Cloud. The company must store all its data in an Amazon S3 bucket. To comply with regulations, the company must also ensure that the data will be protected against overwriting indefinitely. Which solution will ensure that the data in the S3 bucket cannot be overwritten?
@@ -1046,6 +1084,7 @@ A company is moving data from an on-premises data center to the AWS Cloud. The c
 
 ## GAMMA-039: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** RDS
 
 ### Question
 A company runs an application that uses Amazon RDS for PostgreSQL. The application receives traffic only on weekdays during business hours. The company wants to optimize costs and reduce operational overhead based on this usage. Which solution will meet these requirements?
@@ -1073,6 +1112,7 @@ A company runs an application that uses Amazon RDS for PostgreSQL. The applicati
 
 ## GAMMA-040: Monitoring, Management & Governance
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** CloudWatch
 
 ### Question
 A company has set up hybrid connectivity between an on-premises data center and AWS by using AWS Site-to-Site VPN. The company is migrating a workload to AWS. The company sets up a VPC that has two public subnets and two private subnets. The company wants to monitor the total packet loss and round-trip-time (RTT) between the data center and AWS. Which solution will meet these requirements with the LEAST operational overhead?
@@ -1100,6 +1140,7 @@ A company has set up hybrid connectivity between an on-premises data center and 
 
 ## GAMMA-041: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** SQS › Dead-letter queues
 
 ### Question
 A company is building a serverless application that processes large volumes of data from a mobile app. The application uses an AWS Lambda function to process the data and store the data in an Amazon DynamoDB table. The company needs to ensure that the application can recover from failures and continue processing data without losing any records. Which solution will meet these requirements?
@@ -1127,6 +1168,7 @@ A company is building a serverless application that processes large volumes of d
 
 ## GAMMA-042: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** CloudWatch › Logs, CloudWatch › Alarms
 
 ### Question
 A company has a web application that is hosted on Amazon EC2 instances. The EC2 instances are configured to stream logs to Amazon CloudWatch Logs. The company needs to receive an Amazon SNS notification when the number of application error messages exceeds a defined threshold within a 5-minute period. Which solution will meet these requirements?
@@ -1154,6 +1196,7 @@ A company has a web application that is hosted on Amazon EC2 instances. The EC2 
 
 ## GAMMA-043: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** VPC › Internet gateways, VPC › Subnets & routing
 
 ### Question
 A solutions architect launches an Amazon EC2 instance inside a new VPC. The solutions architect configures network ACL rules and security group rules that allow the appropriate traffic to flow to and from the instance. An Elastic IP address is associated with the instance. The solutions architect needs to be able to access the instance from the internet. Which combination of actions should the solutions architect take to accomplish this goal? (Select TWO.)
@@ -1183,6 +1226,7 @@ A solutions architect launches an Amazon EC2 instance inside a new VPC. The solu
 
 ## GAMMA-044: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** FSx › Windows File Server, FSx › NetApp ONTAP
 
 ### Question
 A company runs a Microsoft Windows SMB file share on premises to support an application. The company wants to migrate the application to AWS. The company wants to share storage across multiple Amazon EC2 instances. Which solutions will meet these requirements with the LEAST operational overhead? (Select TWO.)
@@ -1212,6 +1256,7 @@ A company runs a Microsoft Windows SMB file share on premises to support an appl
 
 ## GAMMA-045: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** SQS
 
 ### Question
 A company is building a news aggregation platform. The platform ingests news articles that need to be cleaned and categorized. The processed articles must be stored durably for one year. The platform must handle up to thousands of incoming articles each minute during peaks. The platform must also provide independent, scalable processing for each article. Which solution will meet these requirements?
@@ -1239,6 +1284,7 @@ A company is building a news aggregation platform. The platform ingests news art
 
 ## GAMMA-046: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Transit Gateway, Direct Connect › Direct Connect gateway
 
 ### Question
 A company uses AWS Direct Connect to connect its on-premises network to multiple VPCs. All VPCs are located in the same AWS account in one AWS Region. Each VPC uses its own private virtual interface (VIF) and virtual local area network (VLAN) on the Direct Connect connection. The company is growing and needs to add more VPCs and private VIFs. The existing connections cannot support the additional VPCs and private VIFs. The company's new VPCs must have connectivity to the on-premises network. Which solution will meet these requirements in the MOST scalable way?
@@ -1266,6 +1312,7 @@ A company uses AWS Direct Connect to connect its on-premises network to multiple
 
 ## GAMMA-047: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Kinesis Data Streams
 
 ### Question
 A company has multiple consumers that consume data from Amazon Kinesis Data Streams. The company wants to share throughput across all consumers. The company must prevent any one consumer from monopolizing the stream's throughput. Each consumer must have its own read throughput and must not compete with other consumers. Which solution will meet these requirements?
@@ -1293,6 +1340,7 @@ A company has multiple consumers that consume data from Amazon Kinesis Data Stre
 
 ## GAMMA-048: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** RDS › Read replicas
 
 ### Question
 A company has a two-tier web application that uses Amazon EC2 instances and an Amazon RDS for PostgreSQL database. Application users have recently reported that the application performance degrades when users attempt to produce unique reports. The company needs to fix the poor performance without making significant changes to the application. Which solution will meet these requirements?
@@ -1320,6 +1368,7 @@ A company has a two-tier web application that uses Amazon EC2 instances and an A
 
 ## GAMMA-049: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Global Accelerator
 
 ### Question
 A company runs an enterprise resource planning (ERP) system on Amazon EC2 instances in a single AWS Region. Users connect to the ERP system by using a public API that is hosted on the EC2 instances. International users report slow API response times from their data centers. A solutions architect needs to improve API response times for the international users. Which solution will meet these requirements MOST cost-effectively?
@@ -1347,6 +1396,7 @@ A company runs an enterprise resource planning (ERP) system on Amazon EC2 instan
 
 ## GAMMA-050: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Batch, Step Functions
 
 ### Question
 A digital image processing company wants to migrate its on-premises monolithic application to the AWS Cloud. The company processes thousands of images and generates large files as part of the processing workflow. The company needs a solution to manage the growing number of image processing jobs. The solution must also reduce the manual tasks in the image processing workflow. The company does not want to manage the underlying infrastructure of the solution. Which solution will meet these requirements with the LEAST operational overhead?
@@ -1374,6 +1424,7 @@ A digital image processing company wants to migrate its on-premises monolithic a
 
 ## GAMMA-051: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Glue › ETL jobs
 
 ### Question
 A company needs to process data from multiple users. The company stores the data in a relational database. A solutions architect needs to extract the data, use business rules to transform the data, and store the data in Amazon S3. The solutions architect must ensure that the data is encrypted during processing. Which solution will meet these requirements with the LEAST operational effort?
@@ -1401,6 +1452,7 @@ A company needs to process data from multiple users. The company stores the data
 
 ## GAMMA-052: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** EC2 Auto Scaling › Step & simple scaling, CloudWatch › Alarms
 
 ### Question
 A solutions architect manages a web application for a company. The application runs on Amazon EC2 instances in an Auto Scaling group. The Auto Scaling group configuration includes a minimum of 3 instances and a maximum of 300 instances. The maximum helps handle unpredictable, short-lived traffic surges. The application must scale to meet demand. However, to help manage cost, the number of running instances should not exceed 180 for longer than 1 continuous hour. Which solution will meet these requirements?
@@ -1428,6 +1480,7 @@ A solutions architect manages a web application for a company. The application r
 
 ## GAMMA-053: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Access Analyzer
 
 ### Question
 A company runs all its business applications in the AWS Cloud. The company uses AWS Organizations to manage multiple AWS accounts. A solutions architect needs to review all permissions that are granted to IAM users to determine which IAM users have more permissions than required. Which solution will meet these requirements with the LEAST administrative overhead?
@@ -1455,6 +1508,7 @@ A company runs all its business applications in the AWS Cloud. The company uses 
 
 ## GAMMA-054: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Macie
 
 ### Question
 A company manages millions of documents in hundreds of Amazon S3 buckets in multiple AWS Regions. The company must determine whether any of the S3 buckets contain personally identifiable information (PII). Which solution will meet this requirement with the LEAST operational overhead?
@@ -1482,6 +1536,7 @@ A company manages millions of documents in hundreds of Amazon S3 buckets in mult
 
 ## GAMMA-055: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** S3 › Glacier & retrieval
 
 ### Question
 A company hosts an application on AWS. The application has generated approximately 2.5 TB of data over the previous 12 years. The company currently stores the data on Amazon EBS volumes. The company wants a cost-effective backup solution for long-term storage. The company must be able to retrieve the data within minutes when required for audits. Which solution will meet these requirements?
@@ -1509,6 +1564,7 @@ A company hosts an application on AWS. The application has generated approximate
 
 ## GAMMA-056: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** EBS › Volume types
 
 ### Question
 A streaming analytics application that runs on Amazon EC2 instances needs 8 TB of attached block storage. The application has a sequential and throughput-heavy workload. The application has moderate input/output operations per second (IOPS) and runs 24 hours a day, 7 days a week. The company wants to minimize storage cost while meeting performance needs. Which Amazon EBS volume type will meet these requirements?
@@ -1536,6 +1592,7 @@ A streaming analytics application that runs on Amazon EC2 instances needs 8 TB o
 
 ## GAMMA-057: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** Batch, EC2 › Spot Instances
 
 ### Question
 A company hosts crowdsourced research projects. The company wants to run a very complex and long-running application. The application has many steps. Each step has checkpoints that can be resumed if necessary. There is no deadline for the application to finish running. Which solution will meet these requirements MOST cost-effectively?
@@ -1563,6 +1620,7 @@ A company hosts crowdsourced research projects. The company wants to run a very 
 
 ## GAMMA-058: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Secrets Manager › Rotation
 
 ### Question
 A company has a custom application with embedded credentials that retrieves information from a database in an Amazon RDS for MySQL DB cluster. The company needs to make the application more secure with minimal programming effort. The company has created credentials on the RDS for MySQL database for the application user. Which solution will meet these requirements?
@@ -1590,6 +1648,7 @@ A company has a custom application with embedded credentials that retrieves info
 
 ## GAMMA-059: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Control Tower, Organizations › SCPs
 
 ### Question
 A company uses AWS Organizations to manage multiple AWS accounts. Each department in the company has its own AWS account. A security team needs to implement centralized governance and control to enforce security best practices across all accounts. The team wants to have control over which AWS services each account can use. The team needs to restrict access to sensitive resources based on IP addresses or geographic regions. The root user must be protected with multi-factor authentication (MFA) across all accounts. Which solution will meet these requirements?
@@ -1617,6 +1676,7 @@ A company uses AWS Organizations to manage multiple AWS accounts. Each departmen
 
 ## GAMMA-060: Analytics & Data Processing
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** Redshift
 
 ### Question
 A company runs a provisioned Amazon Redshift cluster. The company runs nightly automated jobs. The nightly jobs are short-lived but are CPU-intensive and storage-intensive. The nightly jobs create large temporary tables. To keep the nightly jobs reliable, the company uses a large cluster size. However, the company experiences increased cost. Daytime jobs are moderate. The company wants to reduce costs while continuing to meet the short, spiky nightly demand. The company wants to avoid paying for unused capacity when idle. Which solution will meet these requirements?
@@ -1644,6 +1704,7 @@ A company runs a provisioned Amazon Redshift cluster. The company runs nightly a
 
 ## GAMMA-061: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** IAM › Policy evaluation, SNS
 
 ### Question
 A media company has a multi-account AWS environment in the us-east-1 Region. The company has an Amazon SNS topic in a production account that publishes performance metrics. The company has an AWS Lambda function in an administrator account to process and analyze log data. The Lambda function that is in the administrator account must be invoked by messages from the SNS topic that is in the production account when significant metrics are reported. Which combination of steps will meet these requirements? (Select TWO.)
@@ -1673,6 +1734,7 @@ A media company has a multi-account AWS environment in the us-east-1 Region. The
 
 ## GAMMA-062: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** VPC › Gateway endpoints, VPC › PrivateLink & interface endpoints
 
 ### Question
 A company is building a static website on AWS in a single VPC. The VPC has public subnets and private subnets in two Availability Zones. The company stores the website content in an Amazon S3 bucket. The company has deployed a fleet of Amazon EC2 instances as web servers in a private subnet. The EC2 instances are in an Auto Scaling group behind an Application Load Balancer (ALB). The EC2 instances serve network traffic and pull content from the S3 bucket to render the webpages. The company is using an AWS Direct Connect connection with a public virtual interface (VIF) to provide on-premises connectivity to the S3 bucket. Network traffic between the EC2 instances and the S3 bucket travels through a NAT gateway. A solutions architect must reconfigure network connectivity to optimize the cost of NAT gateway traffic between the EC2 instances and the S3 bucket. Which solution will meet these requirements?
@@ -1700,6 +1762,7 @@ A company is building a static website on AWS in a single VPC. The VPC has publi
 
 ## GAMMA-063: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** DataSync
 
 ### Question
 A company wants to migrate an on-premises Hadoop Distributed File System (HDFS) to a data lake in Amazon S3. The company needs an encrypted network connection to transfer the data. Which solution will meet these requirements in the MOST cost-effective way?
@@ -1727,6 +1790,7 @@ A company wants to migrate an on-premises Hadoop Distributed File System (HDFS) 
 
 ## GAMMA-064: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** ElastiCache › Caching strategies, DynamoDB › DAX
 
 ### Question
 A company has a social media application that receives large amounts of traffic. User posts and interactions are continuously updated in an Amazon RDS database. The data changes frequently, and the data types can be complex. The application must serve read requests with minimal latency. The application's current architecture struggles to deliver these rapid data updates efficiently. The company needs a solution to improve the application's performance. Which solution will meet these requirements?
@@ -1754,6 +1818,7 @@ A company has a social media application that receives large amounts of traffic.
 
 ## GAMMA-065: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** EC2 Auto Scaling › Scheduled & predictive scaling
 
 ### Question
 A company has recently migrated to AWS. The company runs an application on multiple Amazon EC2 instances in an Auto Scaling group. The EC2 instances span multiple Availability Zones. Users connect to the application through an Application Load Balancer (ALB) Amazon CloudWatch metrics report that the CPU usage for all the instances surges to 99% when users log in between 8 am and 9 am every workday. The usage surge causes performance issues and application errors. The company wants to ensure that the application is able to handle the peak usage without disruption to the application. Which solution will meet these requirements?
@@ -1781,6 +1846,7 @@ A company has recently migrated to AWS. The company runs an application on multi
 
 ## GAMMA-066: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** RDS, EC2 › Reserved Instances & Savings Plans
 
 ### Question
 A company is migrating a PostgreSQL database to AWS. The database load is consistently high. The company has no plans to modify the CPU or memory requirements for next year. The company wants a solution that maximizes cost savings and reduces maintenance overhead. Which combination of options will meet these requirements? (Select TWO.)
@@ -1810,6 +1876,7 @@ A company is migrating a PostgreSQL database to AWS. The database load is consis
 
 ## GAMMA-067: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** Kinesis Data Streams, Managed Service for Apache Flink
 
 ### Question
 A company runs game applications on AWS. The company needs to collect, visualize, and analyze telemetry data from the company's game servers. The company wants to gain insights into the behavior, performance, and health of game servers in near real time. Which solution will meet these requirements?
@@ -1837,6 +1904,7 @@ A company runs game applications on AWS. The company needs to collect, visualize
 
 ## GAMMA-068: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization, Reliability
+**Services:** DynamoDB › Table classes
 
 ### Question
 A company wants to run a production database in the AWS Cloud. The database will collect billions of sensor readings from multiple locations across multiple AWS Regions. Data is written to the database at a sustained rate of 50,000 writes per second. The company will run reports once every 3 months against the database. The company will run simple queries to retrieve data based on unique location IDs to run the reports. The query results will vary in size. The company needs a solution that will optimize data storage costs. The solution must be highly durable and must not compromise database performance. Which solution will meet these requirements?
@@ -1864,6 +1932,7 @@ A company wants to run a production database in the AWS Cloud. The database will
 
 ## GAMMA-069: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** CloudFront › Caching, API Gateway
 
 ### Question
 A company is building a new web application that serves static and dynamic content from an API. The company wants to minimize latency for users who access the application from around the world. Which solution will meet these requirements MOST cost-effectively?
@@ -1891,6 +1960,7 @@ A company is building a new web application that serves static and dynamic conte
 
 ## GAMMA-070: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Systems Manager › Parameter Store, IAM › Roles
 
 ### Question
 A company has a prototype application that runs in a Linux container on Amazon ECS. The company needs to provide sensitive environment variables to the container before the application starts. What is the MOST secure way to load the environment variables to the running container?
@@ -1918,6 +1988,7 @@ A company has a prototype application that runs in a Linux container on Amazon E
 
 ## GAMMA-071: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Roles
 
 ### Question
 A company is building an application on AWS. The application uses multiple AWS Lambda functions to retrieve sensitive data from a single Amazon S3 bucket for processing. The company must ensure that only authorized Lambda functions can access the data. The solution must comply with the principle of least privilege. Which solution will meet these requirements?
@@ -1945,6 +2016,7 @@ A company is building an application on AWS. The application uses multiple AWS L
 
 ## GAMMA-072: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** EC2 Auto Scaling › Warm pools & lifecycle hooks
 
 ### Question
 A company hosts a public web application on AWS. The website has a three-tier architecture. The frontend web tier is comprised of Amazon EC2 instances in an Auto Scaling group. The application tier is a second Auto Scaling group. The database tier is an Amazon RDS database. The company has configured the Auto Scaling groups to handle the application's normal level of demand. During an unexpected spike in demand, the company notices a long delay in the startup time when the frontend and application layers scale out. The company needs to improve the scaling performance of the application without negatively affecting the user experience. Which solution will meet these requirements MOST cost-effectively?
@@ -1972,6 +2044,7 @@ A company hosts a public web application on AWS. The website has a three-tier ar
 
 ## GAMMA-073: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Secrets Manager › Rotation
 
 ### Question
 A company has an application that runs on Amazon EC2 instances and uses an Amazon Aurora database. The EC2 instances connect to the Aurora database by using user names and passwords that the company stores locally in a file. The company changes the user names and passwords every month. The company wants to minimize the operational overhead of credential management. Which solution will meet these requirements?
@@ -1999,6 +2072,7 @@ A company has an application that runs on Amazon EC2 instances and uses an Amazo
 
 ## GAMMA-074: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** FSx › Lustre, EC2 › Placement groups & EFA
 
 ### Question
 A company is designing a tightly coupled high performance computing (HPC) environment in the AWS Cloud. The company needs to include features that will optimize the HPC environment for networking and storage. Which combination of solutions will meet these requirements? (Select TWO.)
@@ -2028,6 +2102,7 @@ A company is designing a tightly coupled high performance computing (HPC) enviro
 
 ## GAMMA-075: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** EventBridge › API destinations
 
 ### Question
 A manufacturing company runs an order processing application in its VPC. The company wants to securely send messages from the application to an external Salesforce system that uses Open Authorization (OAuth). A solutions architect needs to integrate the company's order processing application with the external Salesforce system. Which solution will meet these requirements?
@@ -2055,6 +2130,7 @@ A manufacturing company runs an order processing application in its VPC. The com
 
 ## GAMMA-076: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** RDS › Multi-AZ
 
 ### Question
 An e-commerce company is redesigning a web application to run on the AWS Cloud. The application needs to store static website content and must use a Microsoft SQL Server database to store customer data. The company needs to deploy the application in a resilient way across multiple Availability Zones. Which solution will meet these requirements?
@@ -2082,6 +2158,7 @@ An e-commerce company is redesigning a web application to run on the AWS Cloud. 
 
 ## GAMMA-077: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** CloudFront › Price classes
 
 ### Question
 A company hosts a static website in an Amazon S3 bucket. The S3 bucket is the origin for an Amazon CloudFront distribution. The company has users in the United States, Canada, and Europe. The company wants to optimize distribution costs for the website. Which solution will meet these requirements?
@@ -2109,6 +2186,7 @@ A company hosts a static website in an Amazon S3 bucket. The S3 bucket is the or
 
 ## GAMMA-078: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** IAM Identity Center, IAM › MFA
 
 ### Question
 A company's cloud operations team uses the AWS Management Console to administer AWS resources from remote locations, including employee home offices. The cloud operations team logs in by using individual IAM user accounts. IAM users belong to an IAM user group that has the PowerUserAccess AWS managed policy attached. A solutions architect needs to recommend a solution to improve security for the cloud operations team AWS account. The solution must not increase operational overhead for the cloud operation team. Which solution will meet these requirements?
@@ -2136,6 +2214,7 @@ A company's cloud operations team uses the AWS Management Console to administer 
 
 ## GAMMA-079: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** EKS, IAM › Roles
 
 ### Question
 A company is using an Amazon EKS cluster. The company must ensure that Kubernetes service accounts in the EKS cluster have secure and granular access to specific AWS resources by using IAM roles for service accounts (IRSA). Which combination of solutions will meet these requirements? (Select TWO.)
@@ -2165,6 +2244,7 @@ A company is using an Amazon EKS cluster. The company must ensure that Kubernete
 
 ## GAMMA-080: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Roles
 
 ### Question
 A company has hired an external vendor to work in the company's AWS account. The vendor uses an automated tool that the vendor hosts in its own AWS account. The vendor does not have IAM access to the company's AWS account. A solutions architect needs to grant access to the vendor. Which solution will meet these requirements MOST securely?
@@ -2192,6 +2272,7 @@ A company has hired an external vendor to work in the company's AWS account. The
 
 ## GAMMA-081: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** DR strategies › Warm standby, Route 53 › Failover & health checks
 
 ### Question
 A company has a three-tier web application. An Application Load Balancer (ALB) is in front of Amazon EC2 instances that are in the ALB target group. An Amazon S3 bucket stores documents. The company requires the application to meet a recovery time objective (RTO) of 60 seconds. Which solution will meet this requirement?
@@ -2219,6 +2300,7 @@ A company has a three-tier web application. An Application Load Balancer (ALB) i
 
 ## GAMMA-082: Analytics & Data Processing
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization, Security
+**Services:** VPC › Gateway endpoints
 
 ### Question
 A solutions architect wants to design a data warehouse by using an Amazon Redshift cluster in the eu-west-1 Region. The data warehouse will initially ingest data from Amazon DynamoDB tables in eu-west-1. The VPC that the Redshift cluster will be deployed in must not connect to the internet. Which solution will securely load data MOST cost-effectively?
@@ -2246,6 +2328,7 @@ A solutions architect wants to design a data warehouse by using an Amazon Redshi
 
 ## GAMMA-083: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** EC2
 
 ### Question
 A company has a legacy .NET Framework application that runs on Windows Server 2012. The company wants to migrate the application to AWS. The company cannot rewrite code or update to the most recent version of the .NET Framework. The company wants to change as little as possible during the migration. Which solution will meet these requirements with the LEAST administrative overhead?
@@ -2273,6 +2356,7 @@ A company has a legacy .NET Framework application that runs on Windows Server 20
 
 ## GAMMA-084: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Lambda › VPC access
 
 ### Question
 A solutions architect is creating an AWS Lambda function that needs network access to private resources in a VPC. Which solution will provide this access with the LEAST operational overhead?
@@ -2300,6 +2384,7 @@ A solutions architect is creating an AWS Lambda function that needs network acce
 
 ## GAMMA-085: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** RDS › Read replicas
 
 ### Question
 A company uses Amazon RDS for PostgreSQL to run its applications in the us-east-1 Region. The company also uses machine learning (ML) models to forecast annual revenue based on near real-time reports. The reports are generated by using the same RDS for PostgreSQL database. The database performance slows during business hours. The company needs to improve database performance. Which solution will meet these requirements MOST cost-effectively?
@@ -2327,6 +2412,7 @@ A company uses Amazon RDS for PostgreSQL to run its applications in the us-east-
 
 ## GAMMA-086: Disaster Recovery & Migration
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Reliability
+**Services:** Backup › Cross-account & cross-Region copy, KMS › Key policies & grants
 
 ### Question
 A large company requires a data backup strategy. The solution must replicate long-term backups from a source AWS account to a dedicated backup AWS account. All backups must be encrypted. The encryption keys must be available for both encryption and decryption operations in the source account and the backup account. Only specific AWS accounts, resource, and users must have access permissions for the encryption keys. Which solution will meet these requirements?
@@ -2354,6 +2440,7 @@ A large company requires a data backup strategy. The solution must replicate lon
 
 ## GAMMA-087: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Roles
 
 ### Question
 A company runs an application on Amazon EC2 instances. The application needs to access an Amazon RDS database. The company wants to grant the EC2 instances access permissions to the RDS database while following the principle of least privilege. Which solution will meet these requirements?
@@ -2381,6 +2468,7 @@ A company runs an application on Amazon EC2 instances. The application needs to 
 
 ## GAMMA-088: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** S3 › Encryption
 
 ### Question
 A solutions architect is storing sensitive data generated by an application in Amazon S3. The solutions architect wants to encrypt the data at rest. A company policy requires an audit trail of when the AWS KMS key was used and by whom. Which encryption option will meet these requirements?
@@ -2408,6 +2496,7 @@ A solutions architect is storing sensitive data generated by an application in A
 
 ## GAMMA-089: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** Neptune, IAM
 
 ### Question
 A company uses Amazon Neptune and an AWS Lambda function as part of a fraud detection solution. The company has additional Neptune database clusters that are not part of the fraud detection solution. The fraud detection Lambda function must follow the principle of least privilege to access the fraud detection data in the Neptune database. Which solution will meet these requirements?
@@ -2435,6 +2524,7 @@ A company uses Amazon Neptune and an AWS Lambda function as part of a fraud dete
 
 ## GAMMA-090: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** EFS
 
 ### Question
 A company has developed a new content-sharing application that runs on Amazon ECS. The application runs on Amazon Linux Docker tasks that use the Amazon EC2 launch type. The application requires a storage solution that has the following characteristics: accessibility for multiple ECS tasks through bind mounts, resiliency across Availability Zones, burstable throughput of up to 3 Gbps, and the ability to be scaled up over time. Which storage solution meets these requirements?
@@ -2462,6 +2552,7 @@ A company has developed a new content-sharing application that runs on Amazon EC
 
 ## GAMMA-091: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Macie, Athena
 
 ### Question
 A healthcare company is designing a system to store and manage logs in the AWS Cloud. The system ingests and stores logs that are in JSON format. The logs contain sensitive patient information. The company must identify any sensitive data. The company must be able to search the log data by using SQL queries. Which solution will meet these requirements?
@@ -2489,6 +2580,7 @@ A healthcare company is designing a system to store and manage logs in the AWS C
 
 ## GAMMA-092: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** S3 › Event notifications
 
 ### Question
 A company runs its infrastructure on AWS and has a registered base of 700,000 users for its document management application. The company intends to create a product that converts large pdf files to jpg image files. The pdf files average 5 MB in size. The company needs to store the original files and the converted files. A solutions architect must design a scalable solution to accommodate demand that will grow rapidly over time. Which solution meets these requirements MOST cost-effectively?
@@ -2516,6 +2608,7 @@ A company runs its infrastructure on AWS and has a registered base of 700,000 us
 
 ## GAMMA-093: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Lambda, API Gateway
 
 ### Question
 An insurance company wants to migrate an application that calculates insurance premiums to AWS. The company needs to run calculations immediately when a customer submits information through the application. The application usually takes 10 seconds to process a calculation. A solutions architect needs to develop an architecture on AWS to handle the application. Which solution will meet this requirement?
@@ -2543,6 +2636,7 @@ An insurance company wants to migrate an application that calculates insurance p
 
 ## GAMMA-094: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** S3 › Storage classes
 
 ### Question
 A company is creating a web application that will store a large number of images in Amazon S3. The images will be accessed by users over variable periods of time. The company wants to retain all the images, incur no cost for retrieval, have minimal management overhead, and have the images available with no impact on retrieval time. Which solution meets these requirements?
@@ -2570,6 +2664,7 @@ A company is creating a web application that will store a large number of images
 
 ## GAMMA-095: Storage & Backup
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** FSx › Windows File Server, DataSync
 
 ### Question
 A company is migrating an on-premises data center to the AWS Cloud. The company is using Amazon FSx for Windows File Server to perform test deployments into a single Availability Zone. After testing, the company determines that it needs to improve availability and fault tolerance for its shared Windows file system. Which solution will meet these requirements?
@@ -2597,6 +2692,7 @@ A company is migrating an on-premises data center to the AWS Cloud. The company 
 
 ## GAMMA-096: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Shield › Shield Advanced
 
 ### Question
 A company wants to protect resources that the company hosts on AWS, including Application Load Balancers and Amazon CloudFront distributions. The company wants an AWS service that can provide near real-time visibility into attacks on the company's resources. The service must also have a dedicated AWS team to assist with (DDoS) attacks. Which AWS service will meet these requirements?
@@ -2624,6 +2720,7 @@ A company wants to protect resources that the company hosts on AWS, including Ap
 
 ## GAMMA-097: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** Cost allocation tags, Cost Explorer, Organizations › Consolidated billing
 
 ### Question
 A company uses AWS to run its workloads. The company uses AWS Organizations to manage its accounts. The company needs to identify which departments are responsible for specific costs. New accounts are constantly created in the Organizations account structure. The Organizations continuous integration and continuous delivery (CI/CD) framework already adds the populated department tag to the AWS resources. The company wants to use an AWS Cost Explorer report to identify the service costs by department from all AWS accounts. Which combination of steps will meet these requirements with the MOST operational efficiency? (Select TWO.)
@@ -2653,6 +2750,7 @@ A company uses AWS to run its workloads. The company uses AWS Organizations to m
 
 ## GAMMA-098: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** S3 › Performance & Transfer Acceleration
 
 ### Question
 A company wants to host a scalable web application on AWS. Users from around the world will access the application. Application users must have the ability to download and upload objects up to 5 GB in size. The company wants a cost-effective solution to minimize upload and download latency and maximize performance. Which solution will meet these requirements?
@@ -2680,6 +2778,7 @@ A company wants to host a scalable web application on AWS. Users from around the
 
 ## GAMMA-099: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** VPC › NAT gateways, EC2 Auto Scaling, Elastic Load Balancing › ALB
 
 ### Question
 A company hosts an internal web application on a single Amazon EC2 instance in a private subnet. The company is running NAT software on an EC2 instance for outbound internet access to the application. To improve fault tolerance and help ensure high availability, the company needs a more resilient architecture for both the application and its outbound connectivity. Which combination of actions will meet these requirements? (Select TWO.)
@@ -2709,6 +2808,7 @@ A company hosts an internal web application on a single Amazon EC2 instance in a
 
 ## GAMMA-100: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** Budgets, Cost Anomaly Detection
 
 ### Question
 A company uses AWS Organizations with all features enabled to manage its AWS accounts. The company created an organizational unit (OU) in Organizations that contains accounts for developers. The company established a daily spending threshold for each developer account. The company wants to use an Amazon SNS topic to receive notification when an account reaches the daily spending threshold. Which solution will meet these requirements?
@@ -2736,6 +2836,7 @@ A company uses AWS Organizations with all features enabled to manage its AWS acc
 
 ## GAMMA-101: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Fargate, Lambda › Limits
 
 ### Question
 A software company recently modernized its video processing application to run on containers. Depending on the video length and quality, the video processing jobs could take 1 hour or more to finish. The video processing jobs are expected to serve thousands of requests each second. Which solution will meet these requirements with the LEAST operational overhead?
@@ -2763,6 +2864,7 @@ A software company recently modernized its video processing application to run o
 
 ## GAMMA-102: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** EC2 › Placement groups & EFA
 
 ### Question
 A company runs code compilation tasks that span many virtual machines (VMs) in its on-premises data center. These tasks require low latency and high bandwidth between servers. The company wants to migrate this workload to run on Amazon EC2 instances in the AWS Cloud. After the migration, the workload must maintain low latency and high bandwidth between EC2 instances. Which solution will meet these requirements?
@@ -2790,6 +2892,7 @@ A company runs code compilation tasks that span many virtual machines (VMs) in i
 
 ## GAMMA-103: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** DocumentDB
 
 ### Question
 A financial services company needs to store and manage trading documentation. The documentation includes real-time trade confirmation data, financial statements, and settlement documents that frequently exceed 1 MB in size. The company's current provisioned database solution stores and manages this documentation. This current solution experiences high-volume trading activity during market hours but very low activity during off-hours. The company currently uses a provisioned database solution that is sized to handle the load for peak trading hours. This solution results in significant unused capacity during off-hours. The company needs a solution that will maintain performance during peak hours. Which solution will meet these requirements MOST cost-effectively?
@@ -2817,6 +2920,7 @@ A financial services company needs to store and manage trading documentation. Th
 
 ## GAMMA-104: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** API Gateway › API & endpoint types, Route 53 › Routing policies
 
 ### Question
 A company has built a public API by using an Amazon API Gateway REST API and an AWS Lambda function in one AWS Region. The API must maintain high availability. The company's compliance policy requires that the application be deployed across multiple Regions. Users must be routed automatically to an available API endpoint without requiring any changes on the users' side. Which combination of steps will meet these requirements? (Select TWO.)
@@ -2846,6 +2950,7 @@ A company has built a public API by using an Amazon API Gateway REST API and an 
 
 ## GAMMA-105: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Elastic Load Balancing › NLB, VPN › Site-to-Site VPN
 
 ### Question
 A company that recently started using AWS establishes a Site-to-Site VPN between its on-premises data center and AWS. The company's security mandate states that traffic originating from on premises should stay within the company's private IP space when communicating with an Amazon ECS cluster that is hosting a sample web application. Which solution meets this requirement?
@@ -2873,6 +2978,7 @@ A company that recently started using AWS establishes a Site-to-Site VPN between
 
 ## GAMMA-106: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
+**Services:** KMS › Key policies & grants, IAM › Policy evaluation, SNS
 
 ### Question
 A company is developing an AWS Lambda function that publishes notifications to an encrypted Amazon SNS topic. The notifications contain personal health information (PHI). The SNS topic uses AWS KMS customer managed keys for encryption. The company must ensure that the application has the necessary permissions to publish messages securely to the SNS topic. Which combination of steps will meet these requirements? (Select THREE.)
@@ -2904,6 +3010,7 @@ A company is developing an AWS Lambda function that publishes notifications to a
 
 ## GAMMA-107: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Performance Efficiency
+**Services:** RDS › Multi-AZ, RDS › Read replicas
 
 ### Question
 A company is deploying a critical application by using Amazon RDS for MySQL. The application must be highly available and must recover automatically. The company needs to support interactive users (transactional queries) and batch reporting (analytical queries) with no more than a 4-hour lag. The analytical queries must not affect the performance of the transactional queries. Which solution will meet these requirements?
@@ -2931,6 +3038,7 @@ A company is deploying a critical application by using Amazon RDS for MySQL. The
 
 ## GAMMA-108: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** SageMaker, QuickSight
 
 ### Question
 An e-commerce company wants to use machine learning (ML) algorithms to build and train models. The company will use the models to visualize complex scenarios and to detect trends in customer data. The architecture team wants to integrate its ML models with a reporting platform to analyze the augmented data and to use the data directly in its business intelligence dashboards. Which solution will meet these requirements with the LEAST operational overhead?
@@ -2958,6 +3066,7 @@ An e-commerce company wants to use machine learning (ML) algorithms to build and
 
 ## GAMMA-109: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** SQS › FIFO queues
 
 ### Question
 A company is building a serverless application to process orders from an e-commerce site. The application needs to handle bursts of traffic during peak usage hours and to maintain high availability. The orders must be processed asynchronously in the order the application receives them. Which solution will meet these requirements?
@@ -2985,6 +3094,7 @@ A company is building a serverless application to process orders from an e-comme
 
 ## GAMMA-110: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Services:** Aurora › Global Database, DR strategies › Warm standby
 
 ### Question
 A solutions architect needs to design a disaster recovery (DR) plan for an application on AWS. The application runs on Amazon EC2 instances behind an Application Load Balancer (ALB). The instances are in an Auto Scaling group. The application uses an Amazon Aurora PostgreSQL database. The recovery time objective (RTO) and recovery point objective (RPO) are 15 minutes each. Which combination of steps should the solutions architect take to meet these requirements MOST cost-effectively? (Select TWO.)
@@ -3014,6 +3124,7 @@ A solutions architect needs to design a disaster recovery (DR) plan for an appli
 
 ## GAMMA-111: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** Organizations › Consolidated billing, EC2 › Reserved Instances & Savings Plans
 
 ### Question
 A company develops a multi-tenant application that runs on Amazon EC2 instances in an AWS account. The company performs a security audit. The security audit identifies that the company must separate tenants into dedicated AWS accounts to reduce the potential impact of exploited vulnerabilities across customers. The company recently purchased a Savings Plan for the account where the application runs. The company wants to use the discounts in all the accounts where the application will run. Which combination of steps will meet these requirements while following AWS Well-Architected design patterns? (Select TWO.)
@@ -3043,6 +3154,7 @@ A company develops a multi-tenant application that runs on Amazon EC2 instances 
 
 ## GAMMA-112: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** SQS
 
 ### Question
 A company's e-commerce platform experiences unpredictable surges in traffic related to periodic sale events. The platform's web tier runs on Amazon EC2 instances in an Auto Scaling group behind an Application Load Balancer. EC2 worker instances in an Auto Scaling group process orders. The company needs a solution that accepts orders immediately, processes the orders asynchronously, and never loses orders if a worker instance experiences an application problem. Which solution will meet these requirements with the LEAST operational overhead?
@@ -3070,6 +3182,7 @@ A company's e-commerce platform experiences unpredictable surges in traffic rela
 
 ## GAMMA-113: Databases & Caching
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Operational Excellence, Security
+**Services:** DynamoDB › TTL
 
 ### Question
 An e-commerce company has an application that collects order-related information from customers. The company uses one Amazon DynamoDB table to store customer home addresses, phone numbers, and email addresses. Customers can check out without creating an account. The application copies the customer information to a second DynamoDB table if a customer does create an account. The company requires a solution to delete personally identifiable information (PII) for customers who did not create an account within 28 days. Which solution will meet these requirements with the LEAST operational overhead?
@@ -3097,6 +3210,7 @@ An e-commerce company has an application that collects order-related information
 
 ## GAMMA-114: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** ElastiCache › Caching strategies
 
 ### Question
 A company is creating a prototype of an e-commerce website on AWS. The website consists of an Application Load Balancer, an Auto Scaling group of Amazon EC2 instances for web servers, and an Amazon RDS for MySQL DB instance that runs with the Single-AZ configuration. The website is slow to respond during searches of the product catalog. The product catalog is a group of tables in the MySQL database that the company does not update frequently. A solutions architect has determined that the CPU utilization on the DB instance is high when product catalog searches occur. What should the solutions architect recommend to improve the performance of the website during searches of the product catalog?
@@ -3124,6 +3238,7 @@ A company is creating a prototype of an e-commerce website on AWS. The website c
 
 ## GAMMA-115: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization, Security
+**Services:** VPC › Gateway endpoints
 
 ### Question
 A company runs a non-production Oracle database on an Amazon EC2 instance. The database contains 1 TB of data. The EC2 instance runs in a private subnet of a VPC. A backup of the EC2 instance is taken every day and uploaded to an Amazon S3 bucket. The current backup process uses a NAT gateway to access the S3 bucket. The company does not want the backup process to use public IP addresses. Which solution will meet this requirement MOST cost-effectively?
@@ -3151,6 +3266,7 @@ A company runs a non-production Oracle database on an Amazon EC2 instance. The d
 
 ## GAMMA-116: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Global Accelerator, Elastic Load Balancing › NLB
 
 ### Question
 A company hosts an application on an Amazon EC2 instance in a single AWS Region. The application requires support for non-HTTP TCP traffic and HTTP traffic. The company wants to deliver content with low latency by using the AWS network. The company also wants to implement an Auto Scaling group with an Elastic Load Balancing (ELB) load balancer. How should a solutions architect meet these requirements?
@@ -3178,6 +3294,7 @@ A company hosts an application on an Amazon EC2 instance in a single AWS Region.
 
 ## GAMMA-117: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** RDS › Multi-AZ, EC2 Auto Scaling
 
 ### Question
 An e-commerce company is migrating its on-premises workload to the AWS Cloud. The workload currently consists of a web application and a backend Microsoft SQL database for storage. The company expects a high volume of customers during a promotional event. The new infrastructure in the AWS Cloud must be highly available and scalable. Which solution will meet these requirements with the LEAST administrative overhead?
@@ -3205,6 +3322,7 @@ An e-commerce company is migrating its on-premises workload to the AWS Cloud. Th
 
 ## GAMMA-118: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EFS › Storage classes & lifecycle
 
 ### Question
 A company runs an application on Amazon EC2 instances that have instance store volumes attached. The application uses Amazon EFS to store files that are shared across a cluster of Linux servers. The shared files are at least 1 GB in size. The company accesses the files often for the first 7 days after creation. The files must remain readily available after the first 7 days. The company wants to optimize costs for the application. Which solution will meet these requirements?
@@ -3232,6 +3350,7 @@ A company runs an application on Amazon EC2 instances that have instance store v
 
 ## GAMMA-119: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** Transit Gateway, Direct Connect › Direct Connect gateway
 
 ### Question
 A company is migrating some workloads to AWS. However, many workloads will remain on premises. The on-premises workloads require secure and reliable connectivity to AWS with consistent, low-latency performance. The company has deployed the AWS workloads across multiple AWS accounts and multiple VPCs. The company plans to scale to hundreds of VPCs within the next year. The company must establish connectivity between each of the VPCs and from the on-premises environment to each VPC. Which solution will meet these requirements?
@@ -3259,6 +3378,7 @@ A company is migrating some workloads to AWS. However, many workloads will remai
 
 ## GAMMA-120: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** EBS › Snapshots
 
 ### Question
 A company wants to improve its ability to clone large amounts of production data into a test environment in the same AWS Region. The data is stored in Amazon EC2 instances on Amazon EBS volumes. Modifications to the cloned data must not affect the production environment. The software that accesses this data requires consistently high I/O performance. A solutions architect needs to minimize the time that is required to clone the production data into the test environment. Which solution will meet these requirements?
@@ -3286,6 +3406,7 @@ A company wants to improve its ability to clone large amounts of production data
 
 ## GAMMA-121: Application Integration
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence, Performance Efficiency
+**Services:** Lambda › Event sources
 
 ### Question
 A company uses an Amazon EC2 instance to run a script to poll for and process messages in an Amazon SQS queue. The company wants to reduce operational overhead while maintaining its ability to process an increasing number of messages that are added to the queue. Which solution will meet these requirements?
@@ -3313,6 +3434,7 @@ A company uses an Amazon EC2 instance to run a script to poll for and process me
 
 ## GAMMA-122: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EC2 Auto Scaling › Target tracking, EC2 Auto Scaling › Scheduled & predictive scaling
 
 ### Question
 A company has a website that handles dynamic traffic loads. The website architecture is based on Amazon EC2 instances in an Auto Scaling group that is configured to use scheduled scaling. Each EC2 instance runs code from an Amazon EFS volume and stores shared data back to the same volume. The company wants to optimize costs for the website. Which solution will meet this requirement?
@@ -3340,6 +3462,7 @@ A company has a website that handles dynamic traffic loads. The website architec
 
 ## GAMMA-123: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** DynamoDB, VPC › Gateway endpoints
 
 ### Question
 An insurance company is creating an application to record personal user data. The data includes name, age, and health data about users. The company wants to run the application in a private subnet on AWS. Because of data security requirements, the company must have access to the operating system of the compute resource that run the application tier. The company must use a low-latency NoSQL database to store the data. Which solution will meet these requirements?
@@ -3367,6 +3490,7 @@ An insurance company is creating an application to record personal user data. Th
 
 ## GAMMA-124: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** API Gateway › API & endpoint types
 
 ### Question
 A company is building a RESTful serverless web application on AWS by using Amazon API Gateway and AWS Lambda. The users of this web application will be geographically distributed, and the company wants to reduce the latency of API requests to these users. Which type of endpoint should a solutions architect use to meet these requirements?
@@ -3394,6 +3518,7 @@ A company is building a RESTful serverless web application on AWS by using Amazo
 
 ## GAMMA-125: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** S3 › Glacier & retrieval, S3 › Lifecycle rules
 
 ### Question
 A company's compliance archive holds 120 TB of objects in an Amazon S3 bucket in the Standard access tier. The company accesses the objects frequently during the first 30 days after creation. After the initial 30 days, the company rarely reads the objects. However, the objects must be retrievable in under 1 minute when the company needs the objects. Which solution will meet these requirements in the MOST cost-effective way?
@@ -3421,6 +3546,7 @@ A company's compliance archive holds 120 TB of objects in an Amazon S3 bucket in
 
 ## GAMMA-126: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** RDS › Multi-AZ
 
 ### Question
 A company runs a MySQL database on a single Amazon EC2 instance. The company needs to improve availability of the database to prepare for power outages. Which solution will meet this requirement?
@@ -3448,6 +3574,7 @@ A company runs a MySQL database on a single Amazon EC2 instance. The company nee
 
 ## GAMMA-127: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Athena
 
 ### Question
 A company operates a data lake in Amazon S3 that stores large datasets in multiple formats. The company has an application that retrieves and processes subsets of data from multiple objects in the data lake based on filtering criteria. For each data query, the application currently downloads the entire S3 object and performs transformations. The current process requires a large amount of transformation time. The company wants a solution that will give the application the ability to query and filter directly on S3 objects without downloading the objects. Which solution will meet these requirements?
@@ -3475,6 +3602,7 @@ A company operates a data lake in Amazon S3 that stores large datasets in multip
 
 ## GAMMA-128: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** CloudFront › Origin failover, S3 › Replication
 
 ### Question
 A solutions architect needs to design a website for a critical application. The website needs to serve only static webpages. The solutions architect must maximize fault tolerance and high availability in the solution. Which combination of configurations will meet these requirements? (Select TWO.)
@@ -3504,6 +3632,7 @@ A solutions architect needs to design a website for a critical application. The 
 
 ## GAMMA-129: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** EFS › Storage classes & lifecycle, S3 › Lifecycle rules
 
 ### Question
 A company uses Amazon EC2 instances spread across two Availability Zones to provide large and small maps to customers. The large maps do not change. The company updates the small maps by adding small metadata files each day. Customers download the large maps once but download the smaller maps frequently. Several Amazon EBS volumes of replicated data are spread between the Availability Zones. Which solutions will store the map data MOST cost-effectively? (Select TWO.)
@@ -3533,6 +3662,7 @@ A company uses Amazon EC2 instances spread across two Availability Zones to prov
 
 ## GAMMA-130: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Transit Gateway
 
 ### Question
 A company is planning to migrate to AWS. The network layout will include more than 1,000 VPCs in a single AWS Region. The resources in the VPCs need to communicate with each other. What should a solutions architect recommend to meet these requirements?
@@ -3560,6 +3690,7 @@ A company is planning to migrate to AWS. The network layout will include more th
 
 ## GAMMA-131: Application Integration
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** EC2 Auto Scaling › Target tracking
 
 ### Question
 A company has a three-tier web application that processes orders from customers. The web tier consists of Amazon EC2 instances behind an Application Load Balancer. The processing tier consists of EC2 instances. The company decoupled the web tier and processing tier by using Amazon SQS. The storage layer uses Amazon DynamoDB. At peak times, some users report order processing delays and halts. The company has noticed that during these delays, the EC2 instances are running at 100% CPU usage, and the SQS queue fills up. The peak times are variable and unpredictable. The company needs to improve the performance of the application. Which solution will meet these requirements?
@@ -3587,6 +3718,7 @@ A company has a three-tier web application that processes orders from customers.
 
 ## GAMMA-132: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** SQS, MQ
 
 ### Question
 A solutions architect is migrating an on-premises application to AWS. The application currently runs on containers. The components of the application are loosely coupled. The application consumes messages from a message queue. The solutions architect needs to design a new architecture for the application on AWS. The solutions architect wants to use fully managed AWS services for the new architecture. The new architecture must provide unlimited scalability for the message queue's throughput. Which solution will meet these requirements?
@@ -3614,6 +3746,7 @@ A solutions architect is migrating an on-premises application to AWS. The applic
 
 ## GAMMA-133: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Lambda › VPC access, VPC › Security groups
 
 ### Question
 A company is building a data processing application that uses AWS Lambda functions. The application's Lambda functions need to communicate with an Amazon RDS DB instance that is deployed within a VPC in the same AWS account. Which solution meets these requirements in the MOST secure way?
@@ -3641,6 +3774,7 @@ A company is building a data processing application that uses AWS Lambda functio
 
 ## GAMMA-134: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Reliability
+**Services:** EFS › Storage classes & lifecycle
 
 ### Question
 A company is migrating a document management application to AWS. The application runs on Linux servers. The company will migrate the application to Amazon EC2 instances in an Auto Scaling group. The company stores 7 TiB of documents in a shared storage file system. An external relational database tracks the documents. Documents are stored once and can be retrieved multiple times for reference at any time. The company cannot modify the application during the migration. The storage solution must be highly available and must support scaling over time. Which solution will meet these requirements MOST cost-effectively?
@@ -3668,6 +3802,7 @@ A company is migrating a document management application to AWS. The application
 
 ## GAMMA-135: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** Aurora › Aurora Serverless
 
 ### Question
 A company is developing software that uses a PostgreSQL database schema. The company needs to configure development environments and test environments for its developers. Each developer at the company uses their own development environment, which includes a PostgreSQL database. On average, each development environment is used for an 8-hour workday. The test environments will be used for load testing that can take up to 2 hours each day. Which solution will meet these requirements MOST cost-effectively?
@@ -3695,6 +3830,7 @@ A company is developing software that uses a PostgreSQL database schema. The com
 
 ## GAMMA-136: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** S3 › Access control
 
 ### Question
 A company operates an online photo-sharing service and stores data in AWS Account A in a centralized Amazon S3 bucket. The company wants to grant a second AWS account named Account B access to the centralized S3 bucket. The company owns Account B. Which solution will meet this requirement?
@@ -3722,6 +3858,7 @@ A company operates an online photo-sharing service and stores data in AWS Accoun
 
 ## GAMMA-137: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Managed Service for Apache Flink, Kinesis Data Streams
 
 ### Question
 A company hosts an industrial control application that receives sensor input through Amazon Kinesis Data Streams. The application needs to support new sensors for real-time anomaly detection in monitored equipment. The company wants to integrate new sensors in a loosely-coupled, fully managed, and serverless way. The company cannot modify the application code. Which solution will meet these requirements?
@@ -3749,6 +3886,7 @@ A company hosts an industrial control application that receives sensor input thr
 
 ## GAMMA-138: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Secrets Manager › Rotation
 
 ### Question
 A company has an application that runs on Amazon EC2 instances in an Auto Scaling group. The application uses hardcoded credentials to access an Amazon RDS database. To comply with new regulations, the company needs to automatically rotate the database password for the application service account every 90 days. Which solution will meet these requirements?
@@ -3776,6 +3914,7 @@ A company has an application that runs on Amazon EC2 instances in an Auto Scalin
 
 ## GAMMA-139: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** Data transfer pricing, Direct Connect
 
 ### Question
 A company recently migrated a data warehouse to AWS. The company has an AWS Direct Connect connection to AWS. Company users query the data warehouse by using a visualization tool. The average size of the queries that the data warehouse returns is 50 MB. The average visualization that the visualization tool produces is 500 KB in size. The result sets that the data warehouse returns are not cached. The company wants to optimize costs for data transfers between the data warehouse and the company. Which solution will meet this requirement?
@@ -3803,6 +3942,7 @@ A company recently migrated a data warehouse to AWS. The company has an AWS Dire
 
 ## GAMMA-140: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** S3 › Static website hosting, CloudFront
 
 ### Question
 A company hosts a website on Amazon EC2 instances behind an Application Load Balancer (ALB). The website serves static content. Website traffic is increasing. The company wants to minimize the website hosting costs. Which solution will meet these requirements?
@@ -3830,6 +3970,7 @@ A company hosts a website on Amazon EC2 instances behind an Application Load Bal
 
 ## GAMMA-141: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** Aurora › Replicas & failover, Elastic Load Balancing › Sticky sessions
 
 ### Question
 A company is running a two-tier web-based application in an on-premises data center. The application layer consists of a single server running a stateful application. The application connects to a PostgreSQL database running on a separate server. The application's user base is expected to grow significantly, so the company is migrating the application and database to AWS. The solution will use Amazon Aurora PostgreSQL, Amazon EC2 Auto Scaling, and Elastic Load Balancing. Which solution will provide a consistent user experience that will allow the application and database tiers to scale?
@@ -3857,6 +3998,7 @@ A company is running a two-tier web-based application in an on-premises data cen
 
 ## GAMMA-142: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** FSx › Lustre
 
 ### Question
 A research laboratory needs to process a multi-terabyte dataset multiple times each day. The laboratory requires sub-millisecond latency while processing the data. Hundreds of Amazon EC2 Linux instances will process the data from the source and store the data in a different location. Which solution will meet these requirements?
@@ -3884,6 +4026,7 @@ A research laboratory needs to process a multi-terabyte dataset multiple times e
 
 ## GAMMA-143: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** RDS › Read replicas, RDS › Multi-AZ
 
 ### Question
 A company manages an application that stores data on an Amazon RDS for PostgreSQL Multi-AZ DB instance. High traffic on the application is causing increased latency for many read queries. A solutions architect must improve the performance of the application. Which solution will meet this requirement?
@@ -3911,6 +4054,7 @@ A company manages an application that stores data on an Amazon RDS for PostgreSQ
 
 ## GAMMA-144: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Global Accelerator
 
 ### Question
 A company is designing the network for an online multi-player game. The game uses the UDP networking protocol and will be deployed in eight AWS Regions. The network architecture needs to minimize latency and packet loss to give end users a high-quality gaming experience. Which solution will meet these requirements?
@@ -3938,6 +4082,7 @@ A company is designing the network for an online multi-player game. The game use
 
 ## GAMMA-145: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** DynamoDB › DAX
 
 ### Question
 An e-commerce company hosts a three-tier web application in a VPC. The web tier runs on Amazon EC2 instances in two Availability Zones. The company stores a product catalog and customer sales information in Amazon DynamoDB. The company's finance team uses a reporting application to generate reports of daily product sales. When the finance team runs the daily reports, a sudden performance decrease affects website customers. The company wants to improve the performance of the system. Which solution will meet these requirements with MINIMAL changes to the current architecture?
@@ -3965,6 +4110,7 @@ An e-commerce company hosts a three-tier web application in a VPC. The web tier 
 
 ## GAMMA-146: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** VPC › NAT gateways
 
 ### Question
 A company has deployed its infrastructure in a single VPC spanning three Availability Zones. Each Availability Zone contains private subnets for workloads that require outbound internet access to download updates and communicate with external APIs. Currently, a single NAT gateway is deployed in one Availability Zone. All private subnets in the VPC have route table entries that point to this NAT gateway for internet access. The company wants to increase the fault tolerance of the company's connectivity solution without permitting inbound traffic. Which solution will meet these requirements?
@@ -3992,6 +4138,7 @@ A company has deployed its infrastructure in a single VPC spanning three Availab
 
 ## GAMMA-147: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Elastic Load Balancing › NLB
 
 ### Question
 A company needs to run its external website on Amazon EC2 instances and on-premises virtualized servers. The AWS environment has a 1 Gbps AWS Direct Connect connection to the data center. The application has IP addresses that will not change. The on-premises and AWS servers are able to restart themselves while maintaining the same IP address if a failure occurs. Some website users have to add their vendors to an allow list, so the solution must have a fixed IP address. The company needs a solution with the lowest operational overhead to handle this split traffic. What should a solutions architect do to meet these requirements?
@@ -4019,6 +4166,7 @@ A company needs to run its external website on Amazon EC2 instances and on-premi
 
 ## GAMMA-148: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Security
+**Services:** S3 › Lifecycle rules, KMS › Key rotation
 
 ### Question
 A company needs a durable storage solution for telemetry data. The company wants to encrypt the data by using keys that the company manages. The storage solution must rotate the encryption keys every 90 days. The company will access the telemetry data infrequently for the first 30 days. The storage solution must expire the data after 360 days. Which solutions will meet these requirements MOST cost-effectively? (Select TWO.)
@@ -4048,6 +4196,7 @@ A company needs a durable storage solution for telemetry data. The company wants
 
 ## GAMMA-149: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** S3 › Object Lock
 
 ### Question
 A financial services company must keep log data for 1 year. The company stores log files in an Amazon S3 bucket. The company wants to prevent any user from deleting or overwriting the log files for 1 year. The data must be available for read-only requests. Which solution will meet these requirements?
@@ -4075,6 +4224,7 @@ A financial services company must keep log data for 1 year. The company stores l
 
 ## GAMMA-150: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** SQS, Elastic Load Balancing › ALB
 
 ### Question
 A company needs to design a resilient web application to process customer orders. The web application must automatically handle increases in web traffic and application usage without affecting the customer experience or losing customer orders. Which solution will meet these requirements?
@@ -4102,6 +4252,7 @@ A company needs to design a resilient web application to process customer orders
 
 ## GAMMA-151: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** CloudTrail, EventBridge
 
 ### Question
 A company wants to receive an email notification when IAM users are added to or deleted from an AWS account. Which solution will meet these requirements?
@@ -4129,6 +4280,7 @@ A company wants to receive an email notification when IAM users are added to or 
 
 ## GAMMA-152: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Performance Efficiency
+**Services:** Aurora › Global Database
 
 ### Question
 A company hosts a PostgreSQL database on an Amazon EC2 instance. Database usage has increased recently. Users are experiencing higher latency during queries on the database. The company needs to update the database to reduce latency for users. The new solution must achieve a recovery time objective (RTO) and a recovery point objective (RPO) of less than 5 minutes. The company also wants to deploy the database to multiple AWS Regions to meet new availability requirements. Which solution will meet these requirements?
@@ -4156,6 +4308,7 @@ A company hosts a PostgreSQL database on an Amazon EC2 instance. Database usage 
 
 ## GAMMA-153: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** KMS › Multi-Region keys, IAM › ABAC
 
 ### Question
 A home security company is expanding its business globally. The company needs to encrypt customer data. The company does not want to manage its own keys. The company needs the keys to be usable in multiple AWS Regions and needs to control access to the keys. Which solution will meet these requirements with the LEAST operational overhead?
@@ -4183,6 +4336,7 @@ A home security company is expanding its business globally. The company needs to
 
 ## GAMMA-154: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Lake Formation
 
 ### Question
 A company uses Amazon S3 to store customer data that contains personally identifiable information (PII) attributes. The company needs to make the customer information available to company resources through an AWS Glue Catalog. The company needs to have fine-grained access control for the data so that only specific IAM roles can access the PII data. Which solution will meet these requirements with the MOST operational efficiency?
@@ -4210,6 +4364,7 @@ A company uses Amazon S3 to store customer data that contains personally identif
 
 ## GAMMA-155: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** IAM › Roles, ECS
 
 ### Question
 A company runs an application as a task in an Amazon ECS cluster. The application must have read and write access to a specific group of Amazon S3 buckets. The S3 buckets are in the same AWS Region and AWS account as the ECS cluster. The company needs to grant the application access to the S3 buckets according to the principle of least privilege. Which combination of solutions will meet these requirements? (Select TWO.)
@@ -4239,6 +4394,7 @@ A company runs an application as a task in an Amazon ECS cluster. The applicatio
 
 ## GAMMA-156: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** DR strategies › Backup & restore, DR strategies › RPO & RTO
 
 ### Question
 A company has an online delivery system that runs on Amazon EC2 instances and an Amazon RDS for MySQL instance. The RDS for MySQL instance stores 10 GB of delivery and transaction data. The company wants to implement a database disaster recovery (DR) strategy that achieves a recovery time objective (RTO) of less than 3 hours. The company also wants the database DR strategy to achieve a recovery point objective (RPO) of 15 minutes. Which solution will meet these requirements?
@@ -4266,6 +4422,7 @@ A company has an online delivery system that runs on Amazon EC2 instances and an
 
 ## GAMMA-157: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** EBS › Volume types
 
 ### Question
 A company wants to migrate an application that processes logs to AWS. Currently, the application runs on an on-premises storage area network (SAN). The application reads and processes large log files sequentially. The application requires throughput of up to 500 MBps. A solutions architect needs to migrate the application with minimal change to the application architecture. Which solution will meet these requirements in the MOST cost-effective way?
@@ -4293,6 +4450,7 @@ A company wants to migrate an application that processes logs to AWS. Currently,
 
 ## GAMMA-158: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** VPC › PrivateLink & interface endpoints, Systems Manager
 
 ### Question
 A company runs an application on Amazon EC2 instances across multiple Availability Zones. For compliance reasons, the EC2 instances cannot be accessible from the internet. The EC2 instances must run within private subnets that use a shared route table. The VPC contains a single NAT gateway for internet connectivity. The company wants to improve the reliability of the connectivity to an AWS Systems Manager service. Which solution will meet these requirements with the LEAST operational effort?
@@ -4320,6 +4478,7 @@ A company runs an application on Amazon EC2 instances across multiple Availabili
 
 ## GAMMA-159: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** S3 › Performance & Transfer Acceleration
 
 ### Question
 A company allows users to upload and store photos through its website. The website has users from all around the world. All images that users upload are stored in a centralized Amazon S3 bucket. The company wants to increase the speed in which its entire user base can upload photos through the website. What should a solutions architect recommend to meet these requirements?
@@ -4347,6 +4506,7 @@ A company allows users to upload and store photos through its website. The websi
 
 ## GAMMA-160: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** EC2 Auto Scaling, EC2 › Spot Instances
 
 ### Question
 A company hosts a website analytics application on a single Amazon EC2 On-Demand Instance. The analytics application is highly resilient and is designed to run in stateless mode. The company notices that the application is showing signs of performance degradation during busy times and is presenting 5xx errors. The company needs to make the application scale seamlessly. Which solution will meet these requirements MOST cost-effectively?
@@ -4374,6 +4534,7 @@ A company hosts a website analytics application on a single Amazon EC2 On-Demand
 
 ## GAMMA-161: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** Fargate, EventBridge › Scheduler
 
 ### Question
 A company runs a critical data analysis job each week before the first day of the work week. The job requires at least 1 hour to complete the analysis. The job is stateful and cannot tolerate interruptions. The company needs a solution to run the job on AWS. Which solution will meet these requirements?
@@ -4401,6 +4562,7 @@ A company runs a critical data analysis job each week before the first day of th
 
 ## GAMMA-162: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** Lambda, EventBridge › Scheduler
 
 ### Question
 A company runs a Python script on an employee's laptop to transform and update data that is stored in an Amazon RDS database. The company wants to migrate the transformation workload to the AWS Cloud. The solution must run the Python script every 30 minutes. Each run of the script takes approximately 20 seconds to update the data in the RDS database. Which solution will meet these requirements MOST cost-effectively?
@@ -4428,6 +4590,7 @@ A company runs a Python script on an employee's laptop to transform and update d
 
 ## GAMMA-163: Application Integration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Transfer Family
 
 ### Question
 A company receives data transfers from a small number of external clients that use SFTP software on an Amazon EC2 instance. The clients use an SFTP client to upload data. The clients use SSH keys for authentication. Every hour, an automated script transfers new uploads to an Amazon S3 bucket for processing. The company wants to move the transfer process to an AWS managed service and to reduce the time required to start data processing. The company wants to retain the existing user management and SSH key generation process. The solution must not require clients to make significant changes to their existing processes. Which solution will meet these requirements?
@@ -4455,6 +4618,7 @@ A company receives data transfers from a small number of external clients that u
 
 ## GAMMA-164: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** IAM Identity Center
 
 ### Question
 A company uses an organization in AWS Organizations to manage a multi-account landing zone. The company requires all users who access AWS accounts in the organization to use a centralized identity system that follows the principle of least privilege for operational tasks. The company currently uses an external identity provider (IdP). Which combination of solutions will meet these requirements? (Select TWO.)
@@ -4484,6 +4648,7 @@ A company uses an organization in AWS Organizations to manage a multi-account la
 
 ## GAMMA-165: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** EFS
 
 ### Question
 A company hosts a website on Amazon EC2 instances that run Amazon Linux. The instances are behind an Application Load Balancer (ALB) and are part of an Auto Scaling group. Each instance uses Amazon EBS volumes to store product manuals. New instances often have outdated data. The new instances occasionally take up to 30 minutes to receive updates from an external source. The company must ensure that all instances have up-to-date product manuals. The company needs a solution that can adapt quickly to increased demand. The solution must not require modifications for the application code. Which solution will meet these requirements?
@@ -4511,6 +4676,7 @@ A company hosts a website on Amazon EC2 instances that run Amazon Linux. The ins
 
 ## GAMMA-166: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** DynamoDB › Capacity modes, DynamoDB › Table classes
 
 ### Question
 A company is designing a new web application that will run on Amazon EC2 Instances. The application will use Amazon DynamoDB for backend data storage. The application traffic will be unpredictable. The company expects that the application read and write throughput to the database will be moderate to high. The company needs to scale in response to application traffic. Which DynamoDB table configuration will meet these requirements MOST cost-effectively?
@@ -4538,6 +4704,7 @@ A company is designing a new web application that will run on Amazon EC2 Instanc
 
 ## GAMMA-167: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Redshift
 
 ### Question
 A marketing company provides services to customers through a web application. The web application uses an Amazon Aurora MySQL database to store customer data. The company has an existing analytics application in Amazon Redshift. The company wants to build a process that loads the customer data into the existing analytics application. Which solution will meet these requirements with the MOST operational efficiency?
@@ -4565,6 +4732,7 @@ A marketing company provides services to customers through a web application. Th
 
 ## GAMMA-168: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** SQS › FIFO queues
 
 ### Question
 A company is migrating its order processing system to the AWS Cloud. The order processing system must use exact message ordering, a highly available architecture, and loosely coupled components. Which solution will meet these requirements?
@@ -4592,6 +4760,7 @@ A company is migrating its order processing system to the AWS Cloud. The order p
 
 ## GAMMA-169: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Roles
 
 ### Question
 A company runs several applications on Amazon EC2 instances. The company stores configuration files in an Amazon S3 bucket. A solutions architect must provide the company's applications with access to the configuration files. The solutions architect must follow AWS best practices for security. Which solution will meet these requirements?
@@ -4619,6 +4788,7 @@ A company runs several applications on Amazon EC2 instances. The company stores 
 
 ## GAMMA-170: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** VPC › NAT gateways
 
 ### Question
 A company creates a VPC that has one public subnet and one private subnet. The company attaches an internet gateway to the VPC. An Application Load Balancer (ALB) in the public subnet communicates with Amazon EC2 instances in the private subnet. The EC2 instances in the private subnet must be able to download operating system (OS) and application updates from the internet. The instances must not be accessible from the internet. Which combination of steps will meet these requirements? (Select THREE.)
@@ -4650,6 +4820,7 @@ A company creates a VPC that has one public subnet and one private subnet. The c
 
 ## GAMMA-171: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** EventBridge › Archive & replay, SNS › Message filtering
 
 ### Question
 A company runs an application that consists of multiple microservices. The company mandates that the microservices use messages to communicate with each other. The application must archive the microservices' messages for 30 days. Which solution will meet these requirements with the LEAST amount of development effort?
@@ -4677,6 +4848,7 @@ A company runs an application that consists of multiple microservices. The compa
 
 ## GAMMA-172: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** RDS › Multi-AZ
 
 ### Question
 A company runs a critical Amazon RDS for MySQL DB instance in a single Availability Zone. The company must improve the availability of the DB instance. Which solution will meet this requirement?
@@ -4704,6 +4876,7 @@ A company runs a critical Amazon RDS for MySQL DB instance in a single Availabil
 
 ## GAMMA-173: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Reliability
+**Services:** EC2 Auto Scaling › Target tracking
 
 ### Question
 An e-commerce company hosts an API that handles sales requests. The company hosts the API frontend on Amazon EC2 instances that run behind an Application Load Balancer (ALB). The company hosts the API backend on EC2 instances that perform the transactions. The backend tiers are loosely coupled by an Amazon SQS queue. The company anticipates a significant increase in request volume during a new product launch event. The company wants to ensure that the API can handle increased loads successfully. Which solution will meet these requirements?
@@ -4731,6 +4904,7 @@ An e-commerce company hosts an API that handles sales requests. The company host
 
 ## GAMMA-174: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** VPC › Peering
 
 ### Question
 A company hosts an application on an Amazon EC2 instance. The application needs to access a MySQL database that the company hosts on a second EC2 instance. The EC2 instances are in separate VPCs within the same AWS account. The traffic between the application and MySQL database needs to be secure and private. What combination of steps will meet these requirements? (Select TWO.)
@@ -4760,6 +4934,7 @@ A company hosts an application on an Amazon EC2 instance. The application needs 
 
 ## GAMMA-175: Analytics & Data Processing
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EMR
 
 ### Question
 A solutions architect needs to optimize a large data analytics job that runs on an Amazon EMR cluster. The job takes 13 hours to finish. The cluster has multiple core nodes and worker nodes that are deployed on large, compute-optimized instances. After reviewing EMR logs, the solutions architect discovers that several nodes are idle for more than 5 hours while the job is running. The solutions architect needs to optimize cluster performance. Which solution will meet this requirement MOST cost-effectively?
@@ -4787,6 +4962,7 @@ A solutions architect needs to optimize a large data analytics job that runs on 
 
 ## GAMMA-176: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EC2 › Spot Instances
 
 ### Question
 A company hosts a web application on multiple Amazon EC2 instances. The EC2 instances are in an Auto Scaling group that scales in response to user demand. The company wants to optimize costs for the application but does not want to make any long-term commitments. Which solution will meet these requirements?
@@ -4814,6 +4990,7 @@ A company hosts a web application on multiple Amazon EC2 instances. The EC2 inst
 
 ## GAMMA-177: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Reliability
+**Services:** Elastic Load Balancing › ALB, VPC › Subnets & routing
 
 ### Question
 A company runs a website on Amazon EC2 instances. Clients use the HTTP protocol to connect to the application. The company does not want the EC2 instances to have internet access. However, the application should remain available through the internet. The application must scale in response to traffic demands. Which solution will meet these requirements?
@@ -4841,6 +5018,7 @@ A company runs a website on Amazon EC2 instances. Clients use the HTTP protocol 
 
 ## GAMMA-178: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Services:** CloudFront › Caching
 
 ### Question
 A gaming company uses an Amazon CloudFront distribution to make files available for download for users around the world. The CloudFront distribution has a custom origin. The company wants to customize the files that are served to users from the cache and origin based on the country where each user is located. Which solution will meet these requirements?
@@ -4868,6 +5046,7 @@ A gaming company uses an Amazon CloudFront distribution to make files available 
 
 ## GAMMA-179: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** S3 › Event notifications, Lambda
 
 ### Question
 A company is designing a new application that uploads files to an Amazon S3 bucket. The uploaded files are processed to extract metadata. Processing must take less than 5 seconds. The volume and frequency of the uploads vary from a few files each hour to hundreds of concurrent uploads. Which solution will meet these requirements MOST cost-effectively?
@@ -4895,6 +5074,7 @@ A company is designing a new application that uploads files to an Amazon S3 buck
 
 ## GAMMA-180: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** ElastiCache, DynamoDB › DAX
 
 ### Question
 An application is experiencing performance issues based on increased demand. This increased demand is on read-only historical records pulled from an Amazon RDS-hosted database with custom views and queries. A solutions architect must improve performance without changing the database structure. Which approach will improve performance and MINIMIZE management overhead?
@@ -4922,6 +5102,7 @@ An application is experiencing performance issues based on increased demand. Thi
 
 ## GAMMA-181: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Operational Excellence, Performance Efficiency
+**Services:** DataSync
 
 ### Question
 A company has multiple petabytes (PB) of media files that are stored in an Amazon S3 bucket in the eu-west-1 Region. The company wants to move all the data to an S3 bucket in the us-west-2 Region as soon as possible. The company needs a data migration solution. The data needs to be verified after it is copied. The company also needs to have visibility into the data movement process. Which solution will meet these requirements with the LEAST operational overhead?
@@ -4949,6 +5130,7 @@ A company has multiple petabytes (PB) of media files that are stored in an Amazo
 
 ## GAMMA-182: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Operational Excellence, Reliability
+**Services:** EMR
 
 ### Question
 A company wants to run transient workloads in an Amazon EMR cluster that runs on Amazon EC2 instances. The company wants to use On-Demand Instances for core nodes and Spot Instances for task nodes. The company wants to use memory optimized EC2 instances to launch EMR clusters in the AWS Region where the company operates. The company has configured multiple subnets in multiple Availability Zones. The company must ensure that the EMR clusters are launched only in Availability Zones where specified instance types and purchasing options are available. Which solution will meet these requirements with the MOST operational efficiency?
@@ -4976,6 +5158,7 @@ A company wants to run transient workloads in an Amazon EMR cluster that runs on
 
 ## GAMMA-183: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** VPC › Gateway endpoints, S3 › Access control
 
 ### Question
 A company hosts a website on Amazon EC2 instances. The website processes classified data. The company stores the processed data in an Amazon S3 bucket. Because of security concerns, the company must ensure that traffic between the EC2 instances and the S3 bucket does not use public IP addresses. Which solution will meet these requirements?
@@ -5003,6 +5186,7 @@ A company hosts a website on Amazon EC2 instances. The website processes classif
 
 ## GAMMA-184: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** S3 › Object Lock, S3 › Lifecycle rules
 
 ### Question
 A company is building a new application that processes sensitive customer data. All data must comply with a data retention policy. The data must be immutable for 5 years. The data must be deleted after 10 years. The company decides to use Amazon S3 for storage and enables S3 Versioning. Which S3 configuration will meet these requirements?
@@ -5030,6 +5214,7 @@ A company is building a new application that processes sensitive customer data. 
 
 ## GAMMA-185: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Cost Optimization
+**Services:** KMS › Imported key material, S3 › Encryption
 
 ### Question
 A company stores petabytes of historical medical information on premises. The company has a process to manage encryption of the data to comply with regulations. The company needs a cloud-based solution for data backup, recovery, and archiving. The company must retain control over the encryption key material. Which combination of solutions will meet these requirements? (Select TWO.)
@@ -5059,6 +5244,7 @@ A company stores petabytes of historical medical information on premises. The co
 
 ## GAMMA-186: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Macie, EventBridge
 
 ### Question
 A company stores data in Amazon S3. According to regulations, the data must not contain personally identifiable information (PII). The company recently discovered that S3 buckets have some objects that contain PII. The company needs to automatically detect PII in S3 buckets and to notify the company's security team. Which solution will meet these requirements?
@@ -5086,6 +5272,7 @@ A company stores data in Amazon S3. According to regulations, the data must not 
 
 ## GAMMA-187: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Data Firehose, Glue › ETL jobs, Athena
 
 ### Question
 A company is launching a new product and needs to collect data about the product's usage frequency. The company will review the data in an existing Amazon QuickSight dashboard. The data is in multiple formats, including Parquet, JSON, and CSV. The company wants to unify the data format and review the data by using ready-made SQL queries without using external tools. Which combination of steps will meet these requirements? (Select TWO.)

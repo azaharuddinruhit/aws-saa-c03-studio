@@ -26,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check question tags
+        run: node scripts/check-tags.js
+
       - name: Stamp version and deployment time
         run: |
           version="v1.${{ github.run_number }}"

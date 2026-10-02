@@ -1,0 +1,172 @@
+{
+  "separator": " › ",
+  "rules": [
+    "A tag is a service name (\"SQS\") or a service and one of its features (\"SQS › FIFO queues\"); a feature tag implies its service, so never add both.",
+    "Give each question 1 to 4 tags, most decisive first.",
+    "Tag what the question tests: what the correct answer depends on. Not every service the scenario mentions.",
+    "Also tag a wrong option only when it is a near-twin the question is built around (SNS FIFO vs SQS FIFO, ElastiCache vs DAX); generic wrong answers get no tag.",
+    "Prefer the feature tag whenever the question turns on that feature; use the bare service when it turns on choosing the service itself.",
+    "Names drop the Amazon / AWS prefix. A tag outside this file fails the check."
+  ],
+  "categories": [
+    {
+      "name": "Security, Identity & Compliance",
+      "services": [
+        { "name": "IAM", "features": ["Roles", "Policy evaluation", "Permissions boundaries", "Federation", "MFA", "ABAC", "Access Analyzer"] },
+        { "name": "IAM Identity Center", "features": [] },
+        { "name": "Organizations", "features": ["SCPs", "Consolidated billing"] },
+        { "name": "Control Tower", "features": [] },
+        { "name": "Resource Access Manager", "features": [] },
+        { "name": "Cognito", "features": ["User pools", "Identity pools"] },
+        { "name": "Directory Service", "features": ["Managed Microsoft AD", "AD Connector"] },
+        { "name": "KMS", "features": ["Key policies & grants", "Key rotation", "Multi-Region keys", "Imported key material"] },
+        { "name": "CloudHSM", "features": [] },
+        { "name": "Secrets Manager", "features": ["Rotation"] },
+        { "name": "Certificate Manager", "features": [] },
+        { "name": "WAF", "features": ["Rate-based rules"] },
+        { "name": "Shield", "features": ["Shield Advanced"] },
+        { "name": "Firewall Manager", "features": [] },
+        { "name": "GuardDuty", "features": [] },
+        { "name": "Inspector", "features": [] },
+        { "name": "Macie", "features": [] },
+        { "name": "Detective", "features": [] },
+        { "name": "Security Hub", "features": [] },
+        { "name": "Verified Access", "features": [] }
+      ]
+    },
+    {
+      "name": "Networking & Content Delivery",
+      "services": [
+        { "name": "VPC", "features": ["Subnets & routing", "Security groups", "Network ACLs", "NAT gateways", "Internet gateways", "Gateway endpoints", "PrivateLink & interface endpoints", "Peering", "Flow Logs", "Bastion & ENIs"] },
+        { "name": "Transit Gateway", "features": [] },
+        { "name": "Direct Connect", "features": ["Resiliency & VPN backup", "Direct Connect gateway"] },
+        { "name": "VPN", "features": ["Site-to-Site VPN", "Client VPN"] },
+        { "name": "Elastic Load Balancing", "features": ["ALB", "NLB", "Gateway Load Balancer", "Sticky sessions"] },
+        { "name": "Route 53", "features": ["Routing policies", "Failover & health checks", "Alias records", "Private hosted zones", "Resolver"] },
+        { "name": "CloudFront", "features": ["Origin access control", "Signed URLs & cookies", "Edge functions", "Caching", "Geo restriction", "Origin failover", "Price classes"] },
+        { "name": "Global Accelerator", "features": [] },
+        { "name": "Network Firewall", "features": [] },
+        { "name": "Local Zones & Wavelength", "features": [] }
+      ]
+    },
+    {
+      "name": "Compute & Serverless",
+      "services": [
+        { "name": "EC2", "features": ["Instance types", "Spot Instances", "Reserved Instances & Savings Plans", "Dedicated Hosts & Instances", "Placement groups & EFA", "Instance store", "AMIs", "Hibernation", "Capacity Reservations"] },
+        { "name": "EC2 Auto Scaling", "features": ["Target tracking", "Step & simple scaling", "Scheduled & predictive scaling", "Warm pools & lifecycle hooks", "Launch templates", "Instance refresh"] },
+        { "name": "Lambda", "features": ["Concurrency", "Event sources", "Limits", "VPC access", "SnapStart"] },
+        { "name": "ECS", "features": [] },
+        { "name": "EKS", "features": [] },
+        { "name": "Fargate", "features": [] },
+        { "name": "ECR", "features": [] },
+        { "name": "Batch", "features": [] },
+        { "name": "Elastic Beanstalk", "features": [] },
+        { "name": "Outposts", "features": [] }
+      ]
+    },
+    {
+      "name": "Storage & Backup",
+      "services": [
+        { "name": "S3", "features": ["Storage classes", "Glacier & retrieval", "Lifecycle rules", "Replication", "Versioning", "Object Lock", "Encryption", "Access control", "Presigned URLs", "Requester Pays", "Event notifications", "Performance & Transfer Acceleration", "Static website hosting", "Storage Lens", "Multi-Region Access Points"] },
+        { "name": "EBS", "features": ["Volume types", "Snapshots", "Encryption", "Multi-Attach"] },
+        { "name": "EFS", "features": ["Performance & throughput modes", "Storage classes & lifecycle"] },
+        { "name": "FSx", "features": ["Windows File Server", "Lustre", "NetApp ONTAP", "OpenZFS"] },
+        { "name": "Storage Gateway", "features": ["File Gateway", "Volume Gateway", "Tape Gateway"] },
+        { "name": "Backup", "features": ["Vault Lock", "Cross-account & cross-Region copy", "Audit Manager"] }
+      ]
+    },
+    {
+      "name": "Databases & Caching",
+      "services": [
+        { "name": "RDS", "features": ["Multi-AZ", "Read replicas", "Backups & PITR", "RDS Proxy", "Encryption", "RDS Custom"] },
+        { "name": "Aurora", "features": ["Replicas & failover", "Global Database", "Aurora Serverless", "Cloning", "Babelfish"] },
+        { "name": "DynamoDB", "features": ["Capacity modes", "DAX", "Global tables", "Streams", "TTL", "Backups & PITR", "Indexes", "Partition design", "Table classes"] },
+        { "name": "ElastiCache", "features": ["Caching strategies", "Engine choice"] },
+        { "name": "Neptune", "features": [] },
+        { "name": "DocumentDB", "features": [] },
+        { "name": "Keyspaces", "features": [] },
+        { "name": "Timestream", "features": [] }
+      ]
+    },
+    {
+      "name": "Application Integration",
+      "services": [
+        { "name": "SQS", "features": ["FIFO queues", "Dead-letter queues", "Visibility timeout & polling"] },
+        { "name": "SNS", "features": ["Fan-out", "Message filtering", "FIFO topics"] },
+        { "name": "EventBridge", "features": ["Scheduler", "Archive & replay", "API destinations"] },
+        { "name": "Step Functions", "features": [] },
+        { "name": "API Gateway", "features": ["API & endpoint types", "Throttling & usage plans", "Authorizers", "Caching"] },
+        { "name": "MQ", "features": [] },
+        { "name": "AppSync", "features": [] },
+        { "name": "SES", "features": [] }
+      ]
+    },
+    {
+      "name": "Disaster Recovery & Migration",
+      "services": [
+        { "name": "DR strategies", "features": ["Backup & restore", "Pilot light", "Warm standby", "Multi-site active-active", "RPO & RTO"] },
+        { "name": "Elastic Disaster Recovery", "features": [] },
+        { "name": "Application Recovery Controller", "features": [] },
+        { "name": "Application Migration Service", "features": [] },
+        { "name": "DMS", "features": ["Schema conversion", "Ongoing replication"] },
+        { "name": "DataSync", "features": [] },
+        { "name": "Transfer Family", "features": [] },
+        { "name": "Snow Family", "features": [] },
+        { "name": "Migration Hub", "features": [] }
+      ]
+    },
+    {
+      "name": "Cost Management & Optimization",
+      "services": [
+        { "name": "Cost Explorer", "features": [] },
+        { "name": "Budgets", "features": [] },
+        { "name": "Cost Anomaly Detection", "features": [] },
+        { "name": "Cost and Usage Reports", "features": [] },
+        { "name": "Cost allocation tags", "features": [] },
+        { "name": "Compute Optimizer", "features": [] },
+        { "name": "Data transfer pricing", "features": [] }
+      ]
+    },
+    {
+      "name": "Monitoring, Management & Governance",
+      "services": [
+        { "name": "CloudWatch", "features": ["Alarms", "Logs", "Agent & custom metrics", "Container Insights"] },
+        { "name": "CloudTrail", "features": [] },
+        { "name": "Config", "features": ["Rules & remediation"] },
+        { "name": "Systems Manager", "features": ["Parameter Store", "Session Manager", "Patch Manager", "Run Command", "Automation", "State Manager"] },
+        { "name": "CloudFormation", "features": ["StackSets"] },
+        { "name": "Service Catalog", "features": [] },
+        { "name": "Trusted Advisor", "features": [] },
+        { "name": "Health Dashboard", "features": [] },
+        { "name": "X-Ray", "features": [] },
+        { "name": "Managed Grafana", "features": [] },
+        { "name": "Service Quotas", "features": [] }
+      ]
+    },
+    {
+      "name": "Analytics & Data Processing",
+      "services": [
+        { "name": "Kinesis Data Streams", "features": [] },
+        { "name": "Data Firehose", "features": [] },
+        { "name": "Managed Service for Apache Flink", "features": [] },
+        { "name": "MSK", "features": [] },
+        { "name": "Athena", "features": ["Partitioning & formats", "Federated query"] },
+        { "name": "Glue", "features": ["Data Catalog & crawlers", "ETL jobs"] },
+        { "name": "EMR", "features": [] },
+        { "name": "Lake Formation", "features": [] },
+        { "name": "Redshift", "features": ["Redshift Spectrum"] },
+        { "name": "OpenSearch Service", "features": [] },
+        { "name": "QuickSight", "features": [] }
+      ]
+    },
+    {
+      "name": "Machine Learning",
+      "services": [
+        { "name": "SageMaker", "features": [] },
+        { "name": "Forecast", "features": [] },
+        { "name": "Textract", "features": [] },
+        { "name": "Comprehend", "features": [] }
+      ]
+    }
+  ]
+}

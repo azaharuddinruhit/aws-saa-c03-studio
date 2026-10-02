@@ -4,6 +4,7 @@
 
 ## ALPHA-001: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** EC2 › Spot Instances, EC2 Auto Scaling › Target tracking
 
 ### Question
 A media company runs an image-processing pipeline. Uploaded images are placed in an Amazon SQS queue, and a fleet of Amazon EC2 workers pulls messages, processes each image, and writes the result to Amazon S3. Processing is idempotent, each job takes under 3 minutes, and the queue depth varies from 0 to 200,000 messages during the day. The company wants to minimize cost while still finishing all jobs. Which solution meets these requirements MOST cost-effectively?
@@ -31,6 +32,7 @@ A media company runs an image-processing pipeline. Uploaded images are placed in
 
 ## ALPHA-002: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Security
+**Services:** Lambda › VPC access, VPC › NAT gateways, RDS › RDS Proxy
 
 ### Question
 A payments API uses AWS Lambda functions behind Amazon API Gateway. The functions must read from an Amazon RDS for MySQL database in private subnets and also call a third-party fraud-scoring API on the public internet. During traffic spikes, the database reports 'too many connections' errors. The solution must be highly available and require the LEAST change to the database. Which combination of steps should the solutions architect take?
@@ -58,6 +60,7 @@ A payments API uses AWS Lambda functions behind Amazon API Gateway. The function
 
 ## ALPHA-003: Compute & Serverless
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** IAM › Roles, ECS
 
 ### Question
 A team is moving a containerized order-processing service to Amazon ECS on AWS Fargate. The tasks run in private subnets, pull images from Amazon ECR, write logs to Amazon CloudWatch Logs, and read objects from a single Amazon S3 bucket. The security team requires least-privilege permissions and forbids long-lived credentials. Which IAM configuration should the architect implement?
@@ -85,6 +88,7 @@ A team is moving a containerized order-processing service to Amazon ECS on AWS F
 
 ## ALPHA-004: Storage & Backup
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Cost Optimization
+**Services:** S3 › Object Lock, S3 › Lifecycle rules
 
 ### Question
 A financial services company must retain trade confirmations in Amazon S3 for 7 years. Regulators require that the records cannot be overwritten or deleted by any user, including the AWS account root user, for the duration of the retention period. The records are rarely accessed after the first month. Which solution meets the compliance requirement at the LOWEST cost?
@@ -112,6 +116,7 @@ A financial services company must retain trade confirmations in Amazon S3 for 7 
 
 ## ALPHA-005: Storage & Backup
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** FSx › Windows File Server, EFS
 
 ### Question
 A company is lifting and shifting a Windows-based file server to AWS. Users access SMB shares from Windows EC2 instances and on-premises desktops. The share relies on NTFS access control lists and authenticates users against the company's Microsoft Active Directory. The service must remain available if an Availability Zone fails and require minimal administration. Which solution should the solutions architect choose?
@@ -139,6 +144,7 @@ A company is lifting and shifting a Windows-based file server to AWS. Users acce
 
 ## ALPHA-006: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** S3 › Storage classes
 
 ### Question
 A data analytics team stores 800 TB of Parquet files (each larger than 1 MB) in Amazon S3 Standard. Some datasets are queried heavily for weeks and then not touched for months, but the team cannot predict which datasets will be accessed again. Queries require millisecond first-byte latency whenever a dataset is needed, and the company wants to reduce storage costs without adding operational overhead or unexpected retrieval fees. Which solution is MOST appropriate?
@@ -166,6 +172,7 @@ A data analytics team stores 800 TB of Parquet files (each larger than 1 MB) in 
 
 ## ALPHA-007: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Reliability
+**Services:** Aurora › Replicas & failover, RDS › Multi-AZ
 
 ### Question
 An e-commerce platform runs on Amazon Aurora MySQL. Long-running reporting queries from a BI tool are slowing the OLTP workload on the writer instance. The company also needs automatic failover in under a minute if the writer's Availability Zone fails. Which solution addresses both requirements with the LEAST operational effort?
@@ -193,6 +200,7 @@ An e-commerce platform runs on Amazon Aurora MySQL. Long-running reporting queri
 
 ## ALPHA-008: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** DynamoDB › DAX, ElastiCache
 
 ### Question
 A retail application reads product catalog items from an Amazon DynamoDB table at a 100:1 read-to-write ratio. During flash sales, read latency rises and the team is paying for very high provisioned read capacity. The team wants microsecond read latency for repeated reads, tolerates eventual consistency, and wants to change as little application code as possible. What should the solutions architect recommend?
@@ -220,6 +228,7 @@ A retail application reads product catalog items from an Amazon DynamoDB table a
 
 ## ALPHA-009: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Reliability
+**Services:** ElastiCache › Engine choice
 
 ### Question
 A gaming company needs a session store and real-time leaderboard for a multiplayer game. Requirements: sub-millisecond latency, sorted-set operations for ranking players, and the data must survive the loss of a cache node or an Availability Zone with automatic failover and no manual rebuild of the dataset. Which solution meets these requirements?
@@ -247,6 +256,7 @@ A gaming company needs a session store and real-time leaderboard for a multiplay
 
 ## ALPHA-010: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization, Security
+**Services:** VPC › Gateway endpoints, VPC › PrivateLink & interface endpoints
 
 ### Question
 Amazon EC2 instances in private subnets of a VPC upload roughly 20 TB per month of processed data to an Amazon S3 bucket in the same Region. The instances have no other need for internet access. The current design routes this traffic through NAT gateways, and the NAT data-processing charges are very high. The security team also wants to ensure the instances can only reach approved buckets. Which change is MOST cost-effective and secure?
@@ -274,6 +284,7 @@ Amazon EC2 instances in private subnets of a VPC upload roughly 20 TB per month 
 
 ## ALPHA-011: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** Route 53 › Failover & health checks, Route 53 › Routing policies
 
 ### Question
 A company hosts a web application behind an Application Load Balancer in us-east-1 (primary) and a warm standby stack behind another ALB in eu-west-1. All users should be sent to us-east-1 during normal operation, and traffic must automatically shift to eu-west-1 if the primary ALB becomes unhealthy. The company uses the domain app.example.com in Amazon Route 53. Which configuration meets these requirements?
@@ -301,6 +312,7 @@ A company hosts a web application behind an Application Load Balancer in us-east
 
 ## ALPHA-012: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Performance Efficiency
+**Services:** CloudFront › Signed URLs & cookies, CloudFront › Origin access control
 
 ### Question
 An online learning company serves HLS video (a manifest plus thousands of segment files) stored in a private Amazon S3 bucket to paying subscribers worldwide. Only authenticated subscribers may watch, users must not be able to bypass the CDN by using S3 URLs, and viewers need low latency. The company does not want to generate a separate signed URL for each segment. Which solution meets these requirements?
@@ -328,6 +340,7 @@ An online learning company serves HLS video (a manifest plus thousands of segmen
 
 ## ALPHA-013: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Organizations › SCPs, IAM › Permissions boundaries
 
 ### Question
 A company uses AWS Organizations with 40 member accounts grouped into OUs. The security team must guarantee that no principal in any member account, including account administrators, can stop or delete the organization's AWS CloudTrail trails or use any Region other than us-east-1 and eu-west-1 (except for global services). The control must also apply automatically to new accounts. What should the solutions architect do?
@@ -355,6 +368,7 @@ A company uses AWS Organizations with 40 member accounts grouped into OUs. The s
 
 ## ALPHA-014: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** EBS › Snapshots, KMS › Key policies & grants
 
 ### Question
 Account A owns an encrypted Amazon EBS volume snapshot that was created with the AWS managed key (aws/ebs). A partner in Account B needs to create volumes from this snapshot. The security team insists that the data remain encrypted at all times and that the snapshot never be made public. What is the correct approach?
@@ -382,6 +396,7 @@ Account A owns an encrypted Amazon EBS volume snapshot that was created with the
 
 ## ALPHA-015: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Secrets Manager › Rotation, Systems Manager › Parameter Store
 
 ### Question
 A microservices application on Amazon ECS connects to an Amazon RDS for PostgreSQL database. Security policy requires the database credentials to be rotated every 30 days without application downtime, encrypted with a customer managed key, and every access to the secret must be auditable. Which solution meets these requirements with the LEAST custom development?
@@ -409,6 +424,7 @@ A microservices application on Amazon ECS connects to an Amazon RDS for PostgreS
 
 ## ALPHA-016: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** SNS › Fan-out
 
 ### Question
 An order service publishes an event each time an order is placed. Three independent downstream services (inventory, billing, and analytics) must each process every event. Each consumer can be offline for several hours during maintenance and must not lose events, and each must scale its processing independently. Which architecture is the MOST appropriate?
@@ -436,6 +452,7 @@ An order service publishes an event each time an order is placed. Three independ
 
 ## ALPHA-017: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Services:** Step Functions
 
 ### Question
 A lending company is building a loan-processing workflow: validate the application (Lambda), call a credit-scoring API with retries and exponential backoff, wait for a human underwriter to approve or reject (which can take up to 3 days), and then disburse funds. The company needs a visual audit trail of every execution and wants to avoid writing custom state-management code. Which solution should the architect choose?
@@ -463,6 +480,7 @@ A lending company is building a loan-processing workflow: validate the applicati
 
 ## ALPHA-018: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** SQS › FIFO queues, SQS › Dead-letter queues
 
 ### Question
 A trading platform sends account transactions (deposits, withdrawals) to a processing tier. For each account, transactions must be processed exactly once and in the order they were submitted, but different accounts may be processed in parallel. Messages that repeatedly fail must be set aside for investigation without blocking the other accounts. Which solution meets these requirements?
@@ -490,6 +508,7 @@ A trading platform sends account transactions (deposits, withdrawals) to a proce
 
 ## ALPHA-019: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
+**Services:** EventBridge
 
 ### Question
 A SaaS company wants to react to events from several AWS services and from a third-party SaaS partner (for example, a new customer support ticket). Events must be filtered by content (such as priority equal to 'high') and routed to different targets: a Lambda function for high-priority tickets and an SQS queue for the rest. The company wants minimal custom integration code and no polling of the partner's API. Which solution is the MOST appropriate?
@@ -517,6 +536,7 @@ A SaaS company wants to react to events from several AWS services and from a thi
 
 ## ALPHA-020: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** Aurora › Global Database
 
 ### Question
 A company runs its customer-facing application on Amazon Aurora PostgreSQL in us-east-1. Its disaster recovery plan requires an RPO of about 1 second and an RTO of less than 1 minute for a Regional outage, and users in the DR Region (ap-southeast-1) should also get low-latency local reads during normal operations. Which solution meets these requirements with the LEAST operational overhead?
@@ -544,6 +564,7 @@ A company runs its customer-facing application on Amazon Aurora PostgreSQL in us
 
 ## ALPHA-021: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Snow Family, DataSync
 
 ### Question
 A research institution must migrate 400 TB of data from its on-premises data center to Amazon S3 within 6 weeks. The site has a 200 Mbps internet connection that is shared with other business traffic, and provisioning a new dedicated circuit would take more than 3 months. Which solution meets the deadline?
@@ -571,6 +592,7 @@ A research institution must migrate 400 TB of data from its on-premises data cen
 
 ## ALPHA-022: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
+**Services:** DMS › Schema conversion, DMS › Ongoing replication
 
 ### Question
 A company is migrating a 5 TB on-premises Oracle database to Amazon Aurora PostgreSQL. The schema includes PL/SQL stored procedures and Oracle-specific data types. The business can tolerate at most 5 minutes of downtime during cutover, and the on-premises database stays online during the migration. Which approach should the solutions architect recommend?
@@ -598,6 +620,7 @@ A company is migrating a 5 TB on-premises Oracle database to Amazon Aurora Postg
 
 ## ALPHA-023: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Services:** DR strategies › Pilot light, DR strategies › RPO & RTO
 
 ### Question
 A three-tier web application (ALB, EC2 Auto Scaling group, Amazon RDS for MySQL) runs in us-east-1. Management wants a disaster recovery strategy in another Region with an RTO of 1 hour and an RPO of 5 minutes, while keeping DR costs as low as possible. Which strategy should the architect implement?
@@ -625,6 +648,7 @@ A three-tier web application (ALB, EC2 Auto Scaling group, Amazon RDS for MySQL)
 
 ## ALPHA-024: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** Lambda › Concurrency
 
 ### Question
 A serverless API built with Amazon API Gateway and AWS Lambda (Node.js) is attached to a VPC so that it can reach an Amazon RDS database. Every weekday at 08:00, traffic ramps from near zero to 3,000 requests per minute and p99 latency spikes to several seconds, although average latency stays acceptable. Most requests are writes. The team must reduce p99 latency during the ramp. Which TWO actions should a solutions architect take? (Select TWO.)
@@ -654,6 +678,7 @@ A serverless API built with Amazon API Gateway and AWS Lambda (Node.js) is attac
 
 ## ALPHA-025: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** EBS › Volume types, EC2 › Instance types, EC2 › Instance store
 
 ### Question
 A self-managed PostgreSQL database runs on a single Amazon EC2 instance. The workload needs a sustained 40,000 IOPS with consistent sub-millisecond latency from one volume, and the data must survive an instance stop or an instance failure. On the current gp3 volume, latency is too high and too variable at peak. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -683,6 +708,7 @@ A self-managed PostgreSQL database runs on a single Amazon EC2 instance. The wor
 
 ## ALPHA-026: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Performance Efficiency
+**Services:** RDS › RDS Proxy, RDS › Multi-AZ
 
 ### Question
 Thousands of concurrent AWS Lambda invocations open connections to an Amazon RDS for PostgreSQL Multi-AZ DB instance, and the database regularly exhausts its connection limit. The business also requires that failover complete in under 40 seconds, and it wants heavy reporting queries served by a standby instance rather than the writer. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -712,6 +738,7 @@ Thousands of concurrent AWS Lambda invocations open connections to an Amazon RDS
 
 ## ALPHA-027: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** Transit Gateway, Direct Connect › Resiliency & VPN backup
 
 ### Question
 A company connects 50 VPCs spread across three AWS accounts to its on-premises data center. The VPCs are joined by a full mesh of VPC peering connections that the network team can no longer manage, and hybrid traffic depends on a single AWS Direct Connect connection: a recent outage at that Direct Connect location took down all connectivity to on premises. The company requires consistent, predictable bandwidth for hybrid traffic. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -741,6 +768,7 @@ A company connects 50 VPCs spread across three AWS accounts to its on-premises d
 
 ## ALPHA-028: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** IAM Identity Center, Cognito › Identity pools
 
 ### Question
 A company with 30 AWS accounts in AWS Organizations wants employees to sign in to the AWS Management Console for any account using their existing corporate Active Directory credentials, with access assigned and audited centrally. Separately, its public mobile application must let end users upload files directly to Amazon S3 under their own identity after they sign in with Google or Apple. No long-lived AWS credentials may be issued. Which TWO actions meet these requirements? (Select TWO.)
@@ -770,6 +798,7 @@ A company with 30 AWS accounts in AWS Organizations wants employees to sign in t
 
 ## ALPHA-029: Application Integration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** Kinesis Data Streams
 
 ### Question
 A clickstream platform ingests 10,000 events per second. Four independent teams consume the same stream, each at its own pace, and one team's slow consumer currently adds read latency for the other three. A newly onboarded consumer must be able to reprocess the last 7 days of events from the beginning, and events for any given user must be processed in the order they arrived. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -799,6 +828,7 @@ A clickstream platform ingests 10,000 events per second. Four independent teams 
 
 ## ALPHA-030: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Cost Optimization
+**Services:** Elastic Disaster Recovery, CloudFormation
 
 ### Question
 A company must cut the RTO of its Amazon EC2 disaster recovery plan from hours to under 30 minutes with an RPO of about 15 minutes, while keeping DR cost low. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -828,6 +858,7 @@ A company must cut the RTO of its Amazon EC2 disaster recovery plan from hours t
 
 ## ALPHA-031: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** KMS › Key policies & grants, S3 › Encryption
 
 ### Question
 Account A stores reports in an Amazon S3 bucket. The objects are encrypted with SSE-KMS using a customer managed key in Account A, and company policy requires that they stay encrypted with that key. A role in Account B has been granted s3:GetObject in both the bucket policy and its own IAM policy, but every download fails with an AccessDenied error. What should the solutions architect do to allow the downloads?
@@ -855,6 +886,7 @@ Account A stores reports in an Amazon S3 bucket. The objects are encrypted with 
 
 ## ALPHA-032: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** WAF › Rate-based rules, Shield › Shield Advanced
 
 ### Question
 A public web application runs on Amazon EC2 instances behind an Application Load Balancer. The company is seeing SQL injection attempts and bursts of HTTP floods from rotating IP addresses, and its own security staff is not available around the clock. The company wants managed protection at the application layer and access to AWS experts during an attack. Which solution meets these requirements?
@@ -882,6 +914,7 @@ A public web application runs on Amazon EC2 instances behind an Application Load
 
 ## ALPHA-033: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Reliability
+**Services:** VPC › PrivateLink & interface endpoints, VPC › Peering
 
 ### Question
 A SaaS provider must expose a single internal service to hundreds of customer VPCs that belong to other AWS accounts. Some customers use CIDR ranges that overlap with the provider's VPC and with each other. Connections must be initiated only from the customer side to the provider, and traffic must not traverse the public internet. Which solution meets these requirements?
@@ -909,6 +942,7 @@ A SaaS provider must expose a single internal service to hundreds of customer VP
 
 ## ALPHA-034: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Reliability
+**Services:** VPC › Network ACLs, VPC › Security groups
 
 ### Question
 Amazon EC2 instances in a private subnet must download operating system patches from the internet through a NAT gateway. A custom network ACL on the private subnet allows outbound TCP traffic on ports 80 and 443 and allows inbound TCP traffic on ports 80 and 443. The instances' security group allows all outbound traffic. Patch downloads consistently time out. What is the cause, and how should it be fixed?
@@ -936,6 +970,7 @@ Amazon EC2 instances in a private subnet must download operating system patches 
 
 ## ALPHA-035: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Roles
 
 ### Question
 A company hires a third-party monitoring vendor that needs read-only access to resources in the company's AWS account. The vendor operates its own AWS account and serves many customers from it. The company must not issue long-lived credentials and must ensure that the vendor cannot be tricked by another of its customers into accessing this company's account. What should the solutions architect do?
@@ -963,6 +998,7 @@ A company hires a third-party monitoring vendor that needs read-only access to r
 
 ## ALPHA-036: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Macie, EventBridge
 
 ### Question
 A company must continuously discover whether personally identifiable information, such as credit card numbers, has been stored in any of its 400 Amazon S3 buckets, and it must alert the security team automatically when new findings appear. The company wants a managed service and minimal custom code. Which solution meets these requirements?
@@ -990,6 +1026,7 @@ A company must continuously discover whether personally identifiable information
 
 ## ALPHA-037: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Certificate Manager, CloudFront
 
 ### Question
 A company serves www.example.com through an Amazon CloudFront distribution whose origin is an Application Load Balancer in eu-central-1. Traffic must be encrypted with the company's own certificate both from viewers to CloudFront and from CloudFront to the load balancer, and certificate renewal must be automatic. The team requested an AWS Certificate Manager certificate in eu-central-1, but it cannot be selected on the CloudFront distribution. What should the solutions architect do?
@@ -1017,6 +1054,7 @@ A company serves www.example.com through an Amazon CloudFront distribution whose
 
 ## ALPHA-038: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Reliability
+**Services:** Global Accelerator, Elastic Load Balancing › NLB
 
 ### Question
 A multiplayer game server tier communicates with clients over UDP. The company runs the tier in three Regions and needs the lowest possible latency for players worldwide, failover between Regions within seconds, and a small set of static IP addresses that corporate and console firewalls can allow. Which solution meets these requirements?
@@ -1044,6 +1082,7 @@ A multiplayer game server tier communicates with clients over UDP. The company r
 
 ## ALPHA-039: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Athena › Partitioning & formats
 
 ### Question
 Analysts run ad hoc SQL queries with Amazon Athena over five years of application logs stored in Amazon S3 as uncompressed JSON, organized in a single flat prefix. Most queries filter on a date range and read only four of the roughly sixty fields. Queries take many minutes and scan far more data than expected. Which TWO changes will most improve query performance? (Select TWO.)
@@ -1073,6 +1112,7 @@ Analysts run ad hoc SQL queries with Amazon Athena over five years of applicatio
 
 ## ALPHA-040: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** EC2 › Placement groups & EFA
 
 ### Question
 A research team runs a tightly coupled HPC simulation across 40 Amazon EC2 instances that exchange messages with MPI throughout every run. The job finishes only when all nodes finish, and the team needs the lowest possible node-to-node latency and the highest network throughput between the instances. Which combination should the solutions architect recommend?
@@ -1100,6 +1140,7 @@ A research team runs a tightly coupled HPC simulation across 40 Amazon EC2 insta
 
 ## ALPHA-041: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EC2 › Reserved Instances & Savings Plans
 
 ### Question
 A company's steady baseline of compute runs on Amazon EC2, but over the next year it plans to move parts of that workload to AWS Fargate and AWS Lambda, and it expects to change EC2 instance families as it does. The finance team wants the largest possible commitment discount without locking the company into today's instance families or even today's services. Which purchase option should the solutions architect recommend?
@@ -1127,6 +1168,7 @@ A company's steady baseline of compute runs on Amazon EC2, but over the next yea
 
 ## ALPHA-042: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence, Sustainability
+**Services:** S3 › Lifecycle rules, S3 › Storage Lens
 
 ### Question
 A company notices that the storage charges for an Amazon S3 bucket are far higher than the total size of the objects it can list in the console. The bucket receives large files through multipart uploads from an unreliable network link, and many uploads fail partway through. S3 Versioning has never been enabled on the bucket. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -1156,6 +1198,7 @@ A company notices that the storage charges for an Amazon S3 bucket are far highe
 
 ## ALPHA-043: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** CloudFront › Caching, Data transfer pricing
 
 ### Question
 A company distributes large software installers and product images to customers worldwide directly from an Amazon S3 bucket over public HTTPS URLs. Data transfer out to the internet has become the single largest line item on the bill, and customers far from the bucket's Region report slow downloads. Which change reduces cost and improves download speed?
@@ -1183,6 +1226,7 @@ A company distributes large software installers and product images to customers 
 
 ## ALPHA-044: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** Compute Optimizer, EC2 › Instance types, EC2 › Reserved Instances & Savings Plans
 
 ### Question
 A company runs 600 Amazon EC2 instances of the current generation on Linux for a Java application that the team can rebuild from source. CloudWatch shows that most instances sit below 15 percent CPU utilization and well under half of their memory. Management wants the largest sustainable cost reduction. In which way should the solutions architect proceed?
@@ -1210,6 +1254,7 @@ A company runs 600 Amazon EC2 instances of the current generation on Linux for a
 
 ## ALPHA-045: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence, Sustainability
+**Services:** Aurora › Aurora Serverless
 
 ### Question
 A company runs 40 Amazon RDS for PostgreSQL development and test databases. They are idle overnight and at weekends, but developers occasionally need them at unpredictable times, and each database must be reachable whenever someone connects. The company wants to pay as little as possible for the idle periods with minimal ongoing administration. Which solution should the solutions architect recommend?
@@ -1237,6 +1282,7 @@ A company runs 40 Amazon RDS for PostgreSQL development and test databases. They
 
 ## ALPHA-046: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** EBS › Volume types, EBS › Snapshots
 
 ### Question
 A cost review of an AWS account finds several thousand gp2 Amazon EBS volumes attached to running instances, roughly 300 unattached volumes left behind by terminated instances, and years of manually created EBS snapshots that nobody removes. The workloads' current IOPS needs are well within what gp3 provides. Which TWO actions should the solutions architect take? (Select TWO.)
@@ -1266,6 +1312,7 @@ A cost review of an AWS account finds several thousand gp2 Amazon EBS volumes at
 
 ## ALPHA-047: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** Budgets, Cost Anomaly Detection
 
 ### Question
 A company gives each development team its own sandbox account in AWS Organizations. Several teams have left large instances and GPU clusters running over weekends. Finance wants an alert when a sandbox account's forecast monthly spend passes $2,000, and wants further provisioning stopped automatically once actual spend reaches $2,500, without writing custom code. What should a solutions architect do?
@@ -1293,6 +1340,7 @@ A company gives each development team its own sandbox account in AWS Organizatio
 
 ## ALPHA-048: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** Cost allocation tags, Cost and Usage Reports
 
 ### Question
 A company runs workloads for eight business units in a shared set of AWS accounts. Finance must report each business unit's monthly AWS cost and wants the underlying data in a form it can query with SQL and load into its own reporting tools. Resources are already tagged with a BusinessUnit tag, but the tag does not appear anywhere in the billing data. What should a solutions architect do?
@@ -1320,6 +1368,7 @@ A company runs workloads for eight business units in a shared set of AWS account
 
 ## ALPHA-049: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** hard · **Pillars:** Cost Optimization, Sustainability
+**Services:** S3 › Storage classes, S3 › Storage Lens
 
 ### Question
 A company stores 900 TB in an Amazon S3 bucket. Access patterns are unknown and shift from month to month, and the company cannot accept retrieval delays for data that turns out to be active. An earlier S3 Lifecycle rule that moved every object to S3 Standard-IA after 30 days increased the bill instead of reducing it, because a large share of the objects are smaller than 128 KB. Which combination of actions reduces storage cost while keeping millisecond access? (Select TWO.)
@@ -1349,6 +1398,7 @@ A company stores 900 TB in an Amazon S3 bucket. Access patterns are unknown and 
 
 ## ALPHA-050: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** S3 › Performance & Transfer Acceleration
 
 ### Question
 A mobile app lets users around the world upload videos of up to 2 GB directly to an Amazon S3 bucket in us-east-1. Users in Asia and South America report slow, frequently interrupted uploads, while users in the United States do not. The company wants faster uploads with minimal changes to the app. Which solution meets these requirements?
@@ -1376,6 +1426,7 @@ A mobile app lets users around the world upload videos of up to 2 GB directly to
 
 ## ALPHA-051: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** FSx › Lustre
 
 ### Question
 A genomics company runs short-lived batch analyses on hundreds of Amazon EC2 instances. Each run reads a 200 TB reference dataset stored in Amazon S3 and needs a shared POSIX file system with sub-millisecond latency and hundreds of GB/s of aggregate throughput. Results must end up back in S3, and the file system is not needed between runs. Which storage solution BEST meets these requirements?
@@ -1403,6 +1454,7 @@ A genomics company runs short-lived batch analyses on hundreds of Amazon EC2 ins
 
 ## ALPHA-052: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** GuardDuty
 
 ### Question
 A company with 120 accounts in AWS Organizations wants continuous detection of threats such as EC2 instances communicating with known malicious IP addresses, cryptocurrency mining, and unusual API calls made with stolen credentials. Findings from every account, including accounts created in the future, must be visible in one security account. The company does not want to deploy agents or analyze logs itself. What should a solutions architect do?
@@ -1430,6 +1482,7 @@ A company with 120 accounts in AWS Organizations wants continuous detection of t
 
 ## ALPHA-053: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** CloudTrail, S3 › Object Lock
 
 ### Question
 An auditor requires that API activity from every account in a company's organization be captured in a single, tamper-evident location that account administrators cannot alter or delete for seven years. What should a solutions architect implement?
@@ -1457,6 +1510,7 @@ An auditor requires that API activity from every account in a company's organiza
 
 ## ALPHA-054: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Config › Rules & remediation, Systems Manager › Automation, EventBridge
 
 ### Question
 A security team wants any Amazon S3 bucket in a production account that becomes publicly accessible to be detected and corrected automatically within minutes, and it wants a durable record of every such occurrence for later review. Which combination of actions meets these requirements? (Select TWO.)
@@ -1486,6 +1540,7 @@ A security team wants any Amazon S3 bucket in a production account that becomes 
 
 ## ALPHA-055: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** CloudWatch › Agent & custom metrics, EC2 Auto Scaling
 
 ### Question
 An application runs on Amazon EC2 instances in an Auto Scaling group. The application leaks memory slowly, and instances become unresponsive after several days even though CPU utilization stays low. The operations team wants the Auto Scaling group to replace an instance automatically once its memory utilization crosses 85%, with no change to the application code. What should a solutions architect do?
@@ -1513,6 +1568,7 @@ An application runs on Amazon EC2 instances in an Auto Scaling group. The applic
 
 ## ALPHA-056: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** CloudWatch › Logs, CloudWatch › Alarms
 
 ### Question
 A company's application writes its logs to Amazon CloudWatch Logs. Operations wants to be paged automatically whenever the string OutOfMemoryError appears more than five times in five minutes. What is the simplest way to meet this requirement?
@@ -1540,6 +1596,7 @@ A company's application writes its logs to Amazon CloudWatch Logs. Operations wa
 
 ## ALPHA-057: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** Data Firehose, Kinesis Data Streams
 
 ### Question
 An application produces about 5,000 log events per second. The operations team wants the events searchable in an Amazon OpenSearch Service domain within about a minute of being produced, with a copy of every raw event kept in Amazon S3. The team does not want to write, run or scale any consumer code. Which solution meets these requirements?
@@ -1567,6 +1624,7 @@ An application produces about 5,000 log events per second. The operations team w
 
 ## ALPHA-058: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** RDS › Read replicas, ElastiCache › Caching strategies, RDS › Multi-AZ
 
 ### Question
 An online store runs on Amazon RDS for MySQL. Product pages issue the same catalog queries thousands of times per minute and can tolerate data that is a few seconds stale, while heavy nightly and ad hoc reporting queries also run against the primary instance. CPU on the primary is saturated and page latency is rising. The company wants to improve read performance without moving to a different database engine. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -1596,6 +1654,7 @@ An online store runs on Amazon RDS for MySQL. Product pages issue the same catal
 
 ## ALPHA-059: Analytics & Data Processing
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** Kinesis Data Streams, Data Firehose
 
 ### Question
 A company ingests payment events into Amazon S3 for analytics using Amazon Data Firehose with a transformation step. Last week a bug in the transformation corrupted six hours of delivered records, and the team discovered it could not reprocess the original events because they no longer existed anywhere. The team wants to be able to replay at least the last three days of raw events after a future bug. What should a solutions architect recommend?
@@ -1623,6 +1682,7 @@ A company ingests payment events into Amazon S3 for analytics using Amazon Data 
 
 ## ALPHA-060: Analytics & Data Processing
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** OpenSearch Service
 
 ### Question
 A company runs a single-node Amazon OpenSearch Service domain that powers the search bar on its storefront. During a recent Availability Zone impairment the search bar was unavailable for two hours, and during a later indexing spike the cluster became unstable and stopped answering queries. Which configuration change best addresses both problems?
@@ -1650,6 +1710,7 @@ A company runs a single-node Amazon OpenSearch Service domain that powers the se
 
 ## ALPHA-061: Analytics & Data Processing
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Lake Formation
 
 ### Question
 A company keeps a data lake in Amazon S3 catalogued in the AWS Glue Data Catalog, and analysts query it with Amazon Athena. A new requirement states that the marketing team may read only the non-sensitive columns of the customer table, while the finance team may read all columns but only rows where the region is EMEA. The company does not want to duplicate the data into filtered copies. What should a solutions architect do?
@@ -1677,6 +1738,7 @@ A company keeps a data lake in Amazon S3 catalogued in the AWS Glue Data Catalog
 
 ## ALPHA-062: Disaster Recovery & Migration
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Reliability
+**Services:** Backup › Vault Lock, Backup › Cross-account & cross-Region copy
 
 ### Question
 A company uses AWS Backup to protect Amazon EBS volumes, Amazon RDS databases and Amazon DynamoDB tables in its production account. After a ransomware incident at a peer company, the security team requires that backups cannot be deleted or have their retention shortened by anyone, including administrators of the production account, for 35 days. A usable copy must also survive even if the production account is fully compromised. Which solution meets these requirements?
@@ -1704,6 +1766,7 @@ A company uses AWS Backup to protect Amazon EBS volumes, Amazon RDS databases an
 
 ## ALPHA-063: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** SQS › Visibility timeout & polling, SQS › Dead-letter queues
 
 ### Question
 An order-processing fleet of Amazon EC2 instances polls an Amazon SQS standard queue. Processing a message takes up to 4 minutes, and the queue uses the default 30-second visibility timeout. The team finds many orders processed two or three times. Separately, a few malformed messages fail on every attempt, are retried indefinitely, and flood the logs with errors. Which combination of changes resolves both problems? (Select TWO.)
@@ -1733,6 +1796,7 @@ An order-processing fleet of Amazon EC2 instances polls an Amazon SQS standard q
 
 ## ALPHA-064: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Security
+**Services:** Elastic Load Balancing › NLB
 
 ### Question
 A financial data provider runs a TCP-based market data service on Amazon EC2 instances in three Availability Zones in one Region. Clients' firewalls only allow outbound connections to a fixed list of IP addresses, the service must handle millions of long-lived connections with very low latency, and client source IP addresses must be preserved for auditing. Which load balancing solution meets these requirements?
@@ -1760,6 +1824,7 @@ A financial data provider runs a TCP-based market data service on Amazon EC2 ins
 
 ## ALPHA-065: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency, Sustainability
+**Services:** DynamoDB › Capacity modes
 
 ### Question
 A new mobile game stores player data in an Amazon DynamoDB table that uses provisioned capacity mode, sized for the peak. Traffic is unpredictable: the table is nearly idle most of the day, then receives short bursts of several thousand requests per second whenever a promotion goes out, at times the company cannot schedule in advance. Which change will MOST reduce cost without throttling during the bursts?
@@ -1787,6 +1852,7 @@ A new mobile game stores player data in an Amazon DynamoDB table that uses provi
 
 ## ALPHA-066: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Cognito › User pools, API Gateway › Authorizers
 
 ### Question
 A company is launching a mobile app and a single-page web app for consumers. Users must be able to sign up with an email address or sign in with their existing Google or Apple accounts. The backend is a REST API built on Amazon API Gateway and AWS Lambda. The company does not want to build or operate its own user directory or token handling, and only signed-in users may call the API. Which combination of steps meets these requirements? (Select TWO.)
@@ -1816,6 +1882,7 @@ A company is launching a mobile app and a single-page web app for consumers. Use
 
 ## ALPHA-067: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Systems Manager › Session Manager
 
 ### Question
 Administrators connect to Linux Amazon EC2 instances in private subnets through a bastion host that allows SSH from the corporate IP range. The security team wants to close all inbound ports, stop managing SSH keys, and keep a record of every command run in each session. What should a solutions architect do?
@@ -1843,6 +1910,7 @@ Administrators connect to Linux Amazon EC2 instances in private subnets through 
 
 ## ALPHA-068: Databases & Caching
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** RDS › Encryption
 
 ### Question
 A company runs an Amazon RDS for MySQL DB instance that was created without encryption. A new compliance requirement states that the database and its automated backups must be encrypted at rest with a customer managed AWS KMS key. Some downtime during a maintenance window is acceptable. What should a solutions architect do?
@@ -1870,6 +1938,7 @@ A company runs an Amazon RDS for MySQL DB instance that was created without encr
 
 ## ALPHA-069: Storage & Backup
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** S3 › Access control, VPC › Gateway endpoints
 
 ### Question
 An application on Amazon EC2 instances in private subnets reads and writes objects in an Amazon S3 bucket through an S3 gateway VPC endpoint. The security team requires that the bucket reject every request that does not arrive through that specific endpoint, and every request that is not sent over TLS, even if the caller's IAM policy allows the action. Which combination of bucket policy statements meets these requirements? (Select TWO.)
@@ -1899,6 +1968,7 @@ An application on Amazon EC2 instances in private subnets reads and writes objec
 
 ## ALPHA-070: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Network Firewall, Transit Gateway
 
 ### Question
 Workloads in several VPCs send outbound traffic to the internet through a central egress VPC with NAT gateways, connected by AWS Transit Gateway. The security team now requires that outbound HTTPS be allowed only to an approved list of domain names, such as the operating system vendor's update servers and a payment provider, and that all other outbound traffic be blocked and logged. Which solution meets these requirements with the LEAST operational overhead?
@@ -1926,6 +1996,7 @@ Workloads in several VPCs send outbound traffic to the internet through a centra
 
 ## ALPHA-071: Storage & Backup
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** EFS, EBS › Multi-Attach
 
 ### Question
 A content management system runs on Linux Amazon EC2 instances in an Auto Scaling group across three Availability Zones. Every instance must read and write the same set of uploaded media files, and the files must remain available if one Availability Zone fails. Which storage option meets these requirements?
@@ -1953,6 +2024,7 @@ A content management system runs on Linux Amazon EC2 instances in an Auto Scalin
 
 ## ALPHA-072: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Cost Optimization
+**Services:** SQS
 
 ### Question
 During flash sales, an order service on Amazon EC2 writes each order directly to an Amazon RDS for PostgreSQL database. Write bursts exceed what the database can absorb, requests time out, and some orders are lost. Outside sales the load is modest, and the business accepts that orders are confirmed to customers a few seconds after they are placed. Which change prevents lost orders MOST cost-effectively?
@@ -1980,6 +2052,7 @@ During flash sales, an order service on Amazon EC2 writes each order directly to
 
 ## ALPHA-073: Databases & Caching
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** DynamoDB › Global tables
 
 ### Question
 A global social app stores user profiles in an Amazon DynamoDB table in us-east-1. Users in Europe and Asia see high write latency, and the business now requires that the app keep accepting reads and writes in the remaining Regions if an entire AWS Region becomes unavailable, with each Region serving its local users. Which solution meets these requirements?
@@ -2007,6 +2080,7 @@ A global social app stores user profiles in an Amazon DynamoDB table in us-east-
 
 ## ALPHA-074: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Performance Efficiency
+**Services:** DynamoDB, Elastic Load Balancing › Sticky sessions
 
 ### Question
 A web application keeps user session data in memory on each Amazon EC2 instance behind an Application Load Balancer. When the Auto Scaling group scales in or an instance fails, the affected users are logged out and lose their shopping carts. Sticky sessions are enabled. Which change makes sessions survive the loss of an instance while keeping the fleet elastic?
@@ -2034,6 +2108,7 @@ A web application keeps user session data in memory on each Amazon EC2 instance 
 
 ## ALPHA-075: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** EC2 Auto Scaling › Scheduled & predictive scaling, EC2 Auto Scaling › Warm pools & lifecycle hooks
 
 ### Question
 An internal reporting application runs on Amazon EC2 instances in an Auto Scaling group with a target tracking policy on CPU utilization. Every weekday, traffic rises from almost nothing to its daily peak between 08:45 and 09:00. New instances take about 10 minutes to boot and load their data caches, so users see slow responses every morning until the group catches up. Which combination of changes will BEST remove the morning slowdown? (Select TWO.)
@@ -2063,6 +2138,7 @@ An internal reporting application runs on Amazon EC2 instances in an Auto Scalin
 
 ## ALPHA-076: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** DataSync
 
 ### Question
 A company keeps 60 TB of research data on an on-premises NFS file server and adds about 200 GB of new and changed files every day. It wants to copy the existing data to Amazon EFS over its 10 Gbps AWS Direct Connect connection, then keep EFS in sync with the daily changes until cutover in three months, with scheduling, encryption in transit and data integrity checks built in. Which solution meets these requirements with the LEAST operational effort?
@@ -2090,6 +2166,7 @@ A company keeps 60 TB of research data on an on-premises NFS file server and add
 
 ## ALPHA-077: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Redshift › Redshift Spectrum, Athena
 
 ### Question
 A retailer's analysts run complex SQL with multi-table joins and aggregations over 30 TB of recent sales data, and 200 business users open dashboards that must return in a few seconds throughout the day. The analysts also need to join that data occasionally with 400 TB of older, rarely queried history kept in Amazon S3 as Parquet, without loading that history into the warehouse. Which solution BEST meets these requirements?
@@ -2117,6 +2194,7 @@ A retailer's analysts run complex SQL with multi-table joins and aggregations ov
 
 ## ALPHA-078: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Security
+**Services:** S3 › Encryption
 
 ### Question
 A data platform writes hundreds of millions of small objects per day to an Amazon S3 bucket that uses SSE-KMS with a customer managed key. The AWS KMS charges on the bill now exceed the S3 storage cost, and the security team requires that SSE-KMS with the same key remain in use. Which change reduces the KMS cost the MOST?
@@ -2144,6 +2222,7 @@ A data platform writes hundreds of millions of small objects per day to an Amazo
 
 ## ALPHA-079: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EC2 › Dedicated Hosts & Instances
 
 ### Question
 A company is migrating a Windows Server application with Microsoft SQL Server to Amazon EC2. It already owns SQL Server licenses that are licensed per physical core and are not eligible for License Mobility, so they may be used only on hardware dedicated to the company where it can see the sockets and cores. The company wants to use these existing licenses instead of paying for license-included instances. Which EC2 option meets these requirements MOST cost-effectively?
@@ -2171,6 +2250,7 @@ A company is migrating a Windows Server application with Microsoft SQL Server to
 
 ## ALPHA-080: Monitoring, Management & Governance
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence, Sustainability
+**Services:** CloudWatch › Logs, Data Firehose, S3 › Lifecycle rules
 
 ### Question
 An application sends about 3 TB of logs per month to Amazon CloudWatch Logs, and its log groups use the default retention setting. Engineers query only the last 30 days, but compliance requires keeping every log for 7 years, with retrieval within 48 hours when an auditor asks. The CloudWatch Logs storage bill grows every month. Which solution is MOST cost-effective?
@@ -2198,6 +2278,7 @@ An application sends about 3 TB of logs per month to Amazon CloudWatch Logs, and
 
 ## ALPHA-081: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** VPC › Flow Logs
 
 ### Question
 After a security incident, a company must be able to answer which source IP addresses connected to a particular Amazon EC2 instance, which connections were rejected by security groups or network ACLs, and how many bytes were transferred, for any time in the last 90 days. The instances run a mix of operating systems, and the company does not want to install or maintain agents. What should a solutions architect do?
@@ -2225,6 +2306,7 @@ After a security incident, a company must be able to answer which source IP addr
 
 ## ALPHA-082: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Directory Service › Managed Microsoft AD, Directory Service › AD Connector
 
 ### Question
 A company is migrating a .NET application to Amazon EC2 Windows instances. The instances must be domain-joined so that employees sign in with their existing corporate Active Directory accounts, and the application relies on integrated Windows authentication. The company wants a managed directory in AWS that trusts its on-premises Active Directory, and it wants minimal ongoing administration. Which solution meets these requirements?
@@ -2252,6 +2334,7 @@ A company is migrating a .NET application to Amazon EC2 Windows instances. The i
 
 ## ALPHA-083: Storage & Backup
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Reliability
+**Services:** S3 › Versioning, S3 › Lifecycle rules
 
 ### Question
 A company stores critical design files in an Amazon S3 bucket. Last month an engineer deleted a prefix by mistake and the objects could not be recovered. The company wants deletions to be recoverable, wants permanently removing a version to require a second factor, and wants to keep storage cost in check. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -2281,6 +2364,7 @@ A company stores critical design files in an Amazon S3 bucket. Last month an eng
 
 ## ALPHA-084: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** API Gateway › API & endpoint types, VPC › PrivateLink & interface endpoints
 
 ### Question
 An internal REST API built with Amazon API Gateway must be reachable only from applications inside the company's VPCs and from its data center over AWS Direct Connect. It must not be reachable from the public internet, even by a caller with valid credentials. Which solution meets these requirements?
@@ -2308,6 +2392,7 @@ An internal REST API built with Amazon API Gateway must be reachable only from a
 
 ## ALPHA-085: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** VPC › Internet gateways, VPC › NAT gateways
 
 ### Question
 Amazon EC2 instances in a private subnet are configured with IPv6 addresses only. They must download software updates from IPv6 endpoints on the internet, but nothing on the internet may initiate a connection to them. Which solution meets these requirements?
@@ -2335,6 +2420,7 @@ Amazon EC2 instances in a private subnet are configured with IPv6 addresses only
 
 ## ALPHA-086: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Systems Manager › Patch Manager, Systems Manager › Run Command
 
 ### Question
 A company must patch several hundred Amazon EC2 instances running Amazon Linux and Windows across three accounts on a monthly schedule, apply patches only inside an approved maintenance window, and produce a report showing which instances are missing patches. The company wants to avoid building its own tooling. What should a solutions architect recommend?
@@ -2362,6 +2448,7 @@ A company must patch several hundred Amazon EC2 instances running Amazon Linux a
 
 ## ALPHA-087: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** MQ
 
 ### Question
 A company is migrating a legacy order-processing application to AWS. Its components communicate through an on-premises message broker using JMS and the AMQP 1.0 protocol, and the team cannot change the application code before the migration deadline. The broker must stay available if an Availability Zone fails. Which solution requires the LEAST application change?
@@ -2389,6 +2476,7 @@ A company is migrating a legacy order-processing application to AWS. Its compone
 
 ## ALPHA-088: Storage & Backup
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Security
+**Services:** S3 › Replication
 
 ### Question
 A regulator requires that a company keep a copy of certain Amazon S3 objects in a second AWS Region, that the copy exist within 15 minutes of the object being written, and that the company be able to demonstrate it met that window. Objects already in the bucket are in scope as well as new ones. What should a solutions architect do?
@@ -2416,6 +2504,7 @@ A regulator requires that a company keep a copy of certain Amazon S3 objects in 
 
 ## ALPHA-089: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** Route 53 › Resolver
 
 ### Question
 A company has connected its data center to a VPC with AWS Direct Connect. Applications in the VPC must resolve names in the on-premises domain corp.internal, and on-premises servers must resolve records held in an Amazon Route 53 private hosted zone that is associated with the VPC. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -2445,6 +2534,7 @@ A company has connected its data center to a VPC with AWS Direct Connect. Applic
 
 ## ALPHA-090: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Operational Excellence, Cost Optimization
+**Services:** Storage Gateway › File Gateway
 
 ### Question
 A media company's on-premises editing workstations write finished projects to an NFS share on an aging appliance that is nearly full. The company wants the archive to live in Amazon S3 so that lifecycle rules apply, while editors keep using an NFS mount and recently used files stay fast to read locally. Which solution meets these requirements?
@@ -2472,6 +2562,7 @@ A media company's on-premises editing workstations write finished projects to an
 
 ## ALPHA-091: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** EC2 Auto Scaling › Warm pools & lifecycle hooks
 
 ### Question
 An Auto Scaling group runs worker instances that process long jobs and upload results to Amazon S3. During scale-in, instances are terminated while jobs are still running and partly written results are lost. The team wants each instance to finish its current job, for up to 15 minutes, before termination, without disabling scale-in. What should a solutions architect do?
@@ -2499,6 +2590,7 @@ An Auto Scaling group runs worker instances that process long jobs and upload re
 
 ## ALPHA-092: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Neptune
 
 ### Question
 A social application must answer questions such as which friends of a user's friends also follow a given topic, over hundreds of millions of relationships, with millisecond latency, using a graph query language such as Gremlin or openCypher. Which AWS database service is the BEST fit?
@@ -2526,6 +2618,7 @@ A social application must answer questions such as which friends of a user's fri
 
 ## ALPHA-093: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** DynamoDB › Indexes
 
 ### Question
 An Amazon DynamoDB table stores orders with a partition key of customerId and a sort key of orderDate. A new dashboard must list every order with a given status, such as PENDING, across all customers, ordered by date, and it must not slow down the existing customer queries. Only a small fraction of orders are PENDING at any time. Which solution meets these requirements MOST efficiently?
@@ -2553,6 +2646,7 @@ An Amazon DynamoDB table stores orders with a partition key of customerId and a 
 
 ## ALPHA-094: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Elastic Load Balancing › ALB, ECS
 
 ### Question
 A monolithic application is being split into three containerized services that will run on Amazon ECS with AWS Fargate behind a single hostname, serving the paths /api, /admin and /static. Traffic to /api is spiky and carries most of the load, while /admin is lightly used. The team wants one entry point and wants each service to scale on its own. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -2582,6 +2676,7 @@ A monolithic application is being split into three containerized services that w
 
 ## ALPHA-095: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** CloudFront › Edge functions
 
 ### Question
 A company serves a website through Amazon CloudFront. On every viewer request it must normalize the URL and add a few HTTP headers. The work takes well under a millisecond, needs no network access, and runs on millions of requests per second, so it must add as little latency and cost as possible. Which solution meets these requirements?
@@ -2609,6 +2704,7 @@ A company serves a website through Amazon CloudFront. On every viewer request it
 
 ## ALPHA-096: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency
+**Services:** Local Zones & Wavelength, Outposts
 
 ### Question
 A media production company in a large city runs latency-sensitive editing workstations that must reach their compute and storage in AWS with single-digit millisecond latency. The nearest AWS Region adds about 30 milliseconds of round-trip latency, which is too much. The company does not want to run hardware in its own facility. Which solution meets these requirements?
@@ -2636,6 +2732,7 @@ A media production company in a large city runs latency-sensitive editing workst
 
 ## ALPHA-097: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** Fargate
 
 ### Question
 A company runs nightly data-transformation jobs as Amazon ECS tasks on AWS Fargate. The jobs are stateless, checkpoint their progress and can be restarted safely, and they must finish by morning but have no other deadline. The company wants to cut the cost of these runs. What should a solutions architect recommend?
@@ -2663,6 +2760,7 @@ A company runs nightly data-transformation jobs as Amazon ECS tasks on AWS Farga
 
 ## ALPHA-098: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** EFS › Storage classes & lifecycle
 
 ### Question
 An Amazon EFS file system stores 40 TB of engineering data. Files are read heavily for about a week after they are created and then almost never read again, but they must stay instantly available if someone does open one. The company wants to cut EFS storage cost with no application changes. What should a solutions architect do?
@@ -2690,6 +2788,7 @@ An Amazon EFS file system stores 40 TB of engineering data. Files are read heavi
 
 ## ALPHA-099: Disaster Recovery & Migration
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** Storage Gateway › Tape Gateway
 
 ### Question
 A company backs up its on-premises servers to physical tapes with a commercial backup application and ships the tapes to an off-site vault. It wants to keep the same backup software and workflows, stop buying and shipping tapes, and store long-term backups at the lowest possible cost. Which solution meets these requirements?
@@ -2717,6 +2816,7 @@ A company backs up its on-premises servers to physical tapes with a commercial b
 
 ## ALPHA-100: Analytics & Data Processing
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Reliability, Sustainability
+**Services:** EMR, EC2 › Spot Instances
 
 ### Question
 A company runs a permanent 60-node Amazon EMR cluster that is busy for about four hours each night running Apache Spark jobs and idle for the rest of the day. All input and output data is read from and written to Amazon S3. The company wants to cut the cost of this pipeline without materially extending the jobs' runtime. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -2746,6 +2846,7 @@ A company runs a permanent 60-node Amazon EMR cluster that is busy for about fou
 
 ## ALPHA-101: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Control Tower
 
 ### Question
 A company plans to grow from 5 to about 60 AWS accounts over the next year. It wants each new account created from a standard template with a preconfigured VPC and centralized logging, wants guardrails that prevent common misconfigurations, and wants a dashboard showing which accounts drift from the standard. The company wants to avoid building this itself. What should a solutions architect recommend?
@@ -2773,6 +2874,7 @@ A company plans to grow from 5 to about 60 AWS accounts over the next year. It w
 
 ## ALPHA-102: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › MFA, IAM Identity Center
 
 ### Question
 A security review of a company's AWS Organizations management account finds that the root user has an access key, has no multi-factor authentication, and its password is shared by three administrators. The company wants to follow AWS best practice while keeping a way to perform the few tasks that require root. Which combination of actions should a solutions architect recommend? (Select TWO.)
@@ -2802,6 +2904,7 @@ A security review of a company's AWS Organizations management account finds that
 
 ## ALPHA-103: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
+**Services:** IAM › Access Analyzer
 
 ### Question
 A compliance team must know continuously, across 40 accounts, which Amazon S3 buckets, IAM roles, AWS KMS keys and Amazon SQS queues can be accessed by principals outside the organization, and must review each finding. The team does not want to read every resource policy by hand. What should a solutions architect recommend?
@@ -2829,6 +2932,7 @@ A compliance team must know continuously, across 40 accounts, which Amazon S3 bu
 
 ## ALPHA-104: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** KMS › Key rotation, KMS › Multi-Region keys
 
 ### Question
 A company encrypts objects in Amazon S3 with a customer managed AWS KMS key in eu-west-1. A new policy requires that the key material be rotated every year with no re-encryption of existing objects, and that a disaster recovery copy of the bucket in eu-central-1 be readable without cross-Region KMS calls on every request. What should a solutions architect do?
@@ -2856,6 +2960,7 @@ A company encrypts objects in Amazon S3 with a customer managed AWS KMS key in e
 
 ## ALPHA-105: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
+**Services:** CloudHSM, KMS
 
 ### Question
 A payments company must run its own certificate authority and perform signing operations in hardware that is single-tenant and under the company's exclusive control, so that AWS operators cannot access the key material. The application performs cryptographic operations through the PKCS #11 interface. Which solution meets these requirements?
@@ -2883,6 +2988,7 @@ A payments company must run its own certificate authority and perform signing op
 
 ## ALPHA-106: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** VPN › Client VPN
 
 ### Question
 Two hundred remote employees must reach internal applications running on private subnets in a VPC, with no public endpoints exposed. Access must be authenticated against the company's existing identity provider and scoped by group, so that contractors reach fewer applications than staff, and it must work from laptops anywhere on the internet. Which solution meets these requirements?
@@ -2910,6 +3016,7 @@ Two hundred remote employees must reach internal applications running on private
 
 ## ALPHA-107: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
+**Services:** Transfer Family
 
 ### Question
 Fifty partner companies upload nightly files to a company's on-premises SFTP server using their existing SFTP clients and SSH keys. The company wants the files to land directly in Amazon S3, wants the partners' clients and keys to stay unchanged, and does not want to run any servers. Which solution meets these requirements?
@@ -2937,6 +3044,7 @@ Fifty partner companies upload nightly files to a company's on-premises SFTP ser
 
 ## ALPHA-108: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** Service Quotas, CloudWatch › Alarms
 
 ### Question
 A company's disaster recovery plan fails over to a second Region where it normally runs almost nothing. A game day showed that failover could not launch enough Amazon EC2 instances and hit an Elastic IP address limit, because the account's quotas in that Region were still at their defaults. The company wants failover to succeed and wants warning before quotas become a problem again. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -2966,6 +3074,7 @@ A company's disaster recovery plan fails over to a second Region where it normal
 
 ## ALPHA-109: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
+**Services:** X-Ray
 
 ### Question
 A company runs a serverless API built from Amazon API Gateway, eight AWS Lambda functions and Amazon DynamoDB. Some requests take several seconds, but CloudWatch metrics show that every function's average duration is low. The team needs to see, for an individual slow request, how much time each component and downstream call consumed. What should a solutions architect recommend?
@@ -2993,6 +3102,7 @@ A company runs a serverless API built from Amazon API Gateway, eight AWS Lambda 
 
 ## ALPHA-110: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** EC2 › AMIs, EC2 Auto Scaling › Instance refresh
 
 ### Question
 A company patches its Amazon EC2 web fleet by running configuration scripts on the running instances. The instances have drifted apart over time, and a failed patch once left half the fleet broken. The company wants every instance to come from an identical, pre-patched image, and wants changes rolled out gradually with automatic rollback if health checks fail. Which combination of actions should a solutions architect take? (Select TWO.)
@@ -3022,6 +3132,7 @@ A company patches its Amazon EC2 web fleet by running configuration scripts on t
 
 ## ALPHA-111: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Cost Optimization
+**Services:** API Gateway › Throttling & usage plans
 
 ### Question
 A company exposes a public REST API through Amazon API Gateway to hundreds of third-party developers on free and paid tiers. It must cap each developer's request rate and monthly quota according to their tier, identify each caller, and protect the backend from a single client's traffic spike. Which solution meets these requirements with the LEAST custom code?
@@ -3049,6 +3160,7 @@ A company exposes a public REST API through Amazon API Gateway to hundreds of th
 
 ## ALPHA-112: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization, Sustainability
+**Services:** Batch
 
 ### Question
 A research team submits thousands of independent containerized jobs each night. The jobs need different amounts of CPU and memory, some cannot start until others finish, and the team wants compute capacity to appear when jobs are queued and disappear when the queue drains, without managing clusters or scaling logic. Which solution meets these requirements?
@@ -3076,6 +3188,7 @@ A research team submits thousands of independent containerized jobs each night. 
 
 ## ALPHA-113: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** Glue › Data Catalog & crawlers, Glue › ETL jobs
 
 ### Question
 A company receives daily CSV exports from 30 suppliers into Amazon S3. The files have inconsistent column names and there is no catalog, and analysts want to query the data with Amazon Athena in a columnar format. The company wants a serverless pipeline that discovers the schema, applies the column mapping and writes partitioned Parquet, without managing servers. Which solution meets these requirements?
@@ -3103,6 +3216,7 @@ A company receives daily CSV exports from 30 suppliers into Amazon S3. The files
 
 ## ALPHA-114: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** QuickSight
 
 ### Question
 A company keeps curated sales data in Amazon S3 and queries it with Amazon Athena. Two hundred business users need interactive dashboards with filters, and the dashboards must stay responsive at month-end when many users open them at once. The company does not want to run BI servers. Which solution meets these requirements?
@@ -3130,6 +3244,7 @@ A company keeps curated sales data in Amazon S3 and queries it with Amazon Athen
 
 ## ALPHA-115: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Security
+**Services:** S3 › Access control
 
 ### Question
 A 300 TB data lake in a single Amazon S3 bucket is shared by a dozen teams in different AWS accounts, each needing access to its own prefix, and one team's application must reach the data only from its own VPC. The bucket policy has grown close to the 20 KB policy size limit and is hard to review. What should a solutions architect do?
@@ -3157,6 +3272,7 @@ A 300 TB data lake in a single Amazon S3 bucket is shared by a dozen teams in di
 
 ## ALPHA-116: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** Route 53 › Routing policies
 
 ### Question
 A company runs the same web application in eu-west-1, us-east-1 and ap-southeast-1. For data residency, requests from users in Germany must always be served from eu-west-1 regardless of latency. All other users should reach whichever Region answers fastest for them, and traffic must move away from an unhealthy Region automatically. Which Amazon Route 53 configuration meets these requirements?
@@ -3184,6 +3300,7 @@ A company runs the same web application in eu-west-1, us-east-1 and ap-southeast
 
 ## ALPHA-117: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** EC2 › Hibernation
 
 ### Question
 Developers use large memory-optimized Amazon EC2 instances for an application that takes about 20 minutes to load a large in-memory dataset at start-up. The instances are unused overnight and at weekends, but developers want to resume work within a couple of minutes with the dataset already loaded. Which approach reduces cost while meeting that expectation?
@@ -3211,6 +3328,7 @@ Developers use large memory-optimized Amazon EC2 instances for an application th
 
 ## ALPHA-118: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** S3 › Requester Pays, Data transfer pricing
 
 ### Question
 A genomics institute publishes 500 TB of reference datasets in Amazon S3 to thousands of authenticated researchers at other institutions. The institute is willing to pay to store the data but not for the data transfer and request charges that downloads generate. Which solution meets this requirement?
@@ -3238,6 +3356,7 @@ A genomics institute publishes 500 TB of reference datasets in Amazon S3 to thou
 
 ## ALPHA-119: Databases & Caching
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** Timestream
 
 ### Question
 A manufacturing company ingests 2 million sensor readings per minute and queries them almost entirely as time-windowed aggregates over the last 7 days, while keeping 5 years of history for occasional trend analysis. Storing everything in Amazon RDS has become expensive. The team wants a cost-effective purpose-built option that tiers old data automatically. Which solution should a solutions architect recommend?
@@ -3266,6 +3385,7 @@ A manufacturing company ingests 2 million sensor readings per minute and queries
 
 ## ALPHA-120: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** hard · **Pillars:** Cost Optimization, Reliability
+**Services:** Data transfer pricing, Elastic Load Balancing › NLB
 
 ### Question
 A company runs a high-throughput internal service on Amazon EC2 instances spread across three Availability Zones behind an internal Network Load Balancer, with client applications in the same VPC and the same Availability Zones. The service moves petabytes per month, and the bill shows large inter-Availability Zone data transfer charges. Which combination of changes will reduce those charges? (Select TWO.)
@@ -3295,6 +3415,7 @@ A company runs a high-throughput internal service on Amazon EC2 instances spread
 
 ## ALPHA-121: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Firewall Manager, Config
 
 ### Question
 A company uses AWS Organizations with all features enabled and has 60 member accounts, with new accounts created every week. The security team must ensure that every Application Load Balancer and Amazon API Gateway stage in every account, including accounts and resources created in the future, is protected by a standard set of AWS WAF rules. Any resource that is not protected must be fixed automatically. Which combination of steps will meet these requirements with the LEAST operational overhead? (Select TWO.)
@@ -3324,6 +3445,7 @@ A company uses AWS Organizations with all features enabled and has 60 member acc
 
 ## ALPHA-122: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Security Hub
 
 ### Question
 A company runs 40 AWS accounts in AWS Organizations and uses Amazon GuardDuty, Amazon Inspector and Amazon Macie in every account and in three Regions. The security team wants a single place to view and prioritize findings from all of these services across every account and Region. The team also wants accounts checked continuously against AWS best-practice security controls, with minimal custom code. Which solution meets these requirements?
@@ -3351,6 +3473,7 @@ A company runs 40 AWS accounts in AWS Organizations and uses Amazon GuardDuty, A
 
 ## ALPHA-123: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** CloudFront › Origin failover
 
 ### Question
 A company serves static website assets through an Amazon CloudFront distribution with an S3 bucket in us-east-1 as the origin. S3 Cross-Region Replication keeps a copy of every object in a second bucket in us-west-2. The company wants CloudFront to keep serving viewer GET requests automatically if the primary bucket returns server errors or cannot be reached, without any DNS changes and without custom code. Which solution meets these requirements?
@@ -3378,6 +3501,7 @@ A company serves static website assets through an Amazon CloudFront distribution
 
 ## ALPHA-124: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Performance Efficiency
+**Services:** Lambda › Event sources
 
 ### Question
 An AWS Lambda function processes messages from an Amazon SQS standard queue through an event source mapping with a batch size of 10. Sometimes one message in a batch contains bad data and the function throws an error. The whole batch then becomes visible again, so messages that were already processed successfully are processed again. The company wants only the failed messages to be retried, while still processing messages in batches for efficiency. Which solution meets these requirements?
@@ -3405,6 +3529,7 @@ An AWS Lambda function processes messages from an Amazon SQS standard queue thro
 
 ## ALPHA-125: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Services:** EC2 › Capacity Reservations, EC2 › Reserved Instances & Savings Plans
 
 ### Question
 A retailer is preparing for a 3-week sales event that starts in one month. The application needs 400 m6i.2xlarge instances in a specific Availability Zone for the whole event, and the company cannot risk InsufficientInstanceCapacity errors when it scales out. The company does not want any commitment that lasts beyond the event. Which solution meets these requirements?
@@ -3432,6 +3557,7 @@ A retailer is preparing for a 3-week sales event that starts in one month. The a
 
 ## ALPHA-126: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Storage Gateway › Volume Gateway
 
 ### Question
 A company runs application servers on premises that use iSCSI block storage from a SAN that is almost full. The total dataset is 60 TB, but only about 5 TB of it is accessed often, and that part needs low-latency access. The company wants to keep the full dataset in AWS, keep only the frequently used data on premises, and take point-in-time snapshots that can be restored as Amazon EBS volumes. Which solution meets these requirements?
@@ -3459,6 +3585,7 @@ A company runs application servers on premises that use iSCSI block storage from
 
 ## ALPHA-127: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
+**Services:** Application Migration Service
 
 ### Question
 A company plans to move 300 Windows and Linux servers, running on VMware and on physical hardware, to Amazon EC2 without changing the applications. The company wants to launch test instances before the final move and keep the downtime during the cutover to a few minutes. Which solution meets these requirements with the LEAST operational effort?
@@ -3486,6 +3613,7 @@ A company plans to move 300 Windows and Linux servers, running on VMware and on 
 
 ## ALPHA-128: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** RDS › RDS Custom
 
 ### Question
 A company is moving a vendor application to AWS. The vendor supports the application only on Oracle Database, and the vendor's monitoring agent must be installed on the database host operating system, which also needs a custom OS configuration. The company wants AWS to automate as much of the database management as possible, including backups and point-in-time recovery. Which solution meets these requirements?
@@ -3513,6 +3641,7 @@ A company is moving a vendor application to AWS. The vendor supports the applica
 
 ## ALPHA-129: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** Aurora › Cloning
 
 ### Question
 A company has a 20 TB Amazon Aurora MySQL production cluster. The QA team needs a fresh, writable copy of the production database every morning for destructive tests, and deletes it at the end of the day. Restoring from a snapshot currently takes hours, and each copy is billed for the full 20 TB of storage. Which solution provides the copy MOST quickly and cost-effectively?
@@ -3540,6 +3669,7 @@ A company has a 20 TB Amazon Aurora MySQL production cluster. The QA team needs 
 
 ## ALPHA-130: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** S3 › Glacier & retrieval
 
 ### Question
 A hospital stores medical images in Amazon S3. After 90 days, each image is accessed about once per quarter, but when a doctor requests an image it must be returned within milliseconds. The images must be kept for 10 years. Which solution is MOST cost-effective for images older than 90 days?
@@ -3567,6 +3697,7 @@ A hospital stores medical images in Amazon S3. After 90 days, each image is acce
 
 ## ALPHA-131: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** DataSync, Snow Family
 
 ### Question
 A company must migrate 150 TB of file data from its on-premises NAS to Amazon S3 within 30 days. The data center already has a 1 Gbps AWS Direct Connect connection, and about 80% of its capacity is available for the migration around the clock. The company wants the simplest solution that meets the deadline. Which solution should a solutions architect recommend?
@@ -3594,6 +3725,7 @@ A company must migrate 150 TB of file data from its on-premises NAS to Amazon S3
 
 ## ALPHA-132: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** Direct Connect
 
 ### Question
 A company replicates on-premises backup data to Amazon S3 every night. About 3 TB of data changes each day, and the replication must finish inside an 8-hour overnight window. The company will use AWS Direct Connect for the transfer. What is the MINIMUM connection speed that lets the nightly replication finish within the window?
@@ -3621,6 +3753,7 @@ A company replicates on-premises backup data to Amazon S3 every night. About 3 T
 
 ## ALPHA-133: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** EBS › Volume types
 
 ### Question
 A MySQL database runs on an Amazon EC2 instance with a 500 GiB gp2 Amazon EBS volume. The data set will not grow, but the workload now needs a sustained 6,000 IOPS, and the volume is running out of burst credits every afternoon. Which solution provides the required performance MOST cost-effectively?
@@ -3648,6 +3781,7 @@ A MySQL database runs on an Amazon EC2 instance with a 500 GiB gp2 Amazon EBS vo
 
 ## ALPHA-134: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Services:** EBS › Volume types
 
 ### Question
 A team needs a Provisioned IOPS SSD (io1) Amazon EBS volume that delivers 32,000 IOPS for a database whose data files occupy only 200 GiB. What is the SMALLEST io1 volume size the team can create that supports 32,000 provisioned IOPS?
@@ -3675,6 +3809,7 @@ A team needs a Provisioned IOPS SSD (io1) Amazon EBS volume that delivers 32,000
 
 ## ALPHA-135: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** EFS › Performance & throughput modes
 
 ### Question
 A company stores 200 GiB of shared data on an Amazon EFS file system that uses the Bursting throughput mode. Each night a batch job reads the data set continuously for 6 hours and needs a sustained 100 MiB/s. After the first hour, throughput drops sharply. Which TWO changes will each let the job sustain 100 MiB/s? (Select TWO.)
@@ -3704,6 +3839,7 @@ A company stores 200 GiB of shared data on an Amazon EFS file system that uses t
 
 ## ALPHA-136: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** S3 › Performance & Transfer Acceleration
 
 ### Question
 An application serves thumbnails from a single Amazon S3 bucket, with all objects stored under one prefix. During peak hours the application issues about 20,000 GET requests per second and receives HTTP 503 Slow Down errors. The team does not want to add a caching layer. Which change will remove the errors?
@@ -3731,6 +3867,7 @@ An application serves thumbnails from a single Amazon S3 bucket, with all object
 
 ## ALPHA-137: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** S3 › Storage classes
 
 ### Question
 A company is launching an application that will store 50 million objects in Amazon S3. The average object size is 32 KB, and each object is read a few times per month. The team must choose whether to store the objects in S3 Standard or S3 Standard-IA. Assume S3 Standard costs $0.023 per GB-month, S3 Standard-IA costs $0.0125 per GB-month, and 1 GB = 1,000,000 KB. Which statement about the monthly storage cost is correct?
@@ -3758,6 +3895,7 @@ A company is launching an application that will store 50 million objects in Amaz
 
 ## ALPHA-138: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** hard · **Pillars:** Cost Optimization
+**Services:** S3 › Lifecycle rules, S3 › Glacier & retrieval
 
 ### Question
 An application writes 50 MB log files to Amazon S3 Standard. Each file is read frequently for the first 7 days, rarely after that but must then be retrievable within milliseconds, and must be deleted 45 days after creation. Assume these prices per GB-month: S3 Standard $0.023, S3 Standard-IA $0.0125, S3 Glacier Instant Retrieval $0.004, and a 30-day month. Which lifecycle policy is the MOST cost-effective?
@@ -3785,6 +3923,7 @@ An application writes 50 MB log files to Amazon S3 Standard. Each file is read f
 
 ## ALPHA-139: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Reliability
+**Services:** S3 › Glacier & retrieval
 
 ### Question
 A company must keep 500 TB of compliance records for 10 years. The records are almost never accessed, but when an auditor requests a record the company must provide it within 24 hours. Which storage option meets these requirements at the LOWEST storage cost?
@@ -3812,6 +3951,7 @@ A company must keep 500 TB of compliance records for 10 years. The records are a
 
 ## ALPHA-140: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** DynamoDB › Capacity modes
 
 ### Question
 An Amazon DynamoDB table in provisioned capacity mode stores 6 KB order items and 2.5 KB event items. At peak the application performs 80 strongly consistent reads per second of order items and 100 standard (non-transactional) writes per second of event items. Which TWO settings are the MINIMUM that handle the peak without throttling? (Select TWO.)
@@ -3841,6 +3981,7 @@ An Amazon DynamoDB table in provisioned capacity mode stores 6 KB order items an
 
 ## ALPHA-141: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** DynamoDB › Capacity modes
 
 ### Question
 A retail application uses an Amazon DynamoDB table in provisioned capacity mode. Product items are 10 KB. The catalog page performs 600 eventually consistent reads per second. Checkout uses TransactWriteItems to update 3 KB inventory items at 50 items per second. How much capacity must be provisioned for this traffic?
@@ -3868,6 +4009,7 @@ A retail application uses an Amazon DynamoDB table in provisioned capacity mode.
 
 ## ALPHA-142: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Services:** Kinesis Data Streams
 
 ### Question
 A company ingests clickstream events into Amazon Kinesis Data Streams in provisioned mode. Producers send 5,000 records per second, and each record is 3 KB (assume 1 MB = 1,000 KB). Three separate consumer applications each read the full stream using the standard (shared-throughput) GetRecords API. The stream has 15 shards, and the consumers are falling behind. Which TWO changes will each give every consumer enough read throughput? (Select TWO.)
@@ -3897,6 +4039,7 @@ A company ingests clickstream events into Amazon Kinesis Data Streams in provisi
 
 ## ALPHA-143: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** Lambda › Concurrency
 
 ### Question
 An AWS Lambda function behind Amazon API Gateway takes an average of 3 seconds per invocation because it waits on a slow third-party API. A marketing campaign will raise traffic to a steady 400 requests per second. The account uses the default Regional concurrency quota of 1,000, and no other functions run in the Region. Which TWO actions will prevent throttling during the campaign? (Select TWO.)
@@ -3926,6 +4069,7 @@ An AWS Lambda function behind Amazon API Gateway takes an average of 3 seconds p
 
 ## ALPHA-144: Compute & Serverless
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** Lambda
 
 ### Question
 An AWS Lambda function processes images and runs 10 million times per month. Load testing gives these average durations: 1,700 ms at 512 MB, 800 ms at 1,024 MB, 350 ms at 2,048 MB, and 300 ms at 4,096 MB. Lambda compute is billed per GB-second. Which memory setting has the LOWEST compute cost?
@@ -3953,6 +4097,7 @@ An AWS Lambda function processes images and runs 10 million times per month. Loa
 
 ## ALPHA-145: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Services:** EC2 Auto Scaling
 
 ### Question
 A web application runs on Amazon EC2 instances in an Auto Scaling group. Load testing shows it needs at least 6 instances to serve peak traffic. The application must keep serving peak traffic even if an entire Availability Zone fails, without waiting for Auto Scaling to launch replacements. The Region has three Availability Zones. Which TWO Auto Scaling group configurations meet these requirements? (Select TWO.)
@@ -3982,6 +4127,7 @@ A web application runs on Amazon EC2 instances in an Auto Scaling group. Load te
 
 ## ALPHA-146: Compute & Serverless
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** EC2 Auto Scaling › Target tracking
 
 ### Question
 An Auto Scaling group runs 10 instances at an average CPU utilization of 84%. The team adds a target tracking policy with a target of 60% average CPU utilization. Assuming the load stays the same and spreads evenly, how many instances will the group run after it scales out?
@@ -4009,6 +4155,7 @@ An Auto Scaling group runs 10 instances at an average CPU utilization of 84%. Th
 
 ## ALPHA-147: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** VPC › Subnets & routing
 
 ### Question
 A company is creating a subnet for Amazon EC2 instances and interface endpoints that need 25 private IP addresses in total, with no room required for growth. What is the SMALLEST subnet CIDR block that fits?
@@ -4036,6 +4183,7 @@ A company is creating a subnet for Amazon EC2 instances and interface endpoints 
 
 ## ALPHA-148: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Reliability, Operational Excellence
+**Services:** VPC › Subnets & routing
 
 ### Question
 A company is designing a new VPC across three Availability Zones. Each Availability Zone needs one private subnet that can hold 400 IP addresses and one public subnet that can hold 200 IP addresses. The company wants the smallest VPC CIDR block that fits all six subnets so that it keeps as much of its address plan free as possible. Which VPC CIDR block should the team choose?
@@ -4063,6 +4211,7 @@ A company is designing a new VPC across three Availability Zones. Each Availabil
 
 ## ALPHA-149: Databases & Caching
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Services:** DynamoDB › Partition design
 
 ### Question
 A live-voting application stores vote totals in an Amazon DynamoDB table that uses on-demand capacity mode, with one item per candidate and candidate_id as the partition key. Each vote is an UpdateItem call that adds 1 to the candidate's item, which is smaller than 1 KB. During a televised final, the leading candidate receives 4,500 votes per second, and writes to that item are throttled even though the table as a whole is far below its limits. Which solution removes the throttling?
@@ -4090,6 +4239,7 @@ A live-voting application stores vote totals in an Amazon DynamoDB table that us
 
 ## ALPHA-150: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Services:** Route 53 › Routing policies
 
 ### Question
 A company is running a canary release. Amazon Route 53 has two weighted records for app.example.com: the current version has weight 200 and the new version has weight 50. What percentage of DNS responses will point to the new version?
@@ -4117,6 +4267,7 @@ A company is running a canary release. Amazon Route 53 has two weighted records 
 
 ## ALPHA-151: Networking & Content Delivery
 **Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** CloudFront › Caching
 
 ### Question
 A news website uses Amazon CloudFront in front of an origin fleet that can handle at most 1,500 requests per second. During breaking news, viewers send 30,000 requests per second, the cache hit ratio is 90%, and the origin is overloaded. What cache hit ratio must CloudFront reach to keep the origin within its capacity, and which change is MOST likely to achieve it?
@@ -4144,6 +4295,7 @@ A news website uses Amazon CloudFront in front of an origin fleet that can handl
 
 ## ALPHA-152: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** VPC › Gateway endpoints, VPC › NAT gateways
 
 ### Question
 Applications in private subnets move about 60 TB per month to and from Amazon S3 in the same Region through a NAT gateway. Assume NAT gateway data processing costs $0.045 per GB and 1 TB = 1,000 GB. The company wants to cut this cost without changing application code. Which solution saves the most, and roughly how much per month?
@@ -4171,6 +4323,7 @@ Applications in private subnets move about 60 TB per month to and from Amazon S3
 
 ## ALPHA-153: Cost Management & Optimization
 **Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** EC2 › Reserved Instances & Savings Plans
 
 ### Question
 A reporting server runs on one Amazon EC2 instance only during business hours: 10 hours per day, 5 days per week. It must not be interrupted while it runs. Assume the On-Demand price is $0.20 per hour and a 1-year No Upfront Standard Reserved Instance costs an effective $0.126 per hour, billed for every hour of the term whether or not the instance runs. Which purchasing option is the MOST cost-effective?
@@ -4198,6 +4351,7 @@ A reporting server runs on one Amazon EC2 instance only during business hours: 1
 
 ## ALPHA-154: Disaster Recovery & Migration
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** RDS › Backups & PITR, DR strategies › RPO & RTO
 
 ### Question
 An Amazon RDS for PostgreSQL database stores order data, and automated backups are enabled with one daily snapshot. The business must be able to recover from accidental data deletion or corruption with a recovery point objective (RPO) of 15 minutes. Which approach meets the RPO?
@@ -4225,6 +4379,7 @@ An Amazon RDS for PostgreSQL database stores order data, and automated backups a
 
 ## ALPHA-155: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Services:** CloudWatch › Alarms
 
 ### Question
 An Amazon CloudWatch alarm watches an application's error rate with a 1-minute period. Short one-minute spikes are normal and must not trigger the alarm, but a real problem must page the on-call engineer within 3 minutes of starting. Which alarm configuration meets both requirements?
@@ -4252,6 +4407,7 @@ An Amazon CloudWatch alarm watches an application's error rate with a 1-minute p
 
 ## ALPHA-156: Application Integration
 **Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** EC2 Auto Scaling › Target tracking
 
 ### Question
 Workers on Amazon EC2 instances consume messages from an Amazon SQS queue. Each instance processes 10 messages per second, and a message may wait at most 60 seconds in the queue. At peak the queue holds 18,000 visible messages. The team uses target tracking on a custom backlog-per-instance metric. What target value should the team set, and how many instances will the group run at peak?
@@ -4279,6 +4435,7 @@ Workers on Amazon EC2 instances consume messages from an Amazon SQS queue. Each 
 
 ## ALPHA-157: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Services:** S3 › Performance & Transfer Acceleration
 
 ### Question
 A company uploads a 2 TB database export file to Amazon S3 each week using multipart upload. The upload tool is configured with a 100 MB part size, and the upload fails before completing. Assume 1 TB = 1,000,000 MB. Which change will allow the upload to succeed?
@@ -4306,6 +4463,7 @@ A company uploads a 2 TB database export file to Amazon S3 each week using multi
 
 ## ALPHA-158: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** Step Functions, Lambda › Limits
 
 ### Question
 A nightly AWS Lambda function reads a manifest of 50,000 records and calls an external API once per record. Each call takes about 40 ms and the records are independent of each other. The function processes the records in a loop and now times out every night. Which solution will complete the job with the LEAST operational overhead?
@@ -4333,6 +4491,7 @@ A nightly AWS Lambda function reads a manifest of 50,000 records and calls an ex
 
 ## ALPHA-159: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Services:** SQS › FIFO queues
 
 ### Question
 An order system publishes events to an Amazon SQS FIFO queue, using the order ID as the message group ID so that events for each order stay in sequence. The queue does not use high throughput mode. Producers call SendMessage once per event, and at peak they must send 2,500 messages per second, but calls are being throttled. Which TWO changes will each let the producers reach 2,500 messages per second while keeping per-order ordering? (Select TWO.)
@@ -4362,6 +4521,7 @@ An order system publishes events to an Amazon SQS FIFO queue, using the order ID
 
 ## ALPHA-160: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Cost Optimization, Performance Efficiency
+**Services:** S3 › Encryption
 
 ### Question
 A data lake bucket in Amazon S3 uses SSE-KMS with a customer managed key. Applications perform 6,000 GET and 5,000 PUT requests per second, and each request causes a call to AWS KMS. The account's KMS quota for cryptographic operations in the Region is 10,000 requests per second, shared by all keys, and requests are failing with ThrottlingException. The security team requires that the customer managed key remain in use. Which solution is the MOST cost-effective?
