@@ -631,6 +631,7 @@
         const BANK_DATA = ['mistakes', 'flagged', 'attempts'];   // what each bank stores
         let bankKey = 'alpha';
         const bankCounts = {};   // bank key -> question count, for the menu; filled as each file is read
+        const bankQuestions = {};   // bank key -> its questions, kept once read so the overview can combine every bank
 
         function storeKey(name) {
             return BANKS[bankKey].prefix + name;
@@ -681,7 +682,7 @@
                 if (parseRoute().name === 'dashboard') endSession();
                 renderRoute();
                 window.addEventListener('popstate', renderRoute);
-                countOtherBanks();
+                loadOtherBanks();
             });
         };
 
@@ -699,16 +700,18 @@
             el.innerText = version + ' · ' + new Date(deployed).toLocaleString(undefined, DEPLOYED_DATE);
         }
 
-        // The menu shows every bank's size, so the banks that are not active are read once in the
-        // background; a file that cannot be read simply shows no count.
-        async function countOtherBanks() {
+        // The menu shows every bank's size and the overview combines every bank, so the banks that are
+        // not active are read once in the background; a file that cannot be read simply shows no count.
+        async function loadOtherBanks() {
             for (const [key, bank] of Object.entries(BANKS)) {
-                if (key in bankCounts) continue;
+                if (key in bankQuestions) continue;
                 try {
                     const res = await fetch('./' + bank.file, { cache: 'no-store' });
                     if (!res.ok) continue;
                     const parsed = await res.json();
-                    if (Array.isArray(parsed)) bankCounts[key] = parsed.length;
+                    if (!Array.isArray(parsed)) continue;
+                    bankQuestions[key] = parsed;
+                    bankCounts[key] = parsed.length;
                 } catch (e) {}
             }
             renderBankMenu();
@@ -724,6 +727,7 @@
                     throw new Error(file + ' must be a non-empty array of questions.');
                 }
                 questions = parsed;
+                bankQuestions[bankKey] = parsed;
                 bankCounts[bankKey] = parsed.length;
             } catch (err) {
                 questions = [];
@@ -1835,25 +1839,78 @@
             return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
         }
 
-        // A full estimate takes a noticeable fraction of a second on a phone, and the dashboard, the Smart
-        // quiz and the quiz bar all ask for it, so the last result is reused until your answers change.
-        // The day is part of the key because the range still widens with time away from practice.
-        let estimateCache = { key: null, value: null };
-        function estimateExamScore() {
-            let h = 0, n = 0;
-            for (const list of Object.values(attemptLog)) {
-                for (const entry of list) { h = (h * 31 + entry[0] + 2 * (entry[2] || 0) + entry[1]) % 1000000007; n++; }
-            }
-            const key = [bankKey, questions.length, n, h, Math.floor(Date.now() / DAY_MS)].join('|');
-            if (estimateCache.key !== key) estimateCache = { key, value: computeExamEstimate() };
-            return estimateCache.value;
+        // The scorers take a list of answered questions, each with its own answers: { q, log }. The active
+        // bank's list comes from the bank in use; the overview passes every bank's together.
+        function activeAnswered() {
+            return answeredIn(questions, attemptLog);
         }
 
-        function computeExamEstimate() {
-            // Ages are measured from your latest answer, not the clock, so the estimate only
-            // changes when you answer something; a refresh alone reproduces the same numbers.
+        function answeredIn(bankQs, log) {
+            return bankQs.filter(q => log[q.id] && log[q.id].length).map(q => ({ q, log: log[q.id] }));
+        }
+
+        // Every bank whose questions have been read. The active bank's answers come from memory, which may be
+        // ahead of storage mid-quiz; the others come from storage, where sync keeps them current.
+        function allBanksAnswered() {
+            const out = [];
+            for (const key of Object.keys(BANKS)) {
+                if (!bankQuestions[key]) continue;
+                out.push(...answeredIn(bankQuestions[key], key === bankKey ? attemptLog : readLocalBank(key).attempts));
+            }
+            return out;
+        }
+
+        // A full estimate takes a noticeable fraction of a second on a phone, and the dashboard, the Smart
+        // quiz and the quiz bar all ask for it, so the last result is reused until your answers change.
+        // Each scope (the active bank, or all banks) keeps its own result, so neither evicts the other.
+        // The day is part of the key because the range still widens with time away from practice.
+        const estimateCache = {};
+        function estimateExamScore(answered = activeAnswered(), scope = bankKey) {
+            let h = 0, n = 0;
+            for (const { q, log } of answered) {
+                for (const entry of log) { h = (h * 31 + entry[0] + 2 * (entry[2] || 0) + entry[1]) % 1000000007; n++; }
+                h = (h * 31 + q.id) % 1000000007;
+            }
+            const key = [answered.length, n, h, Math.floor(Date.now() / DAY_MS)].join('|');
+            if (!estimateCache[scope] || estimateCache[scope].key !== key) {
+                estimateCache[scope] = { key, value: computeExamEstimate(answered) };
+            }
+            return estimateCache[scope].value;
+        }
+
+        // The evidence one question's answers carry, as { y, w, b, c } per attempt. Repeats mostly measure
+        // memory, so each is weighted by the gap since the attempt before it, and all repeats of a question
+        // share one small evidence budget. The budget is spent newest first: when it runs out, it is the
+        // oldest repeats that stop counting, never your latest answer.
+        function answerObservations(q, log, now) {
+            const { b, c } = itemParams(q);
+            const repeatW = log.map(() => 1);
+            let repeatBudget = REPEAT_CAP;
+            for (let i = log.length - 1; i > 0; i--) {
+                const gapDays = Math.max(0, log[i][1] - log[i - 1][1]) / DAY_MS;
+                repeatW[i] = Math.min(repeatBudget, REPEAT_MIN + (1 - REPEAT_MIN) * (1 - Math.exp(-gapDays / REPEAT_GAP_DAYS)));
+                repeatBudget -= repeatW[i];
+            }
+            return log.map((entry, i) => {
+                const correct = entry[0], ts = entry[1], flags = entry[2] || 0;
+                const w = Math.pow(0.5, Math.max(0, now - ts) / DAY_MS / HALF_LIFE_DAYS) * repeatW[i];
+                // Mistake drills are always repeats, so the repeat weighting already covers them; no extra penalty.
+                // A hint is modelled as an easier item, not as weaker data: a right answer then moves
+                // the estimate less, while a wrong answer even with a hint still counts in full.
+                return { y: correct, w, b: (flags & FLAG_HINT) ? b - HINT_EASE : b, c };
+            });
+        }
+
+        // Ages are measured from your latest answer, not the clock, so the estimate only
+        // changes when you answer something; a refresh alone reproduces the same numbers.
+        function latestAnswerTime(answered) {
             let now = 0;
-            for (const list of Object.values(attemptLog)) for (const entry of list) now = Math.max(now, entry[1]);
+            for (const { log } of answered) for (const entry of log) now = Math.max(now, entry[1]);
+            return now;
+        }
+
+        function computeExamEstimate(answered) {
+            const now = latestAnswerTime(answered);
             const latest = now;
             const per = {};
             for (const d of Object.keys(EXAM_DOMAINS)) per[d] = { obs: [], n: 0, questions: 0, attempts: 0 };
@@ -1862,36 +1919,17 @@
             const all = [];
             let distinct = 0, totalAttempts = 0;
 
-            for (const q of questions) {
-                const list = attemptLog[q.id];
-                if (!list || !list.length) continue;
+            for (const { q, log } of answered) {
                 const d = per[examDomainOf(q)];
                 const tid = taskOf(q);
                 const t = tid && tid[0] === String(examDomainOf(q)) ? perTask[tid] : null;   // a task outside its question's domain (a mistagged import) is left out
-                const { b, c } = itemParams(q);
                 distinct++; d.questions++;
                 if (t) t.questions++;
-                // Repeats mostly measure memory, so each is weighted by the gap since the attempt before it,
-                // and all repeats of a question share one small evidence budget. The budget is spent newest
-                // first: when it runs out, it is the oldest repeats that stop counting, never your latest answer.
-                const repeatW = list.map(() => 1);
-                let repeatBudget = REPEAT_CAP;
-                for (let i = list.length - 1; i > 0; i--) {
-                    const gapDays = Math.max(0, list[i][1] - list[i - 1][1]) / DAY_MS;
-                    repeatW[i] = Math.min(repeatBudget, REPEAT_MIN + (1 - REPEAT_MIN) * (1 - Math.exp(-gapDays / REPEAT_GAP_DAYS)));
-                    repeatBudget -= repeatW[i];
-                }
-                list.forEach((entry, i) => {
-                    const correct = entry[0], ts = entry[1], flags = entry[2] || 0;
-                    const w = Math.pow(0.5, Math.max(0, now - ts) / DAY_MS / HALF_LIFE_DAYS) * repeatW[i];
-                    // Mistake drills are always repeats, so the repeat weighting already covers them; no extra penalty.
-                    // A hint is modelled as an easier item, not as weaker data: a right answer then moves
-                    // the estimate less, while a wrong answer even with a hint still counts in full.
-                    const o = { y: correct, w, b: (flags & FLAG_HINT) ? b - HINT_EASE : b, c };
+                for (const o of answerObservations(q, log, now)) {
                     d.obs.push(o); all.push(o);
-                    d.n += w; d.attempts++; totalAttempts++;
-                    if (t) { t.obs.push(o); t.n += w; t.attempts++; }
-                });
+                    d.n += o.w; d.attempts++; totalAttempts++;
+                    if (t) { t.obs.push(o); t.n += o.w; t.attempts++; }
+                }
             }
             if (distinct < MIN_ANSWERED) return { ready: false, distinct };
 
@@ -1998,16 +2036,14 @@
             return [100 + 900 * lo / N, 100 + 900 * hi / N];
         }
 
-        function simpleExamScore() {
+        function simpleExamScore(answered = activeAnswered()) {
             const per = {};
             for (const id of Object.keys(EXAM_DOMAINS)) per[id] = { right: 0, answered: 0, acc: null };
             let distinct = 0;
-            for (const q of questions) {
-                const list = attemptLog[q.id];
-                if (!list || !list.length) continue;
+            for (const { q, log } of answered) {
                 const d = per[examDomainOf(q)];
                 d.answered++; distinct++;
-                if (list[list.length - 1][0]) d.right++;
+                if (log[log.length - 1][0]) d.right++;
             }
             if (distinct < SIMPLE_MIN_ANSWERED) return { ready: false, distinct, min: SIMPLE_MIN_ANSWERED };
             // a domain with no answers yet is left out and the other weights are rescaled to 100%
@@ -2048,15 +2084,16 @@
 
         // One shape for either scoring: ready/distinct/min, the score and how it is shown, its colour, a pass
         // line for tooltips, and each exam domain's level (null while a domain has nothing to go on).
-        function examScore(mode = scoringMode) {
+        // With no answers given it scores the active bank; the overview passes every bank's, under scope 'all'.
+        function examScore(mode = scoringMode, answered = activeAnswered(), scope = bankKey) {
             if (mode === 'simple') {
-                const s = simpleExamScore();
+                const s = simpleExamScore(answered);
                 if (!s.ready) return s;
                 const levels = {};
                 for (const [id, d] of Object.entries(s.per)) levels[id] = d.acc;
                 return { ...s, shown: s.score, tone: simpleTone(s.score), passLine: accuracyPercent(s.accuracy) + '% correct, ' + simpleTone(s.score).label.toLowerCase(), levels };
             }
-            const e = estimateExamScore();
+            const e = estimateExamScore(answered, scope);
             if (!e.ready) return { ...e, min: MIN_ANSWERED };
             const levels = {};
             for (const id of Object.keys(EXAM_DOMAINS)) levels[id] = e.post[id].mean;
