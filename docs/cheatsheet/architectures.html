@@ -14,7 +14,7 @@
    Encodings repeat across diagrams: green solid = the request or private path, orange dashed = traffic
    through a NAT gateway (billed per GB), ink = database or data traffic. */
 .arch{padding-block:28px 60px;display:grid;gap:32px}
-.arch > *,.arch-sec > *{min-width:0}
+.arch > *,.arch-sec > *,.arch-cols > *{min-width:0}
 .arch h1{font-size:clamp(28px,4.4vw,40px);font-weight:800;letter-spacing:-.02em}
 .arch-sec{display:grid;gap:14px}
 .arch-sec h2{font-size:22px;font-weight:800;letter-spacing:-.01em}
@@ -59,6 +59,26 @@
 .d-mono{font-family:var(--mono);font-size:11px}
 .d-ok{fill:var(--accent);font-weight:700}
 .d-warn{fill:var(--aws);font-weight:700}
+.d-alt{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:3 3}
+.d-head-alt{fill:var(--muted)}
+/* zones drawn by scripts/build-architectures.js */
+.d-z-region,.d-z-plain{fill:none;stroke:var(--line);stroke-width:1.5}
+.d-z-vpc{fill:none;stroke:var(--accent);stroke-width:1.8}
+.d-z-az{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:6 5}
+.d-z-pub{fill:var(--accent-soft)}
+.d-z-priv,.d-z-group{fill:var(--surface-2)}
+.d-z-onprem,.d-z-account{fill:none;stroke:var(--muted);stroke-width:1.4}
+.d-z-asg{fill:none;stroke:var(--aws);stroke-width:1.4;stroke-dasharray:5 4}
+
+/* contents and group headings */
+.toc{display:grid;gap:16px 28px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.toc ol{margin:6px 0 0;padding-left:1.7em}
+.toc li{font-size:13px;margin-top:2px}
+.toc a{color:var(--ink);text-decoration:none}
+.toc a:hover{color:var(--accent)}
+.toc a.toc-group{font:700 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.arch-group{font:700 12px/1.3 var(--mono)!important;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding-top:22px;border-top:1px solid var(--line)}
+.arch-sec,.arch-group{scroll-margin-top:70px}
 </style>
 </head>
 <body>
@@ -75,6 +95,21 @@
     <h1 style="margin-top:6px">Architecture diagrams</h1>
   </div>
   <p class="oneliner" style="margin-top:-12px">The patterns the exam keeps coming back to, drawn as traffic paths. For each one, know where the single points of failure are, what the cheaper option is, and which look-alike service is the trap.</p>
+
+  <!-- GENERATED:CONTENTS START (scripts/build-architectures.js) -->
+    <nav class="toc card" aria-label="Contents">
+      <div><a class="toc-group" href="#g-network">Networking foundations</a><ol><li value="1"><a href="#vpc-layout">Classic multi-AZ VPC</a></li><li value="2"><a href="#vpc-endpoints">Private access to AWS services</a></li><li value="3"><a href="#hybrid">Hybrid connectivity</a></li><li value="4"><a href="#tgw">Transit Gateway hub and spoke</a></li><li value="5"><a href="#privatelink">PrivateLink for a SaaS service</a></li><li value="6"><a href="#hybrid-dns">Hybrid DNS with Route 53 Resolver</a></li></ol></div>
+      <div><a class="toc-group" href="#g-ha">Highly available web applications</a><ol><li value="7"><a href="#three-tier">Three-tier web application</a></li><li value="8"><a href="#serverless">Serverless web application</a></li><li value="9"><a href="#edge">CloudFront or Global Accelerator</a></li></ol></div>
+      <div><a class="toc-group" href="#g-decouple">Decoupling and event-driven design</a><ol><li value="10"><a href="#queue">Queue-based load leveling</a></li><li value="11"><a href="#fanout">Fan-out with SNS and SQS</a></li><li value="12"><a href="#eventbridge">Event routing with EventBridge</a></li><li value="13"><a href="#stepfunctions">Workflow orchestration with Step Functions</a></li></ol></div>
+      <div><a class="toc-group" href="#g-data">Data and analytics</a><ol><li value="14"><a href="#streaming">Streaming pipeline</a></li><li value="15"><a href="#datalake">Data lake on S3</a></li><li value="16"><a href="#s3events">Event-driven S3 processing</a></li></ol></div>
+      <div><a class="toc-group" href="#g-db">Databases</a><ol><li value="17"><a href="#readscale">Read scaling and caching</a></li><li value="18"><a href="#multiregion">Multi-Region data</a></li></ol></div>
+      <div><a class="toc-group" href="#g-dr">Disaster recovery</a><ol><li value="19"><a href="#dr">Disaster recovery strategies</a></li></ol></div>
+      <div><a class="toc-group" href="#g-storage">Storage</a><ol><li value="20"><a href="#hybridstorage">Hybrid storage and data transfer</a></li><li value="21"><a href="#filesystems">Shared file systems</a></li><li value="22"><a href="#s3protect">S3 lifecycle and protection</a></li></ol></div>
+      <div><a class="toc-group" href="#g-security">Security and multiple accounts</a><ol><li value="23"><a href="#landingzone">Multi-account landing zone</a></li><li value="24"><a href="#crossaccount">Cross-account access</a></li><li value="25"><a href="#edgesecurity">Edge security and threat detection</a></li></ol></div>
+    </nav>
+  <!-- GENERATED:CONTENTS END -->
+
+  <h2 class="arch-group" id="g-network">Networking foundations</h2>
 
   <!-- ============ 1. Classic VPC layout ============ -->
   <section class="arch-sec" id="vpc-layout">
@@ -359,6 +394,974 @@
       </ul>
     </div>
   </section>
+
+  <!-- GENERATED:DIAGRAMS START (scripts/build-architectures.js; diagrams 1 and 2 above are hand-drawn) -->
+    
+  <section class="arch-sec" id="hybrid">
+    <h2>3. Hybrid connectivity</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 450" role="img" aria-label="An on-premises data center connected to AWS. Two Direct Connect connections at different Direct Connect locations reach a Direct Connect gateway, which is associated with a Transit Gateway attached to three VPCs. A Site-to-Site VPN over the internet to the same Transit Gateway is the backup path."><defs><marker id="d3-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d3-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d3-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-out" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-onprem" x="20" y="40" width="230" height="380" rx="12"/>
+<text class="d-cap" x="34" y="60">CORPORATE DATA CENTER</text>
+<rect class="d-z-group" x="300" y="50" width="210" height="100" rx="12"/>
+<text class="d-cap" x="314" y="70">DX LOCATION 1</text>
+<rect class="d-z-group" x="300" y="180" width="210" height="100" rx="12"/>
+<text class="d-cap" x="314" y="200">DX LOCATION 2</text>
+<rect class="d-z-region" x="560" y="20" width="380" height="410" rx="12"/>
+<text class="d-cap" x="574" y="40">AWS REGION</text>
+<polyline class="d-data" points="135,150 135,248" marker-end="url(#d3-data)"/>
+<polyline class="d-in" points="220,258 262,258 262,108 318,108" marker-end="url(#d3-in)"/>
+<polyline class="d-in" points="220,282 278,282 278,238 318,238" marker-end="url(#d3-in)"/>
+<polyline class="d-in" points="490,108 540,108 540,137 583,137" marker-end="url(#d3-in)"/>
+<polyline class="d-in" points="490,238 540,238 540,153 583,153" marker-end="url(#d3-in)"/>
+<polyline class="d-in" points="687.5,170 687.5,268" marker-end="url(#d3-in)"/>
+<polyline class="d-data" points="775,290 805,290"/>
+<polyline class="d-data" points="805,100 805,340"/>
+<polyline class="d-data" points="805,100 828,100" marker-end="url(#d3-data)"/>
+<polyline class="d-data" points="805,220 828,220" marker-end="url(#d3-data)"/>
+<polyline class="d-data" points="805,340 828,340" marker-end="url(#d3-data)"/>
+<polyline class="d-out" points="135,290 135,360 318,360" marker-end="url(#d3-out)"/>
+<polyline class="d-out" points="490,360 575,360 575,302 598,302" marker-end="url(#d3-out)"/>
+<rect class="d-node" x="50" y="110" width="170" height="40" rx="8"/><text class="d-title" x="135" y="135" text-anchor="middle">Servers</text>
+<rect class="d-node" x="50" y="250" width="170" height="40" rx="8"/><image data-ico="cgw" x="58" y="258" width="24" height="24"/><text class="d-title" x="88" y="275">Customer router</text>
+<rect class="d-node" x="320" y="88" width="170" height="40" rx="8"/><image data-ico="dx" x="328" y="96" width="24" height="24"/><text class="d-title" x="358" y="113">Direct Connect</text>
+<rect class="d-node" x="320" y="218" width="170" height="40" rx="8"/><image data-ico="dx" x="328" y="226" width="24" height="24"/><text class="d-title" x="358" y="243">Direct Connect</text>
+<rect class="d-node" x="320" y="340" width="170" height="40" rx="8"/><text class="d-title" x="405" y="365" text-anchor="middle">Internet</text>
+<rect class="d-node" x="585" y="120" width="215" height="50" rx="8"/><image data-ico="dx" x="593" y="133" width="24" height="24"/><text class="d-title" x="623" y="141">Direct Connect gateway</text><text class="d-lbl" x="623" y="157">global resource</text>
+<rect class="d-node" x="600" y="270" width="175" height="40" rx="8"/><image data-ico="tgw" x="608" y="278" width="24" height="24"/><text class="d-title" x="638" y="295">Transit Gateway</text>
+<rect class="d-node" x="830" y="80" width="95" height="40" rx="8"/><image data-ico="vpc" x="838" y="88" width="24" height="24"/><text class="d-title" x="868" y="105">VPC A</text>
+<rect class="d-node" x="830" y="200" width="95" height="40" rx="8"/><image data-ico="vpc" x="838" y="208" width="24" height="24"/><text class="d-title" x="868" y="225">VPC B</text>
+<rect class="d-node" x="830" y="320" width="95" height="40" rx="8"/><image data-ico="vpc" x="838" y="328" width="24" height="24"/><text class="d-title" x="868" y="345">VPC C</text>
+<text class="d-lbl d-halo" x="548" y="205">transit VIFs</text>
+<text class="d-lbl d-halo" x="722" y="225">association</text>
+<text class="d-lbl" x="878" y="382" text-anchor="middle">VPC attachments</text>
+<text class="d-lbl d-halo" x="210" y="352" text-anchor="middle">IPsec VPN</text>
+<text class="d-lbl d-halo" x="492" y="398" text-anchor="middle">VPN attachment · backup</text>
+</svg>
+      </div>
+      <figcaption>Two Direct Connect connections at different locations carry hybrid traffic over private links to one Direct Connect gateway, which a Transit Gateway shares with every VPC. A Site-to-Site VPN over the internet takes over if both links fail.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Direct Connect (primary)</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--aws)" stroke-width="2" stroke-dasharray="6 4"/></svg>Site-to-Site VPN over the internet (backup)</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Inside AWS or the data center</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>VPN or Direct Connect?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Site-to-Site VPN</th><th>Direct Connect</th></tr></thead><tbody><tr><td>Ready in</td><td>Minutes</td><td>Weeks (a physical cross-connect)</td></tr><tr><td>Path</td><td>Encrypted IPsec over the internet</td><td>Private dedicated link, not encrypted by default</td></tr><tr><td>Bandwidth</td><td>Up to 1.25 Gbps per tunnel, varies</td><td>50 Mbps to 100 Gbps, consistent</td></tr><tr><td>Use it for</td><td>Quick start, low volume, backup</td><td>Steady large transfers, predictable latency</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Consistent bandwidth" or "predictable latency" → Direct Connect; "quickly" or "cheaply" → Site-to-Site VPN.</li><li>Maximum resiliency: two Direct Connect connections at <b>two different locations</b>. Two links at one location do not survive a location outage.</li><li>Direct Connect plus a VPN as backup is the cost-effective middle ground. Encryption over Direct Connect: run an IPsec VPN over it, or MACsec on dedicated links.</li><li>One Direct Connect gateway reaches VPCs in any Region; with a Transit Gateway it scales to many VPCs through a single transit VIF.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="tgw">
+    <h2>4. Transit Gateway hub and spoke</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 410" role="img" aria-label="On the left, four VPCs joined by a full mesh of six peering connections, which do not route transitively. On the right, the same four VPCs and an on-premises VPN each attached once to a Transit Gateway hub, whose route tables decide which attachments can talk."><defs><marker id="d4-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d4-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="20" width="430" height="370" rx="12"/>
+<text class="d-cap" x="34" y="40">BEFORE: VPC PEERING MESH</text>
+<rect class="d-z-group" x="490" y="20" width="450" height="370" rx="12"/>
+<text class="d-cap" x="504" y="40">AFTER: TRANSIT GATEWAY HUB</text>
+<polyline class="d-alt" points="155,100 315,100"/>
+<polyline class="d-alt" points="155,290 315,290"/>
+<polyline class="d-alt" points="105,120 105,270"/>
+<polyline class="d-alt" points="365,120 365,270"/>
+<polyline class="d-alt" points="155,120 315,270"/>
+<polyline class="d-alt" points="315,120 155,270"/>
+<polyline class="d-data" points="570,110 570,197 628,197" marker-end="url(#d4-data)" marker-start="url(#d4-data)"/>
+<polyline class="d-data" points="570,300 570,213 628,213" marker-end="url(#d4-data)" marker-start="url(#d4-data)"/>
+<polyline class="d-data" points="860,110 860,197 807,197" marker-end="url(#d4-data)" marker-start="url(#d4-data)"/>
+<polyline class="d-data" points="860,300 860,213 807,213" marker-end="url(#d4-data)" marker-start="url(#d4-data)"/>
+<polyline class="d-data" points="717.5,225 717.5,298" marker-end="url(#d4-data)" marker-start="url(#d4-data)"/>
+<rect class="d-node" x="55" y="80" width="100" height="40" rx="8"/><image data-ico="vpc" x="63" y="88" width="24" height="24"/><text class="d-title" x="93" y="105">VPC A</text>
+<rect class="d-node" x="315" y="80" width="100" height="40" rx="8"/><image data-ico="vpc" x="323" y="88" width="24" height="24"/><text class="d-title" x="353" y="105">VPC B</text>
+<rect class="d-node" x="55" y="270" width="100" height="40" rx="8"/><image data-ico="vpc" x="63" y="278" width="24" height="24"/><text class="d-title" x="93" y="295">VPC C</text>
+<rect class="d-node" x="315" y="270" width="100" height="40" rx="8"/><image data-ico="vpc" x="323" y="278" width="24" height="24"/><text class="d-title" x="353" y="295">VPC D</text>
+<rect class="d-node" x="630" y="185" width="175" height="40" rx="8"/><image data-ico="tgw" x="638" y="193" width="24" height="24"/><text class="d-title" x="668" y="210">Transit Gateway</text>
+<rect class="d-node" x="520" y="70" width="100" height="40" rx="8"/><image data-ico="vpc" x="528" y="78" width="24" height="24"/><text class="d-title" x="558" y="95">VPC A</text>
+<rect class="d-node" x="810" y="70" width="100" height="40" rx="8"/><image data-ico="vpc" x="818" y="78" width="24" height="24"/><text class="d-title" x="848" y="95">VPC B</text>
+<rect class="d-node" x="520" y="300" width="100" height="40" rx="8"/><image data-ico="vpc" x="528" y="308" width="24" height="24"/><text class="d-title" x="558" y="325">VPC C</text>
+<rect class="d-node" x="810" y="300" width="100" height="40" rx="8"/><image data-ico="vpc" x="818" y="308" width="24" height="24"/><text class="d-title" x="848" y="325">VPC D</text>
+<rect class="d-node" x="645" y="300" width="145" height="40" rx="8"/><image data-ico="s2svpn" x="653" y="308" width="24" height="24"/><text class="d-title" x="683" y="325">VPN / DX</text>
+<text class="d-lbl d-halo" x="235" y="186" text-anchor="middle">6 peering connections</text>
+<text class="d-lbl" x="235" y="360" text-anchor="middle">n(n−1)/2 links · no transitive routing</text>
+<text class="d-lbl d-halo" x="717" y="150" text-anchor="middle">one attachment per spoke</text>
+<text class="d-lbl" x="717" y="360" text-anchor="middle">TGW route tables decide who talks · share with RAM</text>
+</svg>
+      </div>
+      <figcaption>Peering joins two VPCs at a time and never forwards traffic onward, so a full mesh grows as n(n−1)/2. A Transit Gateway needs one attachment per VPC or on-premises link, and its route tables decide which ones can reach each other.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>VPC peering connection</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Transit Gateway attachment</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Hundreds of VPCs", "simplify the mesh" or "transitive routing" → Transit Gateway. Two or three VPCs that only talk to each other → peering is cheaper (no hourly attachment charge).</li><li>Peering is not transitive: A↔B and B↔C does not give A↔C, and peered VPCs cannot have overlapping CIDRs.</li><li>Share one Transit Gateway with other accounts through AWS Resource Access Manager; separate route tables keep, for example, dev and prod apart.</li><li>Connect Regions with Transit Gateway peering; connect on-premises with a VPN attachment or a Direct Connect gateway.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="privatelink">
+    <h2>5. PrivateLink for a SaaS service</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 420" role="img" aria-label="Two consumer VPCs, both using 10.0.0.0/16, each with an interface endpoint. The endpoints connect over AWS PrivateLink to a VPC endpoint service in the provider VPC, which also uses 10.0.0.0/16. The service sits behind a Network Load Balancer in front of the provider instances."><defs><marker id="d5-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d5-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-vpc" x="20" y="30" width="370" height="160" rx="12"/>
+<text class="d-title" x="34" y="49">Consumer VPC 1 · 10.0.0.0/16</text>
+<rect class="d-z-vpc" x="20" y="230" width="370" height="160" rx="12"/>
+<text class="d-title" x="34" y="249">Consumer VPC 2 · 10.0.0.0/16</text>
+<rect class="d-z-vpc" x="560" y="30" width="380" height="360" rx="12"/>
+<text class="d-title" x="574" y="49">Provider VPC · 10.0.0.0/16</text>
+<polyline class="d-in" points="135,115 168,115" marker-end="url(#d5-in)"/>
+<polyline class="d-in" points="135,315 168,315" marker-end="url(#d5-in)"/>
+<polyline class="d-in" points="365,115 470,115 470,202 583,202" marker-end="url(#d5-in)"/>
+<polyline class="d-in" points="365,315 470,315 470,218 583,218" marker-end="url(#d5-in)"/>
+<polyline class="d-data" points="800,202 818,202 818,130 838,130" marker-end="url(#d5-data)"/>
+<polyline class="d-data" points="800,218 818,218 818,300 838,300" marker-end="url(#d5-data)"/>
+<rect class="d-node" x="40" y="95" width="95" height="40" rx="8"/><image data-ico="ec2" x="48" y="103" width="24" height="24"/><text class="d-title" x="78" y="120">App</text>
+<rect class="d-node" x="170" y="95" width="195" height="40" rx="8"/><image data-ico="vpce" x="178" y="103" width="24" height="24"/><text class="d-title" x="208" y="120">Interface endpoint</text>
+<rect class="d-node" x="40" y="295" width="95" height="40" rx="8"/><image data-ico="ec2" x="48" y="303" width="24" height="24"/><text class="d-title" x="78" y="320">App</text>
+<rect class="d-node" x="170" y="295" width="195" height="40" rx="8"/><image data-ico="vpce" x="178" y="303" width="24" height="24"/><text class="d-title" x="208" y="320">Interface endpoint</text>
+<rect class="d-node" x="585" y="185" width="215" height="50" rx="8"/><image data-ico="nlb" x="593" y="198" width="24" height="24"/><text class="d-title" x="623" y="206">Network Load Balancer</text><text class="d-lbl" x="623" y="222">VPC endpoint service</text>
+<rect class="d-node" x="840" y="110" width="90" height="40" rx="8"/><image data-ico="ec2" x="848" y="118" width="24" height="24"/><text class="d-title" x="878" y="135">Service</text>
+<rect class="d-node" x="840" y="280" width="90" height="40" rx="8"/><image data-ico="ec2" x="848" y="288" width="24" height="24"/><text class="d-title" x="878" y="305">Service</text>
+<text class="d-lbl d-halo" x="470" y="215" text-anchor="middle">AWS PrivateLink</text>
+<text class="d-lbl" x="205" y="408" text-anchor="middle">consumers start every connection; no peering, no route tables</text>
+</svg>
+      </div>
+      <figcaption>Each consumer reaches the provider through an interface endpoint in its own VPC, so identical CIDR ranges do not matter and nothing crosses the internet. Only the service behind the Network Load Balancer is exposed, not the provider's whole VPC.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Consumer requests over PrivateLink</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Inside the provider VPC</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Expose one service to many VPCs or accounts", "overlapping CIDRs", "no internet" → a VPC endpoint service (NLB, or GWLB for appliances) consumed through interface endpoints.</li><li>Peering or a Transit Gateway would join whole networks and fails with overlapping ranges; PrivateLink exposes a single service, one way.</li><li>The provider can require acceptance of each endpoint connection; consumers can add endpoint policies and security groups.</li><li>Third-party SaaS on AWS (and AWS services themselves) are reached the same way: an interface endpoint with private DNS.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="hybrid-dns">
+    <h2>6. Hybrid DNS with Route 53 Resolver</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 440" role="img" aria-label="An on-premises network and a VPC resolving each other's names. On-premises clients ask their DNS server, which forwards queries for aws.example.internal to a Route 53 Resolver inbound endpoint; the Resolver answers from a private hosted zone. Instances in the VPC ask the Resolver, whose forwarding rule sends queries for corp.example.com through an outbound endpoint to the on-premises DNS server."><defs><marker id="d6-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d6-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-onprem" x="20" y="30" width="300" height="380" rx="12"/>
+<text class="d-cap" x="34" y="50">CORPORATE NETWORK</text>
+<rect class="d-z-vpc" x="400" y="30" width="540" height="380" rx="12"/>
+<image data-ico="vpc" x="414" y="35" width="18" height="18"/>
+<text class="d-title" x="438" y="49">VPC</text>
+<polyline class="d-in" points="170,130 170,228" marker-end="url(#d6-in)"/>
+<polyline class="d-in" points="295,245 350,245 350,145 423,145" marker-end="url(#d6-in)"/>
+<polyline class="d-in" points="625,145 645,145 645,222 668,222" marker-end="url(#d6-in)"/>
+<polyline class="d-in" points="780,205 780,122" marker-end="url(#d6-in)"/>
+<polyline class="d-data" points="780,330 780,257" marker-end="url(#d6-data)"/>
+<polyline class="d-data" points="670,242 655,242 655,325 627,325" marker-end="url(#d6-data)"/>
+<polyline class="d-data" points="425,325 360,325 360,267 297,267" marker-end="url(#d6-data)"/>
+<rect class="d-node" x="45" y="90" width="250" height="40" rx="8"/><text class="d-title" x="170" y="115" text-anchor="middle">Laptop or server</text>
+<rect class="d-node" x="45" y="230" width="250" height="50" rx="8"/><text class="d-title" x="170" y="251" text-anchor="middle">DNS server</text><text class="d-lbl" x="170" y="267" text-anchor="middle">authoritative for corp.example.com</text>
+<rect class="d-node" x="425" y="120" width="200" height="50" rx="8"/><image data-ico="route53" x="433" y="133" width="24" height="24"/><text class="d-title" x="463" y="141">Inbound endpoint</text><text class="d-lbl" x="463" y="157">ENIs with private IPs</text>
+<rect class="d-node" x="425" y="300" width="200" height="50" rx="8"/><image data-ico="route53" x="433" y="313" width="24" height="24"/><text class="d-title" x="463" y="321">Outbound endpoint</text><text class="d-lbl" x="463" y="337">rule: corp.example.com</text>
+<rect class="d-node" x="670" y="205" width="220" height="50" rx="8"/><image data-ico="route53" x="678" y="218" width="24" height="24"/><text class="d-title" x="708" y="226">Route 53 Resolver</text><text class="d-lbl" x="708" y="242">the VPC's .2 address</text>
+<rect class="d-node" x="670" y="70" width="220" height="50" rx="8"/><text class="d-title" x="780" y="91" text-anchor="middle">Private hosted zone</text><text class="d-lbl" x="780" y="107" text-anchor="middle">aws.example.internal</text>
+<rect class="d-node" x="700" y="330" width="160" height="40" rx="8"/><image data-ico="ec2" x="708" y="338" width="24" height="24"/><text class="d-title" x="738" y="355">EC2 instance</text>
+<text class="d-lbl d-halo" x="170" y="190" text-anchor="middle">query aws.example.internal</text>
+<text class="d-lbl d-halo" x="360" y="205">conditional forwarder</text>
+<text class="d-lbl d-halo" x="790" y="160">answers</text>
+<text class="d-lbl d-halo" x="790" y="285">query corp.example.com</text>
+<text class="d-lbl d-halo" x="655" y="285" text-anchor="middle">forwarding rule</text>
+</svg>
+      </div>
+      <figcaption>Inbound endpoints let on-premises DNS forward queries into the VPC; outbound endpoints with forwarding rules let the VPC send queries for on-premises domains back out. Both travel over the VPN or Direct Connect link.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>On-premises resolving AWS names</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>The VPC resolving on-premises names</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>On-premises servers must resolve a <b>private hosted zone</b> → Resolver <b>inbound</b> endpoint, and a conditional forwarder on the corporate DNS server pointing at its IPs.</li><li>Instances must resolve <b>on-premises</b> names → Resolver <b>outbound</b> endpoint plus a forwarding rule for that domain; share the rule with other VPCs and accounts through RAM.</li><li>Both endpoints are ENIs in your subnets; put them in at least two AZs.</li><li>A private hosted zone answers only inside the VPCs associated with it; a public hosted zone answers everyone.</li></ul></div>
+  </section>
+
+  <h2 class="arch-group" id="g-ha">Highly available web applications</h2>
+  <section class="arch-sec" id="three-tier">
+    <h2>7. Three-tier web application</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 470" role="img" aria-label="Users look up the site in Route 53, which aliases to CloudFront. CloudFront serves static files from S3 and sends API paths to an Application Load Balancer, which spreads requests over EC2 instances in an Auto Scaling group across two Availability Zones. The instances read hot data from ElastiCache, write to the RDS primary, which replicates synchronously to a Multi-AZ standby and asynchronously to a read replica used for reports."><defs><marker id="d7-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d7-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d7-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-region" x="355" y="25" width="590" height="430" rx="12"/>
+<text class="d-cap" x="369" y="45">AWS REGION</text>
+<rect class="d-z-asg" x="375" y="185" width="290" height="110" rx="12"/>
+<polyline class="d-alt" points="67.5,205 67.5,102" marker-end="url(#d7-alt)"/>
+<polyline class="d-in" points="115,225 148,225" marker-end="url(#d7-in)"/>
+<polyline class="d-in" points="200,200 200,75 408,75" marker-end="url(#d7-in)"/>
+<polyline class="d-in" points="315,220 355,220 355,140 388,140" marker-end="url(#d7-in)"/>
+<polyline class="d-in" points="457.5,160 457.5,203" marker-end="url(#d7-in)"/>
+<polyline class="d-in" points="592.5,160 592.5,203" marker-end="url(#d7-in)"/>
+<polyline class="d-data" points="655,225 718,225" marker-end="url(#d7-data)"/>
+<polyline class="d-data" points="457.5,245 457.5,363" marker-end="url(#d7-data)"/>
+<polyline class="d-data" points="560,390 588,390" marker-end="url(#d7-data)"/>
+<polyline class="d-data" points="420,415 420,440 847.5,440 847.5,417" marker-end="url(#d7-data)"/>
+<polyline class="d-data" points="592.5,245 592.5,330 847.5,330 847.5,363" marker-end="url(#d7-data)"/>
+<rect class="d-node" x="20" y="205" width="95" height="40" rx="8"/><text class="d-title" x="67.5" y="230" text-anchor="middle">Users</text>
+<rect class="d-node" x="20" y="50" width="160" height="50" rx="8"/><image data-ico="route53" x="28" y="63" width="24" height="24"/><text class="d-title" x="58" y="71">Route 53</text><text class="d-lbl" x="58" y="87">alias record</text>
+<rect class="d-node" x="150" y="200" width="165" height="50" rx="8"/><image data-ico="cloudfront" x="158" y="213" width="24" height="24"/><text class="d-title" x="188" y="221">CloudFront</text><text class="d-lbl" x="188" y="237">WAF web ACL</text>
+<rect class="d-node" x="410" y="50" width="200" height="50" rx="8"/><image data-ico="s3" x="418" y="63" width="24" height="24"/><text class="d-title" x="448" y="71">S3 static assets</text><text class="d-lbl" x="448" y="87">private, via OAC</text>
+<rect class="d-node" x="390" y="120" width="255" height="40" rx="8"/><image data-ico="alb" x="398" y="128" width="24" height="24"/><text class="d-title" x="428" y="145">Application Load Balancer</text>
+<rect class="d-node" x="395" y="205" width="125" height="40" rx="8"/><image data-ico="ec2" x="403" y="213" width="24" height="24"/><text class="d-title" x="433" y="230">EC2 · AZ A</text>
+<rect class="d-node" x="530" y="205" width="125" height="40" rx="8"/><image data-ico="ec2" x="538" y="213" width="24" height="24"/><text class="d-title" x="568" y="230">EC2 · AZ B</text>
+<rect class="d-node" x="720" y="200" width="200" height="50" rx="8"/><image data-ico="elasticache" x="728" y="213" width="24" height="24"/><text class="d-title" x="758" y="221">ElastiCache</text><text class="d-lbl" x="758" y="237">sessions, hot reads</text>
+<rect class="d-node" x="390" y="365" width="170" height="50" rx="8"/><image data-ico="rds" x="398" y="378" width="24" height="24"/><text class="d-title" x="428" y="386">RDS primary</text><text class="d-lbl" x="428" y="402">all writes</text>
+<rect class="d-node" x="590" y="365" width="150" height="50" rx="8"/><image data-ico="rds" x="598" y="378" width="24" height="24"/><text class="d-title" x="628" y="386">Standby</text><text class="d-lbl" x="628" y="402">Multi-AZ, other AZ</text>
+<rect class="d-node" x="770" y="365" width="155" height="50" rx="8"/><image data-ico="rds" x="778" y="378" width="24" height="24"/><text class="d-title" x="808" y="386">Read replica</text><text class="d-lbl" x="808" y="402">reports</text>
+<text class="d-lbl" x="673" y="292">Auto Scaling group, 2 AZs</text>
+<text class="d-lbl d-halo" x="76" y="155">DNS lookup</text>
+<text class="d-lbl d-halo" x="132" y="216" text-anchor="middle">HTTPS</text>
+<text class="d-lbl d-halo" x="300" y="68" text-anchor="middle">/static/* (cached)</text>
+<text class="d-lbl d-halo" x="334" y="180" text-anchor="middle">/api/*</text>
+<text class="d-lbl d-halo" x="688" y="218" text-anchor="middle">get / set</text>
+<text class="d-lbl d-halo" x="470" y="330">writes</text>
+<text class="d-lbl d-halo" x="575" y="359" text-anchor="middle">sync</text>
+<text class="d-lbl d-halo" x="650" y="436" text-anchor="middle">async replication</text>
+<text class="d-lbl d-halo" x="760" y="326" text-anchor="middle">report queries</text>
+</svg>
+      </div>
+      <figcaption>The backbone of most scenario questions. Every tier is spread over two or more Availability Zones, static content never reaches the servers, hot reads stop at the cache, and reports run on a replica instead of the primary.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Data and replication</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>DNS</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>How a request flows</h3><ol><li>Route 53 answers with an <b>alias</b> to the CloudFront distribution (an alias, not a CNAME, works at the zone apex and is free).</li><li>CloudFront serves <code>/static/*</code> from its cache or S3, and forwards <code>/api/*</code> to the ALB; WAF filters both.</li><li>The ALB picks a healthy instance in any AZ; the Auto Scaling group keeps enough instances running.</li><li>Instances read from ElastiCache first, write to the RDS primary, and send heavy reports to the read replica.</li></ol></div><div class="card"><h3>Exam points</h3><ul><li>Keep the web tier <b>stateless</b>: sessions in ElastiCache or DynamoDB, not on the instance, so scaling in loses nothing.</li><li>Multi-AZ standby = availability (automatic failover, no reads). Read replica = read scaling (asynchronous, can be promoted, can be cross-Region).</li><li>Lock the bucket to CloudFront with Origin Access Control; lock the ALB to CloudFront with its managed prefix list or a secret header.</li><li>Scale on ALB request count per target or CPU with target tracking; use scheduled or predictive scaling for known daily peaks.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="serverless">
+    <h2>8. Serverless web application</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 400" role="img" aria-label="A browser loads the single-page app from S3 through CloudFront, signs in with a Cognito user pool to get a token, and calls API Gateway with it. API Gateway checks the token with a Cognito authorizer, applies throttling, and invokes Lambda, which reads and writes DynamoDB and hands slow work to an SQS queue."><defs><marker id="d8-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d8-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d8-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="95,175 95,65 238,65" marker-end="url(#d8-in)"/>
+<polyline class="d-in" points="415,65 488,65" marker-end="url(#d8-in)"/>
+<polyline class="d-alt" points="95,215 95,335 238,335" marker-end="url(#d8-alt)"/>
+<polyline class="d-in" points="170,195 238.1,214.5" marker-end="url(#d8-in)"/>
+<polyline class="d-alt" points="330,220 330,308" marker-end="url(#d8-alt)"/>
+<polyline class="d-in" points="415,195 488,195" marker-end="url(#d8-in)"/>
+<polyline class="d-data" points="665,195 738,195" marker-end="url(#d8-data)"/>
+<polyline class="d-data" points="577.5,220 577.5,325 738,325" marker-end="url(#d8-data)"/>
+<rect class="d-node" x="20" y="175" width="150" height="40" rx="8"/><text class="d-title" x="95" y="200" text-anchor="middle">Browser or app</text>
+<rect class="d-node" x="240" y="40" width="175" height="50" rx="8"/><image data-ico="cloudfront" x="248" y="53" width="24" height="24"/><text class="d-title" x="278" y="61">CloudFront</text><text class="d-lbl" x="278" y="77">HTTPS, caching</text>
+<rect class="d-node" x="490" y="40" width="175" height="50" rx="8"/><image data-ico="s3" x="498" y="53" width="24" height="24"/><text class="d-title" x="528" y="61">S3 bucket</text><text class="d-lbl" x="528" y="77">static site, OAC</text>
+<rect class="d-node" x="240" y="170" width="175" height="50" rx="8"/><image data-ico="apigw" x="248" y="183" width="24" height="24"/><text class="d-title" x="278" y="191">API Gateway</text><text class="d-lbl" x="278" y="207">authorizer, throttling</text>
+<rect class="d-node" x="240" y="310" width="205" height="50" rx="8"/><image data-ico="cognito" x="248" y="323" width="24" height="24"/><text class="d-title" x="278" y="331">Cognito user pool</text><text class="d-lbl" x="278" y="347">sign-in, issues JWT</text>
+<rect class="d-node" x="490" y="170" width="175" height="50" rx="8"/><image data-ico="lambda" x="498" y="183" width="24" height="24"/><text class="d-title" x="528" y="191">Lambda</text><text class="d-lbl" x="528" y="207">business logic</text>
+<rect class="d-node" x="740" y="170" width="185" height="50" rx="8"/><image data-ico="dynamodb" x="748" y="183" width="24" height="24"/><text class="d-title" x="778" y="191">DynamoDB</text><text class="d-lbl" x="778" y="207">on-demand capacity</text>
+<rect class="d-node" x="740" y="300" width="185" height="50" rx="8"/><image data-ico="sqs" x="748" y="313" width="24" height="24"/><text class="d-title" x="778" y="321">SQS queue</text><text class="d-lbl" x="778" y="337">slow work, retries</text>
+<text class="d-lbl d-halo" x="95" y="120" text-anchor="middle">1 load the app</text>
+<text class="d-lbl d-halo" x="95" y="290" text-anchor="middle">2 sign in → token</text>
+<text class="d-lbl d-halo" x="205" y="178" text-anchor="middle">3 call + JWT</text>
+<text class="d-lbl d-halo" x="340" y="270">verify token</text>
+<text class="d-lbl d-halo" x="702" y="186" text-anchor="middle">read / write</text>
+<text class="d-lbl d-halo" x="640" y="316" text-anchor="middle">enqueue</text>
+</svg>
+      </div>
+      <figcaption>No servers to patch or scale: the static front end comes from S3 through CloudFront, Cognito handles sign-in, and every API call passes API Gateway's token check and throttling before Lambda runs.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Data</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Sign-in and token checks</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Least operational overhead" with a spiky or unpredictable load → this stack. Lambda runs at most <b>15 minutes</b>; longer jobs go to Fargate or Step Functions.</li><li>API Gateway <b>usage plans and API keys</b> give per-client throttling and quotas; a Cognito authorizer rejects calls without a valid token before Lambda runs.</li><li>Cognito <b>user pools</b> sign users in (tokens); <b>identity pools</b> exchange a token for temporary AWS credentials, for example to upload straight to S3.</li><li>Absorb bursts without losing requests: API Gateway → SQS → Lambda. Cold starts: provisioned concurrency (or SnapStart for Java).</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="edge">
+    <h2>9. CloudFront or Global Accelerator</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 410" role="img" aria-label="Left: CloudFront. Users reach the nearest edge location, which serves cached HTTP content and goes to the origin only on a cache miss, failing over to a secondary origin on errors. Right: Global Accelerator. Users reach two static anycast IP addresses at the nearest edge, and traffic of any TCP or UDP kind rides the AWS backbone to an endpoint group in the closest healthy Region, failing over to another Region."><defs><marker id="d9-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d9-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d9-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="20" width="440" height="370" rx="12"/>
+<text class="d-cap" x="34" y="40">CLOUDFRONT: CONTENT CACHED AT THE EDGE</text>
+<rect class="d-z-group" x="500" y="20" width="440" height="370" rx="12"/>
+<text class="d-cap" x="514" y="40">GLOBAL ACCELERATOR: A FAST PATH TO YOUR ENDPOINTS</text>
+<polyline class="d-in" points="240,100 240,158" marker-end="url(#d9-in)"/>
+<polyline class="d-data" points="132.5,210 132.5,288" marker-end="url(#d9-data)"/>
+<polyline class="d-alt" points="347.5,210 347.5,288" marker-end="url(#d9-alt)"/>
+<polyline class="d-in" points="720,100 720,158" marker-end="url(#d9-in)"/>
+<polyline class="d-in" points="612.5,210 612.5,288" marker-end="url(#d9-in)"/>
+<polyline class="d-alt" points="827.5,210 827.5,288" marker-end="url(#d9-alt)"/>
+<rect class="d-node" x="150" y="60" width="180" height="40" rx="8"/><text class="d-title" x="240" y="85" text-anchor="middle">Users far away</text>
+<rect class="d-node" x="130" y="160" width="220" height="50" rx="8"/><image data-ico="cloudfront" x="138" y="173" width="24" height="24"/><text class="d-title" x="168" y="181">Edge location</text><text class="d-lbl" x="168" y="197">cache hit: served from here</text>
+<rect class="d-node" x="40" y="290" width="185" height="50" rx="8"/><image data-ico="alb" x="48" y="303" width="24" height="24"/><text class="d-title" x="78" y="311">Primary origin</text><text class="d-lbl" x="78" y="327">ALB, S3 or HTTP server</text>
+<rect class="d-node" x="255" y="290" width="185" height="50" rx="8"/><image data-ico="s3" x="263" y="303" width="24" height="24"/><text class="d-title" x="293" y="311">Secondary origin</text><text class="d-lbl" x="293" y="327">origin group</text>
+<rect class="d-node" x="630" y="60" width="180" height="40" rx="8"/><text class="d-title" x="720" y="85" text-anchor="middle">Users far away</text>
+<rect class="d-node" x="610" y="160" width="220" height="50" rx="8"/><image data-ico="globalacc" x="618" y="173" width="24" height="24"/><text class="d-title" x="648" y="181">Anycast static IPs</text><text class="d-lbl" x="648" y="197">2 fixed IPs at the edge</text>
+<rect class="d-node" x="520" y="290" width="185" height="50" rx="8"/><image data-ico="nlb" x="528" y="303" width="24" height="24"/><text class="d-title" x="558" y="311">us-east-1</text><text class="d-lbl" x="558" y="327">endpoint group</text>
+<rect class="d-node" x="735" y="290" width="185" height="50" rx="8"/><image data-ico="nlb" x="743" y="303" width="24" height="24"/><text class="d-title" x="773" y="311">eu-west-1</text><text class="d-lbl" x="773" y="327">endpoint group</text>
+<text class="d-lbl d-halo" x="252" y="133">HTTP / HTTPS</text>
+<text class="d-lbl d-halo" x="70" y="258">cache miss only</text>
+<text class="d-lbl d-halo" x="358" y="258">on 5xx</text>
+<text class="d-lbl d-halo" x="732" y="133">any TCP / UDP</text>
+<text class="d-lbl d-halo" x="550" y="258">AWS backbone</text>
+<text class="d-lbl d-halo" x="838" y="258">failover</text>
+</svg>
+      </div>
+      <figcaption>Both start at the AWS edge. CloudFront caches HTTP content there, so most requests never reach the origin. Global Accelerator caches nothing; it gives two fixed IP addresses and carries any TCP or UDP traffic over the AWS network to the nearest healthy Region.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Cache miss</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Failover</span></div>
+    </figure>
+    
+    <div class="card"><h3>Which one?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>CloudFront</th><th>Global Accelerator</th></tr></thead><tbody><tr><td>Protocols</td><td>HTTP and HTTPS (and WebSocket)</td><td>Any TCP or UDP: games, VoIP, IoT, MQTT</td></tr><tr><td>Caching</td><td>Yes, that is the point</td><td>No</td></tr><tr><td>Addresses</td><td>A DNS name; IPs change</td><td>Two static anycast IPs to allowlist</td></tr><tr><td>Failover</td><td>Origin groups on error codes</td><td>Between Regions in seconds, no DNS caching</td></tr><tr><td>Extras</td><td>Signed URLs and cookies, Lambda@Edge, CloudFront Functions, geo restriction</td><td>Client IP preservation, traffic dials per Region</td></tr></tbody></table></div></div>
+    <div class="card"><h3>Exam points</h3><ul><li>"Static IP addresses", "UDP", "non-HTTP" or "fast regional failover" → Global Accelerator. "Cache", "static content", "reduce origin load" → CloudFront.</li><li>Both use the AWS backbone and come with Shield Standard; both work in front of an ALB or NLB.</li><li>Slow <b>uploads</b> from far away to S3 → S3 Transfer Acceleration (it uses CloudFront edges), not a CloudFront distribution.</li></ul></div>
+  </section>
+
+  <h2 class="arch-group" id="g-decouple">Decoupling and event-driven design</h2>
+  <section class="arch-sec" id="queue">
+    <h2>10. Queue-based load leveling</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 400" role="img" aria-label="A web tier sends each order to an SQS queue and answers immediately. Worker instances in an Auto Scaling group poll the queue and write to the database at their own pace. A CloudWatch metric of backlog per instance drives target tracking on the worker group, and messages that fail repeatedly move to a dead-letter queue."><defs><marker id="d10-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d10-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d10-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-asg" x="585" y="110" width="185" height="200" rx="12"/>
+<polyline class="d-in" points="195,195 273,195" marker-end="url(#d10-in)"/>
+<polyline class="d-in" points="505,187 560,187 560,155 608,155" marker-end="url(#d10-in)"/>
+<polyline class="d-in" points="505,203 560,203 560,260 608,260" marker-end="url(#d10-in)"/>
+<polyline class="d-data" points="745,155 790,155 790,197 823,197" marker-end="url(#d10-data)"/>
+<polyline class="d-data" points="745,260 790,260 790,213 823,213" marker-end="url(#d10-data)"/>
+<polyline class="d-alt" points="390,220 390,308" marker-end="url(#d10-alt)"/>
+<polyline class="d-alt" points="390,170 390,82" marker-end="url(#d10-alt)"/>
+<polyline class="d-alt" points="505,55 677,55 677,133" marker-end="url(#d10-alt)"/>
+<rect class="d-node" x="20" y="170" width="175" height="50" rx="8"/><image data-ico="ec2" x="28" y="183" width="24" height="24"/><text class="d-title" x="58" y="191">Web tier</text><text class="d-lbl" x="58" y="207">answers right away</text>
+<rect class="d-node" x="275" y="170" width="230" height="50" rx="8"/><image data-ico="sqs" x="283" y="183" width="24" height="24"/><text class="d-title" x="313" y="191">SQS queue</text><text class="d-lbl" x="313" y="207">buffers the burst</text>
+<rect class="d-node" x="275" y="30" width="230" height="50" rx="8"/><image data-ico="cloudwatch" x="283" y="43" width="24" height="24"/><text class="d-title" x="313" y="51">CloudWatch</text><text class="d-lbl" x="313" y="67">backlog per instance</text>
+<rect class="d-node" x="275" y="310" width="230" height="50" rx="8"/><image data-ico="sqs" x="283" y="323" width="24" height="24"/><text class="d-title" x="313" y="331">Dead-letter queue</text><text class="d-lbl" x="313" y="347">after maxReceiveCount</text>
+<rect class="d-node" x="610" y="135" width="135" height="40" rx="8"/><image data-ico="ec2" x="618" y="143" width="24" height="24"/><text class="d-title" x="648" y="160">Worker</text>
+<rect class="d-node" x="610" y="240" width="135" height="40" rx="8"/><image data-ico="ec2" x="618" y="248" width="24" height="24"/><text class="d-title" x="648" y="265">Worker</text>
+<rect class="d-node" x="825" y="185" width="115" height="40" rx="8"/><image data-ico="rds" x="833" y="193" width="24" height="24"/><text class="d-title" x="863" y="210">Database</text>
+<text class="d-lbl" x="677" y="330" text-anchor="middle">Auto Scaling group</text>
+<text class="d-lbl d-halo" x="235" y="182" text-anchor="middle">SendMessage</text>
+<text class="d-lbl d-halo" x="568" y="165">poll</text>
+<text class="d-lbl d-halo" x="800" y="290">writes</text>
+<text class="d-lbl d-halo" x="400" y="285">fails 3 times</text>
+<text class="d-lbl d-halo" x="400" y="145">queue depth</text>
+<text class="d-lbl d-halo" x="680" y="48" text-anchor="middle">target tracking adds workers</text>
+</svg>
+      </div>
+      <figcaption>The queue sits between a front end that must stay fast and a back end that can only go so fast. Orders are accepted at any rate, workers drain them at a rate the database can take, and the backlog per instance tells Auto Scaling how many workers to run.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Messages</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Writes</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Scaling and failures</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>How it behaves</h3><ol><li>A burst arrives: the web tier keeps answering because it only writes to the queue.</li><li>A worker receives a message; it stays invisible for the <b>visibility timeout</b>. The worker deletes it once done.</li><li>If a worker dies, the message reappears and another worker takes it. After <code>maxReceiveCount</code> failed attempts it moves to the dead-letter queue.</li><li>Backlog per instance (messages ÷ workers) above the target adds workers; an empty queue scales them back in.</li></ol></div><div class="card"><h3>Exam points</h3><ul><li>Orders processed twice → raise the <b>visibility timeout</b> above the longest processing time. Poison messages retried forever → add a <b>DLQ</b>.</li><li>Strict order or exactly-once → <b>FIFO</b> queue (message group ID for parallel ordered streams); standard queues are at-least-once with best-effort order.</li><li>Long polling (WaitTimeSeconds up to 20) cuts empty receives and cost.</li><li>Scale on <b>backlog per instance</b>, not CPU: target = acceptable latency ÷ seconds per message.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="fanout">
+    <h2>11. Fan-out with SNS and SQS</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 380" role="img" aria-label="An order service publishes each event once to an SNS topic. The topic delivers a copy to three SQS queues, one per consumer: inventory, billing and analytics, where the analytics subscription has a filter policy. Each service polls its own queue at its own pace."><defs><marker id="d11-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d11-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="195,195 253,195" marker-end="url(#d11-in)"/>
+<polyline class="d-in" points="420,190 460,190 460,90 498,90" marker-end="url(#d11-in)"/>
+<polyline class="d-data" points="690,90 758,90" marker-end="url(#d11-data)"/>
+<polyline class="d-in" points="420,200 460,200 460,200 498,200" marker-end="url(#d11-in)"/>
+<polyline class="d-data" points="690,200 758,200" marker-end="url(#d11-data)"/>
+<polyline class="d-in" points="420,210 460,210 460,310 498,310" marker-end="url(#d11-in)"/>
+<polyline class="d-data" points="690,310 758,310" marker-end="url(#d11-data)"/>
+<rect class="d-node" x="20" y="175" width="175" height="40" rx="8"/><image data-ico="ecs" x="28" y="183" width="24" height="24"/><text class="d-title" x="58" y="200">Order service</text>
+<rect class="d-node" x="255" y="175" width="165" height="50" rx="8"/><image data-ico="sns" x="263" y="188" width="24" height="24"/><text class="d-title" x="293" y="196">SNS topic</text><text class="d-lbl" x="293" y="212">orders</text>
+<rect class="d-node" x="500" y="70" width="190" height="40" rx="8"/><image data-ico="sqs" x="508" y="78" width="24" height="24"/><text class="d-title" x="538" y="95">Inventory queue</text>
+<rect class="d-node" x="760" y="70" width="180" height="40" rx="8"/><image data-ico="lambda" x="768" y="78" width="24" height="24"/><text class="d-title" x="798" y="95">Inventory service</text>
+<rect class="d-node" x="500" y="180" width="190" height="40" rx="8"/><image data-ico="sqs" x="508" y="188" width="24" height="24"/><text class="d-title" x="538" y="205">Billing queue</text>
+<rect class="d-node" x="760" y="180" width="180" height="40" rx="8"/><image data-ico="ecs" x="768" y="188" width="24" height="24"/><text class="d-title" x="798" y="205">Billing service</text>
+<rect class="d-node" x="500" y="290" width="190" height="40" rx="8"/><image data-ico="sqs" x="508" y="298" width="24" height="24"/><text class="d-title" x="538" y="315">Analytics queue</text>
+<rect class="d-node" x="760" y="290" width="180" height="40" rx="8"/><image data-ico="lambda" x="768" y="298" width="24" height="24"/><text class="d-title" x="798" y="315">Analytics</text>
+<text class="d-lbl d-halo" x="225" y="182" text-anchor="middle">publish once</text>
+<text class="d-lbl d-halo" x="470" y="278">filter policy: only EU orders</text>
+<text class="d-lbl" x="940" y="365" text-anchor="end">each service polls its own copy, at its own pace</text>
+</svg>
+      </div>
+      <figcaption>The producer publishes once and knows nothing about its consumers. SNS pushes a copy into a queue per consumer, so each one keeps every message even while it is down, retries on its own, and scales independently.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Publish and deliver</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Each consumer polls its queue</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Several independent systems must each process every event" and "a consumer may be offline for hours" → SNS → SQS per consumer. SNS alone would drop messages for an endpoint that is down.</li><li>A <b>subscription filter policy</b> sends only matching messages to a queue, so consumers do not filter in code.</li><li>Ordered fan-out → SNS FIFO topic to SQS FIFO queues.</li><li>The queue's access policy must allow the topic to send; with SSE-KMS, the key policy must let SNS use the key.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="eventbridge">
+    <h2>12. Event routing with EventBridge</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 420" role="img" aria-label="Events from AWS services, a SaaS partner and the company's own application arrive on an EventBridge event bus. Rules match event content and route high-priority tickets to Lambda, other tickets to SQS and EC2 state changes to a Step Functions workflow, and send updates to an external HTTPS API through an API destination. The bus archives events so they can be replayed."><defs><marker id="d12-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d12-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="220,85 270,85"/>
+<polyline class="d-in" points="220,200 270,200"/>
+<polyline class="d-in" points="220,315 270,315"/>
+<polyline class="d-in" points="270,85 270,315"/>
+<polyline class="d-in" points="270,200 318,200" marker-end="url(#d12-in)"/>
+<polyline class="d-in" points="520,200 600,200"/>
+<polyline class="d-in" points="600,45 600,345"/>
+<polyline class="d-in" points="600,45 718,45" marker-end="url(#d12-in)"/>
+<polyline class="d-in" points="600,145 718,145" marker-end="url(#d12-in)"/>
+<polyline class="d-in" points="600,245 718,245" marker-end="url(#d12-in)"/>
+<polyline class="d-in" points="600,345 718,345" marker-end="url(#d12-in)"/>
+<polyline class="d-alt" points="420,225 420,328" marker-end="url(#d12-alt)"/>
+<rect class="d-node" x="20" y="60" width="200" height="50" rx="8"/><text class="d-title" x="120" y="81" text-anchor="middle">AWS services</text><text class="d-lbl" x="120" y="97" text-anchor="middle">EC2, S3, CloudTrail…</text>
+<rect class="d-node" x="20" y="175" width="200" height="50" rx="8"/><text class="d-title" x="120" y="196" text-anchor="middle">SaaS partner</text><text class="d-lbl" x="120" y="212" text-anchor="middle">e.g. a support desk</text>
+<rect class="d-node" x="20" y="290" width="200" height="50" rx="8"/><text class="d-title" x="120" y="311" text-anchor="middle">Your application</text><text class="d-lbl" x="120" y="327" text-anchor="middle">PutEvents</text>
+<rect class="d-node" x="320" y="175" width="200" height="50" rx="8"/><image data-ico="eventbridge" x="328" y="188" width="24" height="24"/><text class="d-title" x="358" y="196">Event bus</text><text class="d-lbl" x="358" y="212">rules match content</text>
+<rect class="d-node" x="320" y="330" width="200" height="50" rx="8"/><image data-ico="eventbridge" x="328" y="343" width="24" height="24"/><text class="d-title" x="358" y="351">Archive</text><text class="d-lbl" x="358" y="367">replay later</text>
+<rect class="d-node" x="720" y="20" width="220" height="50" rx="8"/><image data-ico="lambda" x="728" y="33" width="24" height="24"/><text class="d-title" x="758" y="41">Lambda</text><text class="d-lbl" x="758" y="57">high-priority tickets</text>
+<rect class="d-node" x="720" y="120" width="220" height="50" rx="8"/><image data-ico="sqs" x="728" y="133" width="24" height="24"/><text class="d-title" x="758" y="141">SQS queue</text><text class="d-lbl" x="758" y="157">all other tickets</text>
+<rect class="d-node" x="720" y="220" width="220" height="50" rx="8"/><image data-ico="stepfn" x="728" y="233" width="24" height="24"/><text class="d-title" x="758" y="241">Step Functions</text><text class="d-lbl" x="758" y="257">EC2 state changes</text>
+<rect class="d-node" x="720" y="320" width="220" height="50" rx="8"/><image data-ico="eventbridge" x="728" y="333" width="24" height="24"/><text class="d-title" x="758" y="341">API destination</text><text class="d-lbl" x="758" y="357">external HTTPS, OAuth</text>
+<text class="d-lbl d-halo" x="660" y="39" text-anchor="middle">priority = high</text>
+<text class="d-lbl d-halo" x="660" y="139" text-anchor="middle">priority ≠ high</text>
+<text class="d-lbl d-halo" x="660" y="239" text-anchor="middle">source = aws.ec2</text>
+<text class="d-lbl d-halo" x="660" y="339" text-anchor="middle">detail-type = Updated</text>
+<text class="d-lbl d-halo" x="430" y="290">archive</text>
+</svg>
+      </div>
+      <figcaption>Sources publish to one bus and know nothing about the targets. Each rule matches on the event's content and forwards matching events to its targets, so adding a consumer means adding a rule, not changing a producer.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Events</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Archive</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Route by content", "SaaS events with no polling" or "react to AWS service events" → EventBridge rules. Plain fan-out of identical messages → SNS.</li><li><b>Archive and replay</b> keeps events for a set time and re-sends them after a bug fix; SNS and SQS have no replay.</li><li><b>API destinations</b> call external HTTPS APIs with built-in auth (OAuth, API key) and rate limits; <b>EventBridge Scheduler</b> runs cron or one-off schedules at scale.</li><li>Cross-account: a rule on one bus targets another account's bus; the receiving bus needs a resource policy.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="stepfunctions">
+    <h2>13. Workflow orchestration with Step Functions</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 400" role="img" aria-label="A Step Functions Standard workflow for a loan. It validates the application in Lambda, calls a credit-scoring API with retries and exponential backoff, then pauses on a task token until a human underwriter approves or rejects. A choice state disburses the funds on approval or sends a rejection notice. Any failure in the credit check is caught and handled."><defs><marker id="d13-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d13-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="165,175 198,175" marker-end="url(#d13-in)"/>
+<polyline class="d-in" points="385,175 418,175" marker-end="url(#d13-in)"/>
+<polyline class="d-in" points="630,175 650,175" marker-end="url(#d13-in)"/>
+<polyline class="d-in" points="748,175 788,175" marker-end="url(#d13-in)"/>
+<polyline class="d-in" points="700,213 700,288" marker-end="url(#d13-in)"/>
+<polyline class="d-alt" points="525,80 525,148" marker-end="url(#d13-alt)"/>
+<polyline class="d-alt" points="292.5,200 292.5,288" marker-end="url(#d13-alt)"/>
+<rect class="d-node" x="20" y="150" width="145" height="50" rx="8"/><image data-ico="lambda" x="28" y="163" width="24" height="24"/><text class="d-title" x="58" y="171">Validate</text><text class="d-lbl" x="58" y="187">Lambda task</text>
+<rect class="d-node" x="200" y="150" width="185" height="50" rx="8"/><image data-ico="stepfn" x="208" y="163" width="24" height="24"/><text class="d-title" x="238" y="171">Credit check</text><text class="d-lbl" x="238" y="187">Retry 3×, backoff</text>
+<rect class="d-node" x="420" y="150" width="210" height="50" rx="8"/><image data-ico="stepfn" x="428" y="163" width="24" height="24"/><text class="d-title" x="458" y="171">Wait for approval</text><text class="d-lbl" x="458" y="187">.waitForTaskToken</text>
+<polygon class="d-node" points="700,137 748,175 700,213 652,175"/><text class="d-title" x="700" y="179" text-anchor="middle">Approved?</text>
+<rect class="d-node" x="790" y="150" width="150" height="50" rx="8"/><image data-ico="lambda" x="798" y="163" width="24" height="24"/><text class="d-title" x="828" y="171">Disburse</text><text class="d-lbl" x="828" y="187">Lambda task</text>
+<rect class="d-node" x="625" y="290" width="150" height="50" rx="8"/><image data-ico="sns" x="633" y="303" width="24" height="24"/><text class="d-title" x="663" y="311">Send rejection</text><text class="d-lbl" x="663" y="327">SNS email</text>
+<rect class="d-node" x="420" y="30" width="210" height="50" rx="8"/><text class="d-title" x="525" y="51" text-anchor="middle">Underwriter</text><text class="d-lbl" x="525" y="67" text-anchor="middle">approves in an internal app</text>
+<rect class="d-node" x="200" y="290" width="185" height="50" rx="8"/><image data-ico="sns" x="208" y="303" width="24" height="24"/><text class="d-title" x="238" y="311">Handle failure</text><text class="d-lbl" x="238" y="327">Catch → alert, refund</text>
+<text class="d-lbl d-halo" x="769" y="168" text-anchor="middle">yes</text>
+<text class="d-lbl d-halo" x="710" y="250">no</text>
+<text class="d-lbl d-halo" x="535" y="122">SendTaskSuccess (token)</text>
+<text class="d-lbl d-halo" x="302" y="250">Catch</text>
+<text class="d-lbl" x="480" y="380" text-anchor="middle">Standard workflow: runs up to a year, exactly-once, full visual history</text>
+</svg>
+      </div>
+      <figcaption>The state machine holds the workflow's state, so no code waits or loops. Retries and catches are declared on each step, and the human step pauses at no cost until the underwriter's app returns the task token.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>State transitions</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Callbacks and error handling</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Multi-step process", "retries with backoff", "human approval", "visual audit trail", "no custom state code" → Step Functions. Chaining Lambdas or sleeping in code is the wrong answer.</li><li><b>Standard</b>: up to 1 year, exactly-once, priced per transition, for business workflows. <b>Express</b>: up to 5 minutes, high volume, at-least-once, for streaming and IoT.</li><li>Callback pattern <code>.waitForTaskToken</code> pauses for a person or an external system; <b>Distributed Map</b> fans a big S3 dataset out to thousands of parallel runs.</li><li>Direct service integrations (DynamoDB, SQS, SNS, ECS, Glue…) let a step call a service with no Lambda in between.</li></ul></div>
+  </section>
+
+  <h2 class="arch-group" id="g-data">Data and analytics</h2>
+  <section class="arch-sec" id="streaming">
+    <h2>14. Streaming pipeline</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 980 460" role="img" aria-label="Producers put records into Kinesis Data Streams with a partition key. Several consumers read the same stream independently: Lambda through an event source mapping, Managed Service for Apache Flink for real-time windows, a custom application with enhanced fan-out, and Data Firehose, which buffers and delivers the data to S3, Redshift or OpenSearch. Producers can also write to Firehose directly."><defs><marker id="d14-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d14-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d14-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="210,205 268,205" marker-end="url(#d14-in)"/>
+<polyline class="d-in" points="515,205 565,205"/>
+<polyline class="d-in" points="565,55 565,355"/>
+<polyline class="d-in" points="565,55 608,55" marker-end="url(#d14-in)"/>
+<polyline class="d-in" points="565,145 608,145" marker-end="url(#d14-in)"/>
+<polyline class="d-in" points="565,235 608,235" marker-end="url(#d14-in)"/>
+<polyline class="d-in" points="565,355 608,355" marker-end="url(#d14-in)"/>
+<polyline class="d-data" points="820,355 835,355"/>
+<polyline class="d-data" points="835,310 835,410"/>
+<polyline class="d-data" points="835,310 848,310" marker-end="url(#d14-data)"/>
+<polyline class="d-data" points="835,360 848,360" marker-end="url(#d14-data)"/>
+<polyline class="d-data" points="835,410 848,410" marker-end="url(#d14-data)"/>
+<polyline class="d-alt" points="115,230 115,430 590,430 590,372 608,372" marker-end="url(#d14-alt)"/>
+<rect class="d-node" x="20" y="180" width="190" height="50" rx="8"/><text class="d-title" x="115" y="201" text-anchor="middle">Producers</text><text class="d-lbl" x="115" y="217" text-anchor="middle">apps, IoT, clickstream</text>
+<rect class="d-node" x="270" y="180" width="245" height="50" rx="8"/><image data-ico="kinesis" x="278" y="193" width="24" height="24"/><text class="d-title" x="308" y="201">Kinesis Data Streams</text><text class="d-lbl" x="308" y="217">shards, 1 to 365 days kept</text>
+<rect class="d-node" x="610" y="30" width="210" height="50" rx="8"/><image data-ico="lambda" x="618" y="43" width="24" height="24"/><text class="d-title" x="648" y="51">Lambda</text><text class="d-lbl" x="648" y="67">event source mapping</text>
+<rect class="d-node" x="610" y="120" width="210" height="50" rx="8"/><image data-ico="flink" x="618" y="133" width="24" height="24"/><text class="d-title" x="648" y="141">Managed Flink</text><text class="d-lbl" x="648" y="157">real-time windows</text>
+<rect class="d-node" x="610" y="210" width="210" height="50" rx="8"/><image data-ico="ec2" x="618" y="223" width="24" height="24"/><text class="d-title" x="648" y="231">Custom app</text><text class="d-lbl" x="648" y="247">enhanced fan-out</text>
+<rect class="d-node" x="610" y="330" width="210" height="50" rx="8"/><image data-ico="firehose" x="618" y="343" width="24" height="24"/><text class="d-title" x="648" y="351">Data Firehose</text><text class="d-lbl" x="648" y="367">buffers, converts, no code</text>
+<rect class="d-node" x="850" y="290" width="120" height="40" rx="8"/><image data-ico="s3" x="858" y="298" width="24" height="24"/><text class="d-title" x="888" y="315">S3</text>
+<rect class="d-node" x="850" y="340" width="120" height="40" rx="8"/><image data-ico="redshift" x="858" y="348" width="24" height="24"/><text class="d-title" x="888" y="365">Redshift</text>
+<rect class="d-node" x="850" y="390" width="120" height="40" rx="8"/><image data-ico="opensearch" x="858" y="398" width="24" height="24"/><text class="d-title" x="888" y="415">OpenSearch</text>
+<text class="d-lbl d-halo" x="240" y="176" text-anchor="middle">partition key</text>
+<text class="d-lbl d-halo" x="350" y="425" text-anchor="middle">or straight into Firehose, no replay</text>
+</svg>
+      </div>
+      <figcaption>Kinesis Data Streams keeps every record for the retention period, so many consumers read the same data independently and any of them can replay it. Firehose is the no-code delivery pipe from a stream, or straight from producers, into storage and analytics services.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Records</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Delivery</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Direct to Firehose</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>Data Streams or Firehose?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Kinesis Data Streams</th><th>Data Firehose</th></tr></thead><tbody><tr><td>You manage</td><td>Shards (or on-demand mode), consumers</td><td>Nothing, fully managed</td></tr><tr><td>Latency</td><td>Real time (~70 ms to 200 ms)</td><td>Near real time (buffers 0 to 900 s)</td></tr><tr><td>Replay</td><td>Yes, within retention</td><td>No</td></tr><tr><td>Consumers</td><td>Your code: Lambda, Flink, KCL apps</td><td>Delivers to S3, Redshift, OpenSearch, HTTP endpoints</td></tr><tr><td>Transforms</td><td>In your consumer</td><td>Lambda transform, Parquet conversion</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Replay", "several consumers", "ordering per key", "real time" → Data Streams. "Load into S3/Redshift/OpenSearch with no code" → Firehose.</li><li>Shard limits: 1 MB/s or 1,000 records/s in, 2 MB/s out shared; <b>enhanced fan-out</b> gives each consumer its own 2 MB/s per shard.</li><li>Order is kept per <b>partition key</b> (per shard); a hot key overloads one shard.</li><li>Real-time SQL or windowed aggregations on a stream → Managed Service for Apache Flink. Kafka compatibility → Amazon MSK.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="datalake">
+    <h2>15. Data lake on S3</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 430" role="img" aria-label="Data lands as-is in an S3 raw zone. A Glue crawler infers the schemas into the Glue Data Catalog, and a Glue ETL job cleans the data and writes partitioned Parquet to a curated zone. Athena queries the curated data in place using the catalog, Lake Formation enforces column and row permissions, and QuickSight builds dashboards on Athena."><defs><marker id="d15-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d15-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d15-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="190,85 238,85" marker-end="url(#d15-in)"/>
+<polyline class="d-in" points="440,85 498,85" marker-end="url(#d15-in)"/>
+<polyline class="d-in" points="690,85 743,85" marker-end="url(#d15-in)"/>
+<polyline class="d-data" points="340,110 340,198" marker-end="url(#d15-data)"/>
+<polyline class="d-data" points="340,250 340,328" marker-end="url(#d15-data)"/>
+<polyline class="d-data" points="842.5,110 842.5,198" marker-end="url(#d15-data)"/>
+<polyline class="d-alt" points="440,355 470,355 470,395 720,395 720,233 743,233" marker-end="url(#d15-alt)"/>
+<polyline class="d-alt" points="690,255 705,255 705,217 743,217" marker-end="url(#d15-alt)"/>
+<polyline class="d-in" points="842.5,250 842.5,328" marker-end="url(#d15-in)"/>
+<rect class="d-node" x="20" y="60" width="170" height="50" rx="8"/><text class="d-title" x="105" y="81" text-anchor="middle">Sources</text><text class="d-lbl" x="105" y="97" text-anchor="middle">apps, DMS, Firehose</text>
+<rect class="d-node" x="240" y="60" width="200" height="50" rx="8"/><image data-ico="s3" x="248" y="73" width="24" height="24"/><text class="d-title" x="278" y="81">S3 raw zone</text><text class="d-lbl" x="278" y="97">as landed: JSON, CSV</text>
+<rect class="d-node" x="240" y="200" width="200" height="50" rx="8"/><image data-ico="glue" x="248" y="213" width="24" height="24"/><text class="d-title" x="278" y="221">Glue crawler</text><text class="d-lbl" x="278" y="237">infers schemas</text>
+<rect class="d-node" x="240" y="330" width="200" height="50" rx="8"/><image data-ico="glue" x="248" y="343" width="24" height="24"/><text class="d-title" x="278" y="351">Glue Data Catalog</text><text class="d-lbl" x="278" y="367">tables, partitions</text>
+<rect class="d-node" x="500" y="60" width="190" height="50" rx="8"/><image data-ico="glue" x="508" y="73" width="24" height="24"/><text class="d-title" x="538" y="81">Glue ETL job</text><text class="d-lbl" x="538" y="97">clean, convert</text>
+<rect class="d-node" x="745" y="60" width="195" height="50" rx="8"/><image data-ico="s3" x="753" y="73" width="24" height="24"/><text class="d-title" x="783" y="81">S3 curated zone</text><text class="d-lbl" x="783" y="97">Parquet, partitioned</text>
+<rect class="d-node" x="500" y="230" width="190" height="50" rx="8"/><image data-ico="lakeformation" x="508" y="243" width="24" height="24"/><text class="d-title" x="538" y="251">Lake Formation</text><text class="d-lbl" x="538" y="267">column, row grants</text>
+<rect class="d-node" x="745" y="200" width="195" height="50" rx="8"/><image data-ico="athena" x="753" y="213" width="24" height="24"/><text class="d-title" x="783" y="221">Athena</text><text class="d-lbl" x="783" y="237">SQL in place</text>
+<rect class="d-node" x="745" y="330" width="195" height="50" rx="8"/><image data-ico="quicksight" x="753" y="343" width="24" height="24"/><text class="d-title" x="783" y="351">QuickSight</text><text class="d-lbl" x="783" y="367">dashboards</text>
+<text class="d-lbl d-halo" x="717" y="79" text-anchor="middle">writes</text>
+<text class="d-lbl d-halo" x="350" y="160">scans</text>
+<text class="d-lbl d-halo" x="350" y="295">writes tables</text>
+<text class="d-lbl d-halo" x="852" y="160">reads</text>
+<text class="d-lbl d-halo" x="600" y="390" text-anchor="middle">schemas</text>
+<text class="d-lbl d-halo" x="712" y="282">enforces grants</text>
+<text class="d-lbl d-halo" x="852" y="315">queries</text>
+</svg>
+      </div>
+      <figcaption>Storage and compute stay separate: S3 holds the data in zones, the Glue Data Catalog holds the schemas, and serverless engines query in place. Partitioned Parquet makes Athena read only the columns and dates a query needs.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Data flow</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Reads and writes</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Metadata and permissions</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>Athena is slow and expensive on raw JSON → convert to <b>Parquet or ORC</b>, compress, and <b>partition</b> by date; you pay per TB scanned.</li><li>"Schemas unknown", "catalog the data" → Glue crawler + Data Catalog. Serverless ETL → Glue jobs; big Spark/Hadoop clusters you tune → EMR.</li><li>Different teams may see different columns or rows of one table → <b>Lake Formation</b> grants, not separate copies or bucket policies.</li><li>Join warehouse tables with S3 data without loading it → Redshift Spectrum. Fast dashboards for many users → QuickSight with SPICE.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="s3events">
+    <h2>16. Event-driven S3 processing</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 340" role="img" aria-label="A client uploads a file to an S3 upload bucket with a presigned URL. The ObjectCreated event invokes a Lambda function, which writes its result to a separate results bucket. Heavy jobs instead go from the event to an SQS queue, where AWS Batch or ECS workers process them and write to the results bucket."><defs><marker id="d16-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d16-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="185,85 248,85" marker-end="url(#d16-in)"/>
+<polyline class="d-in" points="450,85 548,85" marker-end="url(#d16-in)"/>
+<polyline class="d-data" points="730,85 788,85" marker-end="url(#d16-data)"/>
+<polyline class="d-in" points="350,110 350,245 548,245" marker-end="url(#d16-in)"/>
+<polyline class="d-in" points="730,245 788,245" marker-end="url(#d16-in)"/>
+<polyline class="d-data" points="865,220 865,112" marker-end="url(#d16-data)"/>
+<rect class="d-node" x="20" y="60" width="165" height="50" rx="8"/><text class="d-title" x="102.5" y="81" text-anchor="middle">Client</text><text class="d-lbl" x="102.5" y="97" text-anchor="middle">presigned URL</text>
+<rect class="d-node" x="250" y="60" width="200" height="50" rx="8"/><image data-ico="s3" x="258" y="73" width="24" height="24"/><text class="d-title" x="288" y="81">Upload bucket</text><text class="d-lbl" x="288" y="97">uploads/</text>
+<rect class="d-node" x="550" y="60" width="180" height="50" rx="8"/><image data-ico="lambda" x="558" y="73" width="24" height="24"/><text class="d-title" x="588" y="81">Lambda</text><text class="d-lbl" x="588" y="97">thumbnails, metadata</text>
+<rect class="d-node" x="790" y="60" width="150" height="50" rx="8"/><image data-ico="s3" x="798" y="73" width="24" height="24"/><text class="d-title" x="828" y="81">Results bucket</text><text class="d-lbl" x="828" y="97">a different bucket</text>
+<rect class="d-node" x="550" y="220" width="180" height="50" rx="8"/><image data-ico="sqs" x="558" y="233" width="24" height="24"/><text class="d-title" x="588" y="241">SQS queue</text><text class="d-lbl" x="588" y="257">buffers heavy jobs</text>
+<rect class="d-node" x="790" y="220" width="150" height="50" rx="8"/><image data-ico="batch" x="798" y="233" width="24" height="24"/><text class="d-title" x="828" y="241">AWS Batch or ECS</text><text class="d-lbl" x="828" y="257">long video jobs</text>
+<text class="d-lbl d-halo" x="217" y="76" text-anchor="middle">PUT</text>
+<text class="d-lbl d-halo" x="500" y="76" text-anchor="middle">ObjectCreated</text>
+<text class="d-lbl d-halo" x="760" y="76" text-anchor="middle">writes</text>
+<text class="d-lbl d-halo" x="360" y="236" text-anchor="middle">or event → queue</text>
+<text class="d-lbl d-halo" x="760" y="236" text-anchor="middle">poll</text>
+<text class="d-lbl" x="480" y="318" text-anchor="middle">writing back to the same bucket and prefix would trigger the function again, forever</text>
+</svg>
+      </div>
+      <figcaption>Uploads go straight to S3, never through your servers, and each new object triggers its own processing. Short work runs in Lambda; anything longer or heavier is queued for Batch or ECS.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Upload and trigger</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Results</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Process each upload as it arrives" with variable volume → S3 event notification → Lambda. Polling the bucket on a schedule is the wrong answer.</li><li>Lambda stops at 15 minutes and 10 GB of memory; longer jobs → SQS + Batch, ECS on Fargate, or Step Functions.</li><li>Let clients upload directly with <b>presigned URLs</b> (or Cognito identity pool credentials); large files use multipart upload.</li><li>Fan the same event out to several targets or filter by content → send S3 events to EventBridge instead.</li></ul></div>
+  </section>
+
+  <h2 class="arch-group" id="g-db">Databases</h2>
+  <section class="arch-sec" id="readscale">
+    <h2>17. Read scaling and caching</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 420" role="img" aria-label="App servers read from ElastiCache first and, on a miss, from RDS read replicas through the reader endpoint, then put the result in the cache with a time to live. All writes go to the RDS primary, which replicates asynchronously to the replicas. Thousands of Lambda functions reach the primary through RDS Proxy, which pools their connections."><defs><marker id="d17-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d17-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d17-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-in" points="115,120 115,45 328,45" marker-end="url(#d17-in)" marker-start="url(#d17-in)"/>
+<polyline class="d-data" points="210,155 620,155 620,255 678,255" marker-end="url(#d17-data)"/>
+<polyline class="d-data" points="210,135 678,135" marker-end="url(#d17-data)"/>
+<polyline class="d-in" points="210,335 328,335" marker-end="url(#d17-in)"/>
+<polyline class="d-data" points="540,335 650,335 650,160 678,160" marker-end="url(#d17-data)"/>
+<polyline class="d-alt" points="880,170 880,228" marker-end="url(#d17-alt)"/>
+<rect class="d-node" x="20" y="120" width="190" height="50" rx="8"/><image data-ico="ec2" x="28" y="133" width="24" height="24"/><text class="d-title" x="58" y="141">App servers</text><text class="d-lbl" x="58" y="157">EC2 or containers</text>
+<rect class="d-node" x="20" y="310" width="190" height="50" rx="8"/><image data-ico="lambda" x="28" y="323" width="24" height="24"/><text class="d-title" x="58" y="331">Lambda functions</text><text class="d-lbl" x="58" y="347">thousands at once</text>
+<rect class="d-node" x="330" y="20" width="210" height="50" rx="8"/><image data-ico="elasticache" x="338" y="33" width="24" height="24"/><text class="d-title" x="368" y="41">ElastiCache</text><text class="d-lbl" x="368" y="57">cache-aside, TTL</text>
+<rect class="d-node" x="330" y="310" width="210" height="50" rx="8"/><image data-ico="rdsproxy" x="338" y="323" width="24" height="24"/><text class="d-title" x="368" y="331">RDS Proxy</text><text class="d-lbl" x="368" y="347">pools connections</text>
+<rect class="d-node" x="680" y="120" width="240" height="50" rx="8"/><image data-ico="rds" x="688" y="133" width="24" height="24"/><text class="d-title" x="718" y="141">RDS primary</text><text class="d-lbl" x="718" y="157">writer endpoint</text>
+<rect class="d-node" x="680" y="230" width="240" height="50" rx="8"/><image data-ico="rds" x="688" y="243" width="24" height="24"/><text class="d-title" x="718" y="251">Read replicas</text><text class="d-lbl" x="718" y="267">reader endpoint</text>
+<text class="d-lbl d-halo" x="220" y="37" text-anchor="middle">1 get · 3 set with TTL</text>
+<text class="d-lbl d-halo" x="420" y="156" text-anchor="middle">2 on a miss: read</text>
+<text class="d-lbl d-halo" x="420" y="126" text-anchor="middle">writes</text>
+<text class="d-lbl d-halo" x="600" y="350" text-anchor="middle">a few pooled connections</text>
+<text class="d-lbl d-halo" x="890" y="205">async</text>
+</svg>
+      </div>
+      <figcaption>Hot reads stop at the cache, the rest spread over read replicas, and the primary only takes writes. Short-lived Lambda functions share a small pool of connections through RDS Proxy instead of opening one each.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Requests</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Database traffic</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Replication</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Same queries thousands of times", "can tolerate slightly stale data" → ElastiCache (lazy loading / cache-aside with a TTL). Always-fresh cache → write-through.</li><li>"Reports slow down the database" → a read replica (asynchronous; the Multi-AZ standby of an instance deployment cannot serve reads).</li><li>"Too many connections" from Lambda, or faster failover with no app change → <b>RDS Proxy</b>.</li><li>DynamoDB with microsecond reads and no code rewrite → <b>DAX</b>, not ElastiCache. Redis vs Memcached: Redis for persistence, replication, sorted sets; Memcached for simple multi-threaded caching.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="multiregion">
+    <h2>18. Multi-Region data</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 420" role="img" aria-label="Left: Aurora Global Database. The primary Region has the writer and readers; storage replicates to a read-only secondary cluster in another Region in under a second, and the secondary can be promoted during a Regional outage. Right: DynamoDB global tables. Applications in two Regions read and write their local replica, and changes replicate both ways in about a second, with the last writer winning."><defs><marker id="d18-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d18-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d18-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="20" width="450" height="380" rx="12"/>
+<text class="d-cap" x="34" y="40">AURORA GLOBAL DATABASE</text>
+<rect class="d-z-group" x="500" y="20" width="440" height="380" rx="12"/>
+<text class="d-cap" x="514" y="40">DYNAMODB GLOBAL TABLES</text>
+<rect class="d-z-region" x="35" y="50" width="200" height="330" rx="12"/>
+<text class="d-cap" x="49" y="70">PRIMARY REGION</text>
+<rect class="d-z-region" x="255" y="50" width="200" height="330" rx="12"/>
+<text class="d-cap" x="269" y="70">SECONDARY REGION</text>
+<polyline class="d-data" points="135,130 135,160"/>
+<polyline class="d-data" points="135,200 135,288" marker-end="url(#d18-data)" marker-start="url(#d18-data)"/>
+<polyline class="d-in" points="215,310 273,310" marker-end="url(#d18-in)"/>
+<polyline class="d-data" points="355,290 355,142" marker-end="url(#d18-data)"/>
+<polyline class="d-alt" points="275,105 245,105 245,104 217,104" marker-end="url(#d18-alt)"/>
+<polyline class="d-data" points="622.5,110 622.5,228" marker-end="url(#d18-data)" marker-start="url(#d18-data)"/>
+<polyline class="d-data" points="832.5,110 832.5,228" marker-end="url(#d18-data)" marker-start="url(#d18-data)"/>
+<polyline class="d-in" points="715,255 738,255" marker-end="url(#d18-in)" marker-start="url(#d18-in)"/>
+<rect class="d-node" x="55" y="90" width="160" height="40" rx="8"/><image data-ico="aurora" x="63" y="98" width="24" height="24"/><text class="d-title" x="93" y="115">Writer</text>
+<rect class="d-node" x="55" y="160" width="160" height="40" rx="8"/><image data-ico="aurora" x="63" y="168" width="24" height="24"/><text class="d-title" x="93" y="185">Readers</text>
+<rect class="d-node" x="55" y="290" width="160" height="40" rx="8"/><text class="d-title" x="135" y="315" text-anchor="middle">Cluster storage</text>
+<rect class="d-node" x="275" y="90" width="160" height="50" rx="8"/><image data-ico="aurora" x="283" y="103" width="24" height="24"/><text class="d-title" x="313" y="111">Read-only cluster</text><text class="d-lbl" x="313" y="127">promote on outage</text>
+<rect class="d-node" x="275" y="290" width="160" height="40" rx="8"/><text class="d-title" x="355" y="315" text-anchor="middle">Cluster storage</text>
+<rect class="d-node" x="530" y="70" width="185" height="40" rx="8"/><image data-ico="ec2" x="538" y="78" width="24" height="24"/><text class="d-title" x="568" y="95">App · us-east-1</text>
+<rect class="d-node" x="740" y="70" width="185" height="40" rx="8"/><image data-ico="ec2" x="748" y="78" width="24" height="24"/><text class="d-title" x="778" y="95">App · eu-west-1</text>
+<rect class="d-node" x="530" y="230" width="185" height="50" rx="8"/><image data-ico="dynamodb" x="538" y="243" width="24" height="24"/><text class="d-title" x="568" y="251">Table replica</text><text class="d-lbl" x="568" y="267">reads and writes</text>
+<rect class="d-node" x="740" y="230" width="185" height="50" rx="8"/><image data-ico="dynamodb" x="748" y="243" width="24" height="24"/><text class="d-title" x="778" y="251">Table replica</text><text class="d-lbl" x="778" y="267">reads and writes</text>
+<text class="d-lbl d-halo" x="245" y="302" text-anchor="middle">&lt; 1 s</text>
+<text class="d-lbl" x="245" y="368" text-anchor="middle">RPO ~1 s · RTO ~1 min</text>
+<text class="d-lbl d-halo" x="727" y="225" text-anchor="middle">~1 s</text>
+<text class="d-lbl" x="720" y="340" text-anchor="middle">active-active · last writer wins</text>
+</svg>
+      </div>
+      <figcaption>Aurora Global Database keeps one writer and copies storage to other Regions in about a second, ready to promote. DynamoDB global tables let every Region write, replicating changes to the others.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Cross-Region replication</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Local reads and writes</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Writes forwarded to the primary</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>Relational, "RPO of seconds, RTO of a minute", "low-latency reads in another Region" → <b>Aurora Global Database</b> (up to 5 secondary Regions, managed failover).</li><li>Key-value, "users in several Regions must write locally", "active-active" → <b>DynamoDB global tables</b>.</li><li>Cheaper but slower: RDS cross-Region read replica (promote manually) or cross-Region snapshot and backup copies.</li><li>Data residency: global tables replicate everything to every replica Region, so check where data is allowed to live.</li></ul></div>
+  </section>
+
+  <h2 class="arch-group" id="g-dr">Disaster recovery</h2>
+  <section class="arch-sec" id="dr">
+    <h2>19. Disaster recovery strategies</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 980 495" role="img" aria-label="Four disaster recovery strategies side by side, each with a live primary Region and a DR Region. Backup and restore keeps only backups in the DR Region. Pilot light keeps a replicated database and templates, with no servers running. Warm standby runs a small but complete copy. Multi-site active-active runs full capacity in both Regions. From left to right, recovery gets faster and the cost grows."><defs><marker id="d19-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d19-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d19-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="20" width="220" height="430" rx="12"/>
+<text class="d-cap" x="34" y="40">BACKUP AND RESTORE</text>
+<rect class="d-z-region" x="30" y="175" width="200" height="195" rx="12"/>
+<text class="d-cap" x="44" y="195">DR REGION</text>
+<rect class="d-z-group" x="260" y="20" width="220" height="430" rx="12"/>
+<text class="d-cap" x="274" y="40">PILOT LIGHT</text>
+<rect class="d-z-region" x="270" y="175" width="200" height="195" rx="12"/>
+<text class="d-cap" x="284" y="195">DR REGION</text>
+<rect class="d-z-group" x="500" y="20" width="220" height="430" rx="12"/>
+<text class="d-cap" x="514" y="40">WARM STANDBY</text>
+<rect class="d-z-region" x="510" y="175" width="200" height="195" rx="12"/>
+<text class="d-cap" x="524" y="195">DR REGION</text>
+<rect class="d-z-group" x="740" y="20" width="220" height="430" rx="12"/>
+<text class="d-cap" x="754" y="40">MULTI-SITE ACTIVE-ACTIVE</text>
+<rect class="d-z-region" x="750" y="175" width="200" height="195" rx="12"/>
+<text class="d-cap" x="764" y="195">DR REGION</text>
+<polyline class="d-data" points="130,105 130,171" marker-end="url(#d19-data)"/>
+<polyline class="d-data" points="370,105 370,171" marker-end="url(#d19-data)"/>
+<polyline class="d-data" points="610,105 610,171" marker-end="url(#d19-data)"/>
+<polyline class="d-in" points="850,105 850,171" marker-end="url(#d19-in)" marker-start="url(#d19-in)"/>
+<polyline class="d-alt" points="40,480 938,480" marker-end="url(#d19-alt)"/>
+<rect class="d-node" x="35" y="55" width="190" height="50" rx="8"/><text class="d-title" x="130" y="76" text-anchor="middle">Primary Region</text><text class="d-lbl" x="130" y="92" text-anchor="middle">full stack, live</text>
+<rect class="d-node" x="42" y="205" width="176" height="50" rx="8"/><image data-ico="backup" x="50" y="218" width="24" height="24"/><text class="d-title" x="80" y="226">Backups, snapshots</text><text class="d-lbl" x="80" y="242">copied by AWS Backup</text>
+<rect class="d-node" x="42" y="283" width="176" height="50" rx="8"/><text class="d-title" x="130" y="304" text-anchor="middle">Nothing running</text><text class="d-lbl" x="130" y="320" text-anchor="middle">rebuilt from templates</text>
+<rect class="d-node" x="275" y="55" width="190" height="50" rx="8"/><text class="d-title" x="370" y="76" text-anchor="middle">Primary Region</text><text class="d-lbl" x="370" y="92" text-anchor="middle">full stack, live</text>
+<rect class="d-node" x="282" y="205" width="176" height="50" rx="8"/><image data-ico="rds" x="290" y="218" width="24" height="24"/><text class="d-title" x="320" y="226">Database replica</text><text class="d-lbl" x="320" y="242">running</text>
+<rect class="d-node" x="282" y="283" width="176" height="50" rx="8"/><image data-ico="cfn" x="290" y="296" width="24" height="24"/><text class="d-title" x="320" y="304">AMIs + IaC</text><text class="d-lbl" x="320" y="320">servers off</text>
+<rect class="d-node" x="515" y="55" width="190" height="50" rx="8"/><text class="d-title" x="610" y="76" text-anchor="middle">Primary Region</text><text class="d-lbl" x="610" y="92" text-anchor="middle">full stack, live</text>
+<rect class="d-node" x="522" y="205" width="176" height="50" rx="8"/><image data-ico="rds" x="530" y="218" width="24" height="24"/><text class="d-title" x="560" y="226">Database replica</text><text class="d-lbl" x="560" y="242">running</text>
+<rect class="d-node" x="522" y="283" width="176" height="50" rx="8"/><image data-ico="ec2" x="530" y="296" width="24" height="24"/><text class="d-title" x="560" y="304">Small app fleet</text><text class="d-lbl" x="560" y="320">running, scales up</text>
+<rect class="d-node" x="755" y="55" width="190" height="50" rx="8"/><text class="d-title" x="850" y="76" text-anchor="middle">Primary Region</text><text class="d-lbl" x="850" y="92" text-anchor="middle">full stack, live</text>
+<rect class="d-node" x="762" y="205" width="176" height="50" rx="8"/><image data-ico="dynamodb" x="770" y="218" width="24" height="24"/><text class="d-title" x="800" y="226">Database</text><text class="d-lbl" x="800" y="242">writes in both</text>
+<rect class="d-node" x="762" y="283" width="176" height="50" rx="8"/><image data-ico="ec2" x="770" y="296" width="24" height="24"/><text class="d-title" x="800" y="304">Full app fleet</text><text class="d-lbl" x="800" y="320">serving traffic</text>
+<text class="d-lbl d-halo" x="138" y="148">backup copy</text>
+<text class="d-lbl" x="130" y="398" text-anchor="middle">RPO hours · RTO hours</text>
+<text class="d-title" x="130" y="425" text-anchor="middle">cost $</text>
+<text class="d-lbl d-halo" x="378" y="148">replication</text>
+<text class="d-lbl" x="370" y="398" text-anchor="middle">RPO minutes · RTO tens of minutes</text>
+<text class="d-title" x="370" y="425" text-anchor="middle">cost $$</text>
+<text class="d-lbl d-halo" x="618" y="148">replication</text>
+<text class="d-lbl" x="610" y="398" text-anchor="middle">RPO seconds · RTO minutes</text>
+<text class="d-title" x="610" y="425" text-anchor="middle">cost $$$</text>
+<text class="d-lbl d-halo" x="858" y="148">two-way</text>
+<text class="d-lbl" x="850" y="398" text-anchor="middle">RPO near 0 · RTO near 0</text>
+<text class="d-title" x="850" y="425" text-anchor="middle">cost $$$$</text>
+<text class="d-lbl d-halo" x="490" y="474" text-anchor="middle">faster recovery, higher cost</text>
+</svg>
+      </div>
+      <figcaption>The strategies differ in how much of the DR Region is already running. Pick the cheapest one whose recovery point and recovery time meet the requirement.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>One-way copy or replication</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Two-way, both Regions live</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>Choosing one</h3><div class="tbl-wrap"><table><thead><tr><th>Strategy</th><th>Already in the DR Region</th><th>Recovery</th></tr></thead><tbody><tr><td>Backup and restore</td><td>Backups only</td><td>Restore data, deploy everything (hours)</td></tr><tr><td>Pilot light</td><td>Replicated data, AMIs, IaC</td><td>Launch the app tier, promote the DB (tens of minutes)</td></tr><tr><td>Warm standby</td><td>A small working copy</td><td>Scale it up, fail over DNS (minutes)</td></tr><tr><td>Multi-site active-active</td><td>Full production</td><td>DNS already spreads traffic (near zero)</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>Read the RPO and RTO in the question, then choose the <b>cheapest</b> strategy that meets both.</li><li>RPO is how much data you can lose (replication frequency); RTO is how long you can be down (what must start).</li><li>Route 53 failover routing with health checks moves traffic; multi-site uses weighted or latency routing in both Regions.</li><li>Backups for ransomware: AWS Backup copies to <b>another account</b> with Vault Lock. Server replication for DR: AWS Elastic Disaster Recovery.</li></ul></div></div>
+    
+  </section>
+
+  <h2 class="arch-group" id="g-storage">Storage</h2>
+  <section class="arch-sec" id="hybridstorage">
+    <h2>20. Hybrid storage and data transfer</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 450" role="img" aria-label="On-premises systems reach AWS storage through three Storage Gateway types and a DataSync agent. File clients use NFS or SMB shares on a File Gateway, which stores files as S3 objects. App servers mount iSCSI volumes on a Volume Gateway, backed by S3 with EBS snapshots. Backup software writes to a Tape Gateway virtual tape library, archived to S3 Glacier Deep Archive. A DataSync agent copies a NAS to S3, EFS or FSx on a schedule."><defs><marker id="d20-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d20-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-onprem" x="20" y="20" width="555" height="395" rx="12"/>
+<text class="d-cap" x="34" y="40">CORPORATE DATA CENTER</text>
+<rect class="d-z-region" x="625" y="20" width="315" height="395" rx="12"/>
+<text class="d-cap" x="639" y="40">AWS REGION</text>
+<polyline class="d-data" points="245,85 328,85" marker-end="url(#d20-data)"/>
+<polyline class="d-in" points="555,85 643,85" marker-end="url(#d20-in)"/>
+<polyline class="d-data" points="245,173 328,173" marker-end="url(#d20-data)"/>
+<polyline class="d-in" points="555,173 643,173" marker-end="url(#d20-in)"/>
+<polyline class="d-data" points="245,261 328,261" marker-end="url(#d20-data)"/>
+<polyline class="d-in" points="555,261 643,261" marker-end="url(#d20-in)"/>
+<polyline class="d-data" points="245,349 328,349" marker-end="url(#d20-data)"/>
+<polyline class="d-in" points="555,349 643,349" marker-end="url(#d20-in)"/>
+<rect class="d-node" x="40" y="60" width="205" height="50" rx="8"/><text class="d-title" x="142.5" y="81" text-anchor="middle">File clients</text><text class="d-lbl" x="142.5" y="97" text-anchor="middle">NFS or SMB</text>
+<rect class="d-node" x="330" y="60" width="225" height="50" rx="8"/><image data-ico="storagegw" x="338" y="73" width="24" height="24"/><text class="d-title" x="368" y="81">File Gateway</text><text class="d-lbl" x="368" y="97">local cache</text>
+<rect class="d-node" x="645" y="60" width="275" height="50" rx="8"/><image data-ico="s3" x="653" y="73" width="24" height="24"/><text class="d-title" x="683" y="81">S3 bucket</text><text class="d-lbl" x="683" y="97">one object per file</text>
+<rect class="d-node" x="40" y="148" width="205" height="50" rx="8"/><text class="d-title" x="142.5" y="169" text-anchor="middle">App servers</text><text class="d-lbl" x="142.5" y="185" text-anchor="middle">iSCSI block storage</text>
+<rect class="d-node" x="330" y="148" width="225" height="50" rx="8"/><image data-ico="storagegw" x="338" y="161" width="24" height="24"/><text class="d-title" x="368" y="169">Volume Gateway</text><text class="d-lbl" x="368" y="185">cached or stored</text>
+<rect class="d-node" x="645" y="148" width="275" height="50" rx="8"/><image data-ico="ebs" x="653" y="161" width="24" height="24"/><text class="d-title" x="683" y="169">S3 + EBS snapshots</text><text class="d-lbl" x="683" y="185">restore as EBS volumes</text>
+<rect class="d-node" x="40" y="236" width="205" height="50" rx="8"/><text class="d-title" x="142.5" y="257" text-anchor="middle">Backup software</text><text class="d-lbl" x="142.5" y="273" text-anchor="middle">expects a tape library</text>
+<rect class="d-node" x="330" y="236" width="225" height="50" rx="8"/><image data-ico="storagegw" x="338" y="249" width="24" height="24"/><text class="d-title" x="368" y="257">Tape Gateway</text><text class="d-lbl" x="368" y="273">virtual tape library</text>
+<rect class="d-node" x="645" y="236" width="275" height="50" rx="8"/><image data-ico="glacier" x="653" y="249" width="24" height="24"/><text class="d-title" x="683" y="257">Glacier Deep Archive</text><text class="d-lbl" x="683" y="273">archived tapes</text>
+<rect class="d-node" x="40" y="324" width="205" height="50" rx="8"/><text class="d-title" x="142.5" y="345" text-anchor="middle">NAS or file server</text><text class="d-lbl" x="142.5" y="361" text-anchor="middle">data to migrate</text>
+<rect class="d-node" x="330" y="324" width="225" height="50" rx="8"/><image data-ico="datasync" x="338" y="337" width="24" height="24"/><text class="d-title" x="368" y="345">DataSync agent</text><text class="d-lbl" x="368" y="361">scheduled, verified</text>
+<rect class="d-node" x="645" y="324" width="275" height="50" rx="8"/><image data-ico="efs" x="653" y="337" width="24" height="24"/><text class="d-title" x="683" y="345">S3, EFS or FSx</text><text class="d-lbl" x="683" y="361">migration target</text>
+<text class="d-lbl d-halo" x="288" y="80" text-anchor="middle">NFS / SMB</text>
+<text class="d-lbl d-halo" x="600" y="80" text-anchor="middle">HTTPS to AWS</text>
+<text class="d-lbl d-halo" x="288" y="168" text-anchor="middle">iSCSI</text>
+<text class="d-lbl d-halo" x="600" y="168" text-anchor="middle">HTTPS to AWS</text>
+<text class="d-lbl d-halo" x="288" y="256" text-anchor="middle">iSCSI VTL</text>
+<text class="d-lbl d-halo" x="600" y="256" text-anchor="middle">HTTPS to AWS</text>
+<text class="d-lbl d-halo" x="288" y="344" text-anchor="middle">NFS / SMB</text>
+<text class="d-lbl d-halo" x="600" y="344" text-anchor="middle">TLS</text>
+<text class="d-lbl" x="480" y="437" text-anchor="middle">a huge one-time move over a slow link → AWS Snowball: ship the data instead</text>
+</svg>
+      </div>
+      <figcaption>Each Storage Gateway type keeps the protocol your servers already speak and puts the data in AWS behind it, with a local cache for speed. DataSync is for moving data, once or on a schedule, not for serving it.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Local protocol</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>To AWS</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>Which one?</h3><div class="tbl-wrap"><table><thead><tr><th>Need</th><th>Service</th></tr></thead><tbody><tr><td>Keep an NFS/SMB share, store files in S3 (lifecycle rules apply)</td><td>S3 File Gateway</td></tr><tr><td>Windows SMB share with AD, low latency, in FSx</td><td>FSx File Gateway</td></tr><tr><td>iSCSI volumes, all data in AWS, hot data cached locally</td><td>Volume Gateway, <b>cached</b> mode</td></tr><tr><td>iSCSI volumes, all data local, backed up to AWS</td><td>Volume Gateway, <b>stored</b> mode</td></tr><tr><td>Replace physical tapes, keep the backup software</td><td>Tape Gateway</td></tr><tr><td>Copy or sync file data to S3/EFS/FSx</td><td>DataSync</td></tr><tr><td>Tens of TB or more, too slow over the network</td><td>Snowball Edge</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>Work out transfer time: 1 Gbps moves about 10 TB a day. If the network cannot finish in time, ship it with Snowball.</li><li>DataSync handles scheduling, encryption in transit, integrity checks and only-changed-files; it beats scripting rsync or the CLI.</li><li>SFTP clients that must land files in S3 → AWS Transfer Family, not a gateway.</li><li>Online database migration → DMS (with SCT for a different engine), not DataSync.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="filesystems">
+    <h2>21. Shared file systems</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 400" role="img" aria-label="Three shared file systems side by side. Amazon EFS serves NFS to Linux instances in several Availability Zones through a mount target in each. FSx for Windows File Server serves SMB to Windows instances, joined to Active Directory, in a Multi-AZ deployment. FSx for Lustre serves a high-performance computing cluster and is linked to an S3 bucket for import and export."><defs><marker id="d21-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d21-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d21-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="20" width="295" height="360" rx="12"/>
+<text class="d-cap" x="34" y="40">AMAZON EFS</text>
+<rect class="d-z-group" x="335" y="20" width="295" height="360" rx="12"/>
+<text class="d-cap" x="349" y="40">FSX FOR WINDOWS FILE SERVER</text>
+<rect class="d-z-group" x="650" y="20" width="295" height="360" rx="12"/>
+<text class="d-cap" x="664" y="40">FSX FOR LUSTRE</text>
+<polyline class="d-in" points="99,120 99,198" marker-end="url(#d21-in)"/>
+<polyline class="d-in" points="236,120 236,198" marker-end="url(#d21-in)"/>
+<polyline class="d-alt" points="167.5,250 167.5,298" marker-end="url(#d21-alt)"/>
+<polyline class="d-in" points="414,120 414,198" marker-end="url(#d21-in)"/>
+<polyline class="d-alt" points="551,120 551,198" marker-end="url(#d21-alt)"/>
+<polyline class="d-alt" points="482.5,250 482.5,298" marker-end="url(#d21-alt)"/>
+<polyline class="d-in" points="729,120 729,198" marker-end="url(#d21-in)"/>
+<polyline class="d-in" points="866,120 866,198" marker-end="url(#d21-in)"/>
+<polyline class="d-data" points="797.5,250 797.5,298" marker-end="url(#d21-data)" marker-start="url(#d21-data)"/>
+<rect class="d-node" x="35" y="80" width="128" height="40" rx="8"/><image data-ico="ec2" x="43" y="88" width="24" height="24"/><text class="d-title" x="73" y="105">EC2 · AZ A</text>
+<rect class="d-node" x="172" y="80" width="128" height="40" rx="8"/><image data-ico="ec2" x="180" y="88" width="24" height="24"/><text class="d-title" x="210" y="105">EC2 · AZ B</text>
+<rect class="d-node" x="55" y="200" width="225" height="50" rx="8"/><image data-ico="efs" x="63" y="213" width="24" height="24"/><text class="d-title" x="93" y="221">Amazon EFS</text><text class="d-lbl" x="93" y="237">mount target per AZ</text>
+<rect class="d-node" x="55" y="300" width="225" height="50" rx="8"/><text class="d-title" x="167.5" y="321" text-anchor="middle">Lifecycle to EFS IA</text><text class="d-lbl" x="167.5" y="337" text-anchor="middle">cheaper for cold files</text>
+<rect class="d-node" x="350" y="80" width="128" height="40" rx="8"/><image data-ico="ec2" x="358" y="88" width="24" height="24"/><text class="d-title" x="388" y="105">Windows EC2</text>
+<rect class="d-node" x="487" y="80" width="128" height="40" rx="8"/><image data-ico="dirsvc" x="495" y="88" width="24" height="24"/><text class="d-title" x="525" y="105">Managed AD</text>
+<rect class="d-node" x="370" y="200" width="225" height="50" rx="8"/><image data-ico="fsxwin" x="378" y="213" width="24" height="24"/><text class="d-title" x="408" y="221">FSx for Windows</text><text class="d-lbl" x="408" y="237">Multi-AZ, ACLs</text>
+<rect class="d-node" x="370" y="300" width="225" height="50" rx="8"/><text class="d-title" x="482.5" y="321" text-anchor="middle">DFS, shadow copies</text><text class="d-lbl" x="482.5" y="337" text-anchor="middle">Windows features</text>
+<rect class="d-node" x="665" y="80" width="128" height="40" rx="8"/><image data-ico="ec2" x="673" y="88" width="24" height="24"/><text class="d-title" x="703" y="105">HPC cluster</text>
+<rect class="d-node" x="802" y="80" width="128" height="40" rx="8"/><image data-ico="sagemaker" x="810" y="88" width="24" height="24"/><text class="d-title" x="840" y="105">ML training</text>
+<rect class="d-node" x="685" y="200" width="225" height="50" rx="8"/><image data-ico="fsxlustre" x="693" y="213" width="24" height="24"/><text class="d-title" x="723" y="221">FSx for Lustre</text><text class="d-lbl" x="723" y="237">scratch or persistent</text>
+<rect class="d-node" x="685" y="300" width="225" height="50" rx="8"/><image data-ico="s3" x="693" y="313" width="24" height="24"/><text class="d-title" x="723" y="321">S3 bucket</text><text class="d-lbl" x="723" y="337">linked: import / export</text>
+<text class="d-lbl" x="34" y="60">Linux, NFS</text>
+<text class="d-lbl d-halo" x="107" y="165">NFS</text>
+<text class="d-lbl" x="349" y="60">Windows, SMB</text>
+<text class="d-lbl d-halo" x="422" y="165">SMB</text>
+<text class="d-lbl d-halo" x="559" y="165">joins domain</text>
+<text class="d-lbl" x="664" y="60">HPC, ML training</text>
+<text class="d-lbl d-halo" x="737" y="165">Lustre</text>
+</svg>
+      </div>
+      <figcaption>Pick the shared file system by the clients' operating system and protocol first, then by performance. Block storage (EBS) is not shared, apart from io2 Multi-Attach within one AZ.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Clients mount</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Linked to S3</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Supporting feature</span></div>
+    </figure>
+    
+    <div class="card"><h3>Which one?</h3><div class="tbl-wrap"><table><thead><tr><th>Need</th><th>Choose</th></tr></thead><tbody><tr><td>Linux, NFS, many instances across AZs, grows on its own</td><td>Amazon EFS (Standard, or One Zone to save cost)</td></tr><tr><td>Windows, SMB, NTFS permissions, Active Directory</td><td>FSx for Windows File Server</td></tr><tr><td>HPC or ML, hundreds of GB/s, sub-millisecond, data in S3</td><td>FSx for Lustre</td></tr><tr><td>NFS + SMB + iSCSI together, NetApp features, migrate from ONTAP</td><td>FSx for NetApp ONTAP</td></tr><tr><td>ZFS features, NFS, very low latency</td><td>FSx for OpenZFS</td></tr></tbody></table></div></div>
+    <div class="card"><h3>Exam points</h3><ul><li>EFS works only with Linux (NFS); Windows file shares → FSx for Windows. EFS lifecycle to <b>Infrequent Access</b> cuts cost for files no one opens.</li><li>FSx for Lustre <b>scratch</b> is temporary and cheapest; <b>persistent</b> replicates within an AZ for long-running work.</li><li>Containers on Fargate or ECS that need shared persistent files → mount EFS.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="s3protect">
+    <h2>22. S3 lifecycle and protection</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 450" role="img" aria-label="Top: an object's lifecycle in S3. It starts in S3 Standard, moves to Standard-IA after 30 days, to Glacier Flexible Retrieval after 90 days and to Glacier Deep Archive after 180 days, and expires after 7 years. Bottom: protection. Versioning turns deletes into delete markers, Object Lock blocks deletes and overwrites for a retention period, MFA Delete needs a second factor, and Cross-Region Replication copies new objects to a bucket in another Region and account."><defs><marker id="d22-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d22-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d22-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="20" width="920" height="120" rx="12"/>
+<text class="d-cap" x="34" y="40">LIFECYCLE RULES: CHEAPER STORAGE AS DATA COOLS</text>
+<rect class="d-z-group" x="20" y="170" width="920" height="260" rx="12"/>
+<text class="d-cap" x="34" y="190">PROTECTION</text>
+<polyline class="d-in" points="193,85 215,85" marker-end="url(#d22-in)"/>
+<polyline class="d-in" points="375,85 397,85" marker-end="url(#d22-in)"/>
+<polyline class="d-in" points="557,85 579,85" marker-end="url(#d22-in)"/>
+<polyline class="d-in" points="739,85 761,85" marker-end="url(#d22-in)"/>
+<polyline class="d-alt" points="340,235 380,235 380,275 420,275"/>
+<polyline class="d-alt" points="340,310 380,310"/>
+<polyline class="d-alt" points="340,385 380,385 380,275"/>
+<polyline class="d-data" points="620,275 718,275" marker-end="url(#d22-data)"/>
+<rect class="d-node" x="35" y="60" width="158" height="50" rx="8"/><image data-ico="s3" x="43" y="73" width="24" height="24"/><text class="d-title" x="73" y="81">S3 Standard</text><text class="d-lbl" x="73" y="97">frequent access</text>
+<rect class="d-node" x="217" y="60" width="158" height="50" rx="8"/><image data-ico="s3" x="225" y="73" width="24" height="24"/><text class="d-title" x="255" y="81">Standard-IA</text><text class="d-lbl" x="255" y="97">monthly, ms access</text>
+<rect class="d-node" x="399" y="60" width="158" height="50" rx="8"/><image data-ico="glacier" x="407" y="73" width="24" height="24"/><text class="d-title" x="437" y="81">Glacier Flexible</text><text class="d-lbl" x="437" y="97">minutes to hours</text>
+<rect class="d-node" x="581" y="60" width="158" height="50" rx="8"/><image data-ico="glacier" x="589" y="73" width="24" height="24"/><text class="d-title" x="619" y="81">Deep Archive</text><text class="d-lbl" x="619" y="97">within 12 hours</text>
+<rect class="d-node" x="763" y="60" width="158" height="50" rx="8"/><text class="d-title" x="842" y="81" text-anchor="middle">Expire</text><text class="d-lbl" x="842" y="97" text-anchor="middle">deleted</text>
+<rect class="d-node" x="40" y="210" width="300" height="50" rx="8"/><text class="d-title" x="190" y="231" text-anchor="middle">Versioning</text><text class="d-lbl" x="190" y="247" text-anchor="middle">a delete only adds a delete marker</text>
+<rect class="d-node" x="40" y="285" width="300" height="50" rx="8"/><text class="d-title" x="190" y="306" text-anchor="middle">Object Lock</text><text class="d-lbl" x="190" y="322" text-anchor="middle">WORM: compliance or governance mode</text>
+<rect class="d-node" x="40" y="360" width="300" height="50" rx="8"/><text class="d-title" x="190" y="381" text-anchor="middle">MFA Delete</text><text class="d-lbl" x="190" y="397" text-anchor="middle">second factor to delete a version</text>
+<rect class="d-node" x="420" y="250" width="200" height="50" rx="8"/><image data-ico="s3" x="428" y="263" width="24" height="24"/><text class="d-title" x="458" y="271">Source bucket</text><text class="d-lbl" x="458" y="287">versioning on</text>
+<rect class="d-node" x="720" y="250" width="200" height="50" rx="8"/><image data-ico="s3" x="728" y="263" width="24" height="24"/><text class="d-title" x="758" y="271">Replica bucket</text><text class="d-lbl" x="758" y="287">other Region, other account</text>
+<text class="d-lbl d-halo" x="205" y="55" text-anchor="middle">30 days</text>
+<text class="d-lbl d-halo" x="387" y="55" text-anchor="middle">90 days</text>
+<text class="d-lbl d-halo" x="569" y="55" text-anchor="middle">180 days</text>
+<text class="d-lbl d-halo" x="751" y="55" text-anchor="middle">7 years</text>
+<text class="d-lbl d-halo" x="670" y="245" text-anchor="middle">Cross-Region Replication</text>
+<text class="d-lbl" x="670" y="330" text-anchor="middle">new objects only · Batch Replication for existing ones</text>
+<text class="d-lbl" x="670" y="350" text-anchor="middle">Replication Time Control: 99.99% within 15 minutes</text>
+</svg>
+      </div>
+      <figcaption>Lifecycle rules move each object to cheaper storage as it ages and delete it at the end. Versioning, Object Lock and MFA Delete stop accidental or malicious loss, and replication keeps a copy in another Region or account.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Lifecycle transition</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Replication</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Bucket settings</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>Storage classes</h3><div class="tbl-wrap"><table><thead><tr><th>Class</th><th>Retrieval</th><th>Use it for</th></tr></thead><tbody><tr><td>Standard</td><td>Milliseconds</td><td>Frequently read data</td></tr><tr><td>Intelligent-Tiering</td><td>Milliseconds (archive tiers optional)</td><td>Unknown or changing access, no retrieval fees</td></tr><tr><td>Standard-IA / One Zone-IA</td><td>Milliseconds, per-GB retrieval fee</td><td>Read about monthly; One Zone for re-creatable data</td></tr><tr><td>Glacier Instant Retrieval</td><td>Milliseconds</td><td>Read about quarterly</td></tr><tr><td>Glacier Flexible Retrieval</td><td>Minutes to hours</td><td>Archives, backups</td></tr><tr><td>Glacier Deep Archive</td><td>Within 12 hours (48 for bulk)</td><td>Compliance records kept for years</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>IA classes bill at least <b>30 days</b> and <b>128 KB</b> per object; Glacier tiers have 90 and 180-day minimums. Tiny or short-lived objects can cost more there.</li><li>"No one, not even root, can delete for 7 years" → Object Lock <b>compliance</b> mode. Governance mode can be bypassed with a special permission. A legal hold has no end date.</li><li>Replication requires versioning on both buckets and does not copy existing objects unless you run Batch Replication.</li><li>Clean up failed multipart uploads with an <code>AbortIncompleteMultipartUpload</code> lifecycle rule.</li></ul></div></div>
+    
+  </section>
+
+  <h2 class="arch-group" id="g-security">Security and multiple accounts</h2>
+  <section class="arch-sec" id="landingzone">
+    <h2>23. Multi-account landing zone</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 980 470" role="img" aria-label="An AWS Organizations management account with Control Tower governs three organizational units. The Security OU holds a log archive account, which receives the organization CloudTrail trail and Config logs, and an audit account that administers GuardDuty and Security Hub. The Workloads OU holds production and development accounts and the Sandbox OU holds experiment accounts, each OU with its own service control policies. Staff sign in once through IAM Identity Center, federated with the corporate identity provider, and get permission sets in each account."><defs><marker id="d23-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d23-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="115" width="300" height="230" rx="12"/>
+<text class="d-cap" x="34" y="135">SECURITY OU</text>
+<rect class="d-z-group" x="340" y="115" width="300" height="230" rx="12"/>
+<text class="d-cap" x="354" y="135">WORKLOADS OU</text>
+<rect class="d-z-group" x="660" y="115" width="300" height="230" rx="12"/>
+<text class="d-cap" x="674" y="135">SANDBOX OU</text>
+<polyline class="d-data" points="490,65 490,95 170,95 170,111" marker-end="url(#d23-data)"/>
+<polyline class="d-data" points="490,65 490,95 490,95 490,111" marker-end="url(#d23-data)"/>
+<polyline class="d-data" points="490,65 490,95 810,95 810,111" marker-end="url(#d23-data)"/>
+<polyline class="d-in" points="210,420 298,420" marker-end="url(#d23-in)"/>
+<polyline class="d-in" points="425,395 425,372"/>
+<polyline class="d-in" points="170,372 810,372"/>
+<polyline class="d-in" points="170,372 170,349" marker-end="url(#d23-in)"/>
+<polyline class="d-in" points="490,372 490,349" marker-end="url(#d23-in)"/>
+<polyline class="d-in" points="810,372 810,349" marker-end="url(#d23-in)"/>
+<rect class="d-node" x="355" y="15" width="270" height="50" rx="8"/><image data-ico="orgs" x="363" y="28" width="24" height="24"/><text class="d-title" x="393" y="36">Management account</text><text class="d-lbl" x="393" y="52">Organizations, Control Tower, billing</text>
+<rect class="d-node" x="40" y="155" width="260" height="50" rx="8"/><image data-ico="s3" x="48" y="168" width="24" height="24"/><text class="d-title" x="78" y="176">Log archive</text><text class="d-lbl" x="78" y="192">org CloudTrail, Config logs</text>
+<rect class="d-node" x="40" y="245" width="260" height="50" rx="8"/><image data-ico="securityhub" x="48" y="258" width="24" height="24"/><text class="d-title" x="78" y="266">Audit</text><text class="d-lbl" x="78" y="282">GuardDuty, Security Hub admin</text>
+<rect class="d-node" x="360" y="155" width="260" height="50" rx="8"/><image data-ico="ec2" x="368" y="168" width="24" height="24"/><text class="d-title" x="398" y="176">Production</text><text class="d-lbl" x="398" y="192">per app or team</text>
+<rect class="d-node" x="360" y="245" width="260" height="50" rx="8"/><image data-ico="ec2" x="368" y="258" width="24" height="24"/><text class="d-title" x="398" y="266">Development</text><text class="d-lbl" x="398" y="282">per app or team</text>
+<rect class="d-node" x="680" y="155" width="260" height="50" rx="8"/><image data-ico="lambda" x="688" y="168" width="24" height="24"/><text class="d-title" x="718" y="176">Sandbox</text><text class="d-lbl" x="718" y="192">experiments</text>
+<rect class="d-node" x="680" y="245" width="260" height="50" rx="8"/><image data-ico="lambda" x="688" y="258" width="24" height="24"/><text class="d-title" x="718" y="266">Sandbox</text><text class="d-lbl" x="718" y="282">budget alert + action</text>
+<rect class="d-node" x="20" y="395" width="190" height="50" rx="8"/><text class="d-title" x="115" y="416" text-anchor="middle">Corporate IdP</text><text class="d-lbl" x="115" y="432" text-anchor="middle">Entra ID, Okta…</text>
+<rect class="d-node" x="300" y="395" width="250" height="50" rx="8"/><image data-ico="idc" x="308" y="408" width="24" height="24"/><text class="d-title" x="338" y="416">IAM Identity Center</text><text class="d-lbl" x="338" y="432">one sign-in, permission sets</text>
+<text class="d-lbl" x="306" y="135" text-anchor="end">SCP: no disabling CloudTrail</text>
+<text class="d-lbl" x="626" y="135" text-anchor="end">SCP: approved Regions only</text>
+<text class="d-lbl" x="946" y="135" text-anchor="end">SCP: deny costly services</text>
+<text class="d-lbl d-halo" x="255" y="412" text-anchor="middle">SAML / SCIM</text>
+<text class="d-lbl" x="650" y="389" text-anchor="middle">roles in every account</text>
+</svg>
+      </div>
+      <figcaption>Accounts are the strongest isolation boundary, so workloads, security tooling and logs each get their own. Policies attach to OUs and apply to every account in them, including accounts created later, and people sign in once to reach whichever accounts they are allowed into.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Organization hierarchy</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Sign-in and access</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Set up many accounts with guardrails and a dashboard, with the least effort" → <b>Control Tower</b> (landing zone, Account Factory, preventive and detective controls).</li><li><b>SCPs</b> cap what any principal in an account can do, root included; they grant nothing on their own and never restrict the management account.</li><li>Logs no one can tamper with → organization trail to a bucket in the <b>log archive</b> account, with Object Lock and log file validation.</li><li>Workforce access to many accounts → <b>IAM Identity Center</b> with permission sets, not IAM users per account. Customers of your app → Cognito.</li><li>Consolidated billing shares volume discounts, Reserved Instances and Savings Plans across the organization.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="crossaccount">
+    <h2>24. Cross-account access</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 420" role="img" aria-label="An application in Account A reaches an S3 bucket in Account B in two ways. With a role: it calls STS AssumeRole for a role in Account B whose trust policy names Account A and an external ID, receives temporary credentials and reads the bucket as that role. With a resource policy: the bucket policy grants Account A's role directly, so the application reads with its own identity. If the objects use SSE-KMS, the KMS key policy in Account B must also allow the caller to decrypt."><defs><marker id="d24-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d24-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d24-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-account" x="20" y="20" width="300" height="380" rx="12"/>
+<text class="d-cap" x="34" y="40">ACCOUNT A · 1111 1111 1111</text>
+<rect class="d-z-account" x="560" y="20" width="380" height="380" rx="12"/>
+<text class="d-cap" x="574" y="40">ACCOUNT B · 2222 2222 2222</text>
+<polyline class="d-in" points="120,170 120,75 343,75" marker-end="url(#d24-in)"/>
+<polyline class="d-in" points="535,75 588,75" marker-end="url(#d24-in)"/>
+<polyline class="d-in" points="680,100 680,188" marker-end="url(#d24-in)"/>
+<polyline class="d-data" points="295,195 588,214.9" marker-end="url(#d24-data)"/>
+<polyline class="d-alt" points="750,240 750,313" marker-end="url(#d24-alt)"/>
+<rect class="d-node" x="45" y="170" width="250" height="50" rx="8"/><image data-ico="iamrole" x="53" y="183" width="24" height="24"/><text class="d-title" x="83" y="191">App role</text><text class="d-lbl" x="83" y="207">the caller</text>
+<rect class="d-node" x="345" y="50" width="190" height="50" rx="8"/><image data-ico="iam" x="353" y="63" width="24" height="24"/><text class="d-title" x="383" y="71">AWS STS</text><text class="d-lbl" x="383" y="87">temporary credentials</text>
+<rect class="d-node" x="590" y="50" width="320" height="50" rx="8"/><image data-ico="iamrole" x="598" y="63" width="24" height="24"/><text class="d-title" x="628" y="71">Role: ReadReports</text><text class="d-lbl" x="628" y="87">trust policy: Account A + external ID</text>
+<rect class="d-node" x="590" y="190" width="320" height="50" rx="8"/><image data-ico="s3" x="598" y="203" width="24" height="24"/><text class="d-title" x="628" y="211">Reports bucket</text><text class="d-lbl" x="628" y="227">bucket policy</text>
+<rect class="d-node" x="590" y="315" width="320" height="50" rx="8"/><image data-ico="kms" x="598" y="328" width="24" height="24"/><text class="d-title" x="628" y="336">KMS key</text><text class="d-lbl" x="628" y="352">key policy allows kms:Decrypt</text>
+<text class="d-lbl d-halo" x="200" y="66" text-anchor="middle">1 AssumeRole</text>
+<text class="d-lbl d-halo" x="562" y="66" text-anchor="middle">trust</text>
+<text class="d-lbl d-halo" x="690" y="160">2 read as the role</text>
+<text class="d-lbl d-halo" x="445" y="232" text-anchor="middle">or: the bucket policy names Account A</text>
+<text class="d-lbl d-halo" x="760" y="293">SSE-KMS objects</text>
+</svg>
+      </div>
+      <figcaption>Either the caller becomes a role in the other account (its trust policy decides who may), or the resource's own policy lets the caller in as itself. Encrypted data adds a third gate: the KMS key policy.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Assume a role</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Resource-based policy</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Decryption check</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>Role or resource policy?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Assume a role</th><th>Resource-based policy</th></tr></thead><tbody><tr><td>Caller identity</td><td>Becomes the role; gives up its own permissions meanwhile</td><td>Keeps its own identity and permissions</td></tr><tr><td>Works for</td><td>Any service</td><td>Services with resource policies: S3, SQS, SNS, KMS, Lambda, ECR…</td></tr><tr><td>Third parties</td><td>Require an <b>external ID</b> in the trust policy</td><td>Name their account or role in the policy</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>A vendor needs access to your account → a role whose trust policy names the vendor's account and an <b>external ID</b> (confused-deputy protection). Never share access keys.</li><li>Cross-account S3 downloads fail with AccessDenied though the bucket policy allows them → the objects use SSE-KMS and the <b>key policy</b> is missing the caller.</li><li>Applications on EC2, Lambda or ECS get credentials from their own role (instance profile, execution role, task role), never stored keys.</li><li>Find resources shared outside your organization → IAM Access Analyzer.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="edgesecurity">
+    <h2>25. Edge security and threat detection</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 980 450" role="img" aria-label="Top row, protect: users and bots reach CloudFront, protected by an AWS WAF web ACL and Shield Advanced, and CloudFront forwards to an Application Load Balancer whose security group admits only CloudFront, in front of the application. Bottom row, detect and respond: CloudTrail, VPC Flow Logs and DNS logs feed GuardDuty, whose findings join Inspector and Macie findings in Security Hub; an EventBridge rule sends them to Lambda for remediation and SNS for alerts."><defs><marker id="d25-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d25-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d25-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="15" width="940" height="195" rx="12"/>
+<text class="d-cap" x="34" y="35">PROTECT</text>
+<rect class="d-z-group" x="20" y="235" width="940" height="200" rx="12"/>
+<text class="d-cap" x="34" y="255">DETECT AND RESPOND</text>
+<polyline class="d-in" points="200,145 258,145" marker-end="url(#d25-in)"/>
+<polyline class="d-in" points="450,150 498,150" marker-end="url(#d25-in)"/>
+<polyline class="d-in" points="710,150 763,150" marker-end="url(#d25-in)"/>
+<polyline class="d-alt" points="355,95 355,123" marker-end="url(#d25-alt)"/>
+<polyline class="d-alt" points="500,70 470,70 470,135 452,135" marker-end="url(#d25-alt)"/>
+<polyline class="d-data" points="250,325 303,325" marker-end="url(#d25-data)"/>
+<polyline class="d-data" points="475,325 498,325" marker-end="url(#d25-data)"/>
+<polyline class="d-data" points="710,315 740,315 740,290 763,290" marker-end="url(#d25-data)"/>
+<polyline class="d-data" points="852.5,310 852.5,353" marker-end="url(#d25-data)"/>
+<rect class="d-node" x="40" y="125" width="160" height="40" rx="8"/><text class="d-title" x="120" y="150" text-anchor="middle">Users and bots</text>
+<rect class="d-node" x="260" y="125" width="190" height="50" rx="8"/><image data-ico="cloudfront" x="268" y="138" width="24" height="24"/><text class="d-title" x="298" y="146">CloudFront</text><text class="d-lbl" x="298" y="162">Shield Standard included</text>
+<rect class="d-node" x="260" y="45" width="190" height="50" rx="8"/><image data-ico="waf" x="268" y="58" width="24" height="24"/><text class="d-title" x="298" y="66">AWS WAF</text><text class="d-lbl" x="298" y="82">managed rules, rate limit</text>
+<rect class="d-node" x="500" y="45" width="210" height="50" rx="8"/><image data-ico="shield" x="508" y="58" width="24" height="24"/><text class="d-title" x="538" y="66">Shield Advanced</text><text class="d-lbl" x="538" y="82">DDoS response team</text>
+<rect class="d-node" x="500" y="125" width="210" height="50" rx="8"/><image data-ico="alb" x="508" y="138" width="24" height="24"/><text class="d-title" x="538" y="146">ALB</text><text class="d-lbl" x="538" y="162">SG: CloudFront prefix list</text>
+<rect class="d-node" x="765" y="125" width="175" height="50" rx="8"/><image data-ico="ec2" x="773" y="138" width="24" height="24"/><text class="d-title" x="803" y="146">Application</text><text class="d-lbl" x="803" y="162">private subnets</text>
+<rect class="d-node" x="40" y="300" width="210" height="50" rx="8"/><image data-ico="cloudtrail" x="48" y="313" width="24" height="24"/><text class="d-title" x="78" y="321">Logs</text><text class="d-lbl" x="78" y="337">CloudTrail, Flow Logs, DNS</text>
+<rect class="d-node" x="305" y="300" width="170" height="50" rx="8"/><image data-ico="guardduty" x="313" y="313" width="24" height="24"/><text class="d-title" x="343" y="321">GuardDuty</text><text class="d-lbl" x="343" y="337">threat findings</text>
+<rect class="d-node" x="500" y="300" width="210" height="50" rx="8"/><image data-ico="securityhub" x="508" y="313" width="24" height="24"/><text class="d-title" x="538" y="321">Security Hub</text><text class="d-lbl" x="538" y="337">+ Inspector, Macie findings</text>
+<rect class="d-node" x="765" y="270" width="175" height="40" rx="8"/><image data-ico="eventbridge" x="773" y="278" width="24" height="24"/><text class="d-title" x="803" y="295">EventBridge rule</text>
+<rect class="d-node" x="765" y="355" width="175" height="50" rx="8"/><image data-ico="lambda" x="773" y="368" width="24" height="24"/><text class="d-title" x="803" y="376">Lambda, SNS</text><text class="d-lbl" x="803" y="392">remediate, alert</text>
+<text class="d-lbl d-halo" x="230" y="141" text-anchor="middle">HTTPS</text>
+<text class="d-lbl d-halo" x="362" y="111">web ACL</text>
+<text class="d-lbl d-halo" x="474" y="105">protects</text>
+<text class="d-lbl d-halo" x="278" y="316" text-anchor="middle">analyzes</text>
+<text class="d-lbl d-halo" x="737" y="330" text-anchor="middle">findings</text>
+</svg>
+      </div>
+      <figcaption>Attacks are stopped as far out as possible: WAF and Shield at the CloudFront edge, and an ALB that only CloudFront can reach. Behind them, managed detectors read the logs, Security Hub gathers every finding in one place, and EventBridge turns findings into automatic responses.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Protection attached</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Findings and responses</span></div>
+    </figure>
+    
+    <div class="card"><h3>Which service finds what?</h3><div class="tbl-wrap"><table><thead><tr><th>Service</th><th>Looks at</th><th>Finds</th></tr></thead><tbody><tr><td>GuardDuty</td><td>CloudTrail, VPC Flow Logs, DNS logs (agentless)</td><td>Compromised instances, crypto mining, odd API calls</td></tr><tr><td>Inspector</td><td>EC2, container images, Lambda</td><td>Software vulnerabilities (CVEs), network exposure</td></tr><tr><td>Macie</td><td>S3 objects</td><td>Sensitive data such as PII and card numbers</td></tr><tr><td>Detective</td><td>GuardDuty findings and logs</td><td>Root-cause investigation</td></tr><tr><td>Security Hub</td><td>All of the above, across accounts</td><td>One prioritized view, best-practice checks</td></tr></tbody></table></div></div>
+    <div class="card"><h3>Exam points</h3><ul><li>SQL injection and bad bots → <b>WAF</b> managed rules; HTTP floods from many IPs → WAF <b>rate-based</b> rule; large DDoS with expert help and cost protection → <b>Shield Advanced</b>.</li><li>Apply the same WAF rules to every account automatically → <b>Firewall Manager</b> (needs Organizations and Config).</li><li>Keep users from bypassing CloudFront → ALB security group allows only the CloudFront managed prefix list; S3 origins use Origin Access Control.</li><li>Automatic response to a finding → EventBridge rule → Lambda or a Systems Manager Automation runbook.</li></ul></div>
+  </section>
+  <!-- GENERATED:DIAGRAMS END -->
 </main>
 
 <script src="icons.js"></script>
