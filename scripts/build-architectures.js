@@ -1,4 +1,4 @@
-// Builds diagrams 3-25 of docs/cheatsheet/architectures.html and its contents list.
+// Builds diagrams 3-25 of docs/cheatsheet/architectures.html, its contents list and its jump menu.
 // Each diagram is described with a few drawing helpers (zones, boxes, arrows, labels) and rendered to
 // static inline SVG that uses the page's own drawing classes, so the published page needs no drawing
 // code. Diagrams 1 and 2 are hand-drawn in the page itself. The output replaces what sits between the
@@ -1102,7 +1102,10 @@ function build() {
     if (!re.test(page)) throw new Error('missing GENERATED:' + name + ' markers in ' + PAGE);
     page = page.replace(re, (m, a, b) => a + '\n    ' + html + '\n  ' + b);
   };
+  // the top bar's jump menu lists the same diagrams, grouped the same way
+  const jumpOptions = GROUPS.filter(g => g.items.length).map(g => `<optgroup label="${esc(g.title)}">${g.items.map(i => `<option value="${i.id}">${i.n} · ${esc(i.title)}</option>`).join('')}</optgroup>`).join('\n        ');
   swap('CONTENTS', toc);
+  swap('JUMP', jumpOptions);
   swap('DIAGRAMS', body);
   page = page.replace(/\r?\n/g, eol);
   fs.writeFileSync(PAGE, page);

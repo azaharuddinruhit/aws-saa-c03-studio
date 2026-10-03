@@ -22,6 +22,14 @@
 .fig{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:12px}
 .fig-scroll{overflow-x:auto}
 .fig-hint{display:none;font-size:12px;color:var(--muted);margin:0 0 6px}
+/* jump menu in the sticky top bar: names the diagram on screen and jumps to any other */
+.jump{position:relative;margin-left:auto;flex:1 1 auto;max-width:320px;min-width:0}
+/* on a phone the menu needs the room more than the page title does */
+@media (max-width:640px){.topbar.nosub .brand-name{display:none}}
+.jump select{width:100%;appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 32px 7px 14px;font:600 13px var(--sans);text-overflow:ellipsis;white-space:nowrap;overflow:hidden;cursor:pointer}
+.jump select:hover{border-color:var(--accent)}
+.jump::after{content:"";position:absolute;right:14px;top:50%;width:7px;height:7px;margin-top:-6px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);pointer-events:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (max-width:800px){.fig-hint{display:block}}
 .fig svg{display:block;width:100%;min-width:760px;height:auto;color:var(--ink);font-family:var(--sans)}
 .fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
@@ -85,7 +93,23 @@
 <header class="topbar nosub">
   <div class="topbar-in">
     <span class="brand"><a class="back-link" href="index.html" aria-label="Back to the cheat sheets" title="Back to the cheat sheets"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark">C03</span><span class="brand-name">Architecture Diagrams</span></span>
-    <button class="theme-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme" style="margin-left:auto"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+    <label class="jump">
+      <span class="sr-only">Jump to a diagram</span>
+      <select id="jump">
+        <option value="">Jump to a diagram…</option>
+        <!-- GENERATED:JUMP START (scripts/build-architectures.js) -->
+    <optgroup label="Networking foundations"><option value="vpc-layout">1 · Classic multi-AZ VPC</option><option value="vpc-endpoints">2 · Private access to AWS services</option><option value="hybrid">3 · Hybrid connectivity</option><option value="tgw">4 · Transit Gateway hub and spoke</option><option value="privatelink">5 · PrivateLink for a SaaS service</option><option value="hybrid-dns">6 · Hybrid DNS with Route 53 Resolver</option></optgroup>
+        <optgroup label="Highly available web applications"><option value="three-tier">7 · Three-tier web application</option><option value="serverless">8 · Serverless web application</option><option value="edge">9 · CloudFront or Global Accelerator</option></optgroup>
+        <optgroup label="Decoupling and event-driven design"><option value="queue">10 · Queue-based load leveling</option><option value="fanout">11 · Fan-out with SNS and SQS</option><option value="eventbridge">12 · Event routing with EventBridge</option><option value="stepfunctions">13 · Workflow orchestration with Step Functions</option></optgroup>
+        <optgroup label="Data and analytics"><option value="streaming">14 · Streaming pipeline</option><option value="datalake">15 · Data lake on S3</option><option value="s3events">16 · Event-driven S3 processing</option></optgroup>
+        <optgroup label="Databases"><option value="readscale">17 · Read scaling and caching</option><option value="multiregion">18 · Multi-Region data</option></optgroup>
+        <optgroup label="Disaster recovery"><option value="dr">19 · Disaster recovery strategies</option></optgroup>
+        <optgroup label="Storage"><option value="hybridstorage">20 · Hybrid storage and data transfer</option><option value="filesystems">21 · Shared file systems</option><option value="s3protect">22 · S3 lifecycle and protection</option></optgroup>
+        <optgroup label="Security and multiple accounts"><option value="landingzone">23 · Multi-account landing zone</option><option value="crossaccount">24 · Cross-account access</option><option value="edgesecurity">25 · Edge security and threat detection</option></optgroup>
+  <!-- GENERATED:JUMP END -->
+      </select>
+    </label>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
   </div>
 </header>
 
@@ -1369,6 +1393,29 @@
 <script>
 // the diagrams name their AWS icons; the shared icon set supplies them, so the page works offline
 document.querySelectorAll('svg image[data-ico]').forEach(el => el.setAttribute('href', App.iconURL(el.dataset.ico)));
+// The jump menu shows the diagram on screen (the last one whose heading has passed under the top bar)
+// and scrolls straight to the one picked; above diagram 1 it shows its prompt again.
+const jump = document.getElementById('jump');
+const sections = [...document.querySelectorAll('.arch-sec')];
+jump.addEventListener('change', () => {
+  const target = document.getElementById(jump.value);
+  if (target) target.scrollIntoView({ block: 'start' });
+  jump.blur();
+});
+let tracking = false;
+function trackCurrent() {
+  tracking = false;
+  const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
+  let current = '';
+  for (const sec of sections) {
+    if (sec.getBoundingClientRect().top <= 90) current = sec.id; else break;
+  }
+  if (atBottom) current = sections[sections.length - 1].id;   // the last diagram can't scroll up to the line
+  if (jump.value !== current) jump.value = current;
+}
+addEventListener('scroll', () => { if (!tracking) { tracking = true; requestAnimationFrame(trackCurrent); } }, { passive: true });
+trackCurrent();
+
 App.$('#themeBtn').addEventListener('click', () => {
   const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const next = cur === 'dark' ? 'light' : 'dark';
