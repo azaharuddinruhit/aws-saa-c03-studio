@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AWS SAA-C03 Architecture Diagrams</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Cpath%20d%3D%27M9%2017l5%205%209-11%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%273.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20fill%3D%27none%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Architecture diagrams: hand-drawn SVG themed by the cheat sheets' colour tokens, so both themes work.
+   Encodings repeat across diagrams: green solid = the request or private path, orange dashed = traffic
+   through a NAT gateway (billed per GB), ink = database or data traffic. */
+.arch{padding-block:28px 60px;display:grid;gap:32px}
+.arch > *,.arch-sec > *{min-width:0}
+.arch h1{font-size:clamp(28px,4.4vw,40px);font-weight:800;letter-spacing:-.02em}
+.arch-sec{display:grid;gap:14px}
+.arch-sec h2{font-size:22px;font-weight:800;letter-spacing:-.01em}
+.arch-sec h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.fig{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:12px}
+.fig-scroll{overflow-x:auto}
+.fig-hint{display:none;font-size:12px;color:var(--muted);margin:0 0 6px}
+@media (max-width:800px){.fig-hint{display:block}}
+.fig svg{display:block;width:100%;min-width:760px;height:auto;color:var(--ink);font-family:var(--sans)}
+.fig figcaption{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend svg{width:26px;height:10px;min-width:0;flex:none}
+.arch-cols{display:grid;gap:14px}
+@media (min-width:860px){.arch-cols{grid-template-columns:1fr 1fr}}
+.arch ol li,.arch ul li{font-size:14px;margin-top:4px}
+.arch .tbl-wrap td,.arch .tbl-wrap th{padding:6px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}
+.arch .tbl-wrap th{color:var(--muted);font-weight:600}
+.arch .tbl-wrap tr:last-child td{border-bottom:none}
+.arch .tbl-wrap code{white-space:nowrap}
+
+/* drawing classes */
+.fig :where(text){font-size:12px;fill:currentColor}
+.d-title{font-weight:600}
+.d-lbl{font-size:11px;fill:var(--muted)}
+.d-cap{font-size:10px;font-weight:700;letter-spacing:.08em;fill:var(--muted)}
+.d-halo{paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.d-region{fill:none;stroke:var(--line);stroke-width:1.5}
+.d-vpc{fill:none;stroke:var(--accent);stroke-width:1.8}
+.d-az{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:6 5}
+.d-pub{fill:var(--accent-soft)}
+.d-priv{fill:var(--surface-2)}
+.d-node{fill:var(--surface);stroke:var(--muted);stroke-width:1.2}
+.d-asg{fill:none;stroke:var(--aws);stroke-width:1.4;stroke-dasharray:5 4}
+.d-in{fill:none;stroke:var(--accent);stroke-width:2}
+.d-out{fill:none;stroke:var(--aws);stroke-width:2;stroke-dasharray:6 4}
+.d-data{fill:none;stroke:currentColor;stroke-width:1.6}
+.d-head-in{fill:var(--accent)}
+.d-head-out{fill:var(--aws)}
+.d-head-data{fill:currentColor}
+.d-rt{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.d-mono{font-family:var(--mono);font-size:11px}
+.d-ok{fill:var(--accent);font-weight:700}
+.d-warn{fill:var(--aws);font-weight:700}
+</style>
+</head>
+<body>
+<header class="topbar nosub">
+  <div class="topbar-in">
+    <span class="brand"><a class="back-link" href="index.html" aria-label="Back to the cheat sheets" title="Back to the cheat sheets"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark">C03</span><span class="brand-name">Architecture Diagrams</span></span>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme" style="margin-left:auto"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  </div>
+</header>
+
+<main class="wrap arch">
+  <div>
+    <div class="eyebrow">AWS Solutions Architect – Associate</div>
+    <h1 style="margin-top:6px">Architecture diagrams</h1>
+  </div>
+  <p class="oneliner" style="margin-top:-12px">The patterns the exam keeps coming back to, drawn as traffic paths. For each one, know where the single points of failure are, what the cheaper option is, and which look-alike service is the trap.</p>
+
+  <!-- ============ 1. Classic VPC layout ============ -->
+  <section class="arch-sec" id="vpc-layout">
+    <h2>1. Classic multi-AZ VPC</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 960 690" role="img" aria-label="A VPC across two Availability Zones. Users reach an Application Load Balancer in the public subnets through the internet gateway; the load balancer sends requests to EC2 instances in private app subnets; the instances use the RDS primary in a private database subnet, which replicates synchronously to a standby in the other zone. Each zone's app subnet reaches the internet only through the NAT gateway in its own zone.">
+          <defs>
+            <marker id="v-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker>
+            <marker id="v-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-out" d="M0 0L10 5L0 10z"/></marker>
+            <marker id="v-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker>
+          </defs>
+
+          <!-- users and the edge of the Region -->
+          <rect class="d-node" x="380" y="10" width="200" height="40" rx="8"/>
+          <text class="d-title" x="480" y="35" text-anchor="middle">Users on the internet</text>
+          <rect class="d-region" x="20" y="70" width="920" height="610" rx="14"/>
+          <text class="d-cap" x="36" y="92">REGION</text>
+
+          <!-- VPC -->
+          <rect class="d-vpc" x="40" y="105" width="880" height="560" rx="12"/>
+          <image data-ico="vpc" x="54" y="116" width="20" height="20"/>
+          <text class="d-title" x="80" y="131">VPC 10.0.0.0/16</text>
+
+          <!-- Availability Zones -->
+          <rect class="d-az" x="58" y="145" width="416" height="505" rx="10"/>
+          <text class="d-lbl" x="72" y="163">Availability Zone A</text>
+          <rect class="d-az" x="486" y="145" width="416" height="505" rx="10"/>
+          <text class="d-lbl" x="888" y="163" text-anchor="end">Availability Zone B</text>
+
+          <!-- public subnets -->
+          <rect class="d-pub" x="70" y="175" width="392" height="120" rx="8"/>
+          <rect class="d-pub" x="498" y="175" width="392" height="120" rx="8"/>
+          <text class="d-lbl" x="82" y="286">Public subnet 10.0.1.0/24 · 0.0.0.0/0 → IGW</text>
+          <text class="d-lbl" x="878" y="286" text-anchor="end">Public subnet 10.0.2.0/24 · 0.0.0.0/0 → IGW</text>
+
+          <!-- private app subnets -->
+          <rect class="d-priv" x="70" y="315" width="392" height="135" rx="8"/>
+          <rect class="d-priv" x="498" y="315" width="392" height="135" rx="8"/>
+          <text class="d-lbl" x="82" y="441">Private app subnet · 0.0.0.0/0 → NAT A</text>
+          <text class="d-lbl" x="878" y="441" text-anchor="end">Private app subnet · 0.0.0.0/0 → NAT B</text>
+
+          <!-- private database subnets -->
+          <rect class="d-priv" x="70" y="470" width="392" height="165" rx="8"/>
+          <rect class="d-priv" x="498" y="470" width="392" height="165" rx="8"/>
+          <text class="d-lbl" x="82" y="626">Private DB subnet · local routes only</text>
+          <text class="d-lbl" x="878" y="626" text-anchor="end">Private DB subnet · local routes only</text>
+
+          <!-- request path: users -> internet gateway -> load balancer -> instances -->
+          <line class="d-in" x1="480" y1="50" x2="480" y2="86" marker-end="url(#v-in)"/>
+          <text class="d-lbl" x="492" y="73">HTTPS 443</text>
+          <line class="d-in" x1="480" y1="124" x2="480" y2="203" marker-end="url(#v-in)"/>
+          <line class="d-in" x1="420" y1="245" x2="270" y2="358" marker-end="url(#v-in)"/>
+          <line class="d-in" x1="540" y1="245" x2="690" y2="358" marker-end="url(#v-in)"/>
+          <text class="d-lbl d-halo" x="480" y="306" text-anchor="middle">HTTP 80 · app SG allows ALB SG</text>
+
+          <!-- outbound only: instances -> NAT in the same zone -> internet gateway -->
+          <line class="d-out" x1="226" y1="360" x2="168" y2="248" marker-end="url(#v-out)"/>
+          <line class="d-out" x1="734" y1="360" x2="792" y2="248" marker-end="url(#v-out)"/>
+          <line class="d-out" x1="166" y1="205" x2="428" y2="126" marker-end="url(#v-out)"/>
+          <line class="d-out" x1="794" y1="205" x2="532" y2="126" marker-end="url(#v-out)"/>
+          <text class="d-lbl d-halo" x="300" y="172" text-anchor="middle">outbound only</text>
+          <text class="d-lbl d-halo" x="660" y="172" text-anchor="middle">outbound only</text>
+
+          <!-- database traffic -->
+          <line class="d-data" x1="266" y1="400" x2="266" y2="518" marker-end="url(#v-data)"/>
+          <line class="d-data" x1="694" y1="400" x2="358" y2="528" marker-end="url(#v-data)"/>
+          <text class="d-lbl d-halo" x="276" y="462">SQL 3306</text>
+          <line class="d-data" x1="356" y1="541" x2="602" y2="541" marker-end="url(#v-data)"/>
+          <text class="d-lbl d-halo" x="480" y="533" text-anchor="middle">synchronous replication</text>
+          <text class="d-lbl" x="480" y="557" text-anchor="middle">automatic failover</text>
+
+          <!-- components (drawn last so they sit on top of the lines) -->
+          <rect class="d-node" x="405" y="88" width="150" height="36" rx="8"/>
+          <image data-ico="igw" x="413" y="94" width="24" height="24"/>
+          <text class="d-title" x="443" y="111">Internet gateway</text>
+
+          <rect class="d-node" x="330" y="205" width="300" height="40" rx="8"/>
+          <image data-ico="alb" x="340" y="213" width="24" height="24"/>
+          <text class="d-title" x="372" y="230">Application Load Balancer</text>
+          <text class="d-lbl d-halo" x="480" y="262" text-anchor="middle">nodes in both AZs</text>
+
+          <rect class="d-node" x="96" y="205" width="140" height="40" rx="8"/>
+          <image data-ico="nat" x="104" y="213" width="24" height="24"/>
+          <text class="d-title" x="134" y="230">NAT gateway</text>
+          <rect class="d-node" x="724" y="205" width="140" height="40" rx="8"/>
+          <image data-ico="nat" x="732" y="213" width="24" height="24"/>
+          <text class="d-title" x="762" y="230">NAT gateway</text>
+
+          <rect class="d-asg" x="140" y="328" width="680" height="94" rx="10"/>
+          <image data-ico="asg" x="380" y="334" width="16" height="16"/>
+          <text class="d-lbl" x="402" y="346">Auto Scaling group (spans both AZs)</text>
+          <rect class="d-node" x="196" y="360" width="140" height="40" rx="8"/>
+          <image data-ico="ec2" x="204" y="368" width="24" height="24"/>
+          <text class="d-title" x="234" y="385">EC2 instance</text>
+          <rect class="d-node" x="624" y="360" width="140" height="40" rx="8"/>
+          <image data-ico="ec2" x="632" y="368" width="24" height="24"/>
+          <text class="d-title" x="662" y="385">EC2 instance</text>
+
+          <rect class="d-node" x="176" y="520" width="180" height="42" rx="8"/>
+          <image data-ico="rds" x="184" y="529" width="24" height="24"/>
+          <text class="d-title" x="216" y="546">RDS primary</text>
+          <rect class="d-node" x="604" y="520" width="180" height="42" rx="8"/>
+          <image data-ico="rds" x="612" y="529" width="24" height="24"/>
+          <text class="d-title" x="644" y="546">RDS standby</text>
+          <text class="d-lbl" x="694" y="578" text-anchor="middle">no reads, no writes</text>
+        </svg>
+      </div>
+      <figcaption>Requests come in through one internet gateway and one load balancer that lives in both public subnets; everything else is private. Each zone has its own NAT gateway, so losing a zone never cuts the other zone's outbound access, and the database fails over to the standby in the surviving zone.</figcaption>
+      <div class="legend" aria-hidden="true">
+        <span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span>
+        <span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--aws)" stroke-width="2" stroke-dasharray="6 4"/></svg>Outbound through NAT (billed per GB)</span>
+        <span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Database traffic</span>
+      </div>
+    </figure>
+
+    <div class="arch-cols">
+      <div class="card">
+        <h3>Traffic paths</h3>
+        <ol>
+          <li><b>Request:</b> user → internet gateway → ALB (public subnets) → EC2 in a private app subnet → RDS primary.</li>
+          <li><b>Outbound (patches, external APIs):</b> EC2 → NAT gateway in its own AZ → internet gateway → internet. Nothing on the internet can start a connection to the instance.</li>
+          <li><b>Failover:</b> if AZ A fails, the ALB stops sending to it, Auto Scaling replaces capacity in AZ B, and RDS promotes the standby; the DNS name stays the same.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Security groups, chained by reference</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Group</th><th>Inbound rule</th></tr></thead>
+            <tbody>
+              <tr><td>ALB SG</td><td><code>443</code> from <code>0.0.0.0/0</code></td></tr>
+              <tr><td>App SG</td><td><code>80</code> from <b>ALB SG</b></td></tr>
+              <tr><td>DB SG</td><td><code>3306</code> from <b>App SG</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Route tables</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Subnets</th><th>Destination</th><th>Target</th></tr></thead>
+          <tbody>
+            <tr><td>Public (both AZs)</td><td><code>10.0.0.0/16</code><br><code>0.0.0.0/0</code></td><td>local<br>internet gateway</td></tr>
+            <tr><td>Private app, AZ A</td><td><code>10.0.0.0/16</code><br><code>0.0.0.0/0</code></td><td>local<br>NAT gateway <b>A</b></td></tr>
+            <tr><td>Private app, AZ B</td><td><code>10.0.0.0/16</code><br><code>0.0.0.0/0</code></td><td>local<br>NAT gateway <b>B</b></td></tr>
+            <tr><td>Private DB (both AZs)</td><td><code>10.0.0.0/16</code></td><td>local only</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Exam points</h3>
+      <ul>
+        <li>A subnet is public only because its route table sends <code>0.0.0.0/0</code> to an internet gateway. Instances there also need a public IP; put the ALB there, not the app.</li>
+        <li><b>One NAT gateway per AZ</b>, each private subnet routed to its own. A single shared NAT gateway is a single point of failure and adds cross-AZ data charges.</li>
+        <li>NAT gateways are managed and scale on their own; NAT instances need source/destination check disabled and are the outdated answer. For IPv6, use an egress-only internet gateway.</li>
+        <li>Security groups are <b>stateful</b> and can reference other groups; network ACLs are <b>stateless</b> and need the ephemeral return ports (1024–65535) opened.</li>
+        <li>RDS Multi-AZ standby is for availability only and serves no reads; read replicas are for scaling reads. Aurora replicas do both.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 2. Private access to AWS services ============ -->
+  <section class="arch-sec" id="vpc-endpoints">
+    <h2>2. Private access to AWS services</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+        <svg viewBox="0 0 960 520" role="img" aria-label="An EC2 instance in a private subnet reaching AWS services three ways. Without an endpoint, traffic to S3 goes through the NAT gateway and internet gateway and is billed per gigabyte. With a gateway endpoint, a route table entry for the S3 and DynamoDB prefix lists sends traffic straight to them at no charge. With an interface endpoint, private DNS resolves the service name to an elastic network interface in the subnet, which reaches services such as SQS over PrivateLink.">
+          <defs>
+            <marker id="e-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker>
+            <marker id="e-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-out" d="M0 0L10 5L0 10z"/></marker>
+          </defs>
+
+          <rect class="d-region" x="20" y="24" width="920" height="480" rx="14"/>
+          <text class="d-cap" x="36" y="46">REGION</text>
+
+          <rect class="d-vpc" x="40" y="70" width="620" height="420" rx="12"/>
+          <image data-ico="vpc" x="290" y="82" width="20" height="20"/>
+          <text class="d-title" x="316" y="97">VPC 10.0.0.0/16</text>
+
+          <rect class="d-pub" x="60" y="110" width="580" height="90" rx="8"/>
+          <text class="d-lbl" x="72" y="192">Public subnet</text>
+          <rect class="d-priv" x="60" y="220" width="580" height="250" rx="8"/>
+          <text class="d-lbl" x="72" y="462">Private subnet</text>
+
+          <text class="d-cap" x="770" y="186">AWS SERVICES</text>
+
+          <!-- without an endpoint: instance -> NAT -> internet gateway -> S3's public endpoint -->
+          <line class="d-out" x1="160" y1="250" x2="190" y2="172" marker-end="url(#e-out)"/>
+          <line class="d-out" x1="200" y1="130" x2="200" y2="90" marker-end="url(#e-out)"/>
+          <polyline class="d-out" points="200,52 200,36 900,36 900,198" marker-end="url(#e-out)"/>
+          <text class="d-lbl d-halo" x="520" y="58" text-anchor="middle">without an endpoint: NAT processing, billed per GB</text>
+
+          <!-- gateway endpoint: a route to the S3 and DynamoDB prefix lists, free -->
+          <polyline class="d-in" points="160,290 160,350 583,350" marker-end="url(#e-in)"/>
+          <text class="d-lbl d-halo" x="372" y="342" text-anchor="middle">gateway endpoint · route table · free</text>
+          <line class="d-in" x1="735" y1="350" x2="768" y2="350" marker-end="url(#e-in)"/>
+          <polyline class="d-in" points="735,340 752,340 752,220 768,220" marker-end="url(#e-in)"/>
+
+          <!-- interface endpoint: private DNS resolves to an ENI in the subnet, PrivateLink to the service -->
+          <polyline class="d-in" points="120,290 120,420 298,420" marker-end="url(#e-in)"/>
+          <text class="d-lbl d-halo" x="210" y="412" text-anchor="middle">private DNS → ENI IP</text>
+          <line class="d-in" x1="500" y1="420" x2="768" y2="420" marker-end="url(#e-in)"/>
+          <text class="d-lbl d-halo" x="640" y="412" text-anchor="middle">PrivateLink · hourly + per GB</text>
+
+          <!-- components -->
+          <rect class="d-node" x="130" y="52" width="140" height="36" rx="8"/>
+          <image data-ico="igw" x="138" y="58" width="24" height="24"/>
+          <text class="d-title" x="168" y="75">Internet gateway</text>
+
+          <rect class="d-node" x="130" y="130" width="140" height="40" rx="8"/>
+          <image data-ico="nat" x="138" y="138" width="24" height="24"/>
+          <text class="d-title" x="168" y="155">NAT gateway</text>
+
+          <rect class="d-node" x="90" y="250" width="140" height="40" rx="8"/>
+          <image data-ico="ec2" x="98" y="258" width="24" height="24"/>
+          <text class="d-title" x="128" y="275">EC2 instance</text>
+
+          <rect class="d-rt" x="270" y="234" width="300" height="88" rx="8"/>
+          <text class="d-lbl" x="284" y="254">Private subnet route table</text>
+          <text class="d-mono" x="284" y="274">10.0.0.0/16</text><text class="d-mono" x="420" y="274">→ local</text>
+          <text class="d-mono d-warn" x="284" y="292">0.0.0.0/0</text><text class="d-mono d-warn" x="420" y="292">→ NAT gateway</text>
+          <text class="d-mono d-ok" x="284" y="310">pl-s3, pl-ddb</text><text class="d-mono d-ok" x="420" y="310">→ vpce (gateway)</text>
+
+          <rect class="d-node" x="585" y="330" width="150" height="40" rx="8"/>
+          <image data-ico="vpce" x="593" y="338" width="24" height="24"/>
+          <text class="d-title" x="623" y="355">Gateway endpoint</text>
+
+          <rect class="d-node" x="300" y="400" width="200" height="40" rx="8"/>
+          <image data-ico="privatelink" x="308" y="408" width="24" height="24"/>
+          <text class="d-title" x="338" y="425">Interface endpoint (ENI)</text>
+
+          <rect class="d-node" x="770" y="200" width="150" height="40" rx="8"/>
+          <image data-ico="s3" x="778" y="208" width="24" height="24"/>
+          <text class="d-title" x="808" y="225">Amazon S3</text>
+          <rect class="d-node" x="770" y="330" width="150" height="40" rx="8"/>
+          <image data-ico="dynamodb" x="778" y="338" width="24" height="24"/>
+          <text class="d-title" x="808" y="355">DynamoDB</text>
+          <rect class="d-node" x="770" y="400" width="150" height="40" rx="8"/>
+          <image data-ico="sqs" x="778" y="408" width="24" height="24"/>
+          <text class="d-title" x="808" y="425">SQS, KMS, …</text>
+        </svg>
+      </div>
+      <figcaption>One private instance, three ways out to AWS services. The orange path is what happens with no endpoint: S3 traffic leaves through the NAT gateway and is charged per GB. A gateway endpoint removes that hop for S3 and DynamoDB with one route-table entry, for free; an interface endpoint puts a private IP for a service such as SQS inside your subnet.</figcaption>
+      <div class="legend" aria-hidden="true">
+        <span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Private path through an endpoint</span>
+        <span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--aws)" stroke-width="2" stroke-dasharray="6 4"/></svg>Through NAT and the internet gateway (billed per GB)</span>
+      </div>
+    </figure>
+
+    <div class="card">
+      <h3>Gateway endpoint or interface endpoint?</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th></th><th>Gateway endpoint</th><th>Interface endpoint (PrivateLink)</th></tr></thead>
+          <tbody>
+            <tr><td>Services</td><td>S3 and DynamoDB only</td><td>Most AWS services (SQS, KMS, STS, Secrets Manager, ECR, …), S3 too, and your own or partners' services</td></tr>
+            <tr><td>How traffic gets there</td><td>Route table entry for the service's prefix list</td><td>An ENI with a private IP in each chosen subnet; private DNS points the service name at it</td></tr>
+            <tr><td>Cost</td><td>Free</td><td>Per hour per AZ, plus per GB</td></tr>
+            <tr><td>Reachable from on-premises or a peered VPC</td><td>No</td><td>Yes, over Direct Connect, VPN or peering</td></tr>
+            <tr><td>Access control</td><td>Endpoint policy, plus <code>aws:SourceVpce</code> in the bucket policy</td><td>Endpoint policy and a security group on the ENI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Exam points</h3>
+      <ul>
+        <li>"High NAT gateway charges" with heavy S3 or DynamoDB traffic → add a <b>gateway endpoint</b>; it is free and needs no application change.</li>
+        <li>On-premises servers reaching S3 privately over Direct Connect → an <b>S3 interface endpoint</b>; a gateway endpoint cannot be reached from outside the VPC.</li>
+        <li>"Only from this VPC" for a bucket → bucket policy deny unless <code>aws:SourceVpce</code> (or <code>aws:SourceVpc</code>) matches.</li>
+        <li>Interface endpoints live in subnets, so add one per AZ for high availability; gateway endpoints are a route target and are highly available by design.</li>
+        <li>Exposing your own service to other VPCs, even with overlapping CIDRs → an NLB behind a <b>VPC endpoint service</b>, consumed through interface endpoints.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+// the diagrams name their AWS icons; the shared icon set supplies them, so the page works offline
+document.querySelectorAll('svg image[data-ico]').forEach(el => el.setAttribute('href', App.iconURL(el.dataset.ico)));
+App.$('#themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('saa-theme', JSON.stringify(next)); } catch (e) {}
+});
+</script>
+</body>
+</html>
