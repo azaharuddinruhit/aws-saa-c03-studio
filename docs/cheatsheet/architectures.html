@@ -99,13 +99,15 @@
         <option value="">Jump to a diagram…</option>
         <!-- GENERATED:JUMP START (scripts/build-architectures.js) -->
     <optgroup label="Networking foundations"><option value="vpc-layout">1 · Classic multi-AZ VPC</option><option value="vpc-endpoints">2 · Private access to AWS services</option><option value="hybrid">3 · Hybrid connectivity</option><option value="tgw">4 · Transit Gateway hub and spoke</option><option value="privatelink">5 · PrivateLink for a SaaS service</option><option value="hybrid-dns">6 · Hybrid DNS with Route 53 Resolver</option></optgroup>
-        <optgroup label="Highly available web applications"><option value="three-tier">7 · Three-tier web application</option><option value="serverless">8 · Serverless web application</option><option value="edge">9 · CloudFront or Global Accelerator</option></optgroup>
-        <optgroup label="Decoupling and event-driven design"><option value="queue">10 · Queue-based load leveling</option><option value="fanout">11 · Fan-out with SNS and SQS</option><option value="eventbridge">12 · Event routing with EventBridge</option><option value="stepfunctions">13 · Workflow orchestration with Step Functions</option></optgroup>
-        <optgroup label="Data and analytics"><option value="streaming">14 · Streaming pipeline</option><option value="datalake">15 · Data lake on S3</option><option value="s3events">16 · Event-driven S3 processing</option></optgroup>
-        <optgroup label="Databases"><option value="readscale">17 · Read scaling and caching</option><option value="multiregion">18 · Multi-Region data</option></optgroup>
-        <optgroup label="Disaster recovery"><option value="dr">19 · Disaster recovery strategies</option></optgroup>
-        <optgroup label="Storage"><option value="hybridstorage">20 · Hybrid storage and data transfer</option><option value="filesystems">21 · Shared file systems</option><option value="s3protect">22 · S3 lifecycle and protection</option></optgroup>
-        <optgroup label="Security and multiple accounts"><option value="landingzone">23 · Multi-account landing zone</option><option value="crossaccount">24 · Cross-account access</option><option value="edgesecurity">25 · Edge security and threat detection</option></optgroup>
+        <optgroup label="Highly available web applications"><option value="three-tier">7 · Three-tier web application</option><option value="serverless">8 · Serverless web application</option><option value="edge">9 · CloudFront or Global Accelerator</option><option value="containers">10 · Containers on ECS with Fargate</option></optgroup>
+        <optgroup label="Decoupling and event-driven design"><option value="queue">11 · Queue-based load leveling</option><option value="fanout">12 · Fan-out with SNS and SQS</option><option value="eventbridge">13 · Event routing with EventBridge</option><option value="stepfunctions">14 · Workflow orchestration with Step Functions</option></optgroup>
+        <optgroup label="Data and analytics"><option value="streaming">15 · Streaming pipeline</option><option value="datalake">16 · Data lake on S3</option><option value="s3events">17 · Event-driven S3 processing</option></optgroup>
+        <optgroup label="Databases"><option value="readscale">18 · Read scaling and caching</option><option value="multiregion">19 · Multi-Region data</option></optgroup>
+        <optgroup label="Disaster recovery and migration"><option value="dr">20 · Disaster recovery strategies</option><option value="migration">21 · Migrating to AWS</option></optgroup>
+        <optgroup label="Storage"><option value="hybridstorage">22 · Hybrid storage and data transfer</option><option value="filesystems">23 · Shared file systems</option><option value="s3protect">24 · S3 lifecycle and protection</option></optgroup>
+        <optgroup label="Security and multiple accounts"><option value="landingzone">25 · Multi-account landing zone</option><option value="crossaccount">26 · Cross-account access</option><option value="edgesecurity">27 · Edge security and threat detection</option><option value="encryption">28 · Encryption and secrets</option></optgroup>
+        <optgroup label="Monitoring and operations"><option value="operations">29 · Operations and auto-remediation</option></optgroup>
+        <optgroup label="Cost optimization"><option value="costcompute">30 · Cost-optimized compute</option><option value="datatransfer">31 · Data transfer costs</option><option value="costgovernance">32 · Cost governance</option></optgroup>
   <!-- GENERATED:JUMP END -->
       </select>
     </label>
@@ -123,13 +125,15 @@
   <!-- GENERATED:CONTENTS START (scripts/build-architectures.js) -->
     <nav class="toc card" aria-label="Contents">
       <div><a class="toc-group" href="#g-network">Networking foundations</a><ol><li value="1"><a href="#vpc-layout">Classic multi-AZ VPC</a></li><li value="2"><a href="#vpc-endpoints">Private access to AWS services</a></li><li value="3"><a href="#hybrid">Hybrid connectivity</a></li><li value="4"><a href="#tgw">Transit Gateway hub and spoke</a></li><li value="5"><a href="#privatelink">PrivateLink for a SaaS service</a></li><li value="6"><a href="#hybrid-dns">Hybrid DNS with Route 53 Resolver</a></li></ol></div>
-      <div><a class="toc-group" href="#g-ha">Highly available web applications</a><ol><li value="7"><a href="#three-tier">Three-tier web application</a></li><li value="8"><a href="#serverless">Serverless web application</a></li><li value="9"><a href="#edge">CloudFront or Global Accelerator</a></li></ol></div>
-      <div><a class="toc-group" href="#g-decouple">Decoupling and event-driven design</a><ol><li value="10"><a href="#queue">Queue-based load leveling</a></li><li value="11"><a href="#fanout">Fan-out with SNS and SQS</a></li><li value="12"><a href="#eventbridge">Event routing with EventBridge</a></li><li value="13"><a href="#stepfunctions">Workflow orchestration with Step Functions</a></li></ol></div>
-      <div><a class="toc-group" href="#g-data">Data and analytics</a><ol><li value="14"><a href="#streaming">Streaming pipeline</a></li><li value="15"><a href="#datalake">Data lake on S3</a></li><li value="16"><a href="#s3events">Event-driven S3 processing</a></li></ol></div>
-      <div><a class="toc-group" href="#g-db">Databases</a><ol><li value="17"><a href="#readscale">Read scaling and caching</a></li><li value="18"><a href="#multiregion">Multi-Region data</a></li></ol></div>
-      <div><a class="toc-group" href="#g-dr">Disaster recovery</a><ol><li value="19"><a href="#dr">Disaster recovery strategies</a></li></ol></div>
-      <div><a class="toc-group" href="#g-storage">Storage</a><ol><li value="20"><a href="#hybridstorage">Hybrid storage and data transfer</a></li><li value="21"><a href="#filesystems">Shared file systems</a></li><li value="22"><a href="#s3protect">S3 lifecycle and protection</a></li></ol></div>
-      <div><a class="toc-group" href="#g-security">Security and multiple accounts</a><ol><li value="23"><a href="#landingzone">Multi-account landing zone</a></li><li value="24"><a href="#crossaccount">Cross-account access</a></li><li value="25"><a href="#edgesecurity">Edge security and threat detection</a></li></ol></div>
+      <div><a class="toc-group" href="#g-ha">Highly available web applications</a><ol><li value="7"><a href="#three-tier">Three-tier web application</a></li><li value="8"><a href="#serverless">Serverless web application</a></li><li value="9"><a href="#edge">CloudFront or Global Accelerator</a></li><li value="10"><a href="#containers">Containers on ECS with Fargate</a></li></ol></div>
+      <div><a class="toc-group" href="#g-decouple">Decoupling and event-driven design</a><ol><li value="11"><a href="#queue">Queue-based load leveling</a></li><li value="12"><a href="#fanout">Fan-out with SNS and SQS</a></li><li value="13"><a href="#eventbridge">Event routing with EventBridge</a></li><li value="14"><a href="#stepfunctions">Workflow orchestration with Step Functions</a></li></ol></div>
+      <div><a class="toc-group" href="#g-data">Data and analytics</a><ol><li value="15"><a href="#streaming">Streaming pipeline</a></li><li value="16"><a href="#datalake">Data lake on S3</a></li><li value="17"><a href="#s3events">Event-driven S3 processing</a></li></ol></div>
+      <div><a class="toc-group" href="#g-db">Databases</a><ol><li value="18"><a href="#readscale">Read scaling and caching</a></li><li value="19"><a href="#multiregion">Multi-Region data</a></li></ol></div>
+      <div><a class="toc-group" href="#g-dr">Disaster recovery and migration</a><ol><li value="20"><a href="#dr">Disaster recovery strategies</a></li><li value="21"><a href="#migration">Migrating to AWS</a></li></ol></div>
+      <div><a class="toc-group" href="#g-storage">Storage</a><ol><li value="22"><a href="#hybridstorage">Hybrid storage and data transfer</a></li><li value="23"><a href="#filesystems">Shared file systems</a></li><li value="24"><a href="#s3protect">S3 lifecycle and protection</a></li></ol></div>
+      <div><a class="toc-group" href="#g-security">Security and multiple accounts</a><ol><li value="25"><a href="#landingzone">Multi-account landing zone</a></li><li value="26"><a href="#crossaccount">Cross-account access</a></li><li value="27"><a href="#edgesecurity">Edge security and threat detection</a></li><li value="28"><a href="#encryption">Encryption and secrets</a></li></ol></div>
+      <div><a class="toc-group" href="#g-ops">Monitoring and operations</a><ol><li value="29"><a href="#operations">Operations and auto-remediation</a></li></ol></div>
+      <div><a class="toc-group" href="#g-cost">Cost optimization</a><ol><li value="30"><a href="#costcompute">Cost-optimized compute</a></li><li value="31"><a href="#datatransfer">Data transfer costs</a></li><li value="32"><a href="#costgovernance">Cost governance</a></li></ol></div>
     </nav>
   <!-- GENERATED:CONTENTS END -->
 
@@ -719,9 +723,48 @@
     <div class="card"><h3>Exam points</h3><ul><li>"Static IP addresses", "UDP", "non-HTTP" or "fast regional failover" → Global Accelerator. "Cache", "static content", "reduce origin load" → CloudFront.</li><li>Both use the AWS backbone and come with Shield Standard; both work in front of an ALB or NLB.</li><li>Slow <b>uploads</b> from far away to S3 → S3 Transfer Acceleration (it uses CloudFront edges), not a CloudFront distribution.</li></ul></div>
   </section>
 
+  <section class="arch-sec" id="containers">
+    <h2>10. Containers on ECS with Fargate</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 405" role="img" aria-label="A CI pipeline pushes images to ECR. Users reach an Application Load Balancer, which routes to an ECS service running Fargate tasks in two Availability Zones. Tasks pull their image from ECR using the task execution role, call DynamoDB with the permissions of their task role, and share files on an EFS file system. Service auto scaling adds or removes tasks."><defs><marker id="d-ecs-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d-ecs-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d-ecs-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-asg" x="480" y="110" width="240" height="230" rx="12"/>
+<polyline class="d-data" points="195,65 248,65" marker-end="url(#d-ecs-data)"/>
+<polyline class="d-alt" points="425,65 600,65 600,138" marker-end="url(#d-ecs-alt)"/>
+<polyline class="d-in" points="195,220 248,220" marker-end="url(#d-ecs-in)"/>
+<polyline class="d-in" points="425,212 455,212 455,160 503,160" marker-end="url(#d-ecs-in)"/>
+<polyline class="d-in" points="425,228 455,228 455,290 503,290" marker-end="url(#d-ecs-in)"/>
+<polyline class="d-data" points="695,160 748,160"/>
+<polyline class="d-data" points="695,290 748,290"/>
+<polyline class="d-data" points="748,160 748,290"/>
+<polyline class="d-data" points="748,155 773,155" marker-end="url(#d-ecs-data)"/>
+<polyline class="d-data" points="748,285 773,285" marker-end="url(#d-ecs-data)"/>
+<rect class="d-node" x="20" y="40" width="175" height="50" rx="8"/><text class="d-title" x="107.5" y="61" text-anchor="middle">CI pipeline</text><text class="d-lbl" x="107.5" y="77" text-anchor="middle">docker build, push</text>
+<rect class="d-node" x="250" y="40" width="175" height="50" rx="8"/><image data-ico="ecr" x="258" y="53" width="24" height="24"/><text class="d-title" x="288" y="61">ECR</text><text class="d-lbl" x="288" y="77">images, scanning</text>
+<rect class="d-node" x="20" y="200" width="175" height="40" rx="8"/><text class="d-title" x="107.5" y="225" text-anchor="middle">Users</text>
+<rect class="d-node" x="250" y="195" width="175" height="50" rx="8"/><image data-ico="alb" x="258" y="208" width="24" height="24"/><text class="d-title" x="288" y="216">ALB</text><text class="d-lbl" x="288" y="232">target group: IP</text>
+<rect class="d-node" x="505" y="140" width="190" height="40" rx="8"/><image data-ico="fargate" x="513" y="148" width="24" height="24"/><text class="d-title" x="543" y="165">Task · AZ A</text>
+<rect class="d-node" x="505" y="270" width="190" height="40" rx="8"/><image data-ico="fargate" x="513" y="278" width="24" height="24"/><text class="d-title" x="543" y="295">Task · AZ B</text>
+<rect class="d-node" x="775" y="130" width="165" height="50" rx="8"/><image data-ico="dynamodb" x="783" y="143" width="24" height="24"/><text class="d-title" x="813" y="151">DynamoDB</text><text class="d-lbl" x="813" y="167">via the task role</text>
+<rect class="d-node" x="775" y="260" width="165" height="50" rx="8"/><image data-ico="efs" x="783" y="273" width="24" height="24"/><text class="d-title" x="813" y="281">EFS</text><text class="d-lbl" x="813" y="297">shared files (NFS)</text>
+<text class="d-lbl" x="600" y="360" text-anchor="middle">ECS service on Fargate · 2 AZs</text>
+<text class="d-lbl d-halo" x="222" y="56" text-anchor="middle">push</text>
+<text class="d-lbl d-halo" x="520" y="56" text-anchor="middle">pull (execution role)</text>
+<text class="d-lbl d-halo" x="222" y="216" text-anchor="middle">HTTPS</text>
+<text class="d-lbl" x="480" y="392" text-anchor="middle">service auto scaling: target tracking on CPU or ALB requests per target</text>
+</svg>
+      </div>
+      <figcaption>Fargate runs each task with no servers to patch or scale, the ALB spreads requests across tasks in two AZs, and each task gets AWS permissions from its own task role. ECR holds the images; EFS gives tasks shared persistent storage.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Calls and storage</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Image pull</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>"Containers with the least operational overhead" → ECS (or EKS) on <b>Fargate</b>. Need GPUs, special instance types or the lowest cost at steady scale → the EC2 launch type.</li><li><b>Task role</b> = what the application can call (S3, DynamoDB). <b>Task execution role</b> = what ECS needs to pull images and write logs.</li><li>Already on Kubernetes → EKS; on-premises too → ECS Anywhere or EKS Anywhere. Persistent shared files → EFS volumes; Fargate local storage is temporary.</li><li>Interruptible, stateless tasks → Fargate Spot for up to 70% off.</li></ul></div>
+  </section>
+
   <h2 class="arch-group" id="g-decouple">Decoupling and event-driven design</h2>
   <section class="arch-sec" id="queue">
-    <h2>10. Queue-based load leveling</h2>
+    <h2>11. Queue-based load leveling</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -759,7 +802,7 @@
   </section>
 
   <section class="arch-sec" id="fanout">
-    <h2>11. Fan-out with SNS and SQS</h2>
+    <h2>12. Fan-out with SNS and SQS</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -792,7 +835,7 @@
   </section>
 
   <section class="arch-sec" id="eventbridge">
-    <h2>12. Event routing with EventBridge</h2>
+    <h2>13. Event routing with EventBridge</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -833,7 +876,7 @@
   </section>
 
   <section class="arch-sec" id="stepfunctions">
-    <h2>13. Workflow orchestration with Step Functions</h2>
+    <h2>14. Workflow orchestration with Step Functions</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -869,7 +912,7 @@
 
   <h2 class="arch-group" id="g-data">Data and analytics</h2>
   <section class="arch-sec" id="streaming">
-    <h2>14. Streaming pipeline</h2>
+    <h2>15. Streaming pipeline</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -908,7 +951,7 @@
   </section>
 
   <section class="arch-sec" id="datalake">
-    <h2>15. Data lake on S3</h2>
+    <h2>16. Data lake on S3</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -948,7 +991,7 @@
   </section>
 
   <section class="arch-sec" id="s3events">
-    <h2>16. Event-driven S3 processing</h2>
+    <h2>17. Event-driven S3 processing</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -982,7 +1025,7 @@
 
   <h2 class="arch-group" id="g-db">Databases</h2>
   <section class="arch-sec" id="readscale">
-    <h2>17. Read scaling and caching</h2>
+    <h2>18. Read scaling and caching</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1014,7 +1057,7 @@
   </section>
 
   <section class="arch-sec" id="multiregion">
-    <h2>18. Multi-Region data</h2>
+    <h2>19. Multi-Region data</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1057,9 +1100,9 @@
     <div class="card"><h3>Exam points</h3><ul><li>Relational, "RPO of seconds, RTO of a minute", "low-latency reads in another Region" → <b>Aurora Global Database</b> (up to 5 secondary Regions, managed failover).</li><li>Key-value, "users in several Regions must write locally", "active-active" → <b>DynamoDB global tables</b>.</li><li>Cheaper but slower: RDS cross-Region read replica (promote manually) or cross-Region snapshot and backup copies.</li><li>Data residency: global tables replicate everything to every replica Region, so check where data is allowed to live.</li></ul></div>
   </section>
 
-  <h2 class="arch-group" id="g-dr">Disaster recovery</h2>
+  <h2 class="arch-group" id="g-dr">Disaster recovery and migration</h2>
   <section class="arch-sec" id="dr">
-    <h2>19. Disaster recovery strategies</h2>
+    <h2>20. Disaster recovery strategies</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1119,9 +1162,51 @@
     
   </section>
 
+  <section class="arch-sec" id="migration">
+    <h2>21. Migrating to AWS</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 432" role="img" aria-label="On-premises servers, an Oracle database, file shares and a large archive move to AWS with four tools. Application Migration Service replicates whole servers continuously and launches them as EC2 instances. DMS, with the Schema Conversion Tool, copies the database to Aurora PostgreSQL and keeps it in sync until cutover. DataSync copies file shares to S3, EFS or FSx. Snowball Edge devices ship the archive to S3 offline. Migration Hub tracks progress."><defs><marker id="d-mig-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d-mig-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d-mig-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-onprem" x="20" y="20" width="270" height="380" rx="12"/>
+<text class="d-cap" x="34" y="40">DATA CENTER</text>
+<rect class="d-z-region" x="670" y="20" width="270" height="380" rx="12"/>
+<text class="d-cap" x="684" y="40">AWS REGION</text>
+<polyline class="d-data" points="270,80 353,80" marker-end="url(#d-mig-data)"/>
+<polyline class="d-in" points="605,80 688,80" marker-end="url(#d-mig-in)"/>
+<polyline class="d-data" points="270,165 353,165" marker-end="url(#d-mig-data)"/>
+<polyline class="d-in" points="605,165 688,165" marker-end="url(#d-mig-in)"/>
+<polyline class="d-data" points="270,250 353,250" marker-end="url(#d-mig-data)"/>
+<polyline class="d-in" points="605,250 688,250" marker-end="url(#d-mig-in)"/>
+<polyline class="d-data" points="270,335 353,335" marker-end="url(#d-mig-data)"/>
+<polyline class="d-alt" points="605,335 688,335" marker-end="url(#d-mig-alt)"/>
+<rect class="d-node" x="40" y="55" width="230" height="50" rx="8"/><text class="d-title" x="155" y="76" text-anchor="middle">Servers</text><text class="d-lbl" x="155" y="92" text-anchor="middle">VMware, Hyper-V, physical</text>
+<rect class="d-node" x="355" y="55" width="250" height="50" rx="8"/><image data-ico="mgn" x="363" y="68" width="24" height="24"/><text class="d-title" x="393" y="76">App Migration Service</text><text class="d-lbl" x="393" y="92">block-level replication</text>
+<rect class="d-node" x="690" y="55" width="230" height="50" rx="8"/><image data-ico="ec2" x="698" y="68" width="24" height="24"/><text class="d-title" x="728" y="76">EC2 instances</text><text class="d-lbl" x="728" y="92">rehost, cutover in minutes</text>
+<rect class="d-node" x="40" y="140" width="230" height="50" rx="8"/><text class="d-title" x="155" y="161" text-anchor="middle">Oracle database</text><text class="d-lbl" x="155" y="177" text-anchor="middle">stays live until cutover</text>
+<rect class="d-node" x="355" y="140" width="250" height="50" rx="8"/><image data-ico="dms" x="363" y="153" width="24" height="24"/><text class="d-title" x="393" y="161">DMS</text><text class="d-lbl" x="393" y="177">full load + CDC, SCT</text>
+<rect class="d-node" x="690" y="140" width="230" height="50" rx="8"/><image data-ico="aurora" x="698" y="153" width="24" height="24"/><text class="d-title" x="728" y="161">Aurora PostgreSQL</text><text class="d-lbl" x="728" y="177">replatform</text>
+<rect class="d-node" x="40" y="225" width="230" height="50" rx="8"/><text class="d-title" x="155" y="246" text-anchor="middle">File shares, NAS</text><text class="d-lbl" x="155" y="262" text-anchor="middle">NFS or SMB</text>
+<rect class="d-node" x="355" y="225" width="250" height="50" rx="8"/><image data-ico="datasync" x="363" y="238" width="24" height="24"/><text class="d-title" x="393" y="246">DataSync</text><text class="d-lbl" x="393" y="262">scheduled, verified</text>
+<rect class="d-node" x="690" y="225" width="230" height="50" rx="8"/><image data-ico="s3" x="698" y="238" width="24" height="24"/><text class="d-title" x="728" y="246">S3, EFS or FSx</text><text class="d-lbl" x="728" y="262">files kept as files</text>
+<rect class="d-node" x="40" y="310" width="230" height="50" rx="8"/><text class="d-title" x="155" y="331" text-anchor="middle">500 TB archive</text><text class="d-lbl" x="155" y="347" text-anchor="middle">slow internet link</text>
+<rect class="d-node" x="355" y="310" width="250" height="50" rx="8"/><image data-ico="snowball" x="363" y="323" width="24" height="24"/><text class="d-title" x="393" y="331">Snowball Edge</text><text class="d-lbl" x="393" y="347">shipped, offline</text>
+<rect class="d-node" x="690" y="310" width="230" height="50" rx="8"/><image data-ico="s3" x="698" y="323" width="24" height="24"/><text class="d-title" x="728" y="331">S3</text><text class="d-lbl" x="728" y="347">imported by AWS</text>
+<text class="d-lbl d-halo" x="638" y="330" text-anchor="middle">by courier</text>
+<text class="d-lbl" x="480" y="422" text-anchor="middle">Migration Hub tracks every server and database through the move</text>
+</svg>
+      </div>
+      <figcaption>Each kind of workload has its own tool. Servers and databases keep replicating while the old ones stay in use, so the final cutover takes minutes; files sync on a schedule; data too big for the network travels on a device.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Read from the source</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Over the network</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Shipped offline</span></div>
+    </figure>
+    
+    <div class="card"><h3>Which tool?</h3><div class="tbl-wrap"><table><thead><tr><th>Moving</th><th>Tool</th><th>Note</th></tr></thead><tbody><tr><td>Whole servers, unchanged (rehost)</td><td>Application Migration Service</td><td>Continuous replication, test launches, minutes of downtime</td></tr><tr><td>A database, same engine</td><td>DMS</td><td>Full load plus change data capture until cutover</td></tr><tr><td>A database, different engine</td><td>SCT + DMS</td><td>SCT converts schema and code; DMS moves the data</td></tr><tr><td>SQL Server apps onto Aurora PostgreSQL with few code changes</td><td>Babelfish for Aurora PostgreSQL</td><td>Understands T-SQL</td></tr><tr><td>Files, online, once or on a schedule</td><td>DataSync</td><td>To S3, EFS or FSx, with verification</td></tr><tr><td>Tens of TB to PB, network too slow</td><td>Snowball Edge</td><td>Order several devices in parallel</td></tr><tr><td>Discover servers and plan</td><td>Application Discovery Service, Migration Hub</td><td>Inventory, dependencies, tracking</td></tr></tbody></table></div></div>
+    <div class="card"><h3>Exam points</h3><ul><li>Do the bandwidth sum: about 10 TB a day on 1 Gbps. If the deadline beats the network, use Snowball; if the link is fine, DataSync over it.</li><li>"Minimal downtime" for a database → DMS with <b>CDC</b>, not a dump and restore. "Different engine" → add SCT.</li><li>"Lift and shift hundreds of servers with minimal effort" → Application Migration Service (it replaced Server Migration Service).</li></ul></div>
+  </section>
+
   <h2 class="arch-group" id="g-storage">Storage</h2>
   <section class="arch-sec" id="hybridstorage">
-    <h2>20. Hybrid storage and data transfer</h2>
+    <h2>22. Hybrid storage and data transfer</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1169,7 +1254,7 @@
   </section>
 
   <section class="arch-sec" id="filesystems">
-    <h2>21. Shared file systems</h2>
+    <h2>23. Shared file systems</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1219,7 +1304,7 @@
   </section>
 
   <section class="arch-sec" id="s3protect">
-    <h2>22. S3 lifecycle and protection</h2>
+    <h2>24. S3 lifecycle and protection</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1264,7 +1349,7 @@
 
   <h2 class="arch-group" id="g-security">Security and multiple accounts</h2>
   <section class="arch-sec" id="landingzone">
-    <h2>23. Multi-account landing zone</h2>
+    <h2>25. Multi-account landing zone</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1308,7 +1393,7 @@
   </section>
 
   <section class="arch-sec" id="crossaccount">
-    <h2>24. Cross-account access</h2>
+    <h2>26. Cross-account access</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1342,7 +1427,7 @@
   </section>
 
   <section class="arch-sec" id="edgesecurity">
-    <h2>25. Edge security and threat detection</h2>
+    <h2>27. Edge security and threat detection</h2>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1384,6 +1469,227 @@
     
     <div class="card"><h3>Which service finds what?</h3><div class="tbl-wrap"><table><thead><tr><th>Service</th><th>Looks at</th><th>Finds</th></tr></thead><tbody><tr><td>GuardDuty</td><td>CloudTrail, VPC Flow Logs, DNS logs (agentless)</td><td>Compromised instances, crypto mining, odd API calls</td></tr><tr><td>Inspector</td><td>EC2, container images, Lambda</td><td>Software vulnerabilities (CVEs), network exposure</td></tr><tr><td>Macie</td><td>S3 objects</td><td>Sensitive data such as PII and card numbers</td></tr><tr><td>Detective</td><td>GuardDuty findings and logs</td><td>Root-cause investigation</td></tr><tr><td>Security Hub</td><td>All of the above, across accounts</td><td>One prioritized view, best-practice checks</td></tr></tbody></table></div></div>
     <div class="card"><h3>Exam points</h3><ul><li>SQL injection and bad bots → <b>WAF</b> managed rules; HTTP floods from many IPs → WAF <b>rate-based</b> rule; large DDoS with expert help and cost protection → <b>Shield Advanced</b>.</li><li>Apply the same WAF rules to every account automatically → <b>Firewall Manager</b> (needs Organizations and Config).</li><li>Keep users from bypassing CloudFront → ALB security group allows only the CloudFront managed prefix list; S3 origins use Origin Access Control.</li><li>Automatic response to a finding → EventBridge rule → Lambda or a Systems Manager Automation runbook.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="encryption">
+    <h2>28. Encryption and secrets</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 440" role="img" aria-label="Top: envelope encryption. A service such as S3 asks KMS for a data key, encrypts the data locally with the plaintext key, discards it and stores the encrypted data key next to the data; the KMS key itself never leaves KMS. Middle: an application reads database credentials from Secrets Manager at runtime, and a rotation Lambda function changes the RDS password on a schedule. Bottom: ACM provides auto-renewing TLS certificates for the load balancer and for CloudFront, which needs them in us-east-1."><defs><marker id="d-enc-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d-enc-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker><marker id="d-enc-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="15" width="920" height="130" rx="12"/>
+<text class="d-cap" x="34" y="35">AT REST: ENVELOPE ENCRYPTION</text>
+<rect class="d-z-group" x="20" y="165" width="920" height="140" rx="12"/>
+<text class="d-cap" x="34" y="185">SECRETS: NO PASSWORDS IN CODE</text>
+<rect class="d-z-group" x="20" y="325" width="920" height="100" rx="12"/>
+<text class="d-cap" x="34" y="345">IN TRANSIT: TLS EVERYWHERE</text>
+<polyline class="d-in" points="240,77 368,77" marker-end="url(#d-enc-in)"/>
+<polyline class="d-alt" points="370,93 242,93" marker-end="url(#d-enc-alt)"/>
+<polyline class="d-data" points="590,85 718,85" marker-end="url(#d-enc-data)"/>
+<polyline class="d-in" points="240,240 368,240" marker-end="url(#d-enc-in)"/>
+<polyline class="d-alt" points="500,265 500,270 588,270" marker-end="url(#d-enc-alt)"/>
+<polyline class="d-alt" points="740,270 755,270 755,240 768,240" marker-end="url(#d-enc-alt)"/>
+<polyline class="d-data" points="240,390 368,390" marker-end="url(#d-enc-data)"/>
+<polyline class="d-in" points="590,390 718,390" marker-end="url(#d-enc-in)"/>
+<rect class="d-node" x="40" y="60" width="200" height="50" rx="8"/><text class="d-title" x="140" y="81" text-anchor="middle">S3, EBS, RDS…</text><text class="d-lbl" x="140" y="97" text-anchor="middle">encrypts locally</text>
+<rect class="d-node" x="370" y="60" width="220" height="50" rx="8"/><image data-ico="kms" x="378" y="73" width="24" height="24"/><text class="d-title" x="408" y="81">KMS key</text><text class="d-lbl" x="408" y="97">never leaves KMS</text>
+<rect class="d-node" x="720" y="60" width="200" height="50" rx="8"/><text class="d-title" x="820" y="81" text-anchor="middle">Stored together</text><text class="d-lbl" x="820" y="97" text-anchor="middle">data + encrypted data key</text>
+<rect class="d-node" x="40" y="215" width="200" height="50" rx="8"/><image data-ico="ec2" x="48" y="228" width="24" height="24"/><text class="d-title" x="78" y="236">App</text><text class="d-lbl" x="78" y="252">EC2, Lambda, ECS</text>
+<rect class="d-node" x="370" y="215" width="220" height="50" rx="8"/><image data-ico="secrets" x="378" y="228" width="24" height="24"/><text class="d-title" x="408" y="236">Secrets Manager</text><text class="d-lbl" x="408" y="252">encrypted with KMS</text>
+<rect class="d-node" x="590" y="245" width="150" height="50" rx="8"/><image data-ico="lambda" x="598" y="258" width="24" height="24"/><text class="d-title" x="628" y="266">Rotation Lambda</text><text class="d-lbl" x="628" y="282">every 30 days</text>
+<rect class="d-node" x="770" y="215" width="150" height="50" rx="8"/><image data-ico="rds" x="778" y="228" width="24" height="24"/><text class="d-title" x="808" y="236">RDS</text><text class="d-lbl" x="808" y="252">password changes</text>
+<rect class="d-node" x="40" y="365" width="200" height="50" rx="8"/><image data-ico="acm" x="48" y="378" width="24" height="24"/><text class="d-title" x="78" y="386">ACM certificate</text><text class="d-lbl" x="78" y="402">free, auto-renewed</text>
+<rect class="d-node" x="370" y="365" width="220" height="50" rx="8"/><image data-ico="alb" x="378" y="378" width="24" height="24"/><text class="d-title" x="408" y="386">ALB</text><text class="d-lbl" x="408" y="402">certificate in its Region</text>
+<rect class="d-node" x="720" y="365" width="200" height="50" rx="8"/><image data-ico="cloudfront" x="728" y="378" width="24" height="24"/><text class="d-title" x="758" y="386">CloudFront</text><text class="d-lbl" x="758" y="402">certificate in us-east-1</text>
+<text class="d-lbl d-halo" x="305" y="79" text-anchor="middle">GenerateDataKey</text>
+<text class="d-lbl d-halo" x="305" y="112" text-anchor="middle">data key, 2 copies</text>
+<text class="d-lbl d-halo" x="655" y="79" text-anchor="middle">encrypted key kept</text>
+<text class="d-lbl d-halo" x="305" y="232" text-anchor="middle">GetSecretValue</text>
+<text class="d-lbl d-halo" x="690" y="230" text-anchor="middle">set new password</text>
+<text class="d-lbl d-halo" x="655" y="382" text-anchor="middle">HTTPS to the origin</text>
+</svg>
+      </div>
+      <figcaption>KMS keys never leave KMS; services encrypt with short-lived data keys and keep only an encrypted copy of each. Secrets Manager keeps credentials out of code and rotates them, and ACM keeps TLS certificates renewed.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Requests</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Returned key, rotation</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Stored or attached</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>S3 encryption options</h3><div class="tbl-wrap"><table><thead><tr><th>Option</th><th>Who holds the key</th><th>Choose it when</th></tr></thead><tbody><tr><td>SSE-S3</td><td>AWS, fully managed</td><td>The default; no extra cost or audit needed</td></tr><tr><td>SSE-KMS</td><td>Your KMS key</td><td>Audit every use in CloudTrail, control with key policies</td></tr><tr><td>DSSE-KMS</td><td>Your KMS key, two layers</td><td>A rule demands dual-layer encryption</td></tr><tr><td>SSE-C</td><td>You, sent with each request</td><td>You must keep the key material outside AWS</td></tr><tr><td>Client-side</td><td>You, before upload</td><td>Data must be encrypted before it reaches AWS</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Audit who used the key" → SSE-KMS. Lots of KMS calls costing money or throttling → enable <b>S3 Bucket Keys</b>.</li><li>You can't encrypt an existing unencrypted RDS instance in place: snapshot → copy with encryption → restore.</li><li>"Rotate database credentials automatically" → Secrets Manager. Plain configuration values → Systems Manager Parameter Store (cheaper, no built-in rotation for RDS).</li><li>Single-tenant hardware keys under your sole control, FIPS 140-2 Level 3 → CloudHSM. Your own key material in KMS → imported keys.</li><li>Other accounts or Regions need the key → key policy grants, or multi-Region keys.</li></ul></div></div>
+    
+  </section>
+
+  <h2 class="arch-group" id="g-ops">Monitoring and operations</h2>
+  <section class="arch-sec" id="operations">
+    <h2>29. Operations and auto-remediation</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 440" role="img" aria-label="Three operational loops. Monitoring: the CloudWatch agent on EC2 sends memory, disk and log data to CloudWatch, where a metric filter and an alarm notify the on-call team through SNS or trigger Auto Scaling. Compliance: AWS Config evaluates resources against rules and runs a Systems Manager Automation runbook to fix noncompliant ones. Fleet operations: administrators reach instances through Session Manager without SSH or a bastion, and Patch Manager patches them in a maintenance window."><defs><marker id="d-ops-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d-ops-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d-ops-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="20" y="15" width="920" height="120" rx="12"/>
+<text class="d-cap" x="34" y="35">MONITOR AND ALERT</text>
+<rect class="d-z-group" x="20" y="160" width="920" height="120" rx="12"/>
+<text class="d-cap" x="34" y="180">DETECT DRIFT AND FIX IT</text>
+<rect class="d-z-group" x="20" y="305" width="920" height="120" rx="12"/>
+<text class="d-cap" x="34" y="325">OPERATE THE FLEET</text>
+<polyline class="d-data" points="270,85 318,85" marker-end="url(#d-ops-data)"/>
+<polyline class="d-data" points="530,85 578,85" marker-end="url(#d-ops-data)"/>
+<polyline class="d-in" points="730,85 778,85" marker-end="url(#d-ops-in)"/>
+<polyline class="d-data" points="270,230 318,230" marker-end="url(#d-ops-data)"/>
+<polyline class="d-in" points="530,230 578,230" marker-end="url(#d-ops-in)"/>
+<polyline class="d-alt" points="695,255 695,268 155,268 155,257" marker-end="url(#d-ops-alt)"/>
+<polyline class="d-in" points="270,375 318,375" marker-end="url(#d-ops-in)"/>
+<polyline class="d-in" points="530,375 578,375" marker-end="url(#d-ops-in)"/>
+<polyline class="d-alt" points="770,375 732,375" marker-end="url(#d-ops-alt)"/>
+<rect class="d-node" x="40" y="60" width="230" height="50" rx="8"/><image data-ico="ec2" x="48" y="73" width="24" height="24"/><text class="d-title" x="78" y="81">EC2 + CloudWatch agent</text><text class="d-lbl" x="78" y="97">memory, disk, app logs</text>
+<rect class="d-node" x="320" y="60" width="210" height="50" rx="8"/><image data-ico="cloudwatch" x="328" y="73" width="24" height="24"/><text class="d-title" x="358" y="81">CloudWatch</text><text class="d-lbl" x="358" y="97">metrics, log metric filters</text>
+<rect class="d-node" x="580" y="60" width="150" height="50" rx="8"/><image data-ico="cloudwatch" x="588" y="73" width="24" height="24"/><text class="d-title" x="618" y="81">Alarm</text><text class="d-lbl" x="618" y="97">2 of 3 datapoints</text>
+<rect class="d-node" x="780" y="60" width="145" height="50" rx="8"/><text class="d-title" x="852.5" y="81" text-anchor="middle">SNS · Auto Scaling</text><text class="d-lbl" x="852.5" y="97" text-anchor="middle">page, or scale</text>
+<rect class="d-node" x="40" y="205" width="230" height="50" rx="8"/><text class="d-title" x="155" y="226" text-anchor="middle">Resources</text><text class="d-lbl" x="155" y="242" text-anchor="middle">buckets, security groups, EBS</text>
+<rect class="d-node" x="320" y="205" width="210" height="50" rx="8"/><image data-ico="config" x="328" y="218" width="24" height="24"/><text class="d-title" x="358" y="226">AWS Config</text><text class="d-lbl" x="358" y="242">rule: no public buckets</text>
+<rect class="d-node" x="580" y="205" width="230" height="50" rx="8"/><image data-ico="ssm" x="588" y="218" width="24" height="24"/><text class="d-title" x="618" y="226">SSM Automation</text><text class="d-lbl" x="618" y="242">remediation runbook</text>
+<rect class="d-node" x="40" y="350" width="230" height="50" rx="8"/><text class="d-title" x="155" y="371" text-anchor="middle">Administrator</text><text class="d-lbl" x="155" y="387" text-anchor="middle">IAM permissions, MFA</text>
+<rect class="d-node" x="320" y="350" width="210" height="50" rx="8"/><image data-ico="ssm" x="328" y="363" width="24" height="24"/><text class="d-title" x="358" y="371">Session Manager</text><text class="d-lbl" x="358" y="387">no SSH keys, no bastion</text>
+<rect class="d-node" x="580" y="350" width="150" height="50" rx="8"/><image data-ico="ec2" x="588" y="363" width="24" height="24"/><text class="d-title" x="618" y="371">EC2 fleet</text><text class="d-lbl" x="618" y="387">SSM agent</text>
+<rect class="d-node" x="770" y="350" width="165" height="50" rx="8"/><image data-ico="ssm" x="778" y="363" width="24" height="24"/><text class="d-title" x="808" y="371">Patch Manager</text><text class="d-lbl" x="808" y="387">maintenance window</text>
+<text class="d-lbl d-halo" x="755" y="76" text-anchor="middle">ALARM</text>
+<text class="d-lbl d-halo" x="295" y="200" text-anchor="middle">records changes</text>
+<text class="d-lbl d-halo" x="555" y="200" text-anchor="middle">noncompliant</text>
+<text class="d-lbl d-halo" x="440" y="264" text-anchor="middle">fixes it automatically</text>
+<text class="d-lbl d-halo" x="555" y="345" text-anchor="middle">logged session</text>
+</svg>
+      </div>
+      <figcaption>Three loops keep a workload healthy with little manual work: alarms on the right metrics, Config rules that repair drift on their own, and Systems Manager for access and patching without SSH or bastion hosts.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Data and evaluation</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Actions</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Automatic fixes and patching</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>Memory and disk usage are <b>not</b> default EC2 metrics → install the CloudWatch agent. Alert on a log pattern → metric filter + alarm.</li><li>Ignore brief spikes → alarm on M out of N datapoints. Replace an instance on a custom health signal → mark it unhealthy for Auto Scaling.</li><li>"Detect and automatically fix" misconfigurations → AWS Config rule with an SSM Automation remediation. "Who changed it?" → CloudTrail.</li><li>No inbound SSH, no keys, audited shell access → <b>Session Manager</b> (instance profile with AmazonSSMManagedInstanceCore). Patching on a schedule with compliance reports → Patch Manager; run one command fleet-wide now → Run Command.</li><li>Trace slow requests across services → X-Ray. Account-level health events → AWS Health.</li></ul></div>
+  </section>
+
+  <h2 class="arch-group" id="g-cost">Cost optimization</h2>
+  <section class="arch-sec" id="costcompute">
+    <h2>30. Cost-optimized compute</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 470" role="img" aria-label="Left: matching the workload to a purchasing option. A steady baseline for one to three years goes on Savings Plans or Reserved Instances; fault-tolerant flexible work on Spot; spiky or unpredictable load on On-Demand with Auto Scaling; office-hours-only systems stop or scale to zero; per-core licences need Dedicated Hosts. Right: one Auto Scaling group mixing them, with an On-Demand base covered by a Savings Plan and Spot capacity across several instance types above it, right-sized with Compute Optimizer."><defs><marker id="d-costcompute-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d-costcompute-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-group" x="580" y="20" width="360" height="420" rx="12"/>
+<text class="d-cap" x="594" y="40">ONE AUTO SCALING GROUP, MIXED</text>
+<polyline class="d-in" points="220,45 268,45" marker-end="url(#d-costcompute-in)"/>
+<polyline class="d-in" points="220,129 268,129" marker-end="url(#d-costcompute-in)"/>
+<polyline class="d-in" points="220,213 268,213" marker-end="url(#d-costcompute-in)"/>
+<polyline class="d-in" points="220,297 268,297" marker-end="url(#d-costcompute-in)"/>
+<polyline class="d-in" points="220,381 268,381" marker-end="url(#d-costcompute-in)"/>
+<polyline class="d-alt" points="760,165 760,122" marker-end="url(#d-costcompute-alt)"/>
+<polyline class="d-alt" points="760,360 760,312" marker-end="url(#d-costcompute-alt)"/>
+<rect class="d-node" x="20" y="20" width="200" height="50" rx="8"/><text class="d-title" x="120" y="41" text-anchor="middle">Steady 24/7 baseline</text><text class="d-lbl" x="120" y="57" text-anchor="middle">1 to 3 years ahead</text>
+<rect class="d-node" x="270" y="20" width="245" height="50" rx="8"/><image data-ico="savings" x="278" y="33" width="24" height="24"/><text class="d-title" x="308" y="41">Savings Plans or RIs</text><text class="d-lbl" x="308" y="57">up to ~72% off</text>
+<rect class="d-node" x="20" y="104" width="200" height="50" rx="8"/><text class="d-title" x="120" y="125" text-anchor="middle">Fault-tolerant, flexible</text><text class="d-lbl" x="120" y="141" text-anchor="middle">batch, CI, stateless web</text>
+<rect class="d-node" x="270" y="104" width="245" height="50" rx="8"/><image data-ico="spot" x="278" y="117" width="24" height="24"/><text class="d-title" x="308" y="125">Spot Instances</text><text class="d-lbl" x="308" y="141">up to 90% off, 2-min notice</text>
+<rect class="d-node" x="20" y="188" width="200" height="50" rx="8"/><text class="d-title" x="120" y="209" text-anchor="middle">Spiky or unknown</text><text class="d-lbl" x="120" y="225" text-anchor="middle">new apps, traffic bursts</text>
+<rect class="d-node" x="270" y="188" width="245" height="50" rx="8"/><image data-ico="asg" x="278" y="201" width="24" height="24"/><text class="d-title" x="308" y="209">On-Demand + scaling</text><text class="d-lbl" x="308" y="225">pay per second, scale in</text>
+<rect class="d-node" x="20" y="272" width="200" height="50" rx="8"/><text class="d-title" x="120" y="293" text-anchor="middle">Office hours only</text><text class="d-lbl" x="120" y="309" text-anchor="middle">dev, test, reports</text>
+<rect class="d-node" x="270" y="272" width="245" height="50" rx="8"/><image data-ico="ec2" x="278" y="285" width="24" height="24"/><text class="d-title" x="308" y="293">Stop or scale to zero</text><text class="d-lbl" x="308" y="309">scheduled actions</text>
+<rect class="d-node" x="20" y="356" width="200" height="50" rx="8"/><text class="d-title" x="120" y="377" text-anchor="middle">Per-core licences</text><text class="d-lbl" x="120" y="393" text-anchor="middle">BYOL, compliance</text>
+<rect class="d-node" x="270" y="356" width="245" height="50" rx="8"/><image data-ico="ec2" x="278" y="369" width="24" height="24"/><text class="d-title" x="308" y="377">Dedicated Hosts</text><text class="d-lbl" x="308" y="393">bring your own licence</text>
+<rect class="d-node" x="605" y="70" width="310" height="50" rx="8"/><image data-ico="spot" x="613" y="83" width="24" height="24"/><text class="d-title" x="643" y="91">Spot above the base</text><text class="d-lbl" x="643" y="107">6 instance types, several AZs</text>
+<rect class="d-node" x="605" y="165" width="310" height="50" rx="8"/><image data-ico="ec2" x="613" y="178" width="24" height="24"/><text class="d-title" x="643" y="186">On-Demand base: 4</text><text class="d-lbl" x="643" y="202">covered by a Compute Savings Plan</text>
+<rect class="d-node" x="605" y="260" width="310" height="50" rx="8"/><image data-ico="ec2" x="613" y="273" width="24" height="24"/><text class="d-title" x="643" y="281">Graviton where possible</text><text class="d-lbl" x="643" y="297">arm64: up to 40% better price/performance</text>
+<rect class="d-node" x="605" y="360" width="310" height="50" rx="8"/><image data-ico="computeopt" x="613" y="373" width="24" height="24"/><text class="d-title" x="643" y="381">Compute Optimizer</text><text class="d-lbl" x="643" y="397">right-size before you commit</text>
+<text class="d-lbl d-halo" x="770" y="150">demand above the base</text>
+<text class="d-lbl d-halo" x="770" y="345">recommends sizes</text>
+</svg>
+      </div>
+      <figcaption>Price follows commitment and flexibility: commit to the steady part, put interruptible work on Spot, scale everything else, and switch off what nobody uses. One Auto Scaling group can combine all of it.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Best fit</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>How the group uses them</span></div>
+    </figure>
+    <div class="arch-cols"><div class="card"><h3>Commitments compared</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Compute Savings Plan</th><th>EC2 Instance Savings Plan</th><th>Standard RI</th><th>Convertible RI</th></tr></thead><tbody><tr><td>Discount</td><td>Up to ~66%</td><td>Up to ~72%</td><td>Up to ~72%</td><td>Up to ~66%</td></tr><tr><td>Covers</td><td>Any EC2 family, Region, OS, plus Fargate and Lambda</td><td>One family in one Region</td><td>One instance type</td><td>Exchangeable for other types</td></tr><tr><td>Capacity reservation</td><td>No</td><td>No</td><td>Only zonal RIs</td><td>Only zonal RIs</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Workload will move to Fargate or Lambda" or "change instance families" → <b>Compute Savings Plan</b>. Fixed type forever → Standard RI or EC2 Instance Savings Plan.</li><li>Guarantee capacity in one AZ for a short event with no long commitment → <b>On-Demand Capacity Reservation</b>.</li><li>Spot: diversify instance types and AZs, use capacity-optimized allocation, design for the 2-minute notice. Never for a stateful job that can't restart.</li><li>Right-size first (Compute Optimizer), then commit, or you lock in the waste. A server busy 30% of the week is cheaper On-Demand on a schedule.</li></ul></div></div>
+    
+  </section>
+
+  <section class="arch-sec" id="datatransfer">
+    <h2>31. Data transfer costs</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 450" role="img" aria-label="Where data transfer costs money and where it is free. Inbound traffic from the internet is free. An instance serving users through CloudFront pays nothing for the origin fetch, and CloudFront's delivery to users is charged at a lower rate than going direct. Traffic between instances in the same Availability Zone over private IPs is free, but between Availability Zones it is charged in each direction. An instance reaching S3 through a gateway endpoint pays nothing, while one going through a NAT gateway pays NAT processing per GB. Traffic to another Region is charged, and traffic to the data center over Direct Connect is charged at a lower rate than the internet."><defs><marker id="d-transfer-in" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-in" d="M0 0L10 5L0 10z"/></marker><marker id="d-transfer-out" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-out" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="d-z-region" x="20" y="100" width="640" height="335" rx="12"/>
+<text class="d-cap" x="34" y="120">REGION A</text>
+<rect class="d-z-az" x="40" y="130" width="290" height="170" rx="12"/>
+<text class="d-lbl" x="54" y="149">AZ A</text>
+<rect class="d-z-az" x="350" y="130" width="290" height="170" rx="12"/>
+<text class="d-lbl" x="364" y="149">AZ B</text>
+<polyline class="d-in" points="95,60 95,178" marker-end="url(#d-transfer-in)"/>
+<polyline class="d-in" points="280,180 280,72" marker-end="url(#d-transfer-in)"/>
+<polyline class="d-out" points="240,45 172,40.1" marker-end="url(#d-transfer-out)"/>
+<polyline class="d-in" points="170,200 198,200" marker-end="url(#d-transfer-in)" marker-start="url(#d-transfer-in)"/>
+<polyline class="d-out" points="310,200 368,200" marker-end="url(#d-transfer-out)" marker-start="url(#d-transfer-out)"/>
+<polyline class="d-in" points="115,220 115,368" marker-end="url(#d-transfer-in)"/>
+<polyline class="d-in" points="255,390 328,390" marker-end="url(#d-transfer-in)"/>
+<polyline class="d-out" points="480,200 513,200" marker-end="url(#d-transfer-out)"/>
+<polyline class="d-out" points="568,220 568,345 470,345 470,368" marker-end="url(#d-transfer-out)"/>
+<polyline class="d-out" points="455,180 455,135 718,135" marker-end="url(#d-transfer-out)"/>
+<polyline class="d-out" points="480,212 498,212 498,275 718,275" marker-end="url(#d-transfer-out)"/>
+<rect class="d-node" x="20" y="20" width="150" height="40" rx="8"/><text class="d-title" x="95" y="45" text-anchor="middle">Internet users</text>
+<rect class="d-node" x="240" y="20" width="175" height="50" rx="8"/><image data-ico="cloudfront" x="248" y="33" width="24" height="24"/><text class="d-title" x="278" y="41">CloudFront</text><text class="d-lbl" x="278" y="57">edge egress, cached</text>
+<rect class="d-node" x="60" y="180" width="110" height="40" rx="8"/><image data-ico="ec2" x="68" y="188" width="24" height="24"/><text class="d-title" x="98" y="205">EC2</text>
+<rect class="d-node" x="200" y="180" width="110" height="40" rx="8"/><image data-ico="ec2" x="208" y="188" width="24" height="24"/><text class="d-title" x="238" y="205">EC2</text>
+<rect class="d-node" x="370" y="180" width="110" height="40" rx="8"/><image data-ico="ec2" x="378" y="188" width="24" height="24"/><text class="d-title" x="408" y="205">EC2</text>
+<rect class="d-node" x="515" y="180" width="105" height="40" rx="8"/><image data-ico="nat" x="523" y="188" width="24" height="24"/><text class="d-title" x="553" y="205">NAT</text>
+<rect class="d-node" x="60" y="370" width="195" height="40" rx="8"/><image data-ico="vpce" x="68" y="378" width="24" height="24"/><text class="d-title" x="98" y="395">Gateway endpoint</text>
+<rect class="d-node" x="330" y="370" width="170" height="40" rx="8"/><image data-ico="s3" x="338" y="378" width="24" height="24"/><text class="d-title" x="368" y="395">S3 bucket</text>
+<rect class="d-node" x="720" y="110" width="220" height="50" rx="8"/><image data-ico="vpc" x="728" y="123" width="24" height="24"/><text class="d-title" x="758" y="131">Region B</text><text class="d-lbl" x="758" y="147">replicas, DR copies</text>
+<rect class="d-node" x="720" y="250" width="220" height="50" rx="8"/><text class="d-title" x="830" y="271" text-anchor="middle">Data center</text><text class="d-lbl" x="830" y="287" text-anchor="middle">over Direct Connect</text>
+<text class="d-lbl d-halo" x="105" y="96">inbound: free</text>
+<text class="d-lbl d-halo" x="290" y="96">origin fetch: free</text>
+<text class="d-lbl d-halo" x="205" y="40" text-anchor="middle">$</text>
+<text class="d-lbl" x="225" y="250" text-anchor="middle">same AZ, private IP: free</text>
+<text class="d-lbl d-halo" x="340" y="275" text-anchor="middle">cross-AZ: $ each way</text>
+<text class="d-lbl d-halo" x="125" y="340">to S3: free</text>
+<text class="d-lbl d-halo" x="580" y="340">via NAT: processing $/GB</text>
+<text class="d-lbl d-halo" x="600" y="129" text-anchor="middle">inter-Region $</text>
+<text class="d-lbl d-halo" x="655" y="292" text-anchor="middle">DX out: lower rate</text>
+</svg>
+      </div>
+      <figcaption>Data coming in is free, data staying inside one AZ is free, and fetches from AWS origins into CloudFront are free; almost everything else is billed per GB. Many "most cost-effective" answers just move traffic onto a free or cheaper path.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Free</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--aws)" stroke-width="2" stroke-dasharray="6 4"/></svg>Charged per GB</span></div>
+    </figure>
+    
+    <div class="card"><h3>Exam points</h3><ul><li>High NAT gateway charges from S3 or DynamoDB traffic → <b>gateway endpoint</b> (free). Other services → interface endpoints cost less than NAT at volume.</li><li>Big download bill from S3 or EC2 → serve through <b>CloudFront</b>: origin fetches are free, edge delivery is cheaper and cached. Make downloaders pay → S3 <b>Requester Pays</b>.</li><li>Chatty tiers across AZs pay in both directions; keep tightly coupled components in one AZ where resilience allows, but never give up Multi-AZ for the database to save this.</li><li>Regular large transfers to on-premises → Direct Connect, cheaper per GB out than the internet. Cross-Region replication and DR copies add inter-Region charges.</li></ul></div>
+  </section>
+
+  <section class="arch-sec" id="costgovernance">
+    <h2>32. Cost governance</h2>
+    <figure class="fig">
+      <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
+      <div class="fig-scroll">
+<svg viewBox="0 0 960 430" role="img" aria-label="Member accounts for production, development and a sandbox roll up to the management account through consolidated billing, which shares volume discounts, Reserved Instances and Savings Plans. Resources carry cost allocation tags for team and project. From the management account's bill, four tools: Cost Explorer for trends, forecasts and recommendations; Budgets for alerts and automatic actions such as applying a service control policy to the sandbox; Cost Anomaly Detection for unusual spikes; and the Cost and Usage Report delivered to S3 and queried with Athena."><defs><marker id="d-costgov-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-data" d="M0 0L10 5L0 10z"/></marker><marker id="d-costgov-alt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="d-head-alt" d="M0 0L10 5L0 10z"/></marker></defs>
+<polyline class="d-data" points="130,125 130,98 830,98 830,125"/>
+<polyline class="d-data" points="365,125 365,98"/>
+<polyline class="d-data" points="520,98 520,67" marker-end="url(#d-costgov-data)"/>
+<polyline class="d-data" points="650,65 650,245"/>
+<polyline class="d-data" points="130,245 841,245"/>
+<polyline class="d-data" points="130,245 130,288" marker-end="url(#d-costgov-data)"/>
+<polyline class="d-data" points="367,245 367,288" marker-end="url(#d-costgov-data)"/>
+<polyline class="d-data" points="604,245 604,288" marker-end="url(#d-costgov-data)"/>
+<polyline class="d-data" points="841,245 841,288" marker-end="url(#d-costgov-data)"/>
+<polyline class="d-alt" points="367,340 367,375 955,375 955,200 925,200 925,177" marker-end="url(#d-costgov-alt)"/>
+<rect class="d-node" x="440" y="15" width="300" height="50" rx="8"/><image data-ico="orgs" x="448" y="28" width="24" height="24"/><text class="d-title" x="478" y="36">Management account</text><text class="d-lbl" x="478" y="52">consolidated billing, shared discounts</text>
+<rect class="d-node" x="20" y="125" width="220" height="50" rx="8"/><image data-ico="ec2" x="28" y="138" width="24" height="24"/><text class="d-title" x="58" y="146">Production</text><text class="d-lbl" x="58" y="162">tags: team, project</text>
+<rect class="d-node" x="255" y="125" width="220" height="50" rx="8"/><image data-ico="ec2" x="263" y="138" width="24" height="24"/><text class="d-title" x="293" y="146">Development</text><text class="d-lbl" x="293" y="162">tags: team, project</text>
+<rect class="d-node" x="720" y="125" width="220" height="50" rx="8"/><image data-ico="ec2" x="728" y="138" width="24" height="24"/><text class="d-title" x="758" y="146">Sandbox</text><text class="d-lbl" x="758" y="162">tags: team, project</text>
+<rect class="d-node" x="20" y="290" width="220" height="50" rx="8"/><image data-ico="costexplorer" x="28" y="303" width="24" height="24"/><text class="d-title" x="58" y="311">Cost Explorer</text><text class="d-lbl" x="58" y="327">trends, forecasts, RI/SP advice</text>
+<rect class="d-node" x="257" y="290" width="220" height="50" rx="8"/><image data-ico="budgets" x="265" y="303" width="24" height="24"/><text class="d-title" x="295" y="311">Budgets</text><text class="d-lbl" x="295" y="327">alerts and automatic actions</text>
+<rect class="d-node" x="494" y="290" width="220" height="50" rx="8"/><image data-ico="costexplorer" x="502" y="303" width="24" height="24"/><text class="d-title" x="532" y="311">Anomaly Detection</text><text class="d-lbl" x="532" y="327">flags unusual spikes</text>
+<rect class="d-node" x="731" y="290" width="220" height="50" rx="8"/><image data-ico="cur" x="739" y="303" width="24" height="24"/><text class="d-title" x="769" y="311">Cost and Usage Report</text><text class="d-lbl" x="769" y="327">line items in S3 + Athena</text>
+<text class="d-lbl d-halo" x="300" y="92" text-anchor="middle">one bill; discounts and commitments shared</text>
+<text class="d-lbl d-halo" x="640" y="228" text-anchor="end">cost data for every account, by tag</text>
+<text class="d-lbl d-halo" x="640" y="370" text-anchor="middle">over budget: apply an SCP, stop instances</text>
+</svg>
+      </div>
+      <figcaption>One organization gives one bill with shared discounts, tags say who spent what, and four tools turn that bill into reports, alerts and automatic guardrails.</figcaption>
+      <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Billing data</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Automatic action</span></div>
+    </figure>
+    
+    <div class="card"><h3>Which tool?</h3><div class="tbl-wrap"><table><thead><tr><th>Need</th><th>Tool</th></tr></thead><tbody><tr><td>See spend by service, account or tag; forecast; RI/SP recommendations</td><td>Cost Explorer</td></tr><tr><td>Alert at a threshold, or stop spending automatically</td><td>Budgets (with budget actions)</td></tr><tr><td>Be told about an unusual spike without setting thresholds</td><td>Cost Anomaly Detection</td></tr><tr><td>Every line item, queried with SQL, loaded into BI</td><td>Cost and Usage Report (Data Exports) + Athena</td></tr><tr><td>Idle or oversized resources, best-practice checks</td><td>Trusted Advisor, Compute Optimizer</td></tr></tbody></table></div></div>
+    <div class="card"><h3>Exam points</h3><ul><li>Cost by department → apply a tag, then <b>activate it as a cost allocation tag</b> in the management account; only then does it appear in billing data.</li><li>"Stop a sandbox overspending without custom code" → Budgets with a <b>budget action</b> (apply an SCP or IAM policy, or stop instances).</li><li>Share Savings Plans and RIs across accounts → put them in one organization with discount sharing on.</li></ul></div>
   </section>
   <!-- GENERATED:DIAGRAMS END -->
 </main>

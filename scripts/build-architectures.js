@@ -137,18 +137,24 @@ const GROUPS = [
   { id: 'g-decouple', title: 'Decoupling and event-driven design', items: [] },
   { id: 'g-data', title: 'Data and analytics', items: [] },
   { id: 'g-db', title: 'Databases', items: [] },
-  { id: 'g-dr', title: 'Disaster recovery', items: [] },
+  { id: 'g-dr', title: 'Disaster recovery and migration', items: [] },
   { id: 'g-storage', title: 'Storage', items: [] },
-  { id: 'g-security', title: 'Security and multiple accounts', items: [] }
+  { id: 'g-security', title: 'Security and multiple accounts', items: [] },
+  { id: 'g-ops', title: 'Monitoring and operations', items: [] },
+  { id: 'g-cost', title: 'Cost optimization', items: [] }
 ];
 const group = id => GROUPS.find(g => g.id === id);
-// diagrams 1 and 2 are hand-drawn in the page; they are listed here only for the contents
-group('g-network').items.push({ n: 1, id: 'vpc-layout', title: 'Classic multi-AZ VPC' }, { n: 2, id: 'vpc-endpoints', title: 'Private access to AWS services' });
+// diagrams 1 and 2 are hand-drawn in the page (their headings carry their numbers); they are listed
+// here for the contents and the numbering, and must stay first
+group('g-network').items.push({ id: 'vpc-layout', title: 'Classic multi-AZ VPC' }, { id: 'vpc-endpoints', title: 'Private access to AWS services' });
 
+// Diagrams are numbered in page order (group by group) when the page is written, so a new diagram
+// can go into any group and everything after it renumbers itself.
 const DIAGRAMS = [];
 function add(groupId, spec) {
-  group(groupId).items.push({ n: spec.n, id: spec.id, title: spec.title });
-  DIAGRAMS.push({ groupId, ...spec });
+  const entry = { groupId, ...spec };
+  group(groupId).items.push(entry);
+  DIAGRAMS.push(entry);
 }
 
 // ---- 3. Hybrid connectivity
@@ -182,7 +188,7 @@ function add(groupId, spec) {
   d.edge([B(router), [router.cx, inet.cy], L(inet)], 'out', { label: 'IPsec VPN', lx: 210, ly: 352 });
   d.edge([R(inet), [575, inet.cy], [575, tgw.cy + 12], L(tgw, tgw.cy + 12)], 'out', { label: 'VPN attachment · backup', lx: 492, ly: 398 });
   add('g-network', {
-    n: 3, id: 'hybrid', title: 'Hybrid connectivity',
+    id: 'hybrid', title: 'Hybrid connectivity',
     svg: d.render(),
     caption: 'Two Direct Connect connections at different locations carry hybrid traffic over private links to one Direct Connect gateway, which a Transit Gateway shares with every VPC. A Site-to-Site VPN over the internet takes over if both links fail.',
     legend: [['in', 'Direct Connect (primary)'], ['out', 'Site-to-Site VPN over the internet (backup)'], ['data', 'Inside AWS or the data center']],
@@ -229,7 +235,7 @@ function add(groupId, spec) {
   d.label(717, 150, 'one attachment per spoke', { cls: 'd-lbl d-halo' });
   d.label(717, 360, 'TGW route tables decide who talks · share with RAM', { cls: 'd-lbl' });
   add('g-network', {
-    n: 4, id: 'tgw', title: 'Transit Gateway hub and spoke',
+    id: 'tgw', title: 'Transit Gateway hub and spoke',
     svg: d.render(),
     caption: 'Peering joins two VPCs at a time and never forwards traffic onward, so a full mesh grows as n(n−1)/2. A Transit Gateway needs one attachment per VPC or on-premises link, and its route tables decide which ones can reach each other.',
     legend: [['alt', 'VPC peering connection'], ['data', 'Transit Gateway attachment']],
@@ -266,7 +272,7 @@ function add(groupId, spec) {
   d.edge([R(nlb, nlb.cy + 8), [818, nlb.cy + 8], [818, s2.cy], L(s2)], 'data');
   d.label(205, 408, 'consumers start every connection; no peering, no route tables', { cls: 'd-lbl' });
   add('g-network', {
-    n: 5, id: 'privatelink', title: 'PrivateLink for a SaaS service',
+    id: 'privatelink', title: 'PrivateLink for a SaaS service',
     svg: d.render(),
     caption: 'Each consumer reaches the provider through an interface endpoint in its own VPC, so identical CIDR ranges do not matter and nothing crosses the internet. Only the service behind the Network Load Balancer is exposed, not the provider\'s whole VPC.',
     legend: [['in', 'Consumer requests over PrivateLink'], ['data', 'Inside the provider VPC']],
@@ -301,7 +307,7 @@ function add(groupId, spec) {
   d.edge([L(resolver, resolver.cy + 12), [655, resolver.cy + 12], [655, outb.cy], R(outb)], 'data', { label: 'forwarding rule', lx: 655, ly: 285 });
   d.edge([L(outb), [360, outb.cy], [360, dns.cy + 12], R(dns, dns.cy + 12)], 'data');
   add('g-network', {
-    n: 6, id: 'hybrid-dns', title: 'Hybrid DNS with Route 53 Resolver',
+    id: 'hybrid-dns', title: 'Hybrid DNS with Route 53 Resolver',
     svg: d.render(),
     caption: 'Inbound endpoints let on-premises DNS forward queries into the VPC; outbound endpoints with forwarding rules let the VPC send queries for on-premises domains back out. Both travel over the VPN or Direct Connect link.',
     legend: [['in', 'On-premises resolving AWS names'], ['data', 'The VPC resolving on-premises names']],
@@ -345,7 +351,7 @@ function add(groupId, spec) {
   d.edge([B(primary, 420), [420, 440], [replica.cx, 440], B(replica)], 'data', { label: 'async replication', lx: 650, ly: 436 });
   d.edge([B(ec2b), [ec2b.cx, 330], [replica.cx, 330], T(replica)], 'data', { label: 'report queries', lx: 760, ly: 326 });
   add('g-ha', {
-    n: 7, id: 'three-tier', title: 'Three-tier web application',
+    id: 'three-tier', title: 'Three-tier web application',
     svg: d.render(),
     caption: 'The backbone of most scenario questions. Every tier is spread over two or more Availability Zones, static content never reaches the servers, hot reads stop at the cache, and reports run on a replica instead of the primary.',
     legend: [['in', 'Request path'], ['data', 'Data and replication'], ['alt', 'DNS']],
@@ -386,7 +392,7 @@ function add(groupId, spec) {
   d.edge([R(fn), L(ddb)], 'data', { label: 'read / write', lx: 702, ly: 186 });
   d.edge([B(fn), [fn.cx, sqs.cy], L(sqs)], 'data', { label: 'enqueue', lx: 640, ly: 316 });
   add('g-ha', {
-    n: 8, id: 'serverless', title: 'Serverless web application',
+    id: 'serverless', title: 'Serverless web application',
     svg: d.render(),
     caption: 'No servers to patch or scale: the static front end comes from S3 through CloudFront, Cognito handles sign-in, and every API call passes API Gateway\'s token check and throttling before Lambda runs.',
     legend: [['in', 'Request path'], ['data', 'Data'], ['alt', 'Sign-in and token checks']],
@@ -421,7 +427,7 @@ function add(groupId, spec) {
   d.edge([B(ga, ra.cx), T(ra)], 'in', { label: 'AWS backbone', lx: 550, ly: 258, anchor: 'start' });
   d.edge([B(ga, rb.cx), T(rb)], 'alt', { label: 'failover', lx: 838, ly: 258, anchor: 'start' });
   add('g-ha', {
-    n: 9, id: 'edge', title: 'CloudFront or Global Accelerator',
+    id: 'edge', title: 'CloudFront or Global Accelerator',
     svg: d.render(),
     caption: 'Both start at the AWS edge. CloudFront caches HTTP content there, so most requests never reach the origin. Global Accelerator caches nothing; it gives two fixed IP addresses and carries any TCP or UDP traffic over the AWS network to the nearest healthy Region.',
     legend: [['in', 'Request path'], ['data', 'Cache miss'], ['alt', 'Failover']],
@@ -463,7 +469,7 @@ function add(groupId, spec) {
   d.edge([T(q), B(cw)], 'alt', { label: 'queue depth', lx: 400, ly: 145, anchor: 'start' });
   d.edge([R(cw), [677, cw.cy], T(w1, 677)], 'alt', { label: 'target tracking adds workers', lx: 680, ly: 48 });
   add('g-decouple', {
-    n: 10, id: 'queue', title: 'Queue-based load leveling',
+    id: 'queue', title: 'Queue-based load leveling',
     svg: d.render(),
     caption: 'The queue sits between a front end that must stay fast and a back end that can only go so fast. Orders are accepted at any rate, workers drain them at a rate the database can take, and the backlog per instance tells Auto Scaling how many workers to run.',
     legend: [['in', 'Messages'], ['data', 'Writes'], ['alt', 'Scaling and failures']],
@@ -501,7 +507,7 @@ function add(groupId, spec) {
   d.label(470, 278, 'filter policy: only EU orders', { anchor: 'start', cls: 'd-lbl d-halo' });
   d.label(940, 365, 'each service polls its own copy, at its own pace', { anchor: 'end', cls: 'd-lbl' });
   add('g-decouple', {
-    n: 11, id: 'fanout', title: 'Fan-out with SNS and SQS',
+    id: 'fanout', title: 'Fan-out with SNS and SQS',
     svg: d.render(),
     caption: 'The producer publishes once and knows nothing about its consumers. SNS pushes a copy into a queue per consumer, so each one keeps every message even while it is down, retries on its own, and scales independently.',
     legend: [['in', 'Publish and deliver'], ['data', 'Each consumer polls its queue']],
@@ -540,7 +546,7 @@ function add(groupId, spec) {
   }
   d.edge([B(bus), T(arch)], 'alt', { label: 'archive', lx: 430, ly: 290, anchor: 'start' });
   add('g-decouple', {
-    n: 12, id: 'eventbridge', title: 'Event routing with EventBridge',
+    id: 'eventbridge', title: 'Event routing with EventBridge',
     svg: d.render(),
     caption: 'Sources publish to one bus and know nothing about the targets. Each rule matches on the event\'s content and forwards matching events to its targets, so adding a consumer means adding a rule, not changing a producer.',
     legend: [['in', 'Events'], ['alt', 'Archive']],
@@ -577,7 +583,7 @@ function add(groupId, spec) {
   d.edge([B(cc), T(fail)], 'alt', { label: 'Catch', lx: 302, ly: 250, anchor: 'start' });
   d.label(480, 380, 'Standard workflow: runs up to a year, exactly-once, full visual history', { cls: 'd-lbl' });
   add('g-decouple', {
-    n: 13, id: 'stepfunctions', title: 'Workflow orchestration with Step Functions',
+    id: 'stepfunctions', title: 'Workflow orchestration with Step Functions',
     svg: d.render(),
     caption: 'The state machine holds the workflow\'s state, so no code waits or loops. Retries and catches are declared on each step, and the human step pauses at no cost until the underwriter\'s app returns the task token.',
     legend: [['in', 'State transitions'], ['alt', 'Callbacks and error handling']],
@@ -613,7 +619,7 @@ function add(groupId, spec) {
   for (const t of [s3, rs, os]) d.edge([[835, t.cy], L(t)], 'data');
   d.edge([B(prod), [prod.cx, 430], [590, 430], [590, fh.b - 8], L(fh, fh.b - 8)], 'alt', { label: 'or straight into Firehose, no replay', lx: 350, ly: 425 });
   add('g-data', {
-    n: 14, id: 'streaming', title: 'Streaming pipeline',
+    id: 'streaming', title: 'Streaming pipeline',
     svg: d.render(),
     caption: 'Kinesis Data Streams keeps every record for the retention period, so many consumers read the same data independently and any of them can replay it. Firehose is the no-code delivery pipe from a stream, or straight from producers, into storage and analytics services.',
     legend: [['in', 'Records'], ['data', 'Delivery'], ['alt', 'Direct to Firehose']],
@@ -657,7 +663,7 @@ function add(groupId, spec) {
   d.edge([R(lf), [ath.x - 40, lf.cy], [ath.x - 40, ath.cy - 8], L(ath, ath.cy - 8)], 'alt', { label: 'enforces grants', lx: 712, ly: 282, anchor: 'start' });
   d.edge([B(ath), T(qs)], 'in', { label: 'queries', lx: 852, ly: 315, anchor: 'start' });
   add('g-data', {
-    n: 15, id: 'datalake', title: 'Data lake on S3',
+    id: 'datalake', title: 'Data lake on S3',
     svg: d.render(),
     caption: 'Storage and compute stay separate: S3 holds the data in zones, the Glue Data Catalog holds the schemas, and serverless engines query in place. Partitioned Parquet makes Athena read only the columns and dates a query needs.',
     legend: [['in', 'Data flow'], ['data', 'Reads and writes'], ['alt', 'Metadata and permissions']],
@@ -689,7 +695,7 @@ function add(groupId, spec) {
   d.edge([T(batch), B(res, batch.cx)], 'data');
   d.label(480, 318, 'writing back to the same bucket and prefix would trigger the function again, forever', { cls: 'd-lbl' });
   add('g-data', {
-    n: 16, id: 's3events', title: 'Event-driven S3 processing',
+    id: 's3events', title: 'Event-driven S3 processing',
     svg: d.render(),
     caption: 'Uploads go straight to S3, never through your servers, and each new object triggers its own processing. Short work runs in Lambda; anything longer or heavier is queued for Batch or ECS.',
     legend: [['in', 'Upload and trigger'], ['data', 'Results']],
@@ -720,7 +726,7 @@ function add(groupId, spec) {
   d.edge([R(proxy), [650, proxy.cy], [650, primary.b - 10], L(primary, primary.b - 10)], 'data', { label: 'a few pooled connections', lx: 600, ly: 350 });
   d.edge([B(primary, 880), T(reps, 880)], 'alt', { label: 'async', lx: 890, ly: 205, anchor: 'start' });
   add('g-db', {
-    n: 17, id: 'readscale', title: 'Read scaling and caching',
+    id: 'readscale', title: 'Read scaling and caching',
     svg: d.render(),
     caption: 'Hot reads stop at the cache, the rest spread over read replicas, and the primary only takes writes. Short-lived Lambda functions share a small pool of connections through RDS Proxy instead of opening one each.',
     legend: [['in', 'Requests'], ['data', 'Database traffic'], ['alt', 'Replication']],
@@ -763,7 +769,7 @@ function add(groupId, spec) {
   d.label(727, 225, '~1 s', { cls: 'd-lbl d-halo' });
   d.label(720, 340, 'active-active · last writer wins', { cls: 'd-lbl' });
   add('g-db', {
-    n: 18, id: 'multiregion', title: 'Multi-Region data',
+    id: 'multiregion', title: 'Multi-Region data',
     svg: d.render(),
     caption: 'Aurora Global Database keeps one writer and copies storage to other Regions in about a second, ready to promote. DynamoDB global tables let every Region write, replicating changes to the others.',
     legend: [['in', 'Cross-Region replication'], ['data', 'Local reads and writes'], ['alt', 'Writes forwarded to the primary']],
@@ -800,7 +806,7 @@ function add(groupId, spec) {
   d.edge([[40, 480], [940, 480]], 'alt');
   d.label(490, 474, 'faster recovery, higher cost', { cls: 'd-lbl d-halo' });
   add('g-dr', {
-    n: 19, id: 'dr', title: 'Disaster recovery strategies',
+    id: 'dr', title: 'Disaster recovery strategies',
     svg: d.render(),
     caption: 'The strategies differ in how much of the DR Region is already running. Pick the cheapest one whose recovery point and recovery time meet the requirement.',
     legend: [['data', 'One-way copy or replication'], ['in', 'Two-way, both Regions live']],
@@ -842,7 +848,7 @@ function add(groupId, spec) {
   });
   d.label(480, 437, 'a huge one-time move over a slow link → AWS Snowball: ship the data instead', { cls: 'd-lbl' });
   add('g-storage', {
-    n: 20, id: 'hybridstorage', title: 'Hybrid storage and data transfer',
+    id: 'hybridstorage', title: 'Hybrid storage and data transfer',
     svg: d.render(),
     caption: 'Each Storage Gateway type keeps the protocol your servers already speak and puts the data in AWS behind it, with a local cache for speed. DataSync is for moving data, once or on a schedule, not for serving it.',
     legend: [['data', 'Local protocol'], ['in', 'To AWS']],
@@ -890,7 +896,7 @@ function add(groupId, spec) {
     d.edge([B(f), T(e)], i === 2 ? 'data' : 'alt', { both: i === 2 });
   });
   add('g-storage', {
-    n: 21, id: 'filesystems', title: 'Shared file systems',
+    id: 'filesystems', title: 'Shared file systems',
     svg: d.render(),
     caption: 'Pick the shared file system by the clients\' operating system and protocol first, then by performance. Block storage (EBS) is not shared, apart from io2 Multi-Attach within one AZ.',
     legend: [['in', 'Clients mount'], ['data', 'Linked to S3'], ['alt', 'Supporting feature']],
@@ -936,7 +942,7 @@ function add(groupId, spec) {
   d.label(670, 330, 'new objects only · Batch Replication for existing ones', { cls: 'd-lbl' });
   d.label(670, 350, 'Replication Time Control: 99.99% within 15 minutes', { cls: 'd-lbl' });
   add('g-storage', {
-    n: 22, id: 's3protect', title: 'S3 lifecycle and protection',
+    id: 's3protect', title: 'S3 lifecycle and protection',
     svg: d.render(),
     caption: 'Lifecycle rules move each object to cheaper storage as it ages and delete it at the end. Versioning, Object Lock and MFA Delete stop accidental or malicious loss, and replication keeps a copy in another Region or account.',
     legend: [['in', 'Lifecycle transition'], ['data', 'Replication'], ['alt', 'Bucket settings']],
@@ -983,7 +989,7 @@ function add(groupId, spec) {
   for (const x of [170, 490, 810]) d.edge([[x, 372], [x, 347]], 'in');
   d.label(650, 389, 'roles in every account', { cls: 'd-lbl' });
   add('g-security', {
-    n: 23, id: 'landingzone', title: 'Multi-account landing zone',
+    id: 'landingzone', title: 'Multi-account landing zone',
     svg: d.render(),
     caption: 'Accounts are the strongest isolation boundary, so workloads, security tooling and logs each get their own. Policies attach to OUs and apply to every account in them, including accounts created later, and people sign in once to reach whichever accounts they are allowed into.',
     legend: [['data', 'Organization hierarchy'], ['in', 'Sign-in and access']],
@@ -1015,7 +1021,7 @@ function add(groupId, spec) {
   d.edge([R(app), L(bucket, app.cy + 20)], 'data', { label: 'or: the bucket policy names Account A', lx: 445, ly: 232 });
   d.edge([B(bucket), T(key)], 'alt', { label: 'SSE-KMS objects', lx: 760, ly: 293, anchor: 'start' });
   add('g-security', {
-    n: 24, id: 'crossaccount', title: 'Cross-account access',
+    id: 'crossaccount', title: 'Cross-account access',
     svg: d.render(),
     caption: 'Either the caller becomes a role in the other account (its trust policy decides who may), or the resource\'s own policy lets the caller in as itself. Encrypted data adds a third gate: the KMS key policy.',
     legend: [['in', 'Assume a role'], ['data', 'Resource-based policy'], ['alt', 'Decryption check']],
@@ -1061,7 +1067,7 @@ function add(groupId, spec) {
   d.edge([R(hub, hub.cy - 10), [740, hub.cy - 10], [740, eb.cy], L(eb)], 'data', { label: 'findings', lx: 737, ly: 330 });
   d.edge([B(eb), T(fix)], 'data');
   add('g-security', {
-    n: 25, id: 'edgesecurity', title: 'Edge security and threat detection',
+    id: 'edgesecurity', title: 'Edge security and threat detection',
     svg: d.render(),
     caption: 'Attacks are stopped as far out as possible: WAF and Shield at the CloudFront edge, and an ALB that only CloudFront can reach. Behind them, managed detectors read the logs, Security Hub gathers every finding in one place, and EventBridge turns findings into automatic responses.',
     legend: [['in', 'Request path'], ['alt', 'Protection attached'], ['data', 'Findings and responses']],
@@ -1083,8 +1089,317 @@ function add(groupId, spec) {
   });
 }
 
+// ---- Containers on ECS with Fargate (after CloudFront or Global Accelerator)
+{
+  const d = diagram('d-ecs', 960, 405, 'A CI pipeline pushes images to ECR. Users reach an Application Load Balancer, which routes to an ECS service running Fargate tasks in two Availability Zones. Tasks pull their image from ECR using the task execution role, call DynamoDB with the permissions of their task role, and share files on an EFS file system. Service auto scaling adds or removes tasks.');
+  const ci = d.node(20, 40, 'CI pipeline', { w: 175, sub: 'docker build, push' });
+  const ecr = d.node(250, 40, 'ECR', { icon: 'ecr', w: 175, sub: 'images, scanning' });
+  const users = d.node(20, 200, 'Users', { w: 175 });
+  const alb = d.node(250, 195, 'ALB', { icon: 'alb', w: 175, sub: 'target group: IP' });
+  d.zone(480, 110, 240, 230, { kind: 'asg' });
+  d.label(600, 360, 'ECS service on Fargate · 2 AZs', { cls: 'd-lbl' });
+  const t1 = d.node(505, 140, 'Task · AZ A', { icon: 'fargate', w: 190 });
+  const t2 = d.node(505, 270, 'Task · AZ B', { icon: 'fargate', w: 190 });
+  const ddb = d.node(775, 130, 'DynamoDB', { icon: 'dynamodb', w: 165, sub: 'via the task role' });
+  const efs = d.node(775, 260, 'EFS', { icon: 'efs', w: 165, sub: 'shared files (NFS)' });
+  d.edge([R(ci), L(ecr)], 'data', { label: 'push', lx: 222, ly: 56 });
+  d.edge([R(ecr), [600, ecr.cy], T(t1)], 'alt', { label: 'pull (execution role)', lx: 520, ly: 56 });
+  d.edge([R(users), L(alb, users.cy)], 'in', { label: 'HTTPS', lx: 222, ly: 216 });
+  d.edge([R(alb, alb.cy - 8), [455, alb.cy - 8], [455, t1.cy], L(t1)], 'in');
+  d.edge([R(alb, alb.cy + 8), [455, alb.cy + 8], [455, t2.cy], L(t2)], 'in');
+  d.edge([R(t1), [748, t1.cy]], 'data', { head: false });
+  d.edge([R(t2), [748, t2.cy]], 'data', { head: false });
+  d.edge([[748, t1.cy], [748, t2.cy]], 'data', { head: false });
+  d.edge([[748, ddb.cy], L(ddb)], 'data');
+  d.edge([[748, efs.cy], L(efs)], 'data');
+  d.label(480, 392, 'service auto scaling: target tracking on CPU or ALB requests per target', { cls: 'd-lbl' });
+  add('g-ha', {
+    id: 'containers', title: 'Containers on ECS with Fargate',
+    svg: d.render(),
+    caption: 'Fargate runs each task with no servers to patch or scale, the ALB spreads requests across tasks in two AZs, and each task gets AWS permissions from its own task role. ECR holds the images; EFS gives tasks shared persistent storage.',
+    legend: [['in', 'Request path'], ['data', 'Calls and storage'], ['alt', 'Image pull']],
+    cards: [
+      ['Exam points', ul([
+        '"Containers with the least operational overhead" → ECS (or EKS) on <b>Fargate</b>. Need GPUs, special instance types or the lowest cost at steady scale → the EC2 launch type.',
+        '<b>Task role</b> = what the application can call (S3, DynamoDB). <b>Task execution role</b> = what ECS needs to pull images and write logs.',
+        'Already on Kubernetes → EKS; on-premises too → ECS Anywhere or EKS Anywhere. Persistent shared files → EFS volumes; Fargate local storage is temporary.',
+        'Interruptible, stateless tasks → Fargate Spot for up to 70% off.'
+      ])]
+    ]
+  });
+}
+
+// ---- Migrating to AWS (after disaster recovery strategies)
+{
+  const d = diagram('d-mig', 960, 432, 'On-premises servers, an Oracle database, file shares and a large archive move to AWS with four tools. Application Migration Service replicates whole servers continuously and launches them as EC2 instances. DMS, with the Schema Conversion Tool, copies the database to Aurora PostgreSQL and keeps it in sync until cutover. DataSync copies file shares to S3, EFS or FSx. Snowball Edge devices ship the archive to S3 offline. Migration Hub tracks progress.');
+  d.zone(20, 20, 270, 380, { kind: 'onprem', label: 'Data center' });
+  d.zone(670, 20, 270, 380, { kind: 'region', label: 'AWS Region' });
+  const rows = [
+    ['Servers', 'VMware, Hyper-V, physical', 'App Migration Service', 'mgn', 'block-level replication', 'EC2 instances', 'ec2', 'rehost, cutover in minutes'],
+    ['Oracle database', 'stays live until cutover', 'DMS', 'dms', 'full load + CDC, SCT', 'Aurora PostgreSQL', 'aurora', 'replatform'],
+    ['File shares, NAS', 'NFS or SMB', 'DataSync', 'datasync', 'scheduled, verified', 'S3, EFS or FSx', 's3', 'files kept as files'],
+    ['500 TB archive', 'slow internet link', 'Snowball Edge', 'snowball', 'shipped, offline', 'S3', 's3', 'imported by AWS']
+  ];
+  rows.forEach(([src, srcSub, tool, icon, toolSub, dst, dstIcon, dstSub], i) => {
+    const y = 55 + i * 85;
+    const a = d.node(40, y, src, { w: 230, sub: srcSub });
+    const t = d.node(355, y, tool, { icon, w: 250, sub: toolSub });
+    const z = d.node(690, y, dst, { icon: dstIcon, w: 230, sub: dstSub });
+    d.edge([R(a), L(t)], 'data');
+    d.edge([R(t), L(z)], i === 3 ? 'alt' : 'in', i === 3 ? { label: 'by courier', lx: 638, ly: y + 20 } : {});
+  });
+  d.label(480, 422, 'Migration Hub tracks every server and database through the move', { cls: 'd-lbl' });
+  add('g-dr', {
+    id: 'migration', title: 'Migrating to AWS',
+    svg: d.render(),
+    caption: 'Each kind of workload has its own tool. Servers and databases keep replicating while the old ones stay in use, so the final cutover takes minutes; files sync on a schedule; data too big for the network travels on a device.',
+    legend: [['data', 'Read from the source'], ['in', 'Over the network'], ['alt', 'Shipped offline']],
+    cards: [
+      ['Which tool?', table(['Moving', 'Tool', 'Note'], [
+        ['Whole servers, unchanged (rehost)', 'Application Migration Service', 'Continuous replication, test launches, minutes of downtime'],
+        ['A database, same engine', 'DMS', 'Full load plus change data capture until cutover'],
+        ['A database, different engine', 'SCT + DMS', 'SCT converts schema and code; DMS moves the data'],
+        ['SQL Server apps onto Aurora PostgreSQL with few code changes', 'Babelfish for Aurora PostgreSQL', 'Understands T-SQL'],
+        ['Files, online, once or on a schedule', 'DataSync', 'To S3, EFS or FSx, with verification'],
+        ['Tens of TB to PB, network too slow', 'Snowball Edge', 'Order several devices in parallel'],
+        ['Discover servers and plan', 'Application Discovery Service, Migration Hub', 'Inventory, dependencies, tracking']
+      ])],
+      ['Exam points', ul([
+        'Do the bandwidth sum: about 10 TB a day on 1 Gbps. If the deadline beats the network, use Snowball; if the link is fine, DataSync over it.',
+        '"Minimal downtime" for a database → DMS with <b>CDC</b>, not a dump and restore. "Different engine" → add SCT.',
+        '"Lift and shift hundreds of servers with minimal effort" → Application Migration Service (it replaced Server Migration Service).'
+      ])]
+    ]
+  });
+}
+
+// ---- Encryption and secrets (after cross-account access)
+{
+  const d = diagram('d-enc', 960, 440, 'Top: envelope encryption. A service such as S3 asks KMS for a data key, encrypts the data locally with the plaintext key, discards it and stores the encrypted data key next to the data; the KMS key itself never leaves KMS. Middle: an application reads database credentials from Secrets Manager at runtime, and a rotation Lambda function changes the RDS password on a schedule. Bottom: ACM provides auto-renewing TLS certificates for the load balancer and for CloudFront, which needs them in us-east-1.');
+  d.zone(20, 15, 920, 130, { kind: 'group', label: 'At rest: envelope encryption' });
+  const svc = d.node(40, 60, 'S3, EBS, RDS…', { w: 200, sub: 'encrypts locally' });
+  const kms = d.node(370, 60, 'KMS key', { icon: 'kms', w: 220, sub: 'never leaves KMS' });
+  const obj = d.node(720, 60, 'Stored together', { w: 200, sub: 'data + encrypted data key' });
+  d.edge([R(svc, svc.cy - 8), L(kms, svc.cy - 8)], 'in', { label: 'GenerateDataKey', lx: 305, ly: 79 });
+  d.edge([L(kms, kms.cy + 8), R(svc, kms.cy + 8)], 'alt', { label: 'data key, 2 copies', lx: 305, ly: 112 });
+  d.edge([R(kms), L(obj)], 'data', { label: 'encrypted key kept', lx: 655, ly: 79 });
+  d.zone(20, 165, 920, 140, { kind: 'group', label: 'Secrets: no passwords in code' });
+  const app = d.node(40, 215, 'App', { icon: 'ec2', w: 200, sub: 'EC2, Lambda, ECS' });
+  const sm = d.node(370, 215, 'Secrets Manager', { icon: 'secrets', w: 220, sub: 'encrypted with KMS' });
+  const rot = d.node(590, 245, 'Rotation Lambda', { icon: 'lambda', w: 150, sub: 'every 30 days' });
+  const rds = d.node(770, 215, 'RDS', { icon: 'rds', w: 150, sub: 'password changes' });
+  d.edge([R(app), L(sm, app.cy)], 'in', { label: 'GetSecretValue', lx: 305, ly: 232 });
+  d.edge([B(sm, 500), [500, rot.cy], L(rot)], 'alt');
+  d.edge([R(rot), [755, rot.cy], [755, rds.cy], L(rds)], 'alt', { label: 'set new password', lx: 690, ly: 230 });
+  d.zone(20, 325, 920, 100, { kind: 'group', label: 'In transit: TLS everywhere' });
+  const acm = d.node(40, 365, 'ACM certificate', { icon: 'acm', w: 200, sub: 'free, auto-renewed' });
+  const alb = d.node(370, 365, 'ALB', { icon: 'alb', w: 220, sub: 'certificate in its Region' });
+  const cf = d.node(720, 365, 'CloudFront', { icon: 'cloudfront', w: 200, sub: 'certificate in us-east-1' });
+  d.edge([R(acm), L(alb)], 'data');
+  d.edge([R(alb), L(cf)], 'in', { label: 'HTTPS to the origin', lx: 655, ly: 382 });
+  add('g-security', {
+    id: 'encryption', title: 'Encryption and secrets',
+    svg: d.render(),
+    caption: 'KMS keys never leave KMS; services encrypt with short-lived data keys and keep only an encrypted copy of each. Secrets Manager keeps credentials out of code and rotates them, and ACM keeps TLS certificates renewed.',
+    legend: [['in', 'Requests'], ['alt', 'Returned key, rotation'], ['data', 'Stored or attached']],
+    pair: [
+      ['S3 encryption options', table(['Option', 'Who holds the key', 'Choose it when'], [
+        ['SSE-S3', 'AWS, fully managed', 'The default; no extra cost or audit needed'],
+        ['SSE-KMS', 'Your KMS key', 'Audit every use in CloudTrail, control with key policies'],
+        ['DSSE-KMS', 'Your KMS key, two layers', 'A rule demands dual-layer encryption'],
+        ['SSE-C', 'You, sent with each request', 'You must keep the key material outside AWS'],
+        ['Client-side', 'You, before upload', 'Data must be encrypted before it reaches AWS']
+      ])],
+      ['Exam points', ul([
+        '"Audit who used the key" → SSE-KMS. Lots of KMS calls costing money or throttling → enable <b>S3 Bucket Keys</b>.',
+        'You can\'t encrypt an existing unencrypted RDS instance in place: snapshot → copy with encryption → restore.',
+        '"Rotate database credentials automatically" → Secrets Manager. Plain configuration values → Systems Manager Parameter Store (cheaper, no built-in rotation for RDS).',
+        'Single-tenant hardware keys under your sole control, FIPS 140-2 Level 3 → CloudHSM. Your own key material in KMS → imported keys.',
+        'Other accounts or Regions need the key → key policy grants, or multi-Region keys.'
+      ])]
+    ]
+  });
+}
+
+// ---- Operations and auto-remediation
+{
+  const d = diagram('d-ops', 960, 440, 'Three operational loops. Monitoring: the CloudWatch agent on EC2 sends memory, disk and log data to CloudWatch, where a metric filter and an alarm notify the on-call team through SNS or trigger Auto Scaling. Compliance: AWS Config evaluates resources against rules and runs a Systems Manager Automation runbook to fix noncompliant ones. Fleet operations: administrators reach instances through Session Manager without SSH or a bastion, and Patch Manager patches them in a maintenance window.');
+  d.zone(20, 15, 920, 120, { kind: 'group', label: 'Monitor and alert' });
+  const agent = d.node(40, 60, 'EC2 + CloudWatch agent', { icon: 'ec2', w: 230, sub: 'memory, disk, app logs' });
+  const cw = d.node(320, 60, 'CloudWatch', { icon: 'cloudwatch', w: 210, sub: 'metrics, log metric filters' });
+  const alarm = d.node(580, 60, 'Alarm', { icon: 'cloudwatch', w: 150, sub: '2 of 3 datapoints' });
+  const act = d.node(780, 60, 'SNS · Auto Scaling', { w: 145, sub: 'page, or scale' });
+  d.edge([R(agent), L(cw)], 'data');
+  d.edge([R(cw), L(alarm)], 'data');
+  d.edge([R(alarm), L(act)], 'in', { label: 'ALARM', lx: 755, ly: 76 });
+  d.zone(20, 160, 920, 120, { kind: 'group', label: 'Detect drift and fix it' });
+  const res = d.node(40, 205, 'Resources', { w: 230, sub: 'buckets, security groups, EBS' });
+  const cfg = d.node(320, 205, 'AWS Config', { icon: 'config', w: 210, sub: 'rule: no public buckets' });
+  const runbook = d.node(580, 205, 'SSM Automation', { icon: 'ssm', w: 230, sub: 'remediation runbook' });
+  d.edge([R(res), L(cfg)], 'data', { label: 'records changes', lx: 295, ly: 200 });
+  d.edge([R(cfg), L(runbook)], 'in', { label: 'noncompliant', lx: 555, ly: 200 });
+  d.edge([B(runbook), [runbook.cx, 268], [res.cx, 268], B(res)], 'alt', { label: 'fixes it automatically', lx: 440, ly: 264 });
+  d.zone(20, 305, 920, 120, { kind: 'group', label: 'Operate the fleet' });
+  const admin = d.node(40, 350, 'Administrator', { w: 230, sub: 'IAM permissions, MFA' });
+  const ssm = d.node(320, 350, 'Session Manager', { icon: 'ssm', w: 210, sub: 'no SSH keys, no bastion' });
+  const fleet = d.node(580, 350, 'EC2 fleet', { icon: 'ec2', w: 150, sub: 'SSM agent' });
+  const patch = d.node(770, 350, 'Patch Manager', { icon: 'ssm', w: 165, sub: 'maintenance window' });
+  d.edge([R(admin), L(ssm)], 'in');
+  d.edge([R(ssm), L(fleet)], 'in', { label: 'logged session', lx: 555, ly: 345 });
+  d.edge([L(patch), R(fleet)], 'alt');
+  add('g-ops', {
+    id: 'operations', title: 'Operations and auto-remediation',
+    svg: d.render(),
+    caption: 'Three loops keep a workload healthy with little manual work: alarms on the right metrics, Config rules that repair drift on their own, and Systems Manager for access and patching without SSH or bastion hosts.',
+    legend: [['data', 'Data and evaluation'], ['in', 'Actions'], ['alt', 'Automatic fixes and patching']],
+    cards: [
+      ['Exam points', ul([
+        'Memory and disk usage are <b>not</b> default EC2 metrics → install the CloudWatch agent. Alert on a log pattern → metric filter + alarm.',
+        'Ignore brief spikes → alarm on M out of N datapoints. Replace an instance on a custom health signal → mark it unhealthy for Auto Scaling.',
+        '"Detect and automatically fix" misconfigurations → AWS Config rule with an SSM Automation remediation. "Who changed it?" → CloudTrail.',
+        'No inbound SSH, no keys, audited shell access → <b>Session Manager</b> (instance profile with AmazonSSMManagedInstanceCore). Patching on a schedule with compliance reports → Patch Manager; run one command fleet-wide now → Run Command.',
+        'Trace slow requests across services → X-Ray. Account-level health events → AWS Health.'
+      ])]
+    ]
+  });
+}
+
+// ---- Cost-optimized compute
+{
+  const d = diagram('d-costcompute', 960, 470, 'Left: matching the workload to a purchasing option. A steady baseline for one to three years goes on Savings Plans or Reserved Instances; fault-tolerant flexible work on Spot; spiky or unpredictable load on On-Demand with Auto Scaling; office-hours-only systems stop or scale to zero; per-core licences need Dedicated Hosts. Right: one Auto Scaling group mixing them, with an On-Demand base covered by a Savings Plan and Spot capacity across several instance types above it, right-sized with Compute Optimizer.');
+  const rows = [
+    ['Steady 24/7 baseline', '1 to 3 years ahead', 'Savings Plans or RIs', 'savings', 'up to ~72% off'],
+    ['Fault-tolerant, flexible', 'batch, CI, stateless web', 'Spot Instances', 'spot', 'up to 90% off, 2-min notice'],
+    ['Spiky or unknown', 'new apps, traffic bursts', 'On-Demand + scaling', 'asg', 'pay per second, scale in'],
+    ['Office hours only', 'dev, test, reports', 'Stop or scale to zero', 'ec2', 'scheduled actions'],
+    ['Per-core licences', 'BYOL, compliance', 'Dedicated Hosts', 'ec2', 'bring your own licence']
+  ];
+  rows.forEach(([need, needSub, opt, icon, optSub], i) => {
+    const y = 20 + i * 84;
+    const a = d.node(20, y, need, { w: 200, sub: needSub });
+    const o = d.node(270, y, opt, { icon, w: 245, sub: optSub });
+    d.edge([R(a), L(o)], 'in');
+  });
+  d.zone(580, 20, 360, 420, { kind: 'group', label: 'One Auto Scaling group, mixed' });
+  const spot = d.node(605, 70, 'Spot above the base', { icon: 'spot', w: 310, sub: '6 instance types, several AZs' });
+  const od = d.node(605, 165, 'On-Demand base: 4', { icon: 'ec2', w: 310, sub: 'covered by a Compute Savings Plan' });
+  const grav = d.node(605, 260, 'Graviton where possible', { icon: 'ec2', w: 310, sub: 'arm64: up to 40% better price/performance' });
+  const opt = d.node(605, 360, 'Compute Optimizer', { icon: 'computeopt', w: 310, sub: 'right-size before you commit' });
+  d.edge([T(od), B(spot)], 'alt', { label: 'demand above the base', lx: 770, ly: 150, anchor: 'start' });
+  d.edge([T(opt), B(grav)], 'alt', { label: 'recommends sizes', lx: 770, ly: 345, anchor: 'start' });
+  add('g-cost', {
+    id: 'costcompute', title: 'Cost-optimized compute',
+    svg: d.render(),
+    caption: 'Price follows commitment and flexibility: commit to the steady part, put interruptible work on Spot, scale everything else, and switch off what nobody uses. One Auto Scaling group can combine all of it.',
+    legend: [['in', 'Best fit'], ['alt', 'How the group uses them']],
+    pair: [
+      ['Commitments compared', table(['', 'Compute Savings Plan', 'EC2 Instance Savings Plan', 'Standard RI', 'Convertible RI'], [
+        ['Discount', 'Up to ~66%', 'Up to ~72%', 'Up to ~72%', 'Up to ~66%'],
+        ['Covers', 'Any EC2 family, Region, OS, plus Fargate and Lambda', 'One family in one Region', 'One instance type', 'Exchangeable for other types'],
+        ['Capacity reservation', 'No', 'No', 'Only zonal RIs', 'Only zonal RIs']
+      ])],
+      ['Exam points', ul([
+        '"Workload will move to Fargate or Lambda" or "change instance families" → <b>Compute Savings Plan</b>. Fixed type forever → Standard RI or EC2 Instance Savings Plan.',
+        'Guarantee capacity in one AZ for a short event with no long commitment → <b>On-Demand Capacity Reservation</b>.',
+        'Spot: diversify instance types and AZs, use capacity-optimized allocation, design for the 2-minute notice. Never for a stateful job that can\'t restart.',
+        'Right-size first (Compute Optimizer), then commit, or you lock in the waste. A server busy 30% of the week is cheaper On-Demand on a schedule.'
+      ])]
+    ]
+  });
+}
+
+// ---- Data transfer costs
+{
+  const d = diagram('d-transfer', 960, 450, 'Where data transfer costs money and where it is free. Inbound traffic from the internet is free. An instance serving users through CloudFront pays nothing for the origin fetch, and CloudFront\'s delivery to users is charged at a lower rate than going direct. Traffic between instances in the same Availability Zone over private IPs is free, but between Availability Zones it is charged in each direction. An instance reaching S3 through a gateway endpoint pays nothing, while one going through a NAT gateway pays NAT processing per GB. Traffic to another Region is charged, and traffic to the data center over Direct Connect is charged at a lower rate than the internet.');
+  const users = d.node(20, 20, 'Internet users', { w: 150 });
+  const cf = d.node(240, 20, 'CloudFront', { icon: 'cloudfront', w: 175, sub: 'edge egress, cached' });
+  d.zone(20, 100, 640, 335, { kind: 'region', label: 'Region A' });
+  d.zone(40, 130, 290, 170, { kind: 'az', label: 'AZ A' });
+  d.zone(350, 130, 290, 170, { kind: 'az', label: 'AZ B' });
+  const a1 = d.node(60, 180, 'EC2', { icon: 'ec2', w: 110 });
+  const a2 = d.node(200, 180, 'EC2', { icon: 'ec2', w: 110 });
+  const b1 = d.node(370, 180, 'EC2', { icon: 'ec2', w: 110 });
+  const nat = d.node(515, 180, 'NAT', { icon: 'nat', w: 105 });
+  const gw = d.node(60, 370, 'Gateway endpoint', { icon: 'vpce', w: 195 });
+  const s3 = d.node(330, 370, 'S3 bucket', { icon: 's3', w: 170 });
+  const rb = d.node(720, 110, 'Region B', { icon: 'vpc', w: 220, sub: 'replicas, DR copies' });
+  const dc = d.node(720, 250, 'Data center', { w: 220, sub: 'over Direct Connect' });
+  d.edge([B(users, 95), T(a1, 95)], 'in', { label: 'inbound: free', lx: 105, ly: 96, anchor: 'start' });
+  d.edge([T(a2, 280), B(cf, 280)], 'in', { label: 'origin fetch: free', lx: 290, ly: 96, anchor: 'start' });
+  d.edge([L(cf), R(users)], 'out', { label: '$', lx: 205, ly: 40 });
+  d.edge([R(a1), L(a2)], 'in', { both: true });
+  d.label(225, 250, 'same AZ, private IP: free', { cls: 'd-lbl' });
+  d.edge([R(a2), L(b1)], 'out', { both: true });
+  d.label(340, 275, 'cross-AZ: $ each way', { cls: 'd-lbl d-halo' });
+  d.edge([B(a1, 115), T(gw, 115)], 'in', { label: 'to S3: free', lx: 125, ly: 340, anchor: 'start' });
+  d.edge([R(gw), L(s3)], 'in');
+  d.edge([R(b1), L(nat)], 'out');
+  d.edge([B(nat, 568), [568, 345], [470, 345], T(s3, 470)], 'out', { label: 'via NAT: processing $/GB', lx: 580, ly: 340, anchor: 'start' });
+  d.edge([T(b1, 455), [455, 135], L(rb, 135)], 'out', { label: 'inter-Region $', lx: 600, ly: 129 });
+  d.edge([R(b1, b1.cy + 12), [498, b1.cy + 12], [498, dc.cy], L(dc)], 'out', { label: 'DX out: lower rate', lx: 655, ly: 292 });
+  add('g-cost', {
+    id: 'datatransfer', title: 'Data transfer costs',
+    svg: d.render(),
+    caption: 'Data coming in is free, data staying inside one AZ is free, and fetches from AWS origins into CloudFront are free; almost everything else is billed per GB. Many "most cost-effective" answers just move traffic onto a free or cheaper path.',
+    legend: [['in', 'Free'], ['out', 'Charged per GB']],
+    cards: [
+      ['Exam points', ul([
+        'High NAT gateway charges from S3 or DynamoDB traffic → <b>gateway endpoint</b> (free). Other services → interface endpoints cost less than NAT at volume.',
+        'Big download bill from S3 or EC2 → serve through <b>CloudFront</b>: origin fetches are free, edge delivery is cheaper and cached. Make downloaders pay → S3 <b>Requester Pays</b>.',
+        'Chatty tiers across AZs pay in both directions; keep tightly coupled components in one AZ where resilience allows, but never give up Multi-AZ for the database to save this.',
+        'Regular large transfers to on-premises → Direct Connect, cheaper per GB out than the internet. Cross-Region replication and DR copies add inter-Region charges.'
+      ])]
+    ]
+  });
+}
+
+// ---- Cost governance
+{
+  const d = diagram('d-costgov', 960, 430, 'Member accounts for production, development and a sandbox roll up to the management account through consolidated billing, which shares volume discounts, Reserved Instances and Savings Plans. Resources carry cost allocation tags for team and project. From the management account\'s bill, four tools: Cost Explorer for trends, forecasts and recommendations; Budgets for alerts and automatic actions such as applying a service control policy to the sandbox; Cost Anomaly Detection for unusual spikes; and the Cost and Usage Report delivered to S3 and queried with Athena.');
+  const mgmt = d.node(440, 15, 'Management account', { icon: 'orgs', w: 300, sub: 'consolidated billing, shared discounts' });
+  const accts = [['Production', 20], ['Development', 255], ['Sandbox', 720]].map(([t, x]) => d.node(x, 125, t, { icon: 'ec2', w: 220, sub: 'tags: team, project' }));
+  d.edge([[accts[0].cx, accts[0].y], [accts[0].cx, 98], [accts[2].cx, 98], [accts[2].cx, accts[2].y]], 'data', { head: false });
+  d.edge([[accts[1].cx, accts[1].y], [accts[1].cx, 98]], 'data', { head: false });
+  d.edge([[520, 98], [520, mgmt.b]], 'data');
+  d.label(300, 92, 'one bill; discounts and commitments shared', { cls: 'd-lbl d-halo' });
+  const tools = [
+    ['Cost Explorer', 'costexplorer', 'trends, forecasts, RI/SP advice'],
+    ['Budgets', 'budgets', 'alerts and automatic actions'],
+    ['Anomaly Detection', 'costexplorer', 'flags unusual spikes'],
+    ['Cost and Usage Report', 'cur', 'line items in S3 + Athena']
+  ].map(([t, ic, sub], i) => d.node(20 + i * 237, 290, t, { icon: ic, w: 220, sub }));
+  d.edge([[650, mgmt.b], [650, 245]], 'data', { head: false });
+  d.edge([[tools[0].cx, 245], [tools[3].cx, 245]], 'data', { head: false });
+  for (const t of tools) d.edge([[t.cx, 245], T(t)], 'data');
+  d.label(640, 228, 'cost data for every account, by tag', { anchor: 'end', cls: 'd-lbl d-halo' });
+  d.edge([B(tools[1]), [tools[1].cx, 375], [955, 375], [955, 200], [925, 200], B(accts[2], 925)], 'alt');
+  d.label(640, 370, 'over budget: apply an SCP, stop instances', { cls: 'd-lbl d-halo' });
+  add('g-cost', {
+    id: 'costgovernance', title: 'Cost governance',
+    svg: d.render(),
+    caption: 'One organization gives one bill with shared discounts, tags say who spent what, and four tools turn that bill into reports, alerts and automatic guardrails.',
+    legend: [['data', 'Billing data'], ['alt', 'Automatic action']],
+    cards: [
+      ['Which tool?', table(['Need', 'Tool'], [
+        ['See spend by service, account or tag; forecast; RI/SP recommendations', 'Cost Explorer'],
+        ['Alert at a threshold, or stop spending automatically', 'Budgets (with budget actions)'],
+        ['Be told about an unusual spike without setting thresholds', 'Cost Anomaly Detection'],
+        ['Every line item, queried with SQL, loaded into BI', 'Cost and Usage Report (Data Exports) + Athena'],
+        ['Idle or oversized resources, best-practice checks', 'Trusted Advisor, Compute Optimizer']
+      ])],
+      ['Exam points', ul([
+        'Cost by department → apply a tag, then <b>activate it as a cost allocation tag</b> in the management account; only then does it appear in billing data.',
+        '"Stop a sandbox overspending without custom code" → Budgets with a <b>budget action</b> (apply an SCP or IAM policy, or stop instances).',
+        'Share Savings Plans and RIs across accounts → put them in one organization with discount sharing on.'
+      ])]
+    ]
+  });
+}
+
 // ---------------------------------------------------------------- write the page
 function build() {
+  let n = 0;
+  for (const g of GROUPS) for (const item of g.items) item.n = ++n;
   let page = fs.readFileSync(PAGE, 'utf8');
   const eol = page.includes('\r\n') ? '\r\n' : '\n';
   const toc = `<nav class="toc card" aria-label="Contents">${GROUPS.filter(g => g.items.length).map(g => `
