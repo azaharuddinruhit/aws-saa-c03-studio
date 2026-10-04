@@ -1,4 +1,4 @@
-// Builds diagrams 3-25 of docs/cheatsheet/architectures.html, its contents list and its jump menu.
+// Builds diagrams 3-32 of docs/cheatsheet/architectures.html, its contents list and its jump panel.
 // Each diagram is described with a few drawing helpers (zones, boxes, arrows, labels) and rendered to
 // static inline SVG that uses the page's own drawing classes, so the published page needs no drawing
 // code. Diagrams 1 and 2 are hand-drawn in the page itself. The output replaces what sits between the
@@ -1396,6 +1396,20 @@ function add(groupId, spec) {
   });
 }
 
+// the main service of each diagram, shown beside it in the jump panel
+const JUMP_ICONS = {
+  'vpc-layout': 'vpc', 'vpc-endpoints': 'vpce', hybrid: 'dx', tgw: 'tgw', privatelink: 'privatelink', 'hybrid-dns': 'route53',
+  'three-tier': 'alb', serverless: 'lambda', edge: 'cloudfront', containers: 'fargate',
+  queue: 'sqs', fanout: 'sns', eventbridge: 'eventbridge', stepfunctions: 'stepfn',
+  streaming: 'kinesis', datalake: 'glue', s3events: 's3',
+  readscale: 'elasticache', multiregion: 'aurora',
+  dr: 'drs', migration: 'mgn',
+  hybridstorage: 'storagegw', filesystems: 'efs', s3protect: 'glacier',
+  landingzone: 'orgs', crossaccount: 'iamrole', edgesecurity: 'waf', encryption: 'kms',
+  operations: 'ssm',
+  costcompute: 'savings', datatransfer: 'nat', costgovernance: 'budgets'
+};
+
 // ---------------------------------------------------------------- write the page
 function build() {
   let n = 0;
@@ -1417,10 +1431,13 @@ function build() {
     if (!re.test(page)) throw new Error('missing GENERATED:' + name + ' markers in ' + PAGE);
     page = page.replace(re, (m, a, b) => a + '\n    ' + html + '\n  ' + b);
   };
-  // the top bar's jump menu lists the same diagrams, grouped the same way
-  const jumpOptions = GROUPS.filter(g => g.items.length).map(g => `<optgroup label="${esc(g.title)}">${g.items.map(i => `<option value="${i.id}">${i.n} · ${esc(i.title)}</option>`).join('')}</optgroup>`).join('\n        ');
+  // the top bar's jump panel lists the same diagrams, grouped the same way, each with its main service's icon
+  const missing = GROUPS.flatMap(g => g.items).filter(i => !JUMP_ICONS[i.id]).map(i => i.id);
+  if (missing.length) throw new Error('no jump icon for: ' + missing.join(', '));
+  const jumpRows = GROUPS.filter(g => g.items.length).map(g => `<div class="jump-group">${esc(g.title)}</div>`
+    + g.items.map(i => `<button type="button" class="jump-row" data-id="${i.id}" data-n="${i.n}" data-title="${esc(i.title)}"><img data-ico="${JUMP_ICONS[i.id]}" alt=""><span class="n">${i.n}</span><span>${esc(i.title)}</span></button>`).join('')).join('\n  ');
   swap('CONTENTS', toc);
-  swap('JUMP', jumpOptions);
+  swap('JUMP', jumpRows);
   swap('DIAGRAMS', body);
   page = page.replace(/\r?\n/g, eol);
   fs.writeFileSync(PAGE, page);
