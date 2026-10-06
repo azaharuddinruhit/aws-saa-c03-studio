@@ -24,7 +24,7 @@
 .fig-hint{display:none;font-size:12px;color:var(--muted);margin:0 0 6px}
 /* jump menu: a button in the sticky top bar naming the diagram on screen, opening a panel under it
    (a bottom sheet on phones) with every diagram grouped, iconed and numbered */
-.jump{margin-left:auto;flex:1 1 auto;max-width:320px;min-width:0}
+.jump{margin-left:auto;flex:1 1 auto;width:100%;max-width:320px;min-width:0}
 /* on a phone the button needs the room more than the page title does */
 @media (max-width:640px){.topbar.nosub .brand-name{display:none}}
 .jump-btn{position:relative;width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 32px 7px 14px;font:600 13px var(--sans);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
@@ -106,6 +106,17 @@
 .toc a.toc-group{font:700 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 .arch-group{font:700 12px/1.3 var(--mono)!important;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding-top:22px;border-top:1px solid var(--line)}
 .arch-sec,.arch-group{scroll-margin-top:70px}
+/* the rule to remember, under each heading, and the self-test closing each diagram */
+.rule{display:flex;gap:12px;align-items:baseline;background:var(--accent-soft);border-radius:12px;padding:11px 16px;font-size:15px;font-weight:600;line-height:1.45}
+.rule::before{content:"Rule";flex:none;font:700 10px/1.9 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--good)}
+.check{border-left:3px solid var(--aws)}
+.check h3{color:var(--aws);font:700 11px/1.4 var(--mono)!important;letter-spacing:.08em;text-transform:uppercase}
+.check>p{font-weight:600}
+.arch .check .opts{list-style:upper-alpha;padding-left:24px;margin-top:8px}
+.arch .check .opts li{padding-left:4px}
+.check details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.check summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);width:max-content}
+.check details p{margin-top:8px}
 </style>
 </head>
 <body>
@@ -164,6 +175,7 @@
   <!-- ============ 1. Classic VPC layout ============ -->
   <section class="arch-sec" id="vpc-layout">
     <h2>1. Classic multi-AZ VPC</h2>
+    <p class="rule">Only the load balancer faces the internet; every tier spans two AZs, and each AZ has its own NAT gateway.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -323,14 +335,17 @@
         <li><b>One NAT gateway per AZ</b>, each private subnet routed to its own. A single shared NAT gateway is a single point of failure and adds cross-AZ data charges.</li>
         <li>NAT gateways are managed and scale on their own; NAT instances need source/destination check disabled and are the outdated answer. For IPv6, use an egress-only internet gateway.</li>
         <li>Security groups are <b>stateful</b> and can reference other groups; network ACLs are <b>stateless</b> and need the ephemeral return ports (1024–65535) opened.</li>
-        <li>RDS Multi-AZ standby is for availability only and serves no reads; read replicas are for scaling reads. Aurora replicas do both.</li>
+        <li>A Multi-AZ DB instance's standby is for availability only and serves no reads; read replicas scale reads. A Multi-AZ DB cluster's two standbys and Aurora replicas do both.</li>
       </ul>
     </div>
+
+    <div class="card check"><h3>Check yourself</h3><p>Instances in private subnets in two Availability Zones send all outbound traffic through one NAT gateway in AZ A. How should a solutions architect make outbound access highly available?</p><ol class="opts"><li>Create a NAT gateway in each AZ and route each private subnet to the NAT gateway in its own AZ.</li><li>Attach a second internet gateway to the VPC.</li><li>Move the instances into the public subnets and give them public IP addresses.</li><li>Replace the NAT gateway with a NAT instance in an Auto Scaling group.</li></ol><details><summary>Show answer</summary><p><b>A.</b> A NAT gateway lives in one AZ, so if AZ A fails the instances in AZ B lose outbound access. One per AZ removes that dependency and the cross-AZ data charge. A VPC can have only one internet gateway, and public instances are exposed.</p></details></div>
   </section>
 
   <!-- ============ 2. Private access to AWS services ============ -->
   <section class="arch-sec" id="vpc-endpoints">
     <h2>2. Private access to AWS services</h2>
+    <p class="rule">S3 or DynamoDB from a private subnet → a gateway endpoint (a free route); other services, or access from on-premises → an interface endpoint.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -443,12 +458,15 @@
         <li>Exposing your own service to other VPCs, even with overlapping CIDRs → an NLB behind a <b>VPC endpoint service</b>, consumed through interface endpoints.</li>
       </ul>
     </div>
+
+    <div class="card check"><h3>Check yourself</h3><p>EC2 instances in private subnets upload several terabytes a day to S3 through a NAT gateway, and the NAT gateway bill is high. What is the most cost-effective fix?</p><ol class="opts"><li>Create an interface VPC endpoint for S3 in each AZ.</li><li>Turn on S3 Transfer Acceleration for the bucket.</li><li>Create a gateway VPC endpoint for S3 and add it to the private subnets' route tables.</li><li>Move the instances to a public subnet so they skip the NAT gateway.</li></ol><details><summary>Show answer</summary><p><b>C.</b> A gateway endpoint is free and needs no application change. An interface endpoint also works but is billed per hour and per GB; Transfer Acceleration adds cost; public instances are exposed to the internet.</p></details></div>
   </section>
 
   <!-- GENERATED:DIAGRAMS START (scripts/build-architectures.js; diagrams 1 and 2 above are hand-drawn) -->
     
   <section class="arch-sec" id="hybrid">
     <h2>3. Hybrid connectivity</h2>
+    <p class="rule">Consistent private bandwidth → Direct Connect; quick or cheap → Site-to-Site VPN; maximum resiliency → Direct Connect at two locations.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -496,10 +514,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>VPN or Direct Connect?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Site-to-Site VPN</th><th>Direct Connect</th></tr></thead><tbody><tr><td>Ready in</td><td>Minutes</td><td>Weeks (a physical cross-connect)</td></tr><tr><td>Path</td><td>Encrypted IPsec over the internet</td><td>Private dedicated link, not encrypted by default</td></tr><tr><td>Bandwidth</td><td>Up to 1.25 Gbps per tunnel, varies</td><td>50 Mbps to 100 Gbps, consistent</td></tr><tr><td>Use it for</td><td>Quick start, low volume, backup</td><td>Steady large transfers, predictable latency</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Consistent bandwidth" or "predictable latency" → Direct Connect; "quickly" or "cheaply" → Site-to-Site VPN.</li><li>Maximum resiliency: two Direct Connect connections at <b>two different locations</b>. Two links at one location do not survive a location outage.</li><li>Direct Connect plus a VPN as backup is the cost-effective middle ground. Encryption over Direct Connect: run an IPsec VPN over it, or MACsec on dedicated links.</li><li>One Direct Connect gateway reaches VPCs in any Region; with a Transit Gateway it scales to many VPCs through a single transit VIF.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>A company needs dedicated, consistent bandwidth to AWS, and the same performance must continue if an entire Direct Connect location goes down. What should it set up?</p><ol class="opts"><li>Two Direct Connect connections at the same Direct Connect location.</li><li>One Direct Connect connection with a Site-to-Site VPN as backup.</li><li>Direct Connect connections at two different Direct Connect locations.</li><li>Two Site-to-Site VPN connections over different internet providers.</li></ol><details><summary>Show answer</summary><p><b>C.</b> Only a second location survives a location outage. Two links at one location share its fate, and a VPN backup keeps connectivity but not the consistent performance the question demands.</p></details></div>
   </section>
 
   <section class="arch-sec" id="tgw">
     <h2>4. Transit Gateway hub and spoke</h2>
+    <p class="rule">Peering joins two VPCs and is never transitive; many VPCs plus on-premises → one Transit Gateway.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -540,10 +560,12 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Hundreds of VPCs", "simplify the mesh" or "transitive routing" → Transit Gateway. Two or three VPCs that only talk to each other → peering is cheaper (no hourly attachment charge).</li><li>Peering is not transitive: A↔B and B↔C does not give A↔C, and peered VPCs cannot have overlapping CIDRs.</li><li>Share one Transit Gateway with other accounts through AWS Resource Access Manager; separate route tables keep, for example, dev and prod apart.</li><li>Connect Regions with Transit Gateway peering; connect on-premises with a VPN attachment or a Direct Connect gateway.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A company has 60 VPCs across several accounts and one VPN to its data center. Every VPC must reach the data center, and some VPCs must reach each other, with the least management effort. What should it use?</p><ol class="opts"><li>A full mesh of VPC peering connections.</li><li>A separate Site-to-Site VPN from the data center to each VPC.</li><li>A Transit Gateway shared through AWS RAM, with VPC attachments, a VPN attachment and route tables.</li><li>Peer every VPC to one shared VPC that holds the VPN connection.</li></ol><details><summary>Show answer</summary><p><b>C.</b> Peering is not transitive, so traffic cannot pass through a shared VPC to the VPN, and a full mesh of 60 VPCs is 1,770 connections. A Transit Gateway needs one attachment per VPC and routes between them.</p></details></div>
   </section>
 
   <section class="arch-sec" id="privatelink">
     <h2>5. PrivateLink for a SaaS service</h2>
+    <p class="rule">Expose one service, not a whole network: an NLB behind a VPC endpoint service, reached through interface endpoints. Overlapping CIDRs don't matter.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -576,10 +598,12 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Expose one service to many VPCs or accounts", "overlapping CIDRs", "no internet" → a VPC endpoint service (NLB, or GWLB for appliances) consumed through interface endpoints.</li><li>Peering or a Transit Gateway would join whole networks and fails with overlapping ranges; PrivateLink exposes a single service, one way.</li><li>The provider can require acceptance of each endpoint connection; consumers can add endpoint policies and security groups.</li><li>Third-party SaaS on AWS (and AWS services themselves) are reached the same way: an interface endpoint with private DNS.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A SaaS provider must offer an API to hundreds of customer VPCs. Many customers use the same CIDR range as the provider, and the traffic must not cross the internet. What should the provider do?</p><ol class="opts"><li>Create a VPC peering connection with each customer VPC.</li><li>Put the API behind a Network Load Balancer, create a VPC endpoint service, and let customers create interface endpoints.</li><li>Share a Transit Gateway with every customer account.</li><li>Expose a public ALB with AWS WAF allowing only customer IP addresses.</li></ol><details><summary>Show answer</summary><p><b>B.</b> PrivateLink exposes a single service one way, so identical CIDRs are fine. Peering and Transit Gateway join whole networks and fail with overlapping ranges; a public ALB crosses the internet.</p></details></div>
   </section>
 
   <section class="arch-sec" id="hybrid-dns">
     <h2>6. Hybrid DNS with Route 53 Resolver</h2>
+    <p class="rule">Queries coming into AWS → a Resolver inbound endpoint; queries going out to on-premises → an outbound endpoint plus a forwarding rule.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -615,11 +639,13 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>On-premises servers must resolve a <b>private hosted zone</b> → Resolver <b>inbound</b> endpoint, and a conditional forwarder on the corporate DNS server pointing at its IPs.</li><li>Instances must resolve <b>on-premises</b> names → Resolver <b>outbound</b> endpoint plus a forwarding rule for that domain; share the rule with other VPCs and accounts through RAM.</li><li>Both endpoints are ENIs in your subnets; put them in at least two AZs.</li><li>A private hosted zone answers only inside the VPCs associated with it; a public hosted zone answers everyone.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>EC2 instances must resolve names in corp.example.com, which only the on-premises DNS servers can answer over Direct Connect. What should be configured?</p><ol class="opts"><li>A Route 53 Resolver outbound endpoint with a forwarding rule for corp.example.com.</li><li>A Route 53 Resolver inbound endpoint.</li><li>A private hosted zone named corp.example.com associated with the VPC.</li><li>A public hosted zone for corp.example.com.</li></ol><details><summary>Show answer</summary><p><b>A.</b> The queries leave the VPC, so they need an outbound endpoint and a rule that forwards the domain. An inbound endpoint serves the opposite direction, and a hosted zone would answer itself instead of asking on-premises DNS.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-ha">Highly available web applications</h2>
   <section class="arch-sec" id="three-tier">
     <h2>7. Three-tier web application</h2>
+    <p class="rule">Spread every tier over two or more AZs, keep the web tier stateless, cache hot reads, and send reports to a read replica.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -664,12 +690,14 @@
       <figcaption>The backbone of most scenario questions. Every tier is spread over two or more Availability Zones, static content never reaches the servers, hot reads stop at the cache, and reports run on a replica instead of the primary.</figcaption>
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Data and replication</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>DNS</span></div>
     </figure>
-    <div class="arch-cols"><div class="card"><h3>How a request flows</h3><ol><li>Route 53 answers with an <b>alias</b> to the CloudFront distribution (an alias, not a CNAME, works at the zone apex and is free).</li><li>CloudFront serves <code>/static/*</code> from its cache or S3, and forwards <code>/api/*</code> to the ALB; WAF filters both.</li><li>The ALB picks a healthy instance in any AZ; the Auto Scaling group keeps enough instances running.</li><li>Instances read from ElastiCache first, write to the RDS primary, and send heavy reports to the read replica.</li></ol></div><div class="card"><h3>Exam points</h3><ul><li>Keep the web tier <b>stateless</b>: sessions in ElastiCache or DynamoDB, not on the instance, so scaling in loses nothing.</li><li>Multi-AZ standby = availability (automatic failover, no reads). Read replica = read scaling (asynchronous, can be promoted, can be cross-Region).</li><li>Lock the bucket to CloudFront with Origin Access Control; lock the ALB to CloudFront with its managed prefix list or a secret header.</li><li>Scale on ALB request count per target or CPU with target tracking; use scheduled or predictive scaling for known daily peaks.</li></ul></div></div>
+    <div class="arch-cols"><div class="card"><h3>How a request flows</h3><ol><li>Route 53 answers with an <b>alias</b> to the CloudFront distribution (an alias, not a CNAME, works at the zone apex and is free).</li><li>CloudFront serves <code>/static/*</code> from its cache or S3, and forwards <code>/api/*</code> to the ALB; WAF filters both.</li><li>The ALB picks a healthy instance in any AZ; the Auto Scaling group keeps enough instances running.</li><li>Instances read from ElastiCache first, write to the RDS primary, and send heavy reports to the read replica.</li></ol></div><div class="card"><h3>Exam points</h3><ul><li>Keep the web tier <b>stateless</b>: sessions in ElastiCache or DynamoDB, not on the instance, so scaling in loses nothing.</li><li>Multi-AZ instance standby = availability (automatic failover, no reads); a Multi-AZ DB cluster's two standbys can also serve reads. Read replica = read scaling (asynchronous, can be promoted, can be cross-Region).</li><li>Lock the bucket to CloudFront with Origin Access Control; lock the ALB to CloudFront with its managed prefix list or a secret header.</li><li>Scale on ALB request count per target or CPU with target tracking; use scheduled or predictive scaling for known daily peaks.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>Users of a web application behind an ALB are logged out whenever the Auto Scaling group scales in. What is the best fix?</p><ol class="opts"><li>Turn on sticky sessions on the ALB.</li><li>Store session data in ElastiCache or DynamoDB.</li><li>Disable scale-in for the Auto Scaling group.</li><li>Keep sessions on an EBS volume attached to each instance.</li></ol><details><summary>Show answer</summary><p><b>B.</b> A stateless web tier keeps sessions outside the instances, so terminating one loses nothing. Sticky sessions still lose the session when their instance is terminated, and disabling scale-in wastes money.</p></details></div>
   </section>
 
   <section class="arch-sec" id="serverless">
     <h2>8. Serverless web application</h2>
+    <p class="rule">Least operations for spiky traffic → S3 and CloudFront for the front end, API Gateway, Lambda and DynamoDB behind it, Cognito for sign-in.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -702,11 +730,13 @@
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Request path</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Data</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Sign-in and token checks</span></div>
     </figure>
     
-    <div class="card"><h3>Exam points</h3><ul><li>"Least operational overhead" with a spiky or unpredictable load → this stack. Lambda runs at most <b>15 minutes</b>; longer jobs go to Fargate or Step Functions.</li><li>API Gateway <b>usage plans and API keys</b> give per-client throttling and quotas; a Cognito authorizer rejects calls without a valid token before Lambda runs.</li><li>Cognito <b>user pools</b> sign users in (tokens); <b>identity pools</b> exchange a token for temporary AWS credentials, for example to upload straight to S3.</li><li>Absorb bursts without losing requests: API Gateway → SQS → Lambda. Cold starts: provisioned concurrency (or SnapStart for Java).</li></ul></div>
+    <div class="card"><h3>Exam points</h3><ul><li>"Least operational overhead" with a spiky or unpredictable load → this stack. Lambda runs at most <b>15 minutes</b>; longer jobs go to Fargate or Step Functions.</li><li>API Gateway <b>usage plans and API keys</b> give per-client throttling and quotas; a Cognito authorizer rejects calls without a valid token before Lambda runs.</li><li>Cognito <b>user pools</b> sign users in (tokens); <b>identity pools</b> exchange a token for temporary AWS credentials, for example to upload straight to S3.</li><li>Absorb bursts without losing requests: API Gateway → SQS → Lambda. Cold starts: provisioned concurrency (or SnapStart for Java, Python and .NET).</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>After signing in, a mobile app's users must upload photos straight to S3 with temporary, per-user AWS credentials. Which service issues those credentials?</p><ol class="opts"><li>A Cognito user pool.</li><li>An IAM user for each customer.</li><li>A Cognito identity pool.</li><li>API Gateway API keys.</li></ol><details><summary>Show answer</summary><p><b>C.</b> A user pool signs users in and issues tokens; an identity pool exchanges a token for temporary AWS credentials scoped by an IAM role. IAM users do not scale to customers, and API keys are not AWS credentials.</p></details></div>
   </section>
 
   <section class="arch-sec" id="edge">
     <h2>9. CloudFront or Global Accelerator</h2>
+    <p class="rule">Cache HTTP content → CloudFront; static IPs, UDP or other non-HTTP traffic, or fast Regional failover → Global Accelerator.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -743,10 +773,12 @@
     
     <div class="card"><h3>Which one?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>CloudFront</th><th>Global Accelerator</th></tr></thead><tbody><tr><td>Protocols</td><td>HTTP and HTTPS (and WebSocket)</td><td>Any TCP or UDP: games, VoIP, IoT, MQTT</td></tr><tr><td>Caching</td><td>Yes, that is the point</td><td>No</td></tr><tr><td>Addresses</td><td>A DNS name; IPs change</td><td>Two static anycast IPs to allowlist</td></tr><tr><td>Failover</td><td>Origin groups on error codes</td><td>Between Regions in seconds, no DNS caching</td></tr><tr><td>Extras</td><td>Signed URLs and cookies, Lambda@Edge, CloudFront Functions, geo restriction</td><td>Client IP preservation, traffic dials per Region</td></tr></tbody></table></div></div>
     <div class="card"><h3>Exam points</h3><ul><li>"Static IP addresses", "UDP", "non-HTTP" or "fast regional failover" → Global Accelerator. "Cache", "static content", "reduce origin load" → CloudFront.</li><li>Both use the AWS backbone and come with Shield Standard; both work in front of an ALB or NLB.</li><li>Slow <b>uploads</b> from far away to S3 → S3 Transfer Acceleration (it uses CloudFront edges), not a CloudFront distribution.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A multiplayer game runs UDP servers in two Regions. Players need low latency, and many corporate firewalls only allow a fixed list of IP addresses. What should be used?</p><ol class="opts"><li>A CloudFront distribution with an origin group.</li><li>AWS Global Accelerator in front of both Regions.</li><li>Route 53 latency-based routing to each Region.</li><li>S3 Transfer Acceleration.</li></ol><details><summary>Show answer</summary><p><b>B.</b> Global Accelerator gives two static anycast IPs, carries UDP over the AWS backbone and fails over between Regions in seconds. CloudFront serves HTTP only, and Route 53 gives no fixed IPs.</p></details></div>
   </section>
 
   <section class="arch-sec" id="containers">
     <h2>10. Containers on ECS with Fargate</h2>
+    <p class="rule">Containers with the least operations → ECS or EKS on Fargate; the task role gives the app its AWS permissions.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -782,11 +814,13 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Containers with the least operational overhead" → ECS (or EKS) on <b>Fargate</b>. Need GPUs, special instance types or the lowest cost at steady scale → the EC2 launch type.</li><li><b>Task role</b> = what the application can call (S3, DynamoDB). <b>Task execution role</b> = what ECS needs to pull images and write logs.</li><li>Already on Kubernetes → EKS; on-premises too → ECS Anywhere or EKS Anywhere. Persistent shared files → EFS volumes; Fargate local storage is temporary.</li><li>Interruptible, stateless tasks → Fargate Spot for up to 70% off.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>An ECS task running on Fargate must write to a DynamoDB table. How should it get permissions?</p><ol class="opts"><li>Add the DynamoDB permissions to the task execution role.</li><li>Pass access keys to the container in environment variables.</li><li>Attach a policy for the table to the task's IAM task role.</li><li>Attach an instance profile to the container instances.</li></ol><details><summary>Show answer</summary><p><b>C.</b> The task role is what the application's code uses. The execution role is only for ECS itself (pulling images, writing logs), Fargate has no instances to profile, and stored keys are never the answer.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-decouple">Decoupling and event-driven design</h2>
   <section class="arch-sec" id="queue">
     <h2>11. Queue-based load leveling</h2>
+    <p class="rule">A queue between tiers absorbs bursts; scale the workers on backlog per instance, and add a dead-letter queue for poison messages.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -821,10 +855,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>How it behaves</h3><ol><li>A burst arrives: the web tier keeps answering because it only writes to the queue.</li><li>A worker receives a message; it stays invisible for the <b>visibility timeout</b>. The worker deletes it once done.</li><li>If a worker dies, the message reappears and another worker takes it. After <code>maxReceiveCount</code> failed attempts it moves to the dead-letter queue.</li><li>Backlog per instance (messages ÷ workers) above the target adds workers; an empty queue scales them back in.</li></ol></div><div class="card"><h3>Exam points</h3><ul><li>Orders processed twice → raise the <b>visibility timeout</b> above the longest processing time. Poison messages retried forever → add a <b>DLQ</b>.</li><li>Strict order or exactly-once → <b>FIFO</b> queue (message group ID for parallel ordered streams); standard queues are at-least-once with best-effort order.</li><li>Long polling (WaitTimeSeconds up to 20) cuts empty receives and cost.</li><li>Scale on <b>backlog per instance</b>, not CPU: target = acceptable latency ÷ seconds per message.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>Workers sometimes process the same SQS message twice. Processing a message takes up to 3 minutes. What should be changed?</p><ol class="opts"><li>Turn on long polling.</li><li>Set the visibility timeout above the longest processing time.</li><li>Add a dead-letter queue.</li><li>Increase the message retention period.</li></ol><details><summary>Show answer</summary><p><b>B.</b> If processing outlasts the visibility timeout, the message reappears and a second worker takes it. Long polling cuts empty receives, a DLQ catches repeated failures, and retention does not affect visibility.</p></details></div>
   </section>
 
   <section class="arch-sec" id="fanout">
     <h2>12. Fan-out with SNS and SQS</h2>
+    <p class="rule">One event, many independent consumers → an SNS topic that fans out to one SQS queue per consumer.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -853,11 +889,13 @@
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Publish and deliver</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Each consumer polls its queue</span></div>
     </figure>
     
-    <div class="card"><h3>Exam points</h3><ul><li>"Several independent systems must each process every event" and "a consumer may be offline for hours" → SNS → SQS per consumer. SNS alone would drop messages for an endpoint that is down.</li><li>A <b>subscription filter policy</b> sends only matching messages to a queue, so consumers do not filter in code.</li><li>Ordered fan-out → SNS FIFO topic to SQS FIFO queues.</li><li>The queue's access policy must allow the topic to send; with SSE-KMS, the key policy must let SNS use the key.</li></ul></div>
+    <div class="card"><h3>Exam points</h3><ul><li>"Several independent systems must each process every event" and "a consumer may be offline for hours" → SNS → SQS per consumer. SNS alone retries an unreachable endpoint only for a limited time; a queue keeps messages for up to 14 days.</li><li>A <b>subscription filter policy</b> sends only matching messages to a queue, so consumers do not filter in code.</li><li>Ordered fan-out → SNS FIFO topic to SQS FIFO queues.</li><li>The queue's access policy must allow the topic to send; with SSE-KMS, the key policy must let SNS use the key.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>Every order must be processed by the inventory, billing and analytics services independently, and any of them can be offline for hours without missing an order. What design fits?</p><ol class="opts"><li>One SQS queue that all three services poll.</li><li>An SNS topic that fans out to a separate SQS queue for each service.</li><li>An SNS topic with each service's HTTPS endpoint subscribed.</li><li>Amazon Data Firehose delivering the orders to S3.</li></ol><details><summary>Show answer</summary><p><b>B.</b> Each queue keeps its own copy until its service is back. A shared queue gives each message to only one consumer, and an SNS HTTPS subscription retries only for a limited time.</p></details></div>
   </section>
 
   <section class="arch-sec" id="eventbridge">
     <h2>13. Event routing with EventBridge</h2>
+    <p class="rule">Route events by their content, from AWS services, SaaS apps or your own code → EventBridge rules; replay after a fix → archive.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -894,11 +932,13 @@
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Events</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Archive</span></div>
     </figure>
     
-    <div class="card"><h3>Exam points</h3><ul><li>"Route by content", "SaaS events with no polling" or "react to AWS service events" → EventBridge rules. Plain fan-out of identical messages → SNS.</li><li><b>Archive and replay</b> keeps events for a set time and re-sends them after a bug fix; SNS and SQS have no replay.</li><li><b>API destinations</b> call external HTTPS APIs with built-in auth (OAuth, API key) and rate limits; <b>EventBridge Scheduler</b> runs cron or one-off schedules at scale.</li><li>Cross-account: a rule on one bus targets another account's bus; the receiving bus needs a resource policy.</li></ul></div>
+    <div class="card"><h3>Exam points</h3><ul><li>"Route by content", "SaaS events with no polling" or "react to AWS service events" → EventBridge rules. Plain fan-out of identical messages → SNS.</li><li><b>Archive and replay</b> keeps events for a set time and re-sends them after a bug fix; SQS has no replay, and SNS can replay only on FIFO topics.</li><li><b>API destinations</b> call external HTTPS APIs with built-in auth (OAuth, API key) and rate limits; <b>EventBridge Scheduler</b> runs cron or one-off schedules at scale.</li><li>Cross-account: a rule on one bus targets another account's bus; the receiving bus needs a resource policy.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A Lambda function must run whenever any EC2 instance in the account changes state, with no polling code. What should be used?</p><ol class="opts"><li>A scheduled Lambda function that calls DescribeInstances every minute.</li><li>A CloudWatch Logs subscription filter on the EC2 log group.</li><li>An S3 event notification on the CloudTrail bucket.</li><li>An EventBridge rule matching EC2 instance state-change events, with the function as the target.</li></ol><details><summary>Show answer</summary><p><b>D.</b> AWS services publish their events to the default bus, and a rule can match them and invoke the function directly. The other options poll or work from delayed log files.</p></details></div>
   </section>
 
   <section class="arch-sec" id="stepfunctions">
     <h2>14. Workflow orchestration with Step Functions</h2>
+    <p class="rule">Multi-step workflows with retries, branches and human approval → Step Functions, not Lambdas calling each other.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -930,11 +970,13 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Multi-step process", "retries with backoff", "human approval", "visual audit trail", "no custom state code" → Step Functions. Chaining Lambdas or sleeping in code is the wrong answer.</li><li><b>Standard</b>: up to 1 year, exactly-once, priced per transition, for business workflows. <b>Express</b>: up to 5 minutes, high volume, at-least-once, for streaming and IoT.</li><li>Callback pattern <code>.waitForTaskToken</code> pauses for a person or an external system; <b>Distributed Map</b> fans a big S3 dataset out to thousands of parallel runs.</li><li>Direct service integrations (DynamoDB, SQS, SNS, ECS, Glue…) let a step call a service with no Lambda in between.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>An order process has five steps, needs retries with backoff, includes a human approval that can take days, and must keep a visual history of each run. What is the most operationally efficient choice?</p><ol class="opts"><li>A Step Functions Express workflow.</li><li>A Step Functions Standard workflow, using a task token for the approval step.</li><li>Lambda functions that invoke each other in sequence.</li><li>SQS queues between EC2 worker fleets.</li></ol><details><summary>Show answer</summary><p><b>B.</b> Standard workflows run up to a year and pause on a task token at no cost. Express workflows stop after 5 minutes, and chained Lambdas hit the 15-minute limit with no built-in state or history.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-data">Data and analytics</h2>
   <section class="arch-sec" id="streaming">
     <h2>15. Streaming pipeline</h2>
+    <p class="rule">Real time, replay or several consumers → Kinesis Data Streams; load into S3, Redshift or OpenSearch with no code → Firehose.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -970,10 +1012,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>Data Streams or Firehose?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Kinesis Data Streams</th><th>Data Firehose</th></tr></thead><tbody><tr><td>You manage</td><td>Shards (or on-demand mode), consumers</td><td>Nothing, fully managed</td></tr><tr><td>Latency</td><td>Real time (~70 ms to 200 ms)</td><td>Near real time (buffers 0 to 900 s)</td></tr><tr><td>Replay</td><td>Yes, within retention</td><td>No</td></tr><tr><td>Consumers</td><td>Your code: Lambda, Flink, KCL apps</td><td>Delivers to S3, Redshift, OpenSearch, HTTP endpoints</td></tr><tr><td>Transforms</td><td>In your consumer</td><td>Lambda transform, Parquet conversion</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Replay", "several consumers", "ordering per key", "real time" → Data Streams. "Load into S3/Redshift/OpenSearch with no code" → Firehose.</li><li>Shard limits: 1 MB/s or 1,000 records/s in, 2 MB/s out shared; <b>enhanced fan-out</b> gives each consumer its own 2 MB/s per shard.</li><li>Order is kept per <b>partition key</b> (per shard); a hot key overloads one shard.</li><li>Real-time SQL or windowed aggregations on a stream → Managed Service for Apache Flink. Kafka compatibility → Amazon MSK.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>Clickstream events must land in S3 as Parquet files in near real time, with the least development effort. What should be used?</p><ol class="opts"><li>Kinesis Data Streams with a custom KCL consumer that writes Parquet.</li><li>An SQS queue with a Lambda function writing to S3.</li><li>Amazon Data Firehose with record format conversion to Parquet.</li><li>Amazon MSK with a self-managed Kafka Connect cluster.</li></ol><details><summary>Show answer</summary><p><b>C.</b> Firehose buffers, converts to Parquet and delivers to S3 with no code to run. The other options all mean writing or operating a consumer.</p></details></div>
   </section>
 
   <section class="arch-sec" id="datalake">
     <h2>16. Data lake on S3</h2>
+    <p class="rule">S3 stores the data, Glue catalogs it, and Athena queries it in place; Parquet plus partitions cut the bytes scanned.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1010,10 +1054,12 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>Athena is slow and expensive on raw JSON → convert to <b>Parquet or ORC</b>, compress, and <b>partition</b> by date; you pay per TB scanned.</li><li>"Schemas unknown", "catalog the data" → Glue crawler + Data Catalog. Serverless ETL → Glue jobs; big Spark/Hadoop clusters you tune → EMR.</li><li>Different teams may see different columns or rows of one table → <b>Lake Formation</b> grants, not separate copies or bucket policies.</li><li>Join warehouse tables with S3 data without loading it → Redshift Spectrum. Fast dashboards for many users → QuickSight with SPICE.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>Athena queries on daily JSON logs in S3 are slow and expensive. Most queries filter on the date and read only a few columns. What reduces cost the most?</p><ol class="opts"><li>Move the objects to S3 Standard-IA.</li><li>Load the logs into an RDS database.</li><li>Raise the Athena workgroup's query concurrency.</li><li>Convert the data to Parquet, partitioned by date.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Athena bills per byte scanned. Partitions skip the dates a query does not need, and a columnar format reads only the needed columns. Standard-IA raises read costs.</p></details></div>
   </section>
 
   <section class="arch-sec" id="s3events">
     <h2>17. Event-driven S3 processing</h2>
+    <p class="rule">React to each upload → an S3 event notification to Lambda (or to SQS for heavy jobs); clients upload directly with presigned URLs.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1043,11 +1089,13 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Process each upload as it arrives" with variable volume → S3 event notification → Lambda. Polling the bucket on a schedule is the wrong answer.</li><li>Lambda stops at 15 minutes and 10 GB of memory; longer jobs → SQS + Batch, ECS on Fargate, or Step Functions.</li><li>Let clients upload directly with <b>presigned URLs</b> (or Cognito identity pool credentials); large files use multipart upload.</li><li>Fan the same event out to several targets or filter by content → send S3 events to EventBridge instead.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>Each image uploaded to S3 needs a thumbnail within seconds. Upload volume is unpredictable, and operations must be minimal. What design fits?</p><ol class="opts"><li>A cron job on EC2 that lists the bucket every minute.</li><li>An AWS Batch job scheduled every hour.</li><li>S3 replication to a thumbnails bucket.</li><li>An S3 event notification that invokes Lambda, which writes the thumbnail to a different bucket.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Event notifications react to each object with no polling, and Lambda scales with the uploads. Writing to a different bucket stops the function from triggering itself; replication only copies objects.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-db">Databases</h2>
   <section class="arch-sec" id="readscale">
     <h2>18. Read scaling and caching</h2>
+    <p class="rule">Repeated reads → a cache; heavy reports → read replicas; too many connections from Lambda → RDS Proxy.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1076,10 +1124,12 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Same queries thousands of times", "can tolerate slightly stale data" → ElastiCache (lazy loading / cache-aside with a TTL). Always-fresh cache → write-through.</li><li>"Reports slow down the database" → a read replica (asynchronous; the Multi-AZ standby of an instance deployment cannot serve reads).</li><li>"Too many connections" from Lambda, or faster failover with no app change → <b>RDS Proxy</b>.</li><li>DynamoDB with microsecond reads and no code rewrite → <b>DAX</b>, not ElastiCache. Redis vs Memcached: Redis for persistence, replication, sorted sets; Memcached for simple multi-threaded caching.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>Thousands of concurrent Lambda functions exhaust the connection limit of an RDS for MySQL database. What fixes this with the least code change?</p><ol class="opts"><li>Put RDS Proxy between the functions and the database.</li><li>Move to a larger DB instance class.</li><li>Add read replicas.</li><li>Turn on Multi-AZ.</li></ol><details><summary>Show answer</summary><p><b>A.</b> RDS Proxy pools and reuses connections, so thousands of functions share a few. A bigger instance only raises the limit; replicas help reads, not connection counts; Multi-AZ is for availability.</p></details></div>
   </section>
 
   <section class="arch-sec" id="multiregion">
     <h2>19. Multi-Region data</h2>
+    <p class="rule">Relational data with a recovery point of seconds across Regions → Aurora Global Database; writes in every Region → DynamoDB global tables.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1119,12 +1169,14 @@
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Cross-Region replication</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Local reads and writes</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Writes forwarded to the primary</span></div>
     </figure>
     
-    <div class="card"><h3>Exam points</h3><ul><li>Relational, "RPO of seconds, RTO of a minute", "low-latency reads in another Region" → <b>Aurora Global Database</b> (up to 5 secondary Regions, managed failover).</li><li>Key-value, "users in several Regions must write locally", "active-active" → <b>DynamoDB global tables</b>.</li><li>Cheaper but slower: RDS cross-Region read replica (promote manually) or cross-Region snapshot and backup copies.</li><li>Data residency: global tables replicate everything to every replica Region, so check where data is allowed to live.</li></ul></div>
+    <div class="card"><h3>Exam points</h3><ul><li>Relational, "RPO of seconds, RTO of a minute", "low-latency reads in another Region" → <b>Aurora Global Database</b> (managed failover, or switchover with no data loss).</li><li>Key-value, "users in several Regions must write locally", "active-active" → <b>DynamoDB global tables</b>.</li><li>Cheaper but slower: RDS cross-Region read replica (promote manually) or cross-Region snapshot and backup copies.</li><li>Data residency: global tables replicate everything to every replica Region, so check where data is allowed to live.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>Users in three Regions must write to the same data locally with single-digit millisecond latency. Which database fits?</p><ol class="opts"><li>Aurora Global Database.</li><li>RDS with cross-Region read replicas.</li><li>A single DynamoDB table with DAX in each Region.</li><li>DynamoDB global tables.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Global tables accept writes in every replica Region. Aurora Global Database and RDS read replicas have one writer Region, so remote writes travel there, and DAX caches reads only.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-dr">Disaster recovery and migration</h2>
   <section class="arch-sec" id="dr">
     <h2>20. Disaster recovery strategies</h2>
+    <p class="rule">Read the RPO and RTO, then pick the cheapest strategy that meets both: backup and restore → pilot light → warm standby → active-active.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1182,10 +1234,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>Choosing one</h3><div class="tbl-wrap"><table><thead><tr><th>Strategy</th><th>Already in the DR Region</th><th>Recovery</th></tr></thead><tbody><tr><td>Backup and restore</td><td>Backups only</td><td>Restore data, deploy everything (hours)</td></tr><tr><td>Pilot light</td><td>Replicated data, AMIs, IaC</td><td>Launch the app tier, promote the DB (tens of minutes)</td></tr><tr><td>Warm standby</td><td>A small working copy</td><td>Scale it up, fail over DNS (minutes)</td></tr><tr><td>Multi-site active-active</td><td>Full production</td><td>DNS already spreads traffic (near zero)</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>Read the RPO and RTO in the question, then choose the <b>cheapest</b> strategy that meets both.</li><li>RPO is how much data you can lose (replication frequency); RTO is how long you can be down (what must start).</li><li>Route 53 failover routing with health checks moves traffic; multi-site uses weighted or latency routing in both Regions.</li><li>Backups for ransomware: AWS Backup copies to <b>another account</b> with Vault Lock. Server replication for DR: AWS Elastic Disaster Recovery.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>A database-backed application needs a recovery point of 5 minutes and a recovery time of 1 hour in another Region, at the lowest cost. Which strategy?</p><ol class="opts"><li>Backup and restore from cross-Region snapshots.</li><li>Warm standby with a scaled-down copy of the full stack running.</li><li>Pilot light: replicate the database continuously and start the application tier from AMIs and templates during a disaster.</li><li>Multi-site active-active.</li></ol><details><summary>Show answer</summary><p><b>C.</b> Continuous replication meets a 5-minute RPO, and launching the app tier fits in an hour. Snapshots give an RPO of hours; warm standby and active-active also work but cost more.</p></details></div>
   </section>
 
   <section class="arch-sec" id="migration">
     <h2>21. Migrating to AWS</h2>
+    <p class="rule">Servers → Application Migration Service; databases → DMS (with SCT for a new engine); files → DataSync; more than the link can carry → Snowball.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1224,11 +1278,13 @@
     
     <div class="card"><h3>Which tool?</h3><div class="tbl-wrap"><table><thead><tr><th>Moving</th><th>Tool</th><th>Note</th></tr></thead><tbody><tr><td>Whole servers, unchanged (rehost)</td><td>Application Migration Service</td><td>Continuous replication, test launches, minutes of downtime</td></tr><tr><td>A database, same engine</td><td>DMS</td><td>Full load plus change data capture until cutover</td></tr><tr><td>A database, different engine</td><td>SCT + DMS</td><td>SCT converts schema and code; DMS moves the data</td></tr><tr><td>SQL Server apps onto Aurora PostgreSQL with few code changes</td><td>Babelfish for Aurora PostgreSQL</td><td>Understands T-SQL</td></tr><tr><td>Files, online, once or on a schedule</td><td>DataSync</td><td>To S3, EFS or FSx, with verification</td></tr><tr><td>Tens of TB to PB, network too slow</td><td>Snowball Edge</td><td>Order several devices in parallel</td></tr><tr><td>Discover servers and plan</td><td>Application Discovery Service, Migration Hub</td><td>Inventory, dependencies, tracking</td></tr></tbody></table></div></div>
     <div class="card"><h3>Exam points</h3><ul><li>Do the bandwidth sum: about 10 TB a day on 1 Gbps. If the deadline beats the network, use Snowball; if the link is fine, DataSync over it.</li><li>"Minimal downtime" for a database → DMS with <b>CDC</b>, not a dump and restore. "Different engine" → add SCT.</li><li>"Lift and shift hundreds of servers with minimal effort" → Application Migration Service (it replaced Server Migration Service).</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>An on-premises Oracle database must move to Aurora PostgreSQL with minimal downtime. What should be used?</p><ol class="opts"><li>AWS DataSync to copy the database files.</li><li>An export dump shipped on a Snowball Edge device.</li><li>AWS SCT to convert the schema, then AWS DMS with a full load and ongoing change data capture.</li><li>AWS Application Migration Service.</li></ol><details><summary>Show answer</summary><p><b>C.</b> A different engine needs SCT for the schema and code, and DMS with CDC keeps the target in sync until a short cutover. DataSync moves files, and a dump means downtime for the whole transfer.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-storage">Storage</h2>
   <section class="arch-sec" id="hybridstorage">
     <h2>22. Hybrid storage and data transfer</h2>
+    <p class="rule">Keep the on-premises protocol and store the data in AWS → Storage Gateway (File, Volume, Tape); move data → DataSync.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1273,10 +1329,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>Which one?</h3><div class="tbl-wrap"><table><thead><tr><th>Need</th><th>Service</th></tr></thead><tbody><tr><td>Keep an NFS/SMB share, store files in S3 (lifecycle rules apply)</td><td>S3 File Gateway</td></tr><tr><td>Windows SMB share with AD, low latency, in FSx</td><td>FSx File Gateway</td></tr><tr><td>iSCSI volumes, all data in AWS, hot data cached locally</td><td>Volume Gateway, <b>cached</b> mode</td></tr><tr><td>iSCSI volumes, all data local, backed up to AWS</td><td>Volume Gateway, <b>stored</b> mode</td></tr><tr><td>Replace physical tapes, keep the backup software</td><td>Tape Gateway</td></tr><tr><td>Copy or sync file data to S3/EFS/FSx</td><td>DataSync</td></tr><tr><td>Tens of TB or more, too slow over the network</td><td>Snowball Edge</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>Work out transfer time: 1 Gbps moves about 10 TB a day. If the network cannot finish in time, ship it with Snowball.</li><li>DataSync handles scheduling, encryption in transit, integrity checks and only-changed-files; it beats scripting rsync or the CLI.</li><li>SFTP clients that must land files in S3 → AWS Transfer Family, not a gateway.</li><li>Online database migration → DMS (with SCT for a different engine), not DataSync.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>A company's backup software writes to a physical tape library. It wants to stop handling tapes and archive to AWS without changing the backup software. What should it use?</p><ol class="opts"><li>S3 File Gateway.</li><li>AWS DataSync to S3 Glacier.</li><li>Volume Gateway in stored mode.</li><li>Tape Gateway, archiving virtual tapes to S3 Glacier Deep Archive.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Tape Gateway presents a virtual tape library over iSCSI, so the backup software sees tapes. File and Volume Gateway present shares and disks, and DataSync is for copying files.</p></details></div>
   </section>
 
   <section class="arch-sec" id="filesystems">
     <h2>23. Shared file systems</h2>
+    <p class="rule">Linux and NFS → EFS; Windows, SMB and Active Directory → FSx for Windows; HPC on data in S3 → FSx for Lustre.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1317,16 +1375,18 @@
 <text class="d-lbl d-halo" x="737" y="165">Lustre</text>
 </svg>
       </div>
-      <figcaption>Pick the shared file system by the clients' operating system and protocol first, then by performance. Block storage (EBS) is not shared, apart from io2 Multi-Attach within one AZ.</figcaption>
+      <figcaption>Pick the shared file system by the clients' operating system and protocol first, then by performance. Block storage (EBS) is not shared, apart from io1/io2 Multi-Attach within one AZ.</figcaption>
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Clients mount</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Linked to S3</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Supporting feature</span></div>
     </figure>
     
     <div class="card"><h3>Which one?</h3><div class="tbl-wrap"><table><thead><tr><th>Need</th><th>Choose</th></tr></thead><tbody><tr><td>Linux, NFS, many instances across AZs, grows on its own</td><td>Amazon EFS (Standard, or One Zone to save cost)</td></tr><tr><td>Windows, SMB, NTFS permissions, Active Directory</td><td>FSx for Windows File Server</td></tr><tr><td>HPC or ML, hundreds of GB/s, sub-millisecond, data in S3</td><td>FSx for Lustre</td></tr><tr><td>NFS + SMB + iSCSI together, NetApp features, migrate from ONTAP</td><td>FSx for NetApp ONTAP</td></tr><tr><td>ZFS features, NFS, very low latency</td><td>FSx for OpenZFS</td></tr></tbody></table></div></div>
     <div class="card"><h3>Exam points</h3><ul><li>EFS works only with Linux (NFS); Windows file shares → FSx for Windows. EFS lifecycle to <b>Infrequent Access</b> cuts cost for files no one opens.</li><li>FSx for Lustre <b>scratch</b> is temporary and cheapest; <b>persistent</b> replicates within an AZ for long-running work.</li><li>Containers on Fargate or ECS that need shared persistent files → mount EFS.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A Windows application on EC2 in two AZs needs a shared file system with SMB, NTFS permissions and Active Directory integration. What should be used?</p><ol class="opts"><li>Amazon FSx for Windows File Server, Multi-AZ.</li><li>Amazon EFS.</li><li>Amazon FSx for Lustre.</li><li>An EBS io2 volume with Multi-Attach.</li></ol><details><summary>Show answer</summary><p><b>A.</b> FSx for Windows speaks SMB and joins the domain. EFS is NFS for Linux, Lustre is for HPC, and Multi-Attach works only within one AZ and needs a cluster-aware file system.</p></details></div>
   </section>
 
   <section class="arch-sec" id="s3protect">
     <h2>24. S3 lifecycle and protection</h2>
+    <p class="rule">Lifecycle rules move data to cheaper classes as it ages; versioning and Object Lock stop deletion; replication keeps a copy elsewhere.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1367,11 +1427,13 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>Storage classes</h3><div class="tbl-wrap"><table><thead><tr><th>Class</th><th>Retrieval</th><th>Use it for</th></tr></thead><tbody><tr><td>Standard</td><td>Milliseconds</td><td>Frequently read data</td></tr><tr><td>Intelligent-Tiering</td><td>Milliseconds (archive tiers optional)</td><td>Unknown or changing access, no retrieval fees</td></tr><tr><td>Standard-IA / One Zone-IA</td><td>Milliseconds, per-GB retrieval fee</td><td>Read about monthly; One Zone for re-creatable data</td></tr><tr><td>Glacier Instant Retrieval</td><td>Milliseconds</td><td>Read about quarterly</td></tr><tr><td>Glacier Flexible Retrieval</td><td>Minutes to hours</td><td>Archives, backups</td></tr><tr><td>Glacier Deep Archive</td><td>Within 12 hours (48 for bulk)</td><td>Compliance records kept for years</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>IA classes bill at least <b>30 days</b> and <b>128 KB</b> per object; Glacier tiers have 90 and 180-day minimums. Tiny or short-lived objects can cost more there.</li><li>"No one, not even root, can delete for 7 years" → Object Lock <b>compliance</b> mode. Governance mode can be bypassed with a special permission. A legal hold has no end date.</li><li>Replication requires versioning on both buckets and does not copy existing objects unless you run Batch Replication.</li><li>Clean up failed multipart uploads with an <code>AbortIncompleteMultipartUpload</code> lifecycle rule.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>Audit records in S3 must not be deleted or overwritten by anyone, including the root user, for 7 years. What should be used?</p><ol class="opts"><li>S3 Object Lock in governance mode.</li><li>Versioning with MFA Delete.</li><li>A bucket policy that denies s3:DeleteObject.</li><li>S3 Object Lock in compliance mode with a 7-year retention period.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Compliance mode cannot be shortened or removed by any user, root included. Governance mode can be bypassed with a permission, the root user can still delete with MFA Delete, and a bucket policy can be edited.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-security">Security and multiple accounts</h2>
   <section class="arch-sec" id="landingzone">
     <h2>25. Multi-account landing zone</h2>
+    <p class="rule">Many accounts with guardrails → Organizations and Control Tower; SCPs cap permissions but grant none; people sign in through IAM Identity Center.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1412,10 +1474,12 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>"Set up many accounts with guardrails and a dashboard, with the least effort" → <b>Control Tower</b> (landing zone, Account Factory, preventive and detective controls).</li><li><b>SCPs</b> cap what any principal in an account can do, root included; they grant nothing on their own and never restrict the management account.</li><li>Logs no one can tamper with → organization trail to a bucket in the <b>log archive</b> account, with Object Lock and log file validation.</li><li>Workforce access to many accounts → <b>IAM Identity Center</b> with permission sets, not IAM users per account. Customers of your app → Cognito.</li><li>Consolidated billing shares volume discounts, Reserved Instances and Savings Plans across the organization.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>No one in the development accounts, administrators included, may use any Region except two approved ones. What enforces this?</p><ol class="opts"><li>An IAM policy attached to every user and role.</li><li>An SCP on the development OU that denies actions outside the approved Regions.</li><li>An AWS Config rule that flags resources in other Regions.</li><li>A permissions boundary on each administrator.</li></ol><details><summary>Show answer</summary><p><b>B.</b> An SCP limits every principal in the member accounts, including the root user, and covers accounts added later. IAM policies and boundaries can be changed by administrators, and Config only detects.</p></details></div>
   </section>
 
   <section class="arch-sec" id="crossaccount">
     <h2>26. Cross-account access</h2>
+    <p class="rule">Cross-account access is either a role to assume (its trust policy decides who) or a resource policy; with SSE-KMS the key policy must allow it too.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1446,10 +1510,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>Role or resource policy?</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Assume a role</th><th>Resource-based policy</th></tr></thead><tbody><tr><td>Caller identity</td><td>Becomes the role; gives up its own permissions meanwhile</td><td>Keeps its own identity and permissions</td></tr><tr><td>Works for</td><td>Any service</td><td>Services with resource policies: S3, SQS, SNS, KMS, Lambda, ECR…</td></tr><tr><td>Third parties</td><td>Require an <b>external ID</b> in the trust policy</td><td>Name their account or role in the policy</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>A vendor needs access to your account → a role whose trust policy names the vendor's account and an <b>external ID</b> (confused-deputy protection). Never share access keys.</li><li>Cross-account S3 downloads fail with AccessDenied though the bucket policy allows them → the objects use SSE-KMS and the <b>key policy</b> is missing the caller.</li><li>Applications on EC2, Lambda or ECS get credentials from their own role (instance profile, execution role, task role), never stored keys.</li><li>Find resources shared outside your organization → IAM Access Analyzer.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>A third-party vendor needs read access to an S3 bucket in your account. What is the most secure approach?</p><ol class="opts"><li>An IAM user whose access keys are given to the vendor.</li><li>Presigned URLs regenerated and sent every week.</li><li>A public bucket with an obscure name.</li><li>An IAM role that trusts the vendor's account and requires an external ID.</li></ol><details><summary>Show answer</summary><p><b>D.</b> The vendor assumes the role and gets temporary credentials; the external ID protects against the confused-deputy problem. Long-lived keys can leak, and presigned URLs do not suit ongoing access.</p></details></div>
   </section>
 
   <section class="arch-sec" id="edgesecurity">
     <h2>27. Edge security and threat detection</h2>
+    <p class="rule">Block at the edge (WAF and Shield on CloudFront), detect with GuardDuty, gather findings in Security Hub, and respond through EventBridge.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1491,10 +1557,12 @@
     
     <div class="card"><h3>Which service finds what?</h3><div class="tbl-wrap"><table><thead><tr><th>Service</th><th>Looks at</th><th>Finds</th></tr></thead><tbody><tr><td>GuardDuty</td><td>CloudTrail, VPC Flow Logs, DNS logs (agentless)</td><td>Compromised instances, crypto mining, odd API calls</td></tr><tr><td>Inspector</td><td>EC2, container images, Lambda</td><td>Software vulnerabilities (CVEs), network exposure</td></tr><tr><td>Macie</td><td>S3 objects</td><td>Sensitive data such as PII and card numbers</td></tr><tr><td>Detective</td><td>GuardDuty findings and logs</td><td>Root-cause investigation</td></tr><tr><td>Security Hub</td><td>All of the above, across accounts</td><td>One prioritized view, best-practice checks</td></tr></tbody></table></div></div>
     <div class="card"><h3>Exam points</h3><ul><li>SQL injection and bad bots → <b>WAF</b> managed rules; HTTP floods from many IPs → WAF <b>rate-based</b> rule; large DDoS with expert help and cost protection → <b>Shield Advanced</b>.</li><li>Apply the same WAF rules to every account automatically → <b>Firewall Manager</b> (needs Organizations and Config).</li><li>Keep users from bypassing CloudFront → ALB security group allows only the CloudFront managed prefix list; S3 origins use Origin Access Control.</li><li>Automatic response to a finding → EventBridge rule → Lambda or a Systems Manager Automation runbook.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>An application behind CloudFront and an ALB suffers an HTTP request flood from thousands of changing IP addresses. What is the most effective mitigation?</p><ol class="opts"><li>Network ACL rules that deny the attacking IP addresses.</li><li>A rate-based rule in an AWS WAF web ACL on the CloudFront distribution.</li><li>Amazon GuardDuty.</li><li>Security group rules on the ALB.</li></ol><details><summary>Show answer</summary><p><b>B.</b> A rate-based rule blocks any IP that exceeds the limit, at the edge. Network ACLs hold few rules and cannot keep up with changing IPs, security groups cannot deny, and GuardDuty detects but does not block.</p></details></div>
   </section>
 
   <section class="arch-sec" id="encryption">
     <h2>28. Encryption and secrets</h2>
+    <p class="rule">Audit key use → SSE-KMS; rotate database passwords → Secrets Manager; TLS certificates → ACM (in us-east-1 for CloudFront).</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1534,13 +1602,15 @@
       <figcaption>KMS keys never leave KMS; services encrypt with short-lived data keys and keep only an encrypted copy of each. Secrets Manager keeps credentials out of code and rotates them, and ACM keeps TLS certificates renewed.</figcaption>
       <div class="legend" aria-hidden="true"><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--accent)" stroke-width="2"/></svg>Requests</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/></svg>Returned key, rotation</span><span><svg viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink)" stroke-width="1.6"/></svg>Stored or attached</span></div>
     </figure>
-    <div class="arch-cols"><div class="card"><h3>S3 encryption options</h3><div class="tbl-wrap"><table><thead><tr><th>Option</th><th>Who holds the key</th><th>Choose it when</th></tr></thead><tbody><tr><td>SSE-S3</td><td>AWS, fully managed</td><td>The default; no extra cost or audit needed</td></tr><tr><td>SSE-KMS</td><td>Your KMS key</td><td>Audit every use in CloudTrail, control with key policies</td></tr><tr><td>DSSE-KMS</td><td>Your KMS key, two layers</td><td>A rule demands dual-layer encryption</td></tr><tr><td>SSE-C</td><td>You, sent with each request</td><td>You must keep the key material outside AWS</td></tr><tr><td>Client-side</td><td>You, before upload</td><td>Data must be encrypted before it reaches AWS</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Audit who used the key" → SSE-KMS. Lots of KMS calls costing money or throttling → enable <b>S3 Bucket Keys</b>.</li><li>You can't encrypt an existing unencrypted RDS instance in place: snapshot → copy with encryption → restore.</li><li>"Rotate database credentials automatically" → Secrets Manager. Plain configuration values → Systems Manager Parameter Store (cheaper, no built-in rotation for RDS).</li><li>Single-tenant hardware keys under your sole control, FIPS 140-2 Level 3 → CloudHSM. Your own key material in KMS → imported keys.</li><li>Other accounts or Regions need the key → key policy grants, or multi-Region keys.</li></ul></div></div>
+    <div class="arch-cols"><div class="card"><h3>S3 encryption options</h3><div class="tbl-wrap"><table><thead><tr><th>Option</th><th>Who holds the key</th><th>Choose it when</th></tr></thead><tbody><tr><td>SSE-S3</td><td>AWS, fully managed</td><td>The default; no extra cost or audit needed</td></tr><tr><td>SSE-KMS</td><td>Your KMS key</td><td>Audit every use in CloudTrail, control with key policies</td></tr><tr><td>DSSE-KMS</td><td>Your KMS key, two layers</td><td>A rule demands dual-layer encryption</td></tr><tr><td>SSE-C</td><td>You, sent with each request</td><td>You must keep the key material outside AWS</td></tr><tr><td>Client-side</td><td>You, before upload</td><td>Data must be encrypted before it reaches AWS</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Audit who used the key" → SSE-KMS. Lots of KMS calls costing money or throttling → enable <b>S3 Bucket Keys</b>.</li><li>You can't encrypt an existing unencrypted RDS instance in place: snapshot → copy with encryption → restore.</li><li>"Rotate database credentials automatically" → Secrets Manager. Plain configuration values → Systems Manager Parameter Store (cheaper, no built-in rotation for RDS).</li><li>Dedicated, single-tenant HSMs that you alone control (KMS is FIPS-validated too, but AWS runs it) → CloudHSM. Your own key material in KMS → imported keys.</li><li>Other accounts or Regions need the key → key policy grants, or multi-Region keys.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>The password of an RDS database must rotate automatically every 30 days with no change to the application's code path. What should be used?</p><ol class="opts"><li>A Systems Manager Parameter Store SecureString.</li><li>Automatic rotation of the KMS key.</li><li>An encrypted object in S3, updated by a cron job.</li><li>Secrets Manager with automatic rotation.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Secrets Manager rotates RDS credentials with a managed rotation function. Parameter Store has no built-in RDS rotation, and KMS key rotation changes key material, not passwords.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-ops">Monitoring and operations</h2>
   <section class="arch-sec" id="operations">
     <h2>29. Operations and auto-remediation</h2>
+    <p class="rule">Memory and disk metrics need the CloudWatch agent; Config with SSM Automation fixes drift; Session Manager replaces SSH and bastions.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1583,11 +1653,13 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>Memory and disk usage are <b>not</b> default EC2 metrics → install the CloudWatch agent. Alert on a log pattern → metric filter + alarm.</li><li>Ignore brief spikes → alarm on M out of N datapoints. Replace an instance on a custom health signal → mark it unhealthy for Auto Scaling.</li><li>"Detect and automatically fix" misconfigurations → AWS Config rule with an SSM Automation remediation. "Who changed it?" → CloudTrail.</li><li>No inbound SSH, no keys, audited shell access → <b>Session Manager</b> (instance profile with AmazonSSMManagedInstanceCore). Patching on a schedule with compliance reports → Patch Manager; run one command fleet-wide now → Run Command.</li><li>Trace slow requests across services → X-Ray. Account-level health events → AWS Health.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A company needs an alarm when memory use on its EC2 instances goes above 80%. What must it do first?</p><ol class="opts"><li>Install the CloudWatch agent so the instances publish memory metrics.</li><li>Turn on detailed monitoring for the instances.</li><li>Turn on VPC Flow Logs.</li><li>Create an AWS Config rule.</li></ol><details><summary>Show answer</summary><p><b>A.</b> EC2 reports CPU, network and disk I/O from the hypervisor, but not memory. Detailed monitoring only makes the default metrics more frequent.</p></details></div>
   </section>
 
   <h2 class="arch-group" id="g-cost">Cost optimization</h2>
   <section class="arch-sec" id="costcompute">
     <h2>30. Cost-optimized compute</h2>
+    <p class="rule">Commit for the steady baseline (Savings Plans or RIs), put interruptible work on Spot, and scale the rest On-Demand.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1624,10 +1696,12 @@
     </figure>
     <div class="arch-cols"><div class="card"><h3>Commitments compared</h3><div class="tbl-wrap"><table><thead><tr><th></th><th>Compute Savings Plan</th><th>EC2 Instance Savings Plan</th><th>Standard RI</th><th>Convertible RI</th></tr></thead><tbody><tr><td>Discount</td><td>Up to ~66%</td><td>Up to ~72%</td><td>Up to ~72%</td><td>Up to ~66%</td></tr><tr><td>Covers</td><td>Any EC2 family, Region, OS, plus Fargate and Lambda</td><td>One family in one Region</td><td>One instance type</td><td>Exchangeable for other types</td></tr><tr><td>Capacity reservation</td><td>No</td><td>No</td><td>Only zonal RIs</td><td>Only zonal RIs</td></tr></tbody></table></div></div><div class="card"><h3>Exam points</h3><ul><li>"Workload will move to Fargate or Lambda" or "change instance families" → <b>Compute Savings Plan</b>. Fixed type forever → Standard RI or EC2 Instance Savings Plan.</li><li>Guarantee capacity in one AZ for a short event with no long commitment → <b>On-Demand Capacity Reservation</b>.</li><li>Spot: diversify instance types and AZs, use capacity-optimized allocation, design for the 2-minute notice. Never for a stateful job that can't restart.</li><li>Right-size first (Compute Optimizer), then commit, or you lock in the waste. A server busy 30% of the week is cheaper On-Demand on a schedule.</li></ul></div></div>
     
+    <div class="card check"><h3>Check yourself</h3><p>A company runs steady EC2 workloads today and will move parts of them to Fargate and Lambda within a year. Which purchase saves the most while staying flexible?</p><ol class="opts"><li>Standard Reserved Instances.</li><li>An EC2 Instance Savings Plan.</li><li>A Compute Savings Plan.</li><li>Spot Instances.</li></ol><details><summary>Show answer</summary><p><b>C.</b> A Compute Savings Plan applies across instance families, Regions, Fargate and Lambda. Standard RIs and EC2 Instance Savings Plans are tied to EC2 families, and Spot can be interrupted.</p></details></div>
   </section>
 
   <section class="arch-sec" id="datatransfer">
     <h2>31. Data transfer costs</h2>
+    <p class="rule">Inbound, same-AZ private and origin-to-CloudFront traffic is free; NAT, cross-AZ, inter-Region and internet egress are billed per GB.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1675,10 +1749,12 @@
     </figure>
     
     <div class="card"><h3>Exam points</h3><ul><li>High NAT gateway charges from S3 or DynamoDB traffic → <b>gateway endpoint</b> (free). Other services → interface endpoints cost less than NAT at volume.</li><li>Big download bill from S3 or EC2 → serve through <b>CloudFront</b>: origin fetches are free, edge delivery is cheaper and cached. Make downloaders pay → S3 <b>Requester Pays</b>.</li><li>Chatty tiers across AZs pay in both directions; keep tightly coupled components in one AZ where resilience allows, but never give up Multi-AZ for the database to save this.</li><li>Regular large transfers to on-premises → Direct Connect, cheaper per GB out than the internet. Cross-Region replication and DR copies add inter-Region charges.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>A company serves large files from an S3 bucket to users around the world, and its data transfer bill is high. What lowers it?</p><ol class="opts"><li>Turn on S3 Transfer Acceleration.</li><li>Replicate the bucket to more Regions.</li><li>Route downloads through a NAT gateway.</li><li>Put a CloudFront distribution in front of the bucket.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Fetches from S3 into CloudFront are free, edge delivery costs less than S3 internet egress, and cached files are not fetched again. Transfer Acceleration adds a charge, and replication adds inter-Region charges.</p></details></div>
   </section>
 
   <section class="arch-sec" id="costgovernance">
     <h2>32. Cost governance</h2>
+    <p class="rule">See spend → Cost Explorer; alert or act at a threshold → Budgets; unexpected spikes → Anomaly Detection; every line item → CUR and Athena.</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -1712,6 +1788,7 @@
     
     <div class="card"><h3>Which tool?</h3><div class="tbl-wrap"><table><thead><tr><th>Need</th><th>Tool</th></tr></thead><tbody><tr><td>See spend by service, account or tag; forecast; RI/SP recommendations</td><td>Cost Explorer</td></tr><tr><td>Alert at a threshold, or stop spending automatically</td><td>Budgets (with budget actions)</td></tr><tr><td>Be told about an unusual spike without setting thresholds</td><td>Cost Anomaly Detection</td></tr><tr><td>Every line item, queried with SQL, loaded into BI</td><td>Cost and Usage Report (Data Exports) + Athena</td></tr><tr><td>Idle or oversized resources, best-practice checks</td><td>Trusted Advisor, Compute Optimizer</td></tr></tbody></table></div></div>
     <div class="card"><h3>Exam points</h3><ul><li>Cost by department → apply a tag, then <b>activate it as a cost allocation tag</b> in the management account; only then does it appear in billing data.</li><li>"Stop a sandbox overspending without custom code" → Budgets with a <b>budget action</b> (apply an SCP or IAM policy, or stop instances).</li><li>Share Savings Plans and RIs across accounts → put them in one organization with discount sharing on.</li></ul></div>
+    <div class="card check"><h3>Check yourself</h3><p>Finance wants costs by department across all accounts. Resources already carry a Department tag. What else must be done?</p><ol class="opts"><li>Turn on Cost Explorer in each member account.</li><li>Activate Department as a cost allocation tag in the management account.</li><li>Create one budget per department.</li><li>Turn on AWS Config in every account.</li></ol><details><summary>Show answer</summary><p><b>B.</b> Tags appear in billing data only after they are activated as cost allocation tags, and only from then on. Budgets and Config do not break costs down by tag.</p></details></div>
   </section>
   <!-- GENERATED:DIAGRAMS END -->
 </main>

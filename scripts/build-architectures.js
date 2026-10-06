@@ -104,8 +104,14 @@ const LEGEND_LINES = {
   alt: '<line x1="1" y1="5" x2="25" y2="5" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="3 3"/>'
 };
 
-// one diagram's section: heading, figure, legend, then cards (each card is a title and its HTML)
-function section({ n, id, title, svg, caption, legend = [], cards = [], pair = [] }) {
+// a self-test closing each diagram: an exam-style question with its answer folded away
+function checkCard({ q, opts, answer, why }) {
+  return `<div class="card check"><h3>Check yourself</h3><p>${q}</p><ol class="opts">${opts.map(o => `<li>${o}</li>`).join('')}</ol><details><summary>Show answer</summary><p><b>${'ABCD'[answer]}.</b> ${why}</p></details></div>`;
+}
+
+// one diagram's section: heading, the rule to remember, figure, legend, cards (each card is a title
+// and its HTML), then the self-test
+function section({ n, id, title, takeaway, svg, caption, legend = [], cards = [], pair = [], check }) {
   const legendHtml = legend.length
     ? `<div class="legend" aria-hidden="true">${legend.map(([k, t]) => `<span><svg viewBox="0 0 26 10">${LEGEND_LINES[k]}</svg>${t}</span>`).join('')}</div>`
     : '';
@@ -113,6 +119,7 @@ function section({ n, id, title, svg, caption, legend = [], cards = [], pair = [
   return `
   <section class="arch-sec" id="${id}">
     <h2>${n}. ${title}</h2>
+    <p class="rule">${takeaway}</p>
     <figure class="fig">
       <p class="fig-hint">Swipe sideways to see the whole diagram.</p>
       <div class="fig-scroll">
@@ -123,6 +130,7 @@ ${svg}
     </figure>
     ${pair.length ? `<div class="arch-cols">${pair.map(card).join('')}</div>` : ''}
     ${cards.map(card).join('\n    ')}
+    ${checkCard(check)}
   </section>`;
 }
 
@@ -189,6 +197,18 @@ function add(groupId, spec) {
   d.edge([R(inet), [575, inet.cy], [575, tgw.cy + 12], L(tgw, tgw.cy + 12)], 'out', { label: 'VPN attachment · backup', lx: 492, ly: 398 });
   add('g-network', {
     id: 'hybrid', title: 'Hybrid connectivity',
+    takeaway: 'Consistent private bandwidth → Direct Connect; quick or cheap → Site-to-Site VPN; maximum resiliency → Direct Connect at two locations.',
+    check: {
+      q: 'A company needs dedicated, consistent bandwidth to AWS, and the same performance must continue if an entire Direct Connect location goes down. What should it set up?',
+      opts: [
+        'Two Direct Connect connections at the same Direct Connect location.',
+        'One Direct Connect connection with a Site-to-Site VPN as backup.',
+        'Direct Connect connections at two different Direct Connect locations.',
+        'Two Site-to-Site VPN connections over different internet providers.'
+      ],
+      answer: 2,
+      why: 'Only a second location survives a location outage. Two links at one location share its fate, and a VPN backup keeps connectivity but not the consistent performance the question demands.'
+    },
     svg: d.render(),
     caption: 'Two Direct Connect connections at different locations carry hybrid traffic over private links to one Direct Connect gateway, which a Transit Gateway shares with every VPC. A Site-to-Site VPN over the internet takes over if both links fail.',
     legend: [['in', 'Direct Connect (primary)'], ['out', 'Site-to-Site VPN over the internet (backup)'], ['data', 'Inside AWS or the data center']],
@@ -236,6 +256,18 @@ function add(groupId, spec) {
   d.label(717, 360, 'TGW route tables decide who talks · share with RAM', { cls: 'd-lbl' });
   add('g-network', {
     id: 'tgw', title: 'Transit Gateway hub and spoke',
+    takeaway: 'Peering joins two VPCs and is never transitive; many VPCs plus on-premises → one Transit Gateway.',
+    check: {
+      q: 'A company has 60 VPCs across several accounts and one VPN to its data center. Every VPC must reach the data center, and some VPCs must reach each other, with the least management effort. What should it use?',
+      opts: [
+        'A full mesh of VPC peering connections.',
+        'A separate Site-to-Site VPN from the data center to each VPC.',
+        'A Transit Gateway shared through AWS RAM, with VPC attachments, a VPN attachment and route tables.',
+        'Peer every VPC to one shared VPC that holds the VPN connection.'
+      ],
+      answer: 2,
+      why: 'Peering is not transitive, so traffic cannot pass through a shared VPC to the VPN, and a full mesh of 60 VPCs is 1,770 connections. A Transit Gateway needs one attachment per VPC and routes between them.'
+    },
     svg: d.render(),
     caption: 'Peering joins two VPCs at a time and never forwards traffic onward, so a full mesh grows as n(n−1)/2. A Transit Gateway needs one attachment per VPC or on-premises link, and its route tables decide which ones can reach each other.',
     legend: [['alt', 'VPC peering connection'], ['data', 'Transit Gateway attachment']],
@@ -273,6 +305,18 @@ function add(groupId, spec) {
   d.label(205, 408, 'consumers start every connection; no peering, no route tables', { cls: 'd-lbl' });
   add('g-network', {
     id: 'privatelink', title: 'PrivateLink for a SaaS service',
+    takeaway: 'Expose one service, not a whole network: an NLB behind a VPC endpoint service, reached through interface endpoints. Overlapping CIDRs don\'t matter.',
+    check: {
+      q: 'A SaaS provider must offer an API to hundreds of customer VPCs. Many customers use the same CIDR range as the provider, and the traffic must not cross the internet. What should the provider do?',
+      opts: [
+        'Create a VPC peering connection with each customer VPC.',
+        'Put the API behind a Network Load Balancer, create a VPC endpoint service, and let customers create interface endpoints.',
+        'Share a Transit Gateway with every customer account.',
+        'Expose a public ALB with AWS WAF allowing only customer IP addresses.'
+      ],
+      answer: 1,
+      why: 'PrivateLink exposes a single service one way, so identical CIDRs are fine. Peering and Transit Gateway join whole networks and fail with overlapping ranges; a public ALB crosses the internet.'
+    },
     svg: d.render(),
     caption: 'Each consumer reaches the provider through an interface endpoint in its own VPC, so identical CIDR ranges do not matter and nothing crosses the internet. Only the service behind the Network Load Balancer is exposed, not the provider\'s whole VPC.',
     legend: [['in', 'Consumer requests over PrivateLink'], ['data', 'Inside the provider VPC']],
@@ -308,6 +352,18 @@ function add(groupId, spec) {
   d.edge([L(outb), [360, outb.cy], [360, dns.cy + 12], R(dns, dns.cy + 12)], 'data');
   add('g-network', {
     id: 'hybrid-dns', title: 'Hybrid DNS with Route 53 Resolver',
+    takeaway: 'Queries coming into AWS → a Resolver inbound endpoint; queries going out to on-premises → an outbound endpoint plus a forwarding rule.',
+    check: {
+      q: 'EC2 instances must resolve names in corp.example.com, which only the on-premises DNS servers can answer over Direct Connect. What should be configured?',
+      opts: [
+        'A Route 53 Resolver outbound endpoint with a forwarding rule for corp.example.com.',
+        'A Route 53 Resolver inbound endpoint.',
+        'A private hosted zone named corp.example.com associated with the VPC.',
+        'A public hosted zone for corp.example.com.'
+      ],
+      answer: 0,
+      why: 'The queries leave the VPC, so they need an outbound endpoint and a rule that forwards the domain. An inbound endpoint serves the opposite direction, and a hosted zone would answer itself instead of asking on-premises DNS.'
+    },
     svg: d.render(),
     caption: 'Inbound endpoints let on-premises DNS forward queries into the VPC; outbound endpoints with forwarding rules let the VPC send queries for on-premises domains back out. Both travel over the VPN or Direct Connect link.',
     legend: [['in', 'On-premises resolving AWS names'], ['data', 'The VPC resolving on-premises names']],
@@ -352,6 +408,18 @@ function add(groupId, spec) {
   d.edge([B(ec2b), [ec2b.cx, 330], [replica.cx, 330], T(replica)], 'data', { label: 'report queries', lx: 760, ly: 326 });
   add('g-ha', {
     id: 'three-tier', title: 'Three-tier web application',
+    takeaway: 'Spread every tier over two or more AZs, keep the web tier stateless, cache hot reads, and send reports to a read replica.',
+    check: {
+      q: 'Users of a web application behind an ALB are logged out whenever the Auto Scaling group scales in. What is the best fix?',
+      opts: [
+        'Turn on sticky sessions on the ALB.',
+        'Store session data in ElastiCache or DynamoDB.',
+        'Disable scale-in for the Auto Scaling group.',
+        'Keep sessions on an EBS volume attached to each instance.'
+      ],
+      answer: 1,
+      why: 'A stateless web tier keeps sessions outside the instances, so terminating one loses nothing. Sticky sessions still lose the session when their instance is terminated, and disabling scale-in wastes money.'
+    },
     svg: d.render(),
     caption: 'The backbone of most scenario questions. Every tier is spread over two or more Availability Zones, static content never reaches the servers, hot reads stop at the cache, and reports run on a replica instead of the primary.',
     legend: [['in', 'Request path'], ['data', 'Data and replication'], ['alt', 'DNS']],
@@ -364,7 +432,7 @@ function add(groupId, spec) {
       ])],
       ['Exam points', ul([
         'Keep the web tier <b>stateless</b>: sessions in ElastiCache or DynamoDB, not on the instance, so scaling in loses nothing.',
-        'Multi-AZ standby = availability (automatic failover, no reads). Read replica = read scaling (asynchronous, can be promoted, can be cross-Region).',
+        'Multi-AZ instance standby = availability (automatic failover, no reads); a Multi-AZ DB cluster\'s two standbys can also serve reads. Read replica = read scaling (asynchronous, can be promoted, can be cross-Region).',
         'Lock the bucket to CloudFront with Origin Access Control; lock the ALB to CloudFront with its managed prefix list or a secret header.',
         'Scale on ALB request count per target or CPU with target tracking; use scheduled or predictive scaling for known daily peaks.'
       ])]
@@ -393,6 +461,18 @@ function add(groupId, spec) {
   d.edge([B(fn), [fn.cx, sqs.cy], L(sqs)], 'data', { label: 'enqueue', lx: 640, ly: 316 });
   add('g-ha', {
     id: 'serverless', title: 'Serverless web application',
+    takeaway: 'Least operations for spiky traffic → S3 and CloudFront for the front end, API Gateway, Lambda and DynamoDB behind it, Cognito for sign-in.',
+    check: {
+      q: 'After signing in, a mobile app\'s users must upload photos straight to S3 with temporary, per-user AWS credentials. Which service issues those credentials?',
+      opts: [
+        'A Cognito user pool.',
+        'An IAM user for each customer.',
+        'A Cognito identity pool.',
+        'API Gateway API keys.'
+      ],
+      answer: 2,
+      why: 'A user pool signs users in and issues tokens; an identity pool exchanges a token for temporary AWS credentials scoped by an IAM role. IAM users do not scale to customers, and API keys are not AWS credentials.'
+    },
     svg: d.render(),
     caption: 'No servers to patch or scale: the static front end comes from S3 through CloudFront, Cognito handles sign-in, and every API call passes API Gateway\'s token check and throttling before Lambda runs.',
     legend: [['in', 'Request path'], ['data', 'Data'], ['alt', 'Sign-in and token checks']],
@@ -401,7 +481,7 @@ function add(groupId, spec) {
         '"Least operational overhead" with a spiky or unpredictable load → this stack. Lambda runs at most <b>15 minutes</b>; longer jobs go to Fargate or Step Functions.',
         'API Gateway <b>usage plans and API keys</b> give per-client throttling and quotas; a Cognito authorizer rejects calls without a valid token before Lambda runs.',
         'Cognito <b>user pools</b> sign users in (tokens); <b>identity pools</b> exchange a token for temporary AWS credentials, for example to upload straight to S3.',
-        'Absorb bursts without losing requests: API Gateway → SQS → Lambda. Cold starts: provisioned concurrency (or SnapStart for Java).'
+        'Absorb bursts without losing requests: API Gateway → SQS → Lambda. Cold starts: provisioned concurrency (or SnapStart for Java, Python and .NET).'
       ])]
     ]
   });
@@ -428,6 +508,18 @@ function add(groupId, spec) {
   d.edge([B(ga, rb.cx), T(rb)], 'alt', { label: 'failover', lx: 838, ly: 258, anchor: 'start' });
   add('g-ha', {
     id: 'edge', title: 'CloudFront or Global Accelerator',
+    takeaway: 'Cache HTTP content → CloudFront; static IPs, UDP or other non-HTTP traffic, or fast Regional failover → Global Accelerator.',
+    check: {
+      q: 'A multiplayer game runs UDP servers in two Regions. Players need low latency, and many corporate firewalls only allow a fixed list of IP addresses. What should be used?',
+      opts: [
+        'A CloudFront distribution with an origin group.',
+        'AWS Global Accelerator in front of both Regions.',
+        'Route 53 latency-based routing to each Region.',
+        'S3 Transfer Acceleration.'
+      ],
+      answer: 1,
+      why: 'Global Accelerator gives two static anycast IPs, carries UDP over the AWS backbone and fails over between Regions in seconds. CloudFront serves HTTP only, and Route 53 gives no fixed IPs.'
+    },
     svg: d.render(),
     caption: 'Both start at the AWS edge. CloudFront caches HTTP content there, so most requests never reach the origin. Global Accelerator caches nothing; it gives two fixed IP addresses and carries any TCP or UDP traffic over the AWS network to the nearest healthy Region.',
     legend: [['in', 'Request path'], ['data', 'Cache miss'], ['alt', 'Failover']],
@@ -470,6 +562,18 @@ function add(groupId, spec) {
   d.edge([R(cw), [677, cw.cy], T(w1, 677)], 'alt', { label: 'target tracking adds workers', lx: 680, ly: 48 });
   add('g-decouple', {
     id: 'queue', title: 'Queue-based load leveling',
+    takeaway: 'A queue between tiers absorbs bursts; scale the workers on backlog per instance, and add a dead-letter queue for poison messages.',
+    check: {
+      q: 'Workers sometimes process the same SQS message twice. Processing a message takes up to 3 minutes. What should be changed?',
+      opts: [
+        'Turn on long polling.',
+        'Set the visibility timeout above the longest processing time.',
+        'Add a dead-letter queue.',
+        'Increase the message retention period.'
+      ],
+      answer: 1,
+      why: 'If processing outlasts the visibility timeout, the message reappears and a second worker takes it. Long polling cuts empty receives, a DLQ catches repeated failures, and retention does not affect visibility.'
+    },
     svg: d.render(),
     caption: 'The queue sits between a front end that must stay fast and a back end that can only go so fast. Orders are accepted at any rate, workers drain them at a rate the database can take, and the backlog per instance tells Auto Scaling how many workers to run.',
     legend: [['in', 'Messages'], ['data', 'Writes'], ['alt', 'Scaling and failures']],
@@ -508,12 +612,24 @@ function add(groupId, spec) {
   d.label(940, 365, 'each service polls its own copy, at its own pace', { anchor: 'end', cls: 'd-lbl' });
   add('g-decouple', {
     id: 'fanout', title: 'Fan-out with SNS and SQS',
+    takeaway: 'One event, many independent consumers → an SNS topic that fans out to one SQS queue per consumer.',
+    check: {
+      q: 'Every order must be processed by the inventory, billing and analytics services independently, and any of them can be offline for hours without missing an order. What design fits?',
+      opts: [
+        'One SQS queue that all three services poll.',
+        'An SNS topic that fans out to a separate SQS queue for each service.',
+        'An SNS topic with each service\'s HTTPS endpoint subscribed.',
+        'Amazon Data Firehose delivering the orders to S3.'
+      ],
+      answer: 1,
+      why: 'Each queue keeps its own copy until its service is back. A shared queue gives each message to only one consumer, and an SNS HTTPS subscription retries only for a limited time.'
+    },
     svg: d.render(),
     caption: 'The producer publishes once and knows nothing about its consumers. SNS pushes a copy into a queue per consumer, so each one keeps every message even while it is down, retries on its own, and scales independently.',
     legend: [['in', 'Publish and deliver'], ['data', 'Each consumer polls its queue']],
     cards: [
       ['Exam points', ul([
-        '"Several independent systems must each process every event" and "a consumer may be offline for hours" → SNS → SQS per consumer. SNS alone would drop messages for an endpoint that is down.',
+        '"Several independent systems must each process every event" and "a consumer may be offline for hours" → SNS → SQS per consumer. SNS alone retries an unreachable endpoint only for a limited time; a queue keeps messages for up to 14 days.',
         'A <b>subscription filter policy</b> sends only matching messages to a queue, so consumers do not filter in code.',
         'Ordered fan-out → SNS FIFO topic to SQS FIFO queues.',
         'The queue\'s access policy must allow the topic to send; with SSE-KMS, the key policy must let SNS use the key.'
@@ -547,13 +663,25 @@ function add(groupId, spec) {
   d.edge([B(bus), T(arch)], 'alt', { label: 'archive', lx: 430, ly: 290, anchor: 'start' });
   add('g-decouple', {
     id: 'eventbridge', title: 'Event routing with EventBridge',
+    takeaway: 'Route events by their content, from AWS services, SaaS apps or your own code → EventBridge rules; replay after a fix → archive.',
+    check: {
+      q: 'A Lambda function must run whenever any EC2 instance in the account changes state, with no polling code. What should be used?',
+      opts: [
+        'A scheduled Lambda function that calls DescribeInstances every minute.',
+        'A CloudWatch Logs subscription filter on the EC2 log group.',
+        'An S3 event notification on the CloudTrail bucket.',
+        'An EventBridge rule matching EC2 instance state-change events, with the function as the target.'
+      ],
+      answer: 3,
+      why: 'AWS services publish their events to the default bus, and a rule can match them and invoke the function directly. The other options poll or work from delayed log files.'
+    },
     svg: d.render(),
     caption: 'Sources publish to one bus and know nothing about the targets. Each rule matches on the event\'s content and forwards matching events to its targets, so adding a consumer means adding a rule, not changing a producer.',
     legend: [['in', 'Events'], ['alt', 'Archive']],
     cards: [
       ['Exam points', ul([
         '"Route by content", "SaaS events with no polling" or "react to AWS service events" → EventBridge rules. Plain fan-out of identical messages → SNS.',
-        '<b>Archive and replay</b> keeps events for a set time and re-sends them after a bug fix; SNS and SQS have no replay.',
+        '<b>Archive and replay</b> keeps events for a set time and re-sends them after a bug fix; SQS has no replay, and SNS can replay only on FIFO topics.',
         '<b>API destinations</b> call external HTTPS APIs with built-in auth (OAuth, API key) and rate limits; <b>EventBridge Scheduler</b> runs cron or one-off schedules at scale.',
         'Cross-account: a rule on one bus targets another account\'s bus; the receiving bus needs a resource policy.'
       ])]
@@ -584,6 +712,18 @@ function add(groupId, spec) {
   d.label(480, 380, 'Standard workflow: runs up to a year, exactly-once, full visual history', { cls: 'd-lbl' });
   add('g-decouple', {
     id: 'stepfunctions', title: 'Workflow orchestration with Step Functions',
+    takeaway: 'Multi-step workflows with retries, branches and human approval → Step Functions, not Lambdas calling each other.',
+    check: {
+      q: 'An order process has five steps, needs retries with backoff, includes a human approval that can take days, and must keep a visual history of each run. What is the most operationally efficient choice?',
+      opts: [
+        'A Step Functions Express workflow.',
+        'A Step Functions Standard workflow, using a task token for the approval step.',
+        'Lambda functions that invoke each other in sequence.',
+        'SQS queues between EC2 worker fleets.'
+      ],
+      answer: 1,
+      why: 'Standard workflows run up to a year and pause on a task token at no cost. Express workflows stop after 5 minutes, and chained Lambdas hit the 15-minute limit with no built-in state or history.'
+    },
     svg: d.render(),
     caption: 'The state machine holds the workflow\'s state, so no code waits or loops. Retries and catches are declared on each step, and the human step pauses at no cost until the underwriter\'s app returns the task token.',
     legend: [['in', 'State transitions'], ['alt', 'Callbacks and error handling']],
@@ -620,6 +760,18 @@ function add(groupId, spec) {
   d.edge([B(prod), [prod.cx, 430], [590, 430], [590, fh.b - 8], L(fh, fh.b - 8)], 'alt', { label: 'or straight into Firehose, no replay', lx: 350, ly: 425 });
   add('g-data', {
     id: 'streaming', title: 'Streaming pipeline',
+    takeaway: 'Real time, replay or several consumers → Kinesis Data Streams; load into S3, Redshift or OpenSearch with no code → Firehose.',
+    check: {
+      q: 'Clickstream events must land in S3 as Parquet files in near real time, with the least development effort. What should be used?',
+      opts: [
+        'Kinesis Data Streams with a custom KCL consumer that writes Parquet.',
+        'An SQS queue with a Lambda function writing to S3.',
+        'Amazon Data Firehose with record format conversion to Parquet.',
+        'Amazon MSK with a self-managed Kafka Connect cluster.'
+      ],
+      answer: 2,
+      why: 'Firehose buffers, converts to Parquet and delivers to S3 with no code to run. The other options all mean writing or operating a consumer.'
+    },
     svg: d.render(),
     caption: 'Kinesis Data Streams keeps every record for the retention period, so many consumers read the same data independently and any of them can replay it. Firehose is the no-code delivery pipe from a stream, or straight from producers, into storage and analytics services.',
     legend: [['in', 'Records'], ['data', 'Delivery'], ['alt', 'Direct to Firehose']],
@@ -664,6 +816,18 @@ function add(groupId, spec) {
   d.edge([B(ath), T(qs)], 'in', { label: 'queries', lx: 852, ly: 315, anchor: 'start' });
   add('g-data', {
     id: 'datalake', title: 'Data lake on S3',
+    takeaway: 'S3 stores the data, Glue catalogs it, and Athena queries it in place; Parquet plus partitions cut the bytes scanned.',
+    check: {
+      q: 'Athena queries on daily JSON logs in S3 are slow and expensive. Most queries filter on the date and read only a few columns. What reduces cost the most?',
+      opts: [
+        'Move the objects to S3 Standard-IA.',
+        'Load the logs into an RDS database.',
+        'Raise the Athena workgroup\'s query concurrency.',
+        'Convert the data to Parquet, partitioned by date.'
+      ],
+      answer: 3,
+      why: 'Athena bills per byte scanned. Partitions skip the dates a query does not need, and a columnar format reads only the needed columns. Standard-IA raises read costs.'
+    },
     svg: d.render(),
     caption: 'Storage and compute stay separate: S3 holds the data in zones, the Glue Data Catalog holds the schemas, and serverless engines query in place. Partitioned Parquet makes Athena read only the columns and dates a query needs.',
     legend: [['in', 'Data flow'], ['data', 'Reads and writes'], ['alt', 'Metadata and permissions']],
@@ -696,6 +860,18 @@ function add(groupId, spec) {
   d.label(480, 318, 'writing back to the same bucket and prefix would trigger the function again, forever', { cls: 'd-lbl' });
   add('g-data', {
     id: 's3events', title: 'Event-driven S3 processing',
+    takeaway: 'React to each upload → an S3 event notification to Lambda (or to SQS for heavy jobs); clients upload directly with presigned URLs.',
+    check: {
+      q: 'Each image uploaded to S3 needs a thumbnail within seconds. Upload volume is unpredictable, and operations must be minimal. What design fits?',
+      opts: [
+        'A cron job on EC2 that lists the bucket every minute.',
+        'An AWS Batch job scheduled every hour.',
+        'S3 replication to a thumbnails bucket.',
+        'An S3 event notification that invokes Lambda, which writes the thumbnail to a different bucket.'
+      ],
+      answer: 3,
+      why: 'Event notifications react to each object with no polling, and Lambda scales with the uploads. Writing to a different bucket stops the function from triggering itself; replication only copies objects.'
+    },
     svg: d.render(),
     caption: 'Uploads go straight to S3, never through your servers, and each new object triggers its own processing. Short work runs in Lambda; anything longer or heavier is queued for Batch or ECS.',
     legend: [['in', 'Upload and trigger'], ['data', 'Results']],
@@ -727,6 +903,18 @@ function add(groupId, spec) {
   d.edge([B(primary, 880), T(reps, 880)], 'alt', { label: 'async', lx: 890, ly: 205, anchor: 'start' });
   add('g-db', {
     id: 'readscale', title: 'Read scaling and caching',
+    takeaway: 'Repeated reads → a cache; heavy reports → read replicas; too many connections from Lambda → RDS Proxy.',
+    check: {
+      q: 'Thousands of concurrent Lambda functions exhaust the connection limit of an RDS for MySQL database. What fixes this with the least code change?',
+      opts: [
+        'Put RDS Proxy between the functions and the database.',
+        'Move to a larger DB instance class.',
+        'Add read replicas.',
+        'Turn on Multi-AZ.'
+      ],
+      answer: 0,
+      why: 'RDS Proxy pools and reuses connections, so thousands of functions share a few. A bigger instance only raises the limit; replicas help reads, not connection counts; Multi-AZ is for availability.'
+    },
     svg: d.render(),
     caption: 'Hot reads stop at the cache, the rest spread over read replicas, and the primary only takes writes. Short-lived Lambda functions share a small pool of connections through RDS Proxy instead of opening one each.',
     legend: [['in', 'Requests'], ['data', 'Database traffic'], ['alt', 'Replication']],
@@ -770,12 +958,24 @@ function add(groupId, spec) {
   d.label(720, 340, 'active-active · last writer wins', { cls: 'd-lbl' });
   add('g-db', {
     id: 'multiregion', title: 'Multi-Region data',
+    takeaway: 'Relational data with a recovery point of seconds across Regions → Aurora Global Database; writes in every Region → DynamoDB global tables.',
+    check: {
+      q: 'Users in three Regions must write to the same data locally with single-digit millisecond latency. Which database fits?',
+      opts: [
+        'Aurora Global Database.',
+        'RDS with cross-Region read replicas.',
+        'A single DynamoDB table with DAX in each Region.',
+        'DynamoDB global tables.'
+      ],
+      answer: 3,
+      why: 'Global tables accept writes in every replica Region. Aurora Global Database and RDS read replicas have one writer Region, so remote writes travel there, and DAX caches reads only.'
+    },
     svg: d.render(),
     caption: 'Aurora Global Database keeps one writer and copies storage to other Regions in about a second, ready to promote. DynamoDB global tables let every Region write, replicating changes to the others.',
     legend: [['in', 'Cross-Region replication'], ['data', 'Local reads and writes'], ['alt', 'Writes forwarded to the primary']],
     cards: [
       ['Exam points', ul([
-        'Relational, "RPO of seconds, RTO of a minute", "low-latency reads in another Region" → <b>Aurora Global Database</b> (up to 5 secondary Regions, managed failover).',
+        'Relational, "RPO of seconds, RTO of a minute", "low-latency reads in another Region" → <b>Aurora Global Database</b> (managed failover, or switchover with no data loss).',
         'Key-value, "users in several Regions must write locally", "active-active" → <b>DynamoDB global tables</b>.',
         'Cheaper but slower: RDS cross-Region read replica (promote manually) or cross-Region snapshot and backup copies.',
         'Data residency: global tables replicate everything to every replica Region, so check where data is allowed to live.'
@@ -807,6 +1007,18 @@ function add(groupId, spec) {
   d.label(490, 474, 'faster recovery, higher cost', { cls: 'd-lbl d-halo' });
   add('g-dr', {
     id: 'dr', title: 'Disaster recovery strategies',
+    takeaway: 'Read the RPO and RTO, then pick the cheapest strategy that meets both: backup and restore → pilot light → warm standby → active-active.',
+    check: {
+      q: 'A database-backed application needs a recovery point of 5 minutes and a recovery time of 1 hour in another Region, at the lowest cost. Which strategy?',
+      opts: [
+        'Backup and restore from cross-Region snapshots.',
+        'Warm standby with a scaled-down copy of the full stack running.',
+        'Pilot light: replicate the database continuously and start the application tier from AMIs and templates during a disaster.',
+        'Multi-site active-active.'
+      ],
+      answer: 2,
+      why: 'Continuous replication meets a 5-minute RPO, and launching the app tier fits in an hour. Snapshots give an RPO of hours; warm standby and active-active also work but cost more.'
+    },
     svg: d.render(),
     caption: 'The strategies differ in how much of the DR Region is already running. Pick the cheapest one whose recovery point and recovery time meet the requirement.',
     legend: [['data', 'One-way copy or replication'], ['in', 'Two-way, both Regions live']],
@@ -849,6 +1061,18 @@ function add(groupId, spec) {
   d.label(480, 437, 'a huge one-time move over a slow link → AWS Snowball: ship the data instead', { cls: 'd-lbl' });
   add('g-storage', {
     id: 'hybridstorage', title: 'Hybrid storage and data transfer',
+    takeaway: 'Keep the on-premises protocol and store the data in AWS → Storage Gateway (File, Volume, Tape); move data → DataSync.',
+    check: {
+      q: 'A company\'s backup software writes to a physical tape library. It wants to stop handling tapes and archive to AWS without changing the backup software. What should it use?',
+      opts: [
+        'S3 File Gateway.',
+        'AWS DataSync to S3 Glacier.',
+        'Volume Gateway in stored mode.',
+        'Tape Gateway, archiving virtual tapes to S3 Glacier Deep Archive.'
+      ],
+      answer: 3,
+      why: 'Tape Gateway presents a virtual tape library over iSCSI, so the backup software sees tapes. File and Volume Gateway present shares and disks, and DataSync is for copying files.'
+    },
     svg: d.render(),
     caption: 'Each Storage Gateway type keeps the protocol your servers already speak and puts the data in AWS behind it, with a local cache for speed. DataSync is for moving data, once or on a schedule, not for serving it.',
     legend: [['data', 'Local protocol'], ['in', 'To AWS']],
@@ -897,8 +1121,20 @@ function add(groupId, spec) {
   });
   add('g-storage', {
     id: 'filesystems', title: 'Shared file systems',
+    takeaway: 'Linux and NFS → EFS; Windows, SMB and Active Directory → FSx for Windows; HPC on data in S3 → FSx for Lustre.',
+    check: {
+      q: 'A Windows application on EC2 in two AZs needs a shared file system with SMB, NTFS permissions and Active Directory integration. What should be used?',
+      opts: [
+        'Amazon FSx for Windows File Server, Multi-AZ.',
+        'Amazon EFS.',
+        'Amazon FSx for Lustre.',
+        'An EBS io2 volume with Multi-Attach.'
+      ],
+      answer: 0,
+      why: 'FSx for Windows speaks SMB and joins the domain. EFS is NFS for Linux, Lustre is for HPC, and Multi-Attach works only within one AZ and needs a cluster-aware file system.'
+    },
     svg: d.render(),
-    caption: 'Pick the shared file system by the clients\' operating system and protocol first, then by performance. Block storage (EBS) is not shared, apart from io2 Multi-Attach within one AZ.',
+    caption: 'Pick the shared file system by the clients\' operating system and protocol first, then by performance. Block storage (EBS) is not shared, apart from io1/io2 Multi-Attach within one AZ.',
     legend: [['in', 'Clients mount'], ['data', 'Linked to S3'], ['alt', 'Supporting feature']],
     cards: [
       ['Which one?', table(['Need', 'Choose'], [
@@ -943,6 +1179,18 @@ function add(groupId, spec) {
   d.label(670, 350, 'Replication Time Control: 99.99% within 15 minutes', { cls: 'd-lbl' });
   add('g-storage', {
     id: 's3protect', title: 'S3 lifecycle and protection',
+    takeaway: 'Lifecycle rules move data to cheaper classes as it ages; versioning and Object Lock stop deletion; replication keeps a copy elsewhere.',
+    check: {
+      q: 'Audit records in S3 must not be deleted or overwritten by anyone, including the root user, for 7 years. What should be used?',
+      opts: [
+        'S3 Object Lock in governance mode.',
+        'Versioning with MFA Delete.',
+        'A bucket policy that denies s3:DeleteObject.',
+        'S3 Object Lock in compliance mode with a 7-year retention period.'
+      ],
+      answer: 3,
+      why: 'Compliance mode cannot be shortened or removed by any user, root included. Governance mode can be bypassed with a permission, the root user can still delete with MFA Delete, and a bucket policy can be edited.'
+    },
     svg: d.render(),
     caption: 'Lifecycle rules move each object to cheaper storage as it ages and delete it at the end. Versioning, Object Lock and MFA Delete stop accidental or malicious loss, and replication keeps a copy in another Region or account.',
     legend: [['in', 'Lifecycle transition'], ['data', 'Replication'], ['alt', 'Bucket settings']],
@@ -990,6 +1238,18 @@ function add(groupId, spec) {
   d.label(650, 389, 'roles in every account', { cls: 'd-lbl' });
   add('g-security', {
     id: 'landingzone', title: 'Multi-account landing zone',
+    takeaway: 'Many accounts with guardrails → Organizations and Control Tower; SCPs cap permissions but grant none; people sign in through IAM Identity Center.',
+    check: {
+      q: 'No one in the development accounts, administrators included, may use any Region except two approved ones. What enforces this?',
+      opts: [
+        'An IAM policy attached to every user and role.',
+        'An SCP on the development OU that denies actions outside the approved Regions.',
+        'An AWS Config rule that flags resources in other Regions.',
+        'A permissions boundary on each administrator.'
+      ],
+      answer: 1,
+      why: 'An SCP limits every principal in the member accounts, including the root user, and covers accounts added later. IAM policies and boundaries can be changed by administrators, and Config only detects.'
+    },
     svg: d.render(),
     caption: 'Accounts are the strongest isolation boundary, so workloads, security tooling and logs each get their own. Policies attach to OUs and apply to every account in them, including accounts created later, and people sign in once to reach whichever accounts they are allowed into.',
     legend: [['data', 'Organization hierarchy'], ['in', 'Sign-in and access']],
@@ -1022,6 +1282,18 @@ function add(groupId, spec) {
   d.edge([B(bucket), T(key)], 'alt', { label: 'SSE-KMS objects', lx: 760, ly: 293, anchor: 'start' });
   add('g-security', {
     id: 'crossaccount', title: 'Cross-account access',
+    takeaway: 'Cross-account access is either a role to assume (its trust policy decides who) or a resource policy; with SSE-KMS the key policy must allow it too.',
+    check: {
+      q: 'A third-party vendor needs read access to an S3 bucket in your account. What is the most secure approach?',
+      opts: [
+        'An IAM user whose access keys are given to the vendor.',
+        'Presigned URLs regenerated and sent every week.',
+        'A public bucket with an obscure name.',
+        'An IAM role that trusts the vendor\'s account and requires an external ID.'
+      ],
+      answer: 3,
+      why: 'The vendor assumes the role and gets temporary credentials; the external ID protects against the confused-deputy problem. Long-lived keys can leak, and presigned URLs do not suit ongoing access.'
+    },
     svg: d.render(),
     caption: 'Either the caller becomes a role in the other account (its trust policy decides who may), or the resource\'s own policy lets the caller in as itself. Encrypted data adds a third gate: the KMS key policy.',
     legend: [['in', 'Assume a role'], ['data', 'Resource-based policy'], ['alt', 'Decryption check']],
@@ -1068,6 +1340,18 @@ function add(groupId, spec) {
   d.edge([B(eb), T(fix)], 'data');
   add('g-security', {
     id: 'edgesecurity', title: 'Edge security and threat detection',
+    takeaway: 'Block at the edge (WAF and Shield on CloudFront), detect with GuardDuty, gather findings in Security Hub, and respond through EventBridge.',
+    check: {
+      q: 'An application behind CloudFront and an ALB suffers an HTTP request flood from thousands of changing IP addresses. What is the most effective mitigation?',
+      opts: [
+        'Network ACL rules that deny the attacking IP addresses.',
+        'A rate-based rule in an AWS WAF web ACL on the CloudFront distribution.',
+        'Amazon GuardDuty.',
+        'Security group rules on the ALB.'
+      ],
+      answer: 1,
+      why: 'A rate-based rule blocks any IP that exceeds the limit, at the edge. Network ACLs hold few rules and cannot keep up with changing IPs, security groups cannot deny, and GuardDuty detects but does not block.'
+    },
     svg: d.render(),
     caption: 'Attacks are stopped as far out as possible: WAF and Shield at the CloudFront edge, and an ALB that only CloudFront can reach. Behind them, managed detectors read the logs, Security Hub gathers every finding in one place, and EventBridge turns findings into automatic responses.',
     legend: [['in', 'Request path'], ['alt', 'Protection attached'], ['data', 'Findings and responses']],
@@ -1115,6 +1399,18 @@ function add(groupId, spec) {
   d.label(480, 392, 'service auto scaling: target tracking on CPU or ALB requests per target', { cls: 'd-lbl' });
   add('g-ha', {
     id: 'containers', title: 'Containers on ECS with Fargate',
+    takeaway: 'Containers with the least operations → ECS or EKS on Fargate; the task role gives the app its AWS permissions.',
+    check: {
+      q: 'An ECS task running on Fargate must write to a DynamoDB table. How should it get permissions?',
+      opts: [
+        'Add the DynamoDB permissions to the task execution role.',
+        'Pass access keys to the container in environment variables.',
+        'Attach a policy for the table to the task\'s IAM task role.',
+        'Attach an instance profile to the container instances.'
+      ],
+      answer: 2,
+      why: 'The task role is what the application\'s code uses. The execution role is only for ECS itself (pulling images, writing logs), Fargate has no instances to profile, and stored keys are never the answer.'
+    },
     svg: d.render(),
     caption: 'Fargate runs each task with no servers to patch or scale, the ALB spreads requests across tasks in two AZs, and each task gets AWS permissions from its own task role. ECR holds the images; EFS gives tasks shared persistent storage.',
     legend: [['in', 'Request path'], ['data', 'Calls and storage'], ['alt', 'Image pull']],
@@ -1151,6 +1447,18 @@ function add(groupId, spec) {
   d.label(480, 422, 'Migration Hub tracks every server and database through the move', { cls: 'd-lbl' });
   add('g-dr', {
     id: 'migration', title: 'Migrating to AWS',
+    takeaway: 'Servers → Application Migration Service; databases → DMS (with SCT for a new engine); files → DataSync; more than the link can carry → Snowball.',
+    check: {
+      q: 'An on-premises Oracle database must move to Aurora PostgreSQL with minimal downtime. What should be used?',
+      opts: [
+        'AWS DataSync to copy the database files.',
+        'An export dump shipped on a Snowball Edge device.',
+        'AWS SCT to convert the schema, then AWS DMS with a full load and ongoing change data capture.',
+        'AWS Application Migration Service.'
+      ],
+      answer: 2,
+      why: 'A different engine needs SCT for the schema and code, and DMS with CDC keeps the target in sync until a short cutover. DataSync moves files, and a dump means downtime for the whole transfer.'
+    },
     svg: d.render(),
     caption: 'Each kind of workload has its own tool. Servers and databases keep replicating while the old ones stay in use, so the final cutover takes minutes; files sync on a schedule; data too big for the network travels on a device.',
     legend: [['data', 'Read from the source'], ['in', 'Over the network'], ['alt', 'Shipped offline']],
@@ -1199,6 +1507,18 @@ function add(groupId, spec) {
   d.edge([R(alb), L(cf)], 'in', { label: 'HTTPS to the origin', lx: 655, ly: 382 });
   add('g-security', {
     id: 'encryption', title: 'Encryption and secrets',
+    takeaway: 'Audit key use → SSE-KMS; rotate database passwords → Secrets Manager; TLS certificates → ACM (in us-east-1 for CloudFront).',
+    check: {
+      q: 'The password of an RDS database must rotate automatically every 30 days with no change to the application\'s code path. What should be used?',
+      opts: [
+        'A Systems Manager Parameter Store SecureString.',
+        'Automatic rotation of the KMS key.',
+        'An encrypted object in S3, updated by a cron job.',
+        'Secrets Manager with automatic rotation.'
+      ],
+      answer: 3,
+      why: 'Secrets Manager rotates RDS credentials with a managed rotation function. Parameter Store has no built-in RDS rotation, and KMS key rotation changes key material, not passwords.'
+    },
     svg: d.render(),
     caption: 'KMS keys never leave KMS; services encrypt with short-lived data keys and keep only an encrypted copy of each. Secrets Manager keeps credentials out of code and rotates them, and ACM keeps TLS certificates renewed.',
     legend: [['in', 'Requests'], ['alt', 'Returned key, rotation'], ['data', 'Stored or attached']],
@@ -1214,7 +1534,7 @@ function add(groupId, spec) {
         '"Audit who used the key" → SSE-KMS. Lots of KMS calls costing money or throttling → enable <b>S3 Bucket Keys</b>.',
         'You can\'t encrypt an existing unencrypted RDS instance in place: snapshot → copy with encryption → restore.',
         '"Rotate database credentials automatically" → Secrets Manager. Plain configuration values → Systems Manager Parameter Store (cheaper, no built-in rotation for RDS).',
-        'Single-tenant hardware keys under your sole control, FIPS 140-2 Level 3 → CloudHSM. Your own key material in KMS → imported keys.',
+        'Dedicated, single-tenant HSMs that you alone control (KMS is FIPS-validated too, but AWS runs it) → CloudHSM. Your own key material in KMS → imported keys.',
         'Other accounts or Regions need the key → key policy grants, or multi-Region keys.'
       ])]
     ]
@@ -1249,6 +1569,18 @@ function add(groupId, spec) {
   d.edge([L(patch), R(fleet)], 'alt');
   add('g-ops', {
     id: 'operations', title: 'Operations and auto-remediation',
+    takeaway: 'Memory and disk metrics need the CloudWatch agent; Config with SSM Automation fixes drift; Session Manager replaces SSH and bastions.',
+    check: {
+      q: 'A company needs an alarm when memory use on its EC2 instances goes above 80%. What must it do first?',
+      opts: [
+        'Install the CloudWatch agent so the instances publish memory metrics.',
+        'Turn on detailed monitoring for the instances.',
+        'Turn on VPC Flow Logs.',
+        'Create an AWS Config rule.'
+      ],
+      answer: 0,
+      why: 'EC2 reports CPU, network and disk I/O from the hypervisor, but not memory. Detailed monitoring only makes the default metrics more frequent.'
+    },
     svg: d.render(),
     caption: 'Three loops keep a workload healthy with little manual work: alarms on the right metrics, Config rules that repair drift on their own, and Systems Manager for access and patching without SSH or bastion hosts.',
     legend: [['data', 'Data and evaluation'], ['in', 'Actions'], ['alt', 'Automatic fixes and patching']],
@@ -1289,6 +1621,18 @@ function add(groupId, spec) {
   d.edge([T(opt), B(grav)], 'alt', { label: 'recommends sizes', lx: 770, ly: 345, anchor: 'start' });
   add('g-cost', {
     id: 'costcompute', title: 'Cost-optimized compute',
+    takeaway: 'Commit for the steady baseline (Savings Plans or RIs), put interruptible work on Spot, and scale the rest On-Demand.',
+    check: {
+      q: 'A company runs steady EC2 workloads today and will move parts of them to Fargate and Lambda within a year. Which purchase saves the most while staying flexible?',
+      opts: [
+        'Standard Reserved Instances.',
+        'An EC2 Instance Savings Plan.',
+        'A Compute Savings Plan.',
+        'Spot Instances.'
+      ],
+      answer: 2,
+      why: 'A Compute Savings Plan applies across instance families, Regions, Fargate and Lambda. Standard RIs and EC2 Instance Savings Plans are tied to EC2 families, and Spot can be interrupted.'
+    },
     svg: d.render(),
     caption: 'Price follows commitment and flexibility: commit to the steady part, put interruptible work on Spot, scale everything else, and switch off what nobody uses. One Auto Scaling group can combine all of it.',
     legend: [['in', 'Best fit'], ['alt', 'How the group uses them']],
@@ -1339,6 +1683,18 @@ function add(groupId, spec) {
   d.edge([R(b1, b1.cy + 12), [498, b1.cy + 12], [498, dc.cy], L(dc)], 'out', { label: 'DX out: lower rate', lx: 655, ly: 292 });
   add('g-cost', {
     id: 'datatransfer', title: 'Data transfer costs',
+    takeaway: 'Inbound, same-AZ private and origin-to-CloudFront traffic is free; NAT, cross-AZ, inter-Region and internet egress are billed per GB.',
+    check: {
+      q: 'A company serves large files from an S3 bucket to users around the world, and its data transfer bill is high. What lowers it?',
+      opts: [
+        'Turn on S3 Transfer Acceleration.',
+        'Replicate the bucket to more Regions.',
+        'Route downloads through a NAT gateway.',
+        'Put a CloudFront distribution in front of the bucket.'
+      ],
+      answer: 3,
+      why: 'Fetches from S3 into CloudFront are free, edge delivery costs less than S3 internet egress, and cached files are not fetched again. Transfer Acceleration adds a charge, and replication adds inter-Region charges.'
+    },
     svg: d.render(),
     caption: 'Data coming in is free, data staying inside one AZ is free, and fetches from AWS origins into CloudFront are free; almost everything else is billed per GB. Many "most cost-effective" answers just move traffic onto a free or cheaper path.',
     legend: [['in', 'Free'], ['out', 'Charged per GB']],
@@ -1376,6 +1732,18 @@ function add(groupId, spec) {
   d.label(640, 370, 'over budget: apply an SCP, stop instances', { cls: 'd-lbl d-halo' });
   add('g-cost', {
     id: 'costgovernance', title: 'Cost governance',
+    takeaway: 'See spend → Cost Explorer; alert or act at a threshold → Budgets; unexpected spikes → Anomaly Detection; every line item → CUR and Athena.',
+    check: {
+      q: 'Finance wants costs by department across all accounts. Resources already carry a Department tag. What else must be done?',
+      opts: [
+        'Turn on Cost Explorer in each member account.',
+        'Activate Department as a cost allocation tag in the management account.',
+        'Create one budget per department.',
+        'Turn on AWS Config in every account.'
+      ],
+      answer: 1,
+      why: 'Tags appear in billing data only after they are activated as cost allocation tags, and only from then on. Budgets and Config do not break costs down by tag.'
+    },
     svg: d.render(),
     caption: 'One organization gives one bill with shared discounts, tags say who spent what, and four tools turn that bill into reports, alerts and automatic guardrails.',
     legend: [['data', 'Billing data'], ['alt', 'Automatic action']],
