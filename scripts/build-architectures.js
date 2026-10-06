@@ -454,7 +454,7 @@ function add(groupId, spec) {
   d.edge([T(user), [user.cx, cf.cy], L(cf)], 'in', { label: '1 load the app', lx: 95, ly: 120 });
   d.edge([R(cf), L(s3)], 'in');
   d.edge([B(user), [user.cx, cog.cy], L(cog)], 'alt', { label: '2 sign in → token', lx: 95, ly: 290 });
-  d.edge([R(user), L(api, user.cy + 20)], 'in', { label: '3 call + JWT', lx: 205, ly: 178 });
+  d.edge([R(user), L(api, user.cy)], 'in', { label: '3 call + JWT', lx: 205, ly: 186 });
   d.edge([B(api, 330), T(cog, 330)], 'alt', { label: 'verify token', lx: 340, ly: 270, anchor: 'start' });
   d.edge([R(api), L(fn)], 'in');
   d.edge([R(fn), L(ddb)], 'data', { label: 'read / write', lx: 702, ly: 186 });
@@ -1278,7 +1278,7 @@ function add(groupId, spec) {
   d.edge([T(app, 120), [120, sts.cy], L(sts)], 'in', { label: '1 AssumeRole', lx: 200, ly: 66 });
   d.edge([R(sts), L(role)], 'in', { label: 'trust', lx: 562, ly: 66 });
   d.edge([B(role, 680), T(bucket, 680)], 'in', { label: '2 read as the role', lx: 690, ly: 160, anchor: 'start' });
-  d.edge([R(app), L(bucket, app.cy + 20)], 'data', { label: 'or: the bucket policy names Account A', lx: 445, ly: 232 });
+  d.edge([R(app, 205), L(bucket, 205)], 'data', { label: 'or: the bucket policy names Account A', lx: 445, ly: 225 });
   d.edge([B(bucket), T(key)], 'alt', { label: 'SSE-KMS objects', lx: 760, ly: 293, anchor: 'start' });
   add('g-security', {
     id: 'crossaccount', title: 'Cross-account access',
@@ -1670,7 +1670,7 @@ function add(groupId, spec) {
   const dc = d.node(720, 250, 'Data center', { w: 220, sub: 'over Direct Connect' });
   d.edge([B(users, 95), T(a1, 95)], 'in', { label: 'inbound: free', lx: 105, ly: 96, anchor: 'start' });
   d.edge([T(a2, 280), B(cf, 280)], 'in', { label: 'origin fetch: free', lx: 290, ly: 96, anchor: 'start' });
-  d.edge([L(cf), R(users)], 'out', { label: '$', lx: 205, ly: 40 });
+  d.edge([L(cf, users.cy), R(users)], 'out', { label: '$', lx: 205, ly: 35 });
   d.edge([R(a1), L(a2)], 'in', { both: true });
   d.label(225, 250, 'same AZ, private IP: free', { cls: 'd-lbl' });
   d.edge([R(a2), L(b1)], 'out', { both: true });

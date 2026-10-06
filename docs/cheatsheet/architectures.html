@@ -225,21 +225,21 @@
           <line class="d-in" x1="480" y1="50" x2="480" y2="86" marker-end="url(#v-in)"/>
           <text class="d-lbl" x="492" y="73">HTTPS 443</text>
           <line class="d-in" x1="480" y1="124" x2="480" y2="203" marker-end="url(#v-in)"/>
-          <line class="d-in" x1="420" y1="245" x2="270" y2="358" marker-end="url(#v-in)"/>
-          <line class="d-in" x1="540" y1="245" x2="690" y2="358" marker-end="url(#v-in)"/>
+          <line class="d-in" x1="320" y1="245" x2="320" y2="358" marker-end="url(#v-in)"/>
+          <line class="d-in" x1="640" y1="245" x2="640" y2="358" marker-end="url(#v-in)"/>
           <text class="d-lbl d-halo" x="480" y="306" text-anchor="middle">HTTP 80 · app SG allows ALB SG</text>
 
           <!-- outbound only: instances -> NAT in the same zone -> internet gateway -->
-          <line class="d-out" x1="226" y1="360" x2="168" y2="248" marker-end="url(#v-out)"/>
-          <line class="d-out" x1="734" y1="360" x2="792" y2="248" marker-end="url(#v-out)"/>
-          <line class="d-out" x1="166" y1="205" x2="428" y2="126" marker-end="url(#v-out)"/>
-          <line class="d-out" x1="794" y1="205" x2="532" y2="126" marker-end="url(#v-out)"/>
-          <text class="d-lbl d-halo" x="300" y="172" text-anchor="middle">outbound only</text>
-          <text class="d-lbl d-halo" x="660" y="172" text-anchor="middle">outbound only</text>
+          <line class="d-out" x1="211" y1="360" x2="211" y2="247" marker-end="url(#v-out)"/>
+          <line class="d-out" x1="749" y1="360" x2="749" y2="247" marker-end="url(#v-out)"/>
+          <polyline class="d-out" points="156,205 156,188 440,188 440,126" marker-end="url(#v-out)"/>
+          <polyline class="d-out" points="804,205 804,188 520,188 520,126" marker-end="url(#v-out)"/>
+          <text class="d-lbl d-halo" x="300" y="180" text-anchor="middle">outbound only</text>
+          <text class="d-lbl d-halo" x="660" y="180" text-anchor="middle">outbound only</text>
 
           <!-- database traffic -->
           <line class="d-data" x1="266" y1="400" x2="266" y2="518" marker-end="url(#v-data)"/>
-          <line class="d-data" x1="694" y1="400" x2="358" y2="528" marker-end="url(#v-data)"/>
+          <polyline class="d-data" points="640,400 640,495 336,495 336,518" marker-end="url(#v-data)"/>
           <text class="d-lbl d-halo" x="276" y="462">SQL 3306</text>
           <line class="d-data" x1="356" y1="541" x2="602" y2="541" marker-end="url(#v-data)"/>
           <text class="d-lbl d-halo" x="480" y="533" text-anchor="middle">synchronous replication</text>
@@ -250,17 +250,17 @@
           <image data-ico="igw" x="413" y="94" width="24" height="24"/>
           <text class="d-title" x="443" y="111">Internet gateway</text>
 
-          <rect class="d-node" x="330" y="205" width="300" height="40" rx="8"/>
-          <image data-ico="alb" x="340" y="213" width="24" height="24"/>
-          <text class="d-title" x="372" y="230">Application Load Balancer</text>
+          <rect class="d-node" x="260" y="205" width="440" height="40" rx="8"/>
+          <image data-ico="alb" x="384" y="213" width="24" height="24"/>
+          <text class="d-title" x="416" y="230">Application Load Balancer</text>
           <text class="d-lbl d-halo" x="480" y="262" text-anchor="middle">nodes in both AZs</text>
 
-          <rect class="d-node" x="96" y="205" width="140" height="40" rx="8"/>
-          <image data-ico="nat" x="104" y="213" width="24" height="24"/>
-          <text class="d-title" x="134" y="230">NAT gateway</text>
-          <rect class="d-node" x="724" y="205" width="140" height="40" rx="8"/>
-          <image data-ico="nat" x="732" y="213" width="24" height="24"/>
-          <text class="d-title" x="762" y="230">NAT gateway</text>
+          <rect class="d-node" x="86" y="205" width="140" height="40" rx="8"/>
+          <image data-ico="nat" x="94" y="213" width="24" height="24"/>
+          <text class="d-title" x="124" y="230">NAT gateway</text>
+          <rect class="d-node" x="734" y="205" width="140" height="40" rx="8"/>
+          <image data-ico="nat" x="742" y="213" width="24" height="24"/>
+          <text class="d-title" x="772" y="230">NAT gateway</text>
 
           <rect class="d-asg" x="140" y="328" width="680" height="94" rx="10"/>
           <image data-ico="asg" x="380" y="334" width="16" height="16"/>
@@ -370,7 +370,7 @@
           <text class="d-cap" x="770" y="186">AWS SERVICES</text>
 
           <!-- without an endpoint: instance -> NAT -> internet gateway -> S3's public endpoint -->
-          <line class="d-out" x1="160" y1="250" x2="190" y2="172" marker-end="url(#e-out)"/>
+          <line class="d-out" x1="200" y1="250" x2="200" y2="172" marker-end="url(#e-out)"/>
           <line class="d-out" x1="200" y1="130" x2="200" y2="90" marker-end="url(#e-out)"/>
           <polyline class="d-out" points="200,52 200,36 900,36 900,198" marker-end="url(#e-out)"/>
           <text class="d-lbl d-halo" x="520" y="58" text-anchor="middle">without an endpoint: NAT processing, billed per GB</text>
@@ -705,7 +705,7 @@
 <polyline class="d-in" points="95,175 95,65 238,65" marker-end="url(#d8-in)"/>
 <polyline class="d-in" points="415,65 488,65" marker-end="url(#d8-in)"/>
 <polyline class="d-alt" points="95,215 95,335 238,335" marker-end="url(#d8-alt)"/>
-<polyline class="d-in" points="170,195 238.1,214.5" marker-end="url(#d8-in)"/>
+<polyline class="d-in" points="170,195 238,195" marker-end="url(#d8-in)"/>
 <polyline class="d-alt" points="330,220 330,308" marker-end="url(#d8-alt)"/>
 <polyline class="d-in" points="415,195 488,195" marker-end="url(#d8-in)"/>
 <polyline class="d-data" points="665,195 738,195" marker-end="url(#d8-data)"/>
@@ -720,7 +720,7 @@
 <rect class="d-node" x="740" y="300" width="185" height="50" rx="8"/><image data-ico="sqs" x="748" y="313" width="24" height="24"/><text class="d-title" x="778" y="321">SQS queue</text><text class="d-lbl" x="778" y="337">slow work, retries</text>
 <text class="d-lbl d-halo" x="95" y="120" text-anchor="middle">1 load the app</text>
 <text class="d-lbl d-halo" x="95" y="290" text-anchor="middle">2 sign in → token</text>
-<text class="d-lbl d-halo" x="205" y="178" text-anchor="middle">3 call + JWT</text>
+<text class="d-lbl d-halo" x="205" y="186" text-anchor="middle">3 call + JWT</text>
 <text class="d-lbl d-halo" x="340" y="270">verify token</text>
 <text class="d-lbl d-halo" x="702" y="186" text-anchor="middle">read / write</text>
 <text class="d-lbl d-halo" x="640" y="316" text-anchor="middle">enqueue</text>
@@ -1491,7 +1491,7 @@
 <polyline class="d-in" points="120,170 120,75 343,75" marker-end="url(#d24-in)"/>
 <polyline class="d-in" points="535,75 588,75" marker-end="url(#d24-in)"/>
 <polyline class="d-in" points="680,100 680,188" marker-end="url(#d24-in)"/>
-<polyline class="d-data" points="295,195 588,214.9" marker-end="url(#d24-data)"/>
+<polyline class="d-data" points="295,205 588,205" marker-end="url(#d24-data)"/>
 <polyline class="d-alt" points="750,240 750,313" marker-end="url(#d24-alt)"/>
 <rect class="d-node" x="45" y="170" width="250" height="50" rx="8"/><image data-ico="iamrole" x="53" y="183" width="24" height="24"/><text class="d-title" x="83" y="191">App role</text><text class="d-lbl" x="83" y="207">the caller</text>
 <rect class="d-node" x="345" y="50" width="190" height="50" rx="8"/><image data-ico="iam" x="353" y="63" width="24" height="24"/><text class="d-title" x="383" y="71">AWS STS</text><text class="d-lbl" x="383" y="87">temporary credentials</text>
@@ -1501,7 +1501,7 @@
 <text class="d-lbl d-halo" x="200" y="66" text-anchor="middle">1 AssumeRole</text>
 <text class="d-lbl d-halo" x="562" y="66" text-anchor="middle">trust</text>
 <text class="d-lbl d-halo" x="690" y="160">2 read as the role</text>
-<text class="d-lbl d-halo" x="445" y="232" text-anchor="middle">or: the bucket policy names Account A</text>
+<text class="d-lbl d-halo" x="445" y="225" text-anchor="middle">or: the bucket policy names Account A</text>
 <text class="d-lbl d-halo" x="760" y="293">SSE-KMS objects</text>
 </svg>
       </div>
@@ -1714,7 +1714,7 @@
 <text class="d-lbl" x="364" y="149">AZ B</text>
 <polyline class="d-in" points="95,60 95,178" marker-end="url(#d-transfer-in)"/>
 <polyline class="d-in" points="280,180 280,72" marker-end="url(#d-transfer-in)"/>
-<polyline class="d-out" points="240,45 172,40.1" marker-end="url(#d-transfer-out)"/>
+<polyline class="d-out" points="240,40 172,40" marker-end="url(#d-transfer-out)"/>
 <polyline class="d-in" points="170,200 198,200" marker-end="url(#d-transfer-in)" marker-start="url(#d-transfer-in)"/>
 <polyline class="d-out" points="310,200 368,200" marker-end="url(#d-transfer-out)" marker-start="url(#d-transfer-out)"/>
 <polyline class="d-in" points="115,220 115,368" marker-end="url(#d-transfer-in)"/>
@@ -1735,7 +1735,7 @@
 <rect class="d-node" x="720" y="250" width="220" height="50" rx="8"/><text class="d-title" x="830" y="271" text-anchor="middle">Data center</text><text class="d-lbl" x="830" y="287" text-anchor="middle">over Direct Connect</text>
 <text class="d-lbl d-halo" x="105" y="96">inbound: free</text>
 <text class="d-lbl d-halo" x="290" y="96">origin fetch: free</text>
-<text class="d-lbl d-halo" x="205" y="40" text-anchor="middle">$</text>
+<text class="d-lbl d-halo" x="205" y="35" text-anchor="middle">$</text>
 <text class="d-lbl" x="225" y="250" text-anchor="middle">same AZ, private IP: free</text>
 <text class="d-lbl d-halo" x="340" y="275" text-anchor="middle">cross-AZ: $ each way</text>
 <text class="d-lbl d-halo" x="125" y="340">to S3: free</text>
