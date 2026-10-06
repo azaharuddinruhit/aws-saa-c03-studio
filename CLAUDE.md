@@ -6,6 +6,7 @@ A static study site for the AWS Solutions Architect Associate (SAA-C03) exam. Fe
 - **Progress overview** combining all the banks.
 - **Ten cheat sheets.**
 - **Architecture diagrams page.**
+- **Mind map** of every service by exam domain, with exam cues and quiz progress.
 
 Everything lives in `docs/`, which GitHub Pages serves as is. There is no framework, bundler or package.json.
 
@@ -22,6 +23,8 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `docs/cheatsheet/icons.js` | AWS service icons as SVG strings (`window.AWS_ICONS`). Use them through `App.iconURL(key)`. |
 | `docs/cheatsheet/architectures.html` | 32 architecture diagrams, mostly generated (see below). |
 | `scripts/build-architectures.js` | Generates diagrams 3–32, the contents list and the jump panel into `architectures.html`. |
+| `docs/cheatsheet/mindmap.html` | Interactive mind map: exam domain → category → service → feature. Its data is generated (see below). |
+| `scripts/build-mindmap.js` + `mindmap-cues.json` | Generates the mind map data from the vocabulary, the cues, the three banks and the diagrams page. |
 | `scripts/check-tags.js` + `tag-vocabulary.json` | Validates every question's `services` tags. |
 | `.github/workflows/deploy.yml` | On push to `develop`: checks tags, stamps the version, deploys Pages. |
 
@@ -30,6 +33,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 ```sh
 node scripts/check-tags.js            # must pass, or the deploy fails
 node scripts/build-architectures.js   # after any change to the diagram specs
+node scripts/build-mindmap.js         # after changing cues, the vocabulary, questions or tags, or diagrams
 cd docs && python -m http.server 8000 # local preview at http://localhost:8000
 ```
 
@@ -79,6 +83,14 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
   - ink (`data`) = data;
   - muted dotted (`alt`) = control, failover, DNS or automatic actions.
 - **Exam accuracy matters more than anything else on this page.** Facts must match current AWS behaviour, and prices or limits that change often are better left out.
+
+## Mind map
+
+- **Where to edit:** service content lives in `scripts/mindmap-cues.json`, with one entry per vocabulary service (`cue`, `traps`, `twins`, `sheet`, `icon`, `icons`, `domain`). Rebuild after editing; never hand-edit between the `GENERATED:DATA` markers in `mindmap.html`.
+- **The build checks itself:** it fails if a vocabulary service has no cue, or if a cue names an unknown service, icon, cheat-sheet topic or diagram. A new vocabulary service therefore needs a cue before the map will rebuild.
+- **Placement:** each service sits under the exam domain where most of its tagged questions are. The cue's `domain` is used only for a tie, or when there are no questions.
+- **Progress overlay:** it reads each bank's `<prefix>attempts` from localStorage (latest answer per question). It never writes quiz data. Its own keys are `saa_mindmap_overlay` and `saa_mindmap_open`; both are view preferences and are not synced.
+- **Same accuracy rule as the diagrams:** keep cues true to current AWS behaviour, and leave out prices and limits that change often.
 
 ## Gotchas (Windows, Git Bash)
 

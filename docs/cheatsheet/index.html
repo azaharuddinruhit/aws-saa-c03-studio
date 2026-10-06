@@ -26,7 +26,7 @@
   <p class="oneliner" style="margin-top:-8px">Each domain has the same layout: <b>Learn</b> one topic at a time, <b>Practice</b> with a quiz and flashcards, and <b>Revise</b> on one sheet the night before. Domains are ordered by how often they appear in your practice sets.</p>
   <div class="domains" id="domains"></div>
   <div>
-    <div class="eyebrow">Architecture patterns</div>
+    <div class="eyebrow">Patterns and the big picture</div>
     <div class="domains" id="extras" style="margin-top:10px"></div>
   </div>
 </main>
@@ -58,7 +58,9 @@ $('#domains').innerHTML = DOMAINS.map(([id,name,ico,topics,q,share], i)=>{
     <span style="grid-column:1/-1">${passed ? `${passed} of ${topics} topics passed` : 'Not started'}</span></a>`;
 }).join('');
 $('#extras').innerHTML = `<a class="domain" href="architectures.html">${img('vpc','','')}<b>Architecture diagrams</b>
-    <span>Traffic paths, route tables and exam points for the patterns the exam keeps using</span></a>`;
+    <span>Traffic paths, route tables and exam points for the patterns the exam keeps using</span></a>
+  <a class="domain" href="mindmap.html">${img('orgs','','')}<b>Mind map</b>
+    <span>Every service by exam domain: when to pick it, the traps, and how you score on its questions</span></a>`;
 $('#themeBtn').addEventListener('click', () => {
   const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const next = cur === 'dark' ? 'light' : 'dark';

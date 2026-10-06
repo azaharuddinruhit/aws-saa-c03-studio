@@ -1,0 +1,629 @@
+{
+  "about": "Exam cues for the mind map (docs/cheatsheet/mindmap.html), one per service in tag-vocabulary.json. cue = when the exam wants this service; traps = the mistakes questions are built on; twins = look-alike services (vocabulary names); sheet = cheat-sheet page#topic or null; icon = icons.js key shown on the node (null for none); icons = extra icons.js keys that mean this service in the architecture diagrams; diagrams = extra diagram ids; domain = exam domain (1-4) used when the tagged questions don't settle one. Rebuild with: node scripts/build-mindmap.js",
+  "services": {
+    "IAM": {
+      "domain": 1, "icon": "iam", "icons": ["iamrole"], "sheet": "01-security.html#iam",
+      "cue": "Who can do what in an account: users, groups, roles and policies. Roles give temporary credentials to services and other accounts.",
+      "traps": ["An explicit Deny anywhere beats every Allow.", "Give EC2 and Lambda a role, never stored access keys."],
+      "twins": ["IAM Identity Center", "Organizations"]
+    },
+    "IAM Identity Center": {
+      "domain": 1, "icon": "idc", "icons": [], "sheet": "01-security.html#cognito",
+      "cue": "Workforce single sign-on to many AWS accounts and business apps, with permission sets, often federated from an existing identity provider.",
+      "traps": ["It is for employees; app end users belong in Cognito."],
+      "twins": ["Cognito", "IAM"]
+    },
+    "Organizations": {
+      "domain": 1, "icon": "orgs", "icons": [], "sheet": "01-security.html#orgs",
+      "cue": "Group accounts into OUs, set guardrails with SCPs, and pay one consolidated bill.",
+      "traps": ["SCPs only limit the maximum permissions; they never grant any.", "SCPs do not apply to the management account."],
+      "twins": ["Control Tower", "IAM"]
+    },
+    "Control Tower": {
+      "domain": 1, "icon": "controltower", "icons": [], "sheet": "01-security.html#orgs",
+      "cue": "Set up and govern a multi-account landing zone quickly, with preventive and detective controls built on Organizations.",
+      "traps": ["Control Tower orchestrates Organizations, SCPs and Config; it does not replace them."],
+      "twins": ["Organizations"]
+    },
+    "Resource Access Manager": {
+      "domain": 1, "icon": "ram", "icons": [], "sheet": "01-security.html#orgs",
+      "cue": "Share resources such as subnets, Transit Gateways and Resolver rules with other accounts instead of copying them.",
+      "traps": ["Sharing VPC subnets (VPC sharing) is not the same as VPC peering."],
+      "twins": ["Transit Gateway"]
+    },
+    "Cognito": {
+      "domain": 1, "icon": "cognito", "icons": [], "sheet": "01-security.html#cognito",
+      "cue": "Sign-in for your app's end users. User pools issue tokens; identity pools swap them for temporary AWS credentials.",
+      "traps": ["Need to call AWS directly, e.g. upload to S3? That is an identity pool, not a user pool."],
+      "twins": ["IAM Identity Center"]
+    },
+    "Directory Service": {
+      "domain": 1, "icon": "dirsvc", "icons": [], "sheet": "01-security.html#cognito",
+      "cue": "Microsoft Active Directory on AWS: Managed Microsoft AD runs a real directory; AD Connector proxies to your on-premises AD.",
+      "traps": ["AD Connector stores nothing in AWS; it needs the on-premises AD to be reachable."],
+      "twins": ["IAM Identity Center"]
+    },
+    "KMS": {
+      "domain": 1, "icon": "kms", "icons": [], "sheet": "01-security.html#encrypt",
+      "cue": "Managed encryption keys for almost every service, with key policies, grants, rotation and CloudTrail auditing.",
+      "traps": ["Cross-account use of a customer managed key needs the key policy to allow it.", "Keys are Regional unless they are multi-Region keys."],
+      "twins": ["CloudHSM", "Secrets Manager"]
+    },
+    "CloudHSM": {
+      "domain": 1, "icon": "cloudhsm", "icons": [], "sheet": "01-security.html#encrypt",
+      "cue": "Single-tenant hardware security modules you control yourself, for FIPS 140 Level 3 or keys AWS must never be able to use.",
+      "traps": ["You manage the users and keys; AWS cannot recover them for you."],
+      "twins": ["KMS"]
+    },
+    "Secrets Manager": {
+      "domain": 1, "icon": "secrets", "icons": [], "sheet": "01-security.html#encrypt",
+      "cue": "Store database passwords and API keys, and rotate them automatically.",
+      "traps": ["Parameter Store is cheaper for config values, but has no built-in rotation."],
+      "twins": ["Systems Manager", "KMS"]
+    },
+    "Certificate Manager": {
+      "domain": 1, "icon": "acm", "icons": [], "sheet": "01-security.html#encrypt",
+      "cue": "Free public TLS certificates that renew themselves, for ALB, CloudFront and API Gateway.",
+      "traps": ["CloudFront needs the certificate in us-east-1; a regional ALB or API needs one in its own Region."],
+      "twins": []
+    },
+    "WAF": {
+      "domain": 1, "icon": "waf", "icons": [], "sheet": "01-security.html#protect",
+      "cue": "Layer 7 filtering on CloudFront, ALB, API Gateway and AppSync: SQL injection, XSS, bad bots, IP and geo rules, rate limits.",
+      "traps": ["WAF cannot attach to an NLB.", "Large network-level DDoS is Shield's job."],
+      "twins": ["Shield", "Network Firewall"]
+    },
+    "Shield": {
+      "domain": 1, "icon": "shield", "icons": [], "sheet": "01-security.html#protect",
+      "cue": "DDoS protection. Standard is free and automatic; Advanced adds a 24/7 response team and cost protection for scaling during an attack.",
+      "traps": ["Everyone already has Shield Standard; pick Advanced only for the response team or cost protection."],
+      "twins": ["WAF"]
+    },
+    "Firewall Manager": {
+      "domain": 1, "icon": "fwmanager", "icons": [], "sheet": "01-security.html#protect",
+      "cue": "Apply WAF, Shield Advanced, security group and Network Firewall policies across every account in an organization.",
+      "traps": ["It needs Organizations; it manages rules, it does not filter traffic itself."],
+      "twins": ["WAF", "Organizations"]
+    },
+    "GuardDuty": {
+      "domain": 1, "icon": "guardduty", "icons": [], "sheet": "01-security.html#detect",
+      "cue": "Threat detection from CloudTrail, VPC Flow Logs and DNS logs: compromised instances, crypto mining, unusual API calls.",
+      "traps": ["It detects; it does not block. Pair it with EventBridge and Lambda to respond."],
+      "twins": ["Inspector", "Detective", "Macie"]
+    },
+    "Inspector": {
+      "domain": 1, "icon": "inspector", "icons": [], "sheet": "01-security.html#detect",
+      "cue": "Scans EC2 instances, container images in ECR and Lambda functions for software vulnerabilities and network exposure.",
+      "traps": ["Vulnerabilities (CVEs) are Inspector; active threats are GuardDuty."],
+      "twins": ["GuardDuty"]
+    },
+    "Macie": {
+      "domain": 1, "icon": "macie", "icons": [], "sheet": "01-security.html#detect",
+      "cue": "Finds sensitive data such as PII and credentials in S3 buckets using machine learning.",
+      "traps": ["Macie looks only at S3."],
+      "twins": ["GuardDuty"]
+    },
+    "Detective": {
+      "domain": 1, "icon": "detective", "icons": [], "sheet": "01-security.html#detect",
+      "cue": "Investigate the root cause of a finding with linked graphs of logs over time.",
+      "traps": ["GuardDuty raises the finding; Detective helps you investigate it."],
+      "twins": ["GuardDuty", "Security Hub"]
+    },
+    "Security Hub": {
+      "domain": 1, "icon": "securityhub", "icons": [], "sheet": "01-security.html#detect",
+      "cue": "One place for security findings from GuardDuty, Inspector, Macie and more, plus checks against standards like CIS.",
+      "traps": ["It collects and scores findings; it does not detect threats on its own."],
+      "twins": ["Detective", "Config"]
+    },
+    "Verified Access": {
+      "domain": 1, "icon": null, "icons": [], "sheet": null,
+      "cue": "Zero-trust access to internal web apps without a VPN, checking user identity and device posture on every request.",
+      "traps": ["Remote access to a whole network is Client VPN; per-app access without a VPN is Verified Access."],
+      "twins": ["VPN"]
+    },
+    "VPC": {
+      "domain": 1, "icon": "vpc", "icons": ["igw", "nat", "vpce", "privatelink", "peering", "nacl", "flowlogs"], "sheet": "02-networking.html#vpc",
+      "cue": "Your private network: subnets and route tables, security groups (stateful) and network ACLs (stateless), NAT, endpoints and peering.",
+      "traps": ["A private subnet needs a NAT gateway in a public subnet to reach the internet.", "Peering is not transitive.", "Gateway endpoints exist only for S3 and DynamoDB."],
+      "twins": ["Transit Gateway"]
+    },
+    "Transit Gateway": {
+      "domain": 2, "icon": "tgw", "icons": [], "sheet": "02-networking.html#connect",
+      "cue": "A hub that connects many VPCs, VPNs and Direct Connect, with route tables to control who talks to whom.",
+      "traps": ["Many VPCs fully meshed means too many peerings; use a Transit Gateway."],
+      "twins": ["VPC", "Direct Connect"]
+    },
+    "Direct Connect": {
+      "domain": 2, "icon": "dx", "icons": [], "sheet": "02-networking.html#hybrid",
+      "cue": "A private, dedicated link from your data center to AWS: consistent bandwidth and latency, lower transfer rates.",
+      "traps": ["It takes weeks to provision and is not encrypted by default; run a VPN over it if encryption is required.", "For resilience use two connections at two locations, or a VPN backup."],
+      "twins": ["VPN"]
+    },
+    "VPN": {
+      "domain": 2, "icon": "s2svpn", "icons": ["clientvpn", "vgw", "cgw"], "sheet": "02-networking.html#hybrid",
+      "cue": "Encrypted tunnels over the internet. Site-to-Site connects networks in minutes; Client VPN connects individual users.",
+      "traps": ["Quick and cheap to set up, but bandwidth and latency vary with the internet."],
+      "twins": ["Direct Connect", "Verified Access"]
+    },
+    "Elastic Load Balancing": {
+      "domain": 2, "icon": "elb", "icons": ["alb", "nlb", "gwlb"], "sheet": "02-networking.html#elb",
+      "cue": "Spread traffic over healthy targets in several AZs. ALB routes HTTP by path or host; NLB does TCP and UDP with static IPs; GWLB inserts appliances.",
+      "traps": ["Need a static IP or millions of requests a second? NLB, not ALB.", "Path-based routing and WAF need an ALB."],
+      "twins": ["Global Accelerator", "Route 53"]
+    },
+    "Route 53": {
+      "domain": 2, "icon": "route53", "icons": [], "sheet": "02-networking.html#route53",
+      "cue": "DNS with routing policies (failover, latency, weighted, geolocation) and health checks; alias records point at AWS resources.",
+      "traps": ["Use an alias record, not a CNAME, at the zone apex.", "DNS failover depends on TTLs and client caching."],
+      "twins": ["Global Accelerator", "Elastic Load Balancing"]
+    },
+    "CloudFront": {
+      "domain": 3, "icon": "cloudfront", "icons": [], "sheet": "02-networking.html#edge",
+      "cue": "A CDN that caches content at edge locations, with origin access control for S3, signed URLs and edge functions.",
+      "traps": ["Lock an S3 origin with origin access control, not a public bucket.", "Signed URLs or cookies for paid content; S3 presigned URLs are for direct S3 access."],
+      "twins": ["Global Accelerator"]
+    },
+    "Global Accelerator": {
+      "domain": 3, "icon": "globalacc", "icons": [], "sheet": "02-networking.html#edge",
+      "cue": "Two static anycast IPs that carry any TCP or UDP traffic over the AWS backbone to the nearest healthy Region, with fast failover.",
+      "traps": ["It caches nothing. HTTP content is CloudFront; static IPs, non-HTTP or fast Regional failover is Global Accelerator."],
+      "twins": ["CloudFront", "Route 53"]
+    },
+    "Network Firewall": {
+      "domain": 1, "icon": "netfw", "icons": [], "sheet": "01-security.html#protect",
+      "cue": "A managed stateful firewall for VPC traffic, with intrusion prevention and domain filtering for outbound traffic.",
+      "traps": ["Filtering outbound traffic by domain name is Network Firewall, not security groups."],
+      "twins": ["WAF", "Firewall Manager"]
+    },
+    "Local Zones & Wavelength": {
+      "domain": 3, "icon": "localzones", "icons": ["wavelength"], "sheet": "03-compute.html#other",
+      "cue": "Compute close to users: Local Zones extend a Region into a metro area; Wavelength sits inside 5G carrier networks.",
+      "traps": ["Single-digit millisecond latency in your own data center is Outposts instead."],
+      "twins": ["Outposts"]
+    },
+    "EC2": {
+      "domain": 4, "icon": "ec2", "icons": ["spot", "savings"], "sheet": "03-compute.html#ec2",
+      "cue": "Virtual servers. The exam turns on instance families, purchase options (On-Demand, Savings Plans, Reserved, Spot), placement groups and storage.",
+      "traps": ["Spot can be interrupted with a two-minute warning; only use it for fault-tolerant work.", "Instance store data is lost when the instance stops."],
+      "twins": ["Lambda", "Fargate"]
+    },
+    "EC2 Auto Scaling": {
+      "domain": 2, "icon": "asg", "icons": [], "sheet": "03-compute.html#asg",
+      "cue": "Keep the right number of healthy instances across AZs, with target tracking, step, scheduled or predictive scaling.",
+      "traps": ["Target tracking is the default answer; scheduled scaling is for known peaks.", "Scale queue workers on backlog per instance."],
+      "twins": ["Elastic Load Balancing"]
+    },
+    "Lambda": {
+      "domain": 3, "icon": "lambda", "icons": [], "sheet": "03-compute.html#lambda",
+      "cue": "Run code on events with no servers, paying per request and duration, for jobs of up to 15 minutes.",
+      "traps": ["Over 15 minutes, or long-running? Use Fargate, ECS or Batch.", "Reserved concurrency caps a function and protects downstream services."],
+      "twins": ["Fargate", "EC2"]
+    },
+    "ECS": {
+      "domain": 3, "icon": "ecs", "icons": [], "sheet": "03-compute.html#containers",
+      "cue": "AWS's own container orchestrator, running tasks and services on EC2 or Fargate.",
+      "traps": ["Task role for the app's AWS calls; task execution role for pulling images and writing logs."],
+      "twins": ["EKS", "Fargate"]
+    },
+    "EKS": {
+      "domain": 3, "icon": "eks", "icons": [], "sheet": "03-compute.html#containers",
+      "cue": "Managed Kubernetes. Pick it when the team already uses Kubernetes or needs portability.",
+      "traps": ["No Kubernetes requirement? ECS is simpler."],
+      "twins": ["ECS"]
+    },
+    "Fargate": {
+      "domain": 3, "icon": "fargate", "icons": [], "sheet": "03-compute.html#containers",
+      "cue": "Run containers for ECS or EKS without managing servers; you pay for each task's vCPU and memory.",
+      "traps": ["Least operational overhead for containers means Fargate, not ECS on EC2."],
+      "twins": ["ECS", "Lambda"]
+    },
+    "ECR": {
+      "domain": 3, "icon": "ecr", "icons": [], "sheet": "03-compute.html#containers",
+      "cue": "A private container image registry with image scanning, replication and lifecycle policies.",
+      "traps": [],
+      "twins": []
+    },
+    "Batch": {
+      "domain": 3, "icon": "batch", "icons": [], "sheet": "03-compute.html#other",
+      "cue": "Queue and run large batch jobs on managed EC2, Spot or Fargate capacity, with no time limit.",
+      "traps": ["Long jobs that outgrow Lambda's 15 minutes fit Batch."],
+      "twins": ["Lambda", "Step Functions"]
+    },
+    "Elastic Beanstalk": {
+      "domain": 3, "icon": "beanstalk", "icons": [], "sheet": "03-compute.html#beanstalk",
+      "cue": "Upload your code and it provisions and manages the EC2, load balancer and scaling for you, with deployment policies.",
+      "traps": ["The developers want to deploy code without managing infrastructure: Beanstalk."],
+      "twins": ["CloudFormation"]
+    },
+    "Outposts": {
+      "domain": 3, "icon": "outposts", "icons": [], "sheet": "03-compute.html#other",
+      "cue": "AWS racks in your own data center, for very low latency to local systems or data that must stay on premises.",
+      "traps": [],
+      "twins": ["Local Zones & Wavelength"]
+    },
+    "S3": {
+      "domain": 4, "icon": "s3", "icons": ["glacier"], "sheet": "04-storage.html#s3feat",
+      "cue": "Object storage with eleven nines of durability, storage classes, lifecycle rules, versioning, replication and Object Lock.",
+      "traps": ["Unknown access patterns: Intelligent-Tiering.", "Retrieval in minutes or hours decides between the Glacier classes.", "Replication needs versioning on both buckets."],
+      "twins": ["EFS", "EBS"]
+    },
+    "EBS": {
+      "domain": 4, "icon": "ebs", "icons": [], "sheet": "04-storage.html#ebs",
+      "cue": "Block volumes for one EC2 instance in one AZ: gp3 for general use, io2 for high IOPS, st1 and sc1 for throughput.",
+      "traps": ["A volume lives in one AZ; move it with a snapshot.", "Multi-Attach is io1/io2 only, in one AZ."],
+      "twins": ["EFS", "S3"]
+    },
+    "EFS": {
+      "domain": 3, "icon": "efs", "icons": [], "sheet": "04-storage.html#files",
+      "cue": "Elastic NFS file storage for Linux, shared by many instances and containers across AZs.",
+      "traps": ["Windows file shares (SMB) are FSx for Windows File Server, not EFS."],
+      "twins": ["FSx", "EBS"]
+    },
+    "FSx": {
+      "domain": 3, "icon": "fsx", "icons": ["fsxlustre", "fsxontap", "fsxwin", "fsxzfs"], "sheet": "04-storage.html#files",
+      "cue": "Managed third-party file systems: Windows File Server (SMB, AD), Lustre (HPC, links to S3), NetApp ONTAP and OpenZFS.",
+      "traps": ["HPC or ML needing very fast storage tied to S3: FSx for Lustre."],
+      "twins": ["EFS"]
+    },
+    "Storage Gateway": {
+      "domain": 3, "icon": "storagegw", "icons": [], "sheet": "04-storage.html#hybrid",
+      "cue": "Give on-premises apps access to cloud storage: File Gateway (NFS/SMB to S3), Volume Gateway (iSCSI) and Tape Gateway.",
+      "traps": ["Ongoing hybrid access is Storage Gateway; a one-off move is DataSync or Snow Family."],
+      "twins": ["DataSync"]
+    },
+    "Backup": {
+      "domain": 1, "icon": "backup", "icons": [], "sheet": "04-storage.html#backup",
+      "cue": "Central backup plans across services, with cross-Region and cross-account copies and Vault Lock for write-once backups.",
+      "traps": ["Backups nobody can delete, even root: Vault Lock in compliance mode."],
+      "twins": ["Elastic Disaster Recovery"]
+    },
+    "RDS": {
+      "domain": 2, "icon": "rds", "icons": ["rdsproxy"], "sheet": "05-databases.html#rds",
+      "cue": "Managed relational databases. Multi-AZ for availability, read replicas for read scaling, RDS Proxy for connection pooling.",
+      "traps": ["A Multi-AZ instance standby takes no reads.", "Read replicas are asynchronous."],
+      "twins": ["Aurora", "DynamoDB"]
+    },
+    "Aurora": {
+      "domain": 2, "icon": "aurora", "icons": [], "sheet": "05-databases.html#aurora",
+      "cue": "MySQL- and PostgreSQL-compatible, with storage copied six ways over three AZs, up to 15 replicas, Global Database and Serverless.",
+      "traps": ["Cross-Region disaster recovery with an RPO of seconds: Aurora Global Database."],
+      "twins": ["RDS"]
+    },
+    "DynamoDB": {
+      "domain": 3, "icon": "dynamodb", "icons": [], "sheet": "05-databases.html#dynamodb",
+      "cue": "Serverless key-value database with single-digit millisecond latency at any scale, global tables, streams and TTL.",
+      "traps": ["Microsecond reads: add DAX, not ElastiCache.", "Hot partitions come from poorly spread partition keys."],
+      "twins": ["RDS", "ElastiCache"]
+    },
+    "ElastiCache": {
+      "domain": 3, "icon": "elasticache", "icons": [], "sheet": "05-databases.html#cache",
+      "cue": "In-memory Redis/Valkey or Memcached for caching database results and storing sessions.",
+      "traps": ["Caching in front of DynamoDB without code changes: DAX instead."],
+      "twins": ["DynamoDB"]
+    },
+    "Neptune": {
+      "domain": 3, "icon": "neptune", "icons": [], "sheet": "05-databases.html#purpose",
+      "cue": "Graph database for highly connected data: social networks, recommendations, fraud rings.",
+      "traps": [],
+      "twins": ["DocumentDB"]
+    },
+    "DocumentDB": {
+      "domain": 3, "icon": "documentdb", "icons": [], "sheet": "05-databases.html#purpose",
+      "cue": "MongoDB-compatible document database.",
+      "traps": [],
+      "twins": ["DynamoDB", "Neptune"]
+    },
+    "Keyspaces": {
+      "domain": 3, "icon": "keyspaces", "icons": [], "sheet": "05-databases.html#purpose",
+      "cue": "Serverless Apache Cassandra-compatible database.",
+      "traps": [],
+      "twins": ["DynamoDB"]
+    },
+    "Timestream": {
+      "domain": 3, "icon": "timestream", "icons": [], "sheet": "05-databases.html#purpose",
+      "cue": "Time-series database for IoT readings and operational metrics.",
+      "traps": [],
+      "twins": []
+    },
+    "SQS": {
+      "domain": 2, "icon": "sqs", "icons": [], "sheet": "06-integration.html#sqs",
+      "cue": "A queue between producers and consumers, so each side scales and fails on its own. FIFO gives ordering and exactly-once processing.",
+      "traps": ["One message to many consumers is SNS fan-out, not one queue.", "Messages that keep failing go to a dead-letter queue."],
+      "twins": ["SNS", "Kinesis Data Streams", "MQ"]
+    },
+    "SNS": {
+      "domain": 2, "icon": "sns", "icons": [], "sheet": "06-integration.html#sns",
+      "cue": "Publish once and push to many subscribers (SQS, Lambda, HTTP, email, SMS), with filter policies.",
+      "traps": ["SNS does not keep messages; put SQS behind it for durable fan-out."],
+      "twins": ["SQS", "EventBridge"]
+    },
+    "EventBridge": {
+      "domain": 2, "icon": "eventbridge", "icons": [], "sheet": "06-integration.html#eventbridge",
+      "cue": "An event bus that routes AWS, SaaS and custom events to targets by rules, plus scheduling, archive and replay.",
+      "traps": ["Reacting to AWS service events or running a cron schedule usually means EventBridge."],
+      "twins": ["SNS"]
+    },
+    "Step Functions": {
+      "domain": 2, "icon": "stepfn", "icons": [], "sheet": "06-integration.html#workflow",
+      "cue": "Orchestrate multi-step workflows with retries, branches, parallel steps and waits for human approval.",
+      "traps": ["Chaining Lambdas by hand with queues is the wrong answer when a visual, retrying workflow is asked for."],
+      "twins": ["EventBridge", "Batch"]
+    },
+    "API Gateway": {
+      "domain": 3, "icon": "apigw", "icons": [], "sheet": "06-integration.html#apigw",
+      "cue": "A managed front door for REST, HTTP and WebSocket APIs, with authorizers, throttling, usage plans and caching.",
+      "traps": ["Usage plans and API keys meter clients; they are not authentication."],
+      "twins": ["AppSync", "Elastic Load Balancing"]
+    },
+    "MQ": {
+      "domain": 2, "icon": "mq", "icons": [], "sheet": "06-integration.html#workflow",
+      "cue": "Managed ActiveMQ or RabbitMQ for apps that already speak AMQP, MQTT, STOMP or JMS.",
+      "traps": ["Migrating an existing message broker without rewriting code: MQ, not SQS."],
+      "twins": ["SQS"]
+    },
+    "AppSync": {
+      "domain": 3, "icon": "appsync", "icons": [], "sheet": "06-integration.html#workflow",
+      "cue": "Managed GraphQL APIs with real-time subscriptions.",
+      "traps": [],
+      "twins": ["API Gateway"]
+    },
+    "SES": {
+      "domain": 4, "icon": null, "icons": [], "sheet": null,
+      "cue": "Send and receive email at scale, such as transactional and marketing mail.",
+      "traps": ["SNS email is for simple notifications; bulk or formatted email is SES."],
+      "twins": ["SNS"]
+    },
+    "DR strategies": {
+      "domain": 2, "icon": null, "icons": [], "sheet": "08-dr.html#strategies", "diagrams": ["dr"],
+      "cue": "Backup and restore, pilot light, warm standby and multi-site active-active trade cost against RPO and RTO.",
+      "traps": ["Pilot light keeps only the data live; warm standby also runs a scaled-down copy of the app."],
+      "twins": ["Elastic Disaster Recovery"]
+    },
+    "Elastic Disaster Recovery": {
+      "domain": 2, "icon": "drs", "icons": [], "sheet": "08-dr.html#blocks",
+      "cue": "Continuous block-level replication of servers to AWS, with recovery in minutes.",
+      "traps": ["Disaster recovery is DRS; a one-time lift and shift is Application Migration Service."],
+      "twins": ["Application Migration Service", "Backup"]
+    },
+    "Application Recovery Controller": {
+      "domain": 2, "icon": null, "icons": [], "sheet": null,
+      "cue": "Readiness checks and routing controls to fail traffic over between Regions or AZs in a controlled way.",
+      "traps": [],
+      "twins": ["Route 53"]
+    },
+    "Application Migration Service": {
+      "domain": 3, "icon": "mgn", "icons": [], "sheet": "08-dr.html#migrate",
+      "cue": "Lift-and-shift servers to EC2 with continuous replication and a short cutover.",
+      "traps": [],
+      "twins": ["Elastic Disaster Recovery", "DMS"]
+    },
+    "DMS": {
+      "domain": 3, "icon": "dms", "icons": [], "sheet": "05-databases.html#migrate",
+      "cue": "Migrate databases with little downtime, using ongoing change replication; Schema Conversion handles engine changes.",
+      "traps": ["Changing database engines needs schema conversion as well as DMS."],
+      "twins": ["DataSync"]
+    },
+    "DataSync": {
+      "domain": 3, "icon": "datasync", "icons": [], "sheet": "04-storage.html#hybrid",
+      "cue": "Online transfer of files over the network from NFS, SMB or HDFS to S3, EFS or FSx, with scheduling and verification.",
+      "traps": ["Not enough bandwidth to finish in time? Snow Family instead."],
+      "twins": ["Storage Gateway", "Snow Family", "Transfer Family"]
+    },
+    "Transfer Family": {
+      "domain": 3, "icon": "transfer", "icons": [], "sheet": "04-storage.html#hybrid",
+      "cue": "Managed SFTP, FTPS and FTP endpoints in front of S3 or EFS, so partners keep their file-transfer tools.",
+      "traps": [],
+      "twins": ["DataSync"]
+    },
+    "Snow Family": {
+      "domain": 3, "icon": "snowball", "icons": [], "sheet": "04-storage.html#hybrid",
+      "cue": "Physical devices to move terabytes to petabytes offline when the network would take too long, with edge computing.",
+      "traps": ["Work out the transfer time: if the link would take weeks, ship a device."],
+      "twins": ["DataSync"]
+    },
+    "Migration Hub": {
+      "domain": 3, "icon": "migrationhub", "icons": [], "sheet": "08-dr.html#migrate",
+      "cue": "Track a migration's progress across tools, and discover on-premises servers to plan it.",
+      "traps": [],
+      "twins": ["Application Migration Service"]
+    },
+    "Cost Explorer": {
+      "domain": 4, "icon": "costexplorer", "icons": [], "sheet": "07-cost.html#track",
+      "cue": "Charts and forecasts of past spend, plus Savings Plans and Reserved Instance recommendations.",
+      "traps": ["Alerts before you overspend are Budgets, not Cost Explorer."],
+      "twins": ["Budgets", "Cost and Usage Reports"]
+    },
+    "Budgets": {
+      "domain": 4, "icon": "budgets", "icons": [], "sheet": "07-cost.html#control",
+      "cue": "Alert, or take actions, when cost, usage or commitment coverage crosses a threshold, including forecasts.",
+      "traps": [],
+      "twins": ["Cost Explorer", "Cost Anomaly Detection"]
+    },
+    "Cost Anomaly Detection": {
+      "domain": 4, "icon": null, "icons": [], "sheet": "07-cost.html#track",
+      "cue": "Machine learning spots unusual spend without you setting thresholds, and alerts you.",
+      "traps": ["Fixed thresholds are Budgets; unexpected spikes with no threshold are Anomaly Detection."],
+      "twins": ["Budgets"]
+    },
+    "Cost and Usage Reports": {
+      "domain": 4, "icon": "cur", "icons": [], "sheet": "07-cost.html#track",
+      "cue": "The most detailed billing data, delivered to S3 for analysis with Athena or QuickSight.",
+      "traps": [],
+      "twins": ["Cost Explorer"]
+    },
+    "Cost allocation tags": {
+      "domain": 4, "icon": null, "icons": [], "sheet": "07-cost.html#track",
+      "cue": "Tags activated in billing so costs can be split by team, project or environment.",
+      "traps": ["Tags must be activated in the billing console before they show up in reports."],
+      "twins": []
+    },
+    "Compute Optimizer": {
+      "domain": 4, "icon": "computeopt", "icons": [], "sheet": "07-cost.html#rightsize",
+      "cue": "Right-sizing recommendations for EC2, Auto Scaling groups, EBS, Lambda and ECS on Fargate from usage history.",
+      "traps": [],
+      "twins": ["Trusted Advisor"]
+    },
+    "Data transfer pricing": {
+      "domain": 4, "icon": null, "icons": [], "sheet": "07-cost.html#data", "diagrams": ["datatransfer"],
+      "cue": "Inbound and same-AZ private traffic are free; cross-AZ, inter-Region, NAT processing and internet egress cost money.",
+      "traps": ["S3 or DynamoDB through a NAT gateway costs money; a gateway endpoint is free."],
+      "twins": []
+    },
+    "CloudWatch": {
+      "domain": 2, "icon": "cloudwatch", "icons": [], "sheet": "09-monitoring.html#cloudwatch",
+      "cue": "Metrics, logs and alarms. Memory and disk use need the CloudWatch agent.",
+      "traps": ["EC2 memory is not a default metric; install the agent."],
+      "twins": ["CloudTrail", "X-Ray"]
+    },
+    "CloudTrail": {
+      "domain": 1, "icon": "cloudtrail", "icons": [], "sheet": "09-monitoring.html#audit",
+      "cue": "Who made which API call, when and from where; an organization trail covers every account.",
+      "traps": ["Who changed it is CloudTrail; what the configuration was is Config."],
+      "twins": ["Config", "CloudWatch"]
+    },
+    "Config": {
+      "domain": 1, "icon": "config", "icons": [], "sheet": "09-monitoring.html#audit",
+      "cue": "Records resource configurations over time, checks them against rules and can remediate automatically.",
+      "traps": ["Config detects and remediates; it does not prevent changes (that is SCPs or IAM)."],
+      "twins": ["CloudTrail", "Security Hub"]
+    },
+    "Systems Manager": {
+      "domain": 1, "icon": "ssm", "icons": [], "sheet": "09-monitoring.html#ssm",
+      "cue": "Operate fleets: Session Manager shells without SSH or bastions, Patch Manager, Run Command, Automation and Parameter Store.",
+      "traps": ["Shell access with no open port 22 and no bastion: Session Manager."],
+      "twins": ["Secrets Manager"]
+    },
+    "CloudFormation": {
+      "domain": 2, "icon": "cfn", "icons": [], "sheet": "09-monitoring.html#iac",
+      "cue": "Infrastructure as code templates; StackSets deploy to many accounts and Regions.",
+      "traps": [],
+      "twins": ["Elastic Beanstalk", "Service Catalog"]
+    },
+    "Service Catalog": {
+      "domain": 1, "icon": "servicecatalog", "icons": [], "sheet": "09-monitoring.html#iac",
+      "cue": "Approved products, built on CloudFormation, that users can launch without broad permissions.",
+      "traps": [],
+      "twins": ["CloudFormation"]
+    },
+    "Trusted Advisor": {
+      "domain": 4, "icon": "trustedadvisor", "icons": [], "sheet": "09-monitoring.html#observe",
+      "cue": "Checks across cost, security, fault tolerance, performance and service limits; the full set needs Business Support or higher.",
+      "traps": [],
+      "twins": ["Compute Optimizer"]
+    },
+    "Health Dashboard": {
+      "domain": 2, "icon": "health", "icons": [], "sheet": "09-monitoring.html#observe",
+      "cue": "AWS events that affect your own resources, such as scheduled maintenance, with EventBridge integration.",
+      "traps": [],
+      "twins": ["CloudWatch"]
+    },
+    "X-Ray": {
+      "domain": 2, "icon": "xray", "icons": [], "sheet": "09-monitoring.html#observe",
+      "cue": "Distributed tracing to find latency and errors across microservices.",
+      "traps": [],
+      "twins": ["CloudWatch"]
+    },
+    "Managed Grafana": {
+      "domain": 2, "icon": "grafana", "icons": [], "sheet": "09-monitoring.html#observe",
+      "cue": "Managed Grafana dashboards over CloudWatch, Prometheus and other data sources.",
+      "traps": [],
+      "twins": ["QuickSight"]
+    },
+    "Service Quotas": {
+      "domain": 2, "icon": null, "icons": [], "sheet": null,
+      "cue": "View and raise service limits, and alarm before you hit them.",
+      "traps": [],
+      "twins": ["Trusted Advisor"]
+    },
+    "Kinesis Data Streams": {
+      "domain": 3, "icon": "kinesis", "icons": [], "sheet": "06-integration.html#kinesis",
+      "cue": "Real-time streams in shards, read by many consumers in order, with replay within the retention period.",
+      "traps": ["Several consumers reading the same ordered stream in real time: Kinesis, not SQS."],
+      "twins": ["Data Firehose", "MSK", "SQS"]
+    },
+    "Data Firehose": {
+      "domain": 3, "icon": "firehose", "icons": [], "sheet": "06-integration.html#kinesis",
+      "cue": "Load streaming data into S3, Redshift, OpenSearch and others with no code, buffering and optional transformation.",
+      "traps": ["Firehose buffers, so it is near real time; there is no replay and no custom consumers."],
+      "twins": ["Kinesis Data Streams"]
+    },
+    "Managed Service for Apache Flink": {
+      "domain": 3, "icon": "flink", "icons": [], "sheet": "06-integration.html#kinesis",
+      "cue": "Analyse streams in real time with SQL or Apache Flink apps.",
+      "traps": [],
+      "twins": ["Kinesis Data Streams"]
+    },
+    "MSK": {
+      "domain": 3, "icon": "msk", "icons": [], "sheet": "06-integration.html#kinesis",
+      "cue": "Managed Apache Kafka, for teams that already run Kafka.",
+      "traps": [],
+      "twins": ["Kinesis Data Streams"]
+    },
+    "Athena": {
+      "domain": 3, "icon": "athena", "icons": [], "sheet": "10-analytics.html#athena",
+      "cue": "Serverless SQL straight on S3, paying per data scanned; partitions and columnar formats cut the cost.",
+      "traps": ["Convert to Parquet and partition to scan, and pay for, less data."],
+      "twins": ["Redshift", "EMR"]
+    },
+    "Glue": {
+      "domain": 3, "icon": "glue", "icons": [], "sheet": "10-analytics.html#glue",
+      "cue": "Serverless ETL plus the Data Catalog that crawlers fill and Athena, EMR and Redshift Spectrum read.",
+      "traps": [],
+      "twins": ["EMR"]
+    },
+    "EMR": {
+      "domain": 3, "icon": "emr", "icons": [], "sheet": "10-analytics.html#emr",
+      "cue": "Managed Hadoop and Spark clusters for big data processing, often on Spot task nodes.",
+      "traps": ["Serverless ETL with no cluster to manage is Glue."],
+      "twins": ["Glue", "Athena"]
+    },
+    "Lake Formation": {
+      "domain": 1, "icon": "lakeformation", "icons": [], "sheet": "10-analytics.html#glue",
+      "cue": "Build a data lake on S3 and grant fine-grained access down to columns and rows.",
+      "traps": ["Column- or row-level permissions on the data lake: Lake Formation, not bucket policies."],
+      "twins": ["Glue"]
+    },
+    "Redshift": {
+      "domain": 3, "icon": "redshift", "icons": [], "sheet": "10-analytics.html#bi",
+      "cue": "Columnar data warehouse for complex SQL analytics; Spectrum queries S3 without loading it.",
+      "traps": ["Ad hoc queries on S3 with no warehouse: Athena."],
+      "twins": ["Athena", "RDS"]
+    },
+    "OpenSearch Service": {
+      "domain": 3, "icon": "opensearch", "icons": [], "sheet": "05-databases.html#pick",
+      "cue": "Full-text search and log analytics with dashboards.",
+      "traps": [],
+      "twins": ["Athena"]
+    },
+    "QuickSight": {
+      "domain": 3, "icon": "quicksight", "icons": [], "sheet": "10-analytics.html#bi",
+      "cue": "Serverless business intelligence dashboards with per-user pricing.",
+      "traps": [],
+      "twins": ["Managed Grafana"]
+    },
+    "SageMaker": {
+      "domain": 3, "icon": "sagemaker", "icons": [], "sheet": "10-analytics.html#ai",
+      "cue": "Build, train and deploy your own machine learning models.",
+      "traps": ["If a ready-made AI service does the job, it is less effort than SageMaker."],
+      "twins": ["Comprehend", "Forecast"]
+    },
+    "Forecast": {
+      "domain": 3, "icon": null, "icons": [], "sheet": "10-analytics.html#ai",
+      "cue": "Time-series forecasting, e.g. demand, from historical data. AWS has closed it to new customers, so new designs lean on SageMaker Canvas.",
+      "traps": [],
+      "twins": ["SageMaker"]
+    },
+    "Textract": {
+      "domain": 3, "icon": "textract", "icons": [], "sheet": "10-analytics.html#ai",
+      "cue": "Extract text, forms and tables from scanned documents.",
+      "traps": ["Reading text from documents is Textract; understanding text is Comprehend."],
+      "twins": ["Comprehend"]
+    },
+    "Comprehend": {
+      "domain": 3, "icon": "comprehend", "icons": [], "sheet": "10-analytics.html#ai",
+      "cue": "Natural language processing: sentiment, entities, key phrases and PII detection in text.",
+      "traps": [],
+      "twins": ["Textract"]
+    }
+  }
+}
