@@ -111,8 +111,7 @@
         { "name": "DMS", "features": ["Schema conversion", "Ongoing replication"] },
         { "name": "DataSync", "features": [] },
         { "name": "Transfer Family", "features": [] },
-        { "name": "Snow Family", "features": [] },
-        { "name": "Migration Hub", "features": [] }
+        { "name": "Snow Family", "features": [] }
       ]
     },
     {
@@ -163,7 +162,6 @@
       "name": "Machine Learning",
       "services": [
         { "name": "SageMaker", "features": [] },
-        { "name": "Forecast", "features": [] },
         { "name": "Textract", "features": [] },
         { "name": "Comprehend", "features": [] }
       ]

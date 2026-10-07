@@ -417,15 +417,9 @@
     },
     "Snow Family": {
       "domain": 3, "icon": "snowball", "icons": [], "sheet": "04-storage.html#hybrid",
-      "cue": "Physical devices to move terabytes to petabytes offline when the network would take too long, with edge computing.",
+      "cue": "Physical devices to move terabytes to petabytes offline when the network would take too long, with edge computing. AWS closed Snowball Edge to new customers in November 2025: new designs use DataSync online, AWS Data Transfer Terminal to ship data in person, or Outposts at the edge.",
       "traps": ["Work out the transfer time: if the link would take weeks, ship a device."],
       "twins": ["DataSync"]
-    },
-    "Migration Hub": {
-      "domain": 3, "icon": "migrationhub", "icons": [], "sheet": "08-dr.html#migrate",
-      "cue": "Track a migration's progress across tools, and discover on-premises servers to plan it.",
-      "traps": [],
-      "twins": ["Application Migration Service"]
     },
     "Cost Explorer": {
       "domain": 4, "icon": "costexplorer", "icons": [], "sheet": "07-cost.html#track",
@@ -605,13 +599,7 @@
       "domain": 3, "icon": "sagemaker", "icons": [], "sheet": "10-analytics.html#ai",
       "cue": "Build, train and deploy your own machine learning models.",
       "traps": ["If a ready-made AI service does the job, it is less effort than SageMaker."],
-      "twins": ["Comprehend", "Forecast"]
-    },
-    "Forecast": {
-      "domain": 3, "icon": null, "icons": [], "sheet": "10-analytics.html#ai",
-      "cue": "Time-series forecasting, e.g. demand, from historical data. AWS has closed it to new customers, so new designs lean on SageMaker Canvas.",
-      "traps": [],
-      "twins": ["SageMaker"]
+      "twins": ["Comprehend"]
     },
     "Textract": {
       "domain": 3, "icon": "textract", "icons": [], "sheet": "10-analytics.html#ai",
