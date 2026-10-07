@@ -1,4 +1,4 @@
-# AWS SAA-C03 Practice Questions: Set Alpha (160 questions)
+# AWS SAA-C03 Practice Questions: Set Alpha (190 questions)
 
 ---
 
@@ -4544,3 +4544,855 @@ A data lake bucket in Amazon S3 uses SSE-KMS with a customer managed key. Applic
 
 **Key phrases:** SSE-KMS with a customer managed key · 6,000 GET and 5,000 PUT requests per second · 10,000 requests per second · shared by all keys · ThrottlingException · MOST cost-effective
 **Hint:** Add up the KMS calls per second and compare with the quota. Which S3 feature cuts the number of KMS calls instead of spreading them out?
+
+---
+
+## ALPHA-161: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** IAM › Federation
+
+### Question
+A company has 2,000 employees whose identities are stored in an on-premises Microsoft Active Directory that is already federated through Active Directory Federation Services (AD FS), a SAML 2.0 identity provider. The company uses a single AWS account. Employees must sign in to the AWS Management Console with their corporate credentials and receive permissions based on their AD group, and no long-term AWS credentials may be created for them. Which solution meets these requirements?
+
+### Options
+- **A.** Create one IAM user per AD group and share its access keys with the group's members through AWS Secrets Manager.
+- **B.** Create an IAM user for each employee and synchronize passwords from Active Directory with a scheduled script.
+- **C.** Create an IAM SAML identity provider that trusts AD FS, create an IAM role for each AD group whose trust policy allows that provider, and map AD groups to the roles in the AD FS claims so that users assume a role through AssumeRoleWithSAML.
+- **D.** Create an Amazon Cognito user pool, import the employees, and allow the user pool to sign users in to the AWS Management Console.
+
+### Correct answer: C
+
+**Summary:** Workforce sign-in with an existing SAML 2.0 identity provider: an IAM SAML provider plus roles mapped to the IdP's groups gives temporary console credentials with no IAM users (IAM Identity Center does the same across many accounts).
+
+### Explanation
+- A is wrong: shared access keys are long-term credentials, and sharing one identity removes individual accountability.
+- B is wrong: IAM users are long-term identities, which the requirements forbid, and a password sync script adds work and risk.
+- C is correct: AWS trusts the existing SAML 2.0 identity provider, each sign-in exchanges the SAML assertion for temporary role credentials, and the AD group decides which role, so no IAM users or access keys exist.
+- D is wrong: Cognito user pools authenticate users of your own applications; they do not provide workforce sign-in to the AWS Management Console.
+
+**Key phrases:** already federated through Active Directory Federation Services (AD FS) · SAML 2.0 identity provider · corporate credentials · based on their AD group · no long-term AWS credentials
+**Hint:** The company already runs an identity provider that speaks SAML 2.0. How can AWS trust it so that users receive temporary role credentials instead of IAM users?
+
+---
+
+## ALPHA-162: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** hard · **Pillars:** Security, Operational Excellence
+**Services:** IAM › Federation
+
+### Question
+A team deploys to AWS from GitHub Actions workflows. Today the workflows use an IAM user's access keys stored as a GitHub secret, and a security review requires the team to remove all long-term credentials. Only workflows running on the main branch of the company's repository may deploy, and each run must receive short-lived credentials. Which TWO steps should a solutions architect take? (Select TWO.)
+
+### Options
+- **A.** Store the access keys in AWS Secrets Manager and have each workflow run retrieve them at the start.
+- **B.** Create an IAM OpenID Connect (OIDC) identity provider in the account for GitHub's token issuer, token.actions.githubusercontent.com, with sts.amazonaws.com as the audience.
+- **C.** Rotate the IAM user's access keys every 24 hours with a scheduled AWS Lambda function that updates the GitHub secret.
+- **D.** Create an IAM role whose trust policy allows sts:AssumeRoleWithWebIdentity from that provider, with a condition on the token's sub claim that matches the company's repository and the main branch.
+- **E.** Create an IAM role whose trust policy allows sts:AssumeRoleWithSAML from GitHub, and store the role ARN as a GitHub secret.
+
+### Correct answers: B, D (choose 2)
+
+**Summary:** CI/CD outside AWS: trust the platform's OIDC issuer with an IAM OIDC identity provider and let a role be assumed through AssumeRoleWithWebIdentity, scoped by the token's sub claim, so each run gets temporary credentials.
+
+### Explanation
+- A is wrong: the workflow would need credentials to read Secrets Manager in the first place, and the stored keys are still long-term.
+- B is correct: the OIDC identity provider lets IAM trust the signed token that GitHub issues for each workflow run, so no secret has to be stored in GitHub.
+- C is wrong: rotated access keys are still long-term credentials stored outside AWS, which the security review forbids.
+- D is correct: each run exchanges its token for temporary role credentials, and the sub condition limits the role to the main branch of the company's repository.
+- E is wrong: GitHub Actions issues OIDC tokens, not SAML assertions, so a SAML trust cannot be satisfied.
+
+**Key phrases:** GitHub Actions · remove all long-term credentials · Only workflows running on the main branch · short-lived credentials · TWO
+**Hint:** GitHub can issue a signed identity token for each workflow run. What must exist in IAM to trust that token, and where do you restrict which repository and branch may use it?
+
+---
+
+## ALPHA-163: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
+**Services:** Inspector
+
+### Question
+A company runs workloads on Amazon EC2 instances, stores container images in Amazon ECR, and runs AWS Lambda functions. The security team needs continuous, automated scanning of all three for known software vulnerabilities (CVEs) and of the EC2 instances for unintended network exposure, with findings prioritized by risk. Which AWS service meets these requirements with the LEAST operational effort?
+
+### Options
+- **A.** Amazon Inspector
+- **B.** Amazon Macie
+- **C.** AWS Config with managed rules
+- **D.** Amazon GuardDuty
+
+### Correct answer: A
+
+**Summary:** Inspector = continuous vulnerability (CVE) and network-exposure scanning for EC2, ECR images and Lambda; GuardDuty = threat detection; Macie = sensitive data in S3.
+
+### Explanation
+- A is correct: Inspector continuously scans EC2 instances, ECR images and Lambda functions for software vulnerabilities, checks EC2 network reachability, and scores each finding by risk.
+- B is wrong: Macie discovers sensitive data such as PII in Amazon S3; it does not scan compute for vulnerabilities.
+- C is wrong: Config records resource configurations and evaluates them against rules; it does not inspect software packages for known vulnerabilities.
+- D is wrong: GuardDuty detects threats from activity such as CloudTrail events, VPC Flow Logs and DNS logs; it does not scan installed packages for CVEs.
+
+**Key phrases:** Amazon EC2 instances · Amazon ECR · AWS Lambda functions · known software vulnerabilities (CVEs) · unintended network exposure · LEAST operational effort
+**Hint:** Is the team looking for attacks in progress, for sensitive data, or for weaknesses in the software it has installed?
+
+---
+
+## ALPHA-164: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Detective
+
+### Question
+Amazon GuardDuty raised a finding that an IAM role's credentials were used from an unusual IP address. The security team must quickly investigate the root cause: which API calls the role made, which resources it touched, and how its behavior compared with its normal baseline over the past weeks. The team wants visualizations built automatically from existing logs, without building its own analytics pipeline. Which service should the team use?
+
+### Options
+- **A.** AWS Security Hub
+- **B.** Amazon Inspector
+- **C.** Amazon Athena queries over CloudTrail logs in Amazon S3
+- **D.** Amazon Detective
+
+### Correct answer: D
+
+**Summary:** Detective = investigate a finding: it builds a behavior graph from CloudTrail, VPC Flow Logs, GuardDuty findings and EKS audit logs, with baselines and visualizations.
+
+### Explanation
+- A is wrong: Security Hub aggregates findings and runs posture checks across accounts, but it does not build investigation graphs or behavior baselines.
+- B is wrong: Inspector finds software vulnerabilities and network exposure; it does not investigate how credentials were used.
+- C is wrong: the team would have to write and maintain its own queries and visualizations, which is the analytics work it wants to avoid.
+- D is correct: Detective automatically builds a behavior graph from CloudTrail, VPC Flow Logs and GuardDuty findings, with baselines and visualizations for investigating a finding's root cause.
+
+**Key phrases:** GuardDuty raised a finding · investigate the root cause · normal baseline · visualizations built automatically · without building its own analytics pipeline
+**Hint:** The threat has already been detected. Which service is built for the investigation that follows?
+
+---
+
+## ALPHA-165: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** Verified Access
+
+### Question
+A company hosts internal web applications behind an internal Application Load Balancer in a VPC. Employees currently connect through a client VPN, which grants network-level access to the whole VPC. The company wants to adopt zero trust: each HTTP request must be evaluated against the user's identity from IAM Identity Center and the security posture of the user's managed device, without a VPN client. Which solution meets these requirements?
+
+### Options
+- **A.** Make the load balancer internet-facing and add a listener rule that authenticates users with Amazon Cognito.
+- **B.** Use AWS Verified Access with IAM Identity Center as the user trust provider and a device trust provider, and attach access policies to each application endpoint.
+- **C.** Use AWS Site-to-Site VPN connections from each employee's home network.
+- **D.** Use AWS Client VPN with authorization rules for each subnet.
+
+### Correct answer: B
+
+**Summary:** Verified Access = VPN-less, zero-trust access to internal applications, checking every request against the user's identity and device posture.
+
+### Explanation
+- A is wrong: Cognito authentication checks the user's identity but not the device's security posture, and it exposes the load balancer to the internet.
+- B is correct: Verified Access evaluates every request against user identity and device posture before it reaches the application, with no VPN client.
+- C is wrong: Site-to-Site VPN connects networks, not individual users, and it still grants network-level access.
+- D is wrong: it still needs a VPN client and grants network-level access instead of evaluating each request.
+
+**Key phrases:** Employees currently connect through a client VPN · zero trust · each HTTP request · security posture of the user's managed device · without a VPN client
+**Hint:** Which AWS service puts a policy check in front of each application, using both who the user is and what device they use, with no VPN?
+
+---
+
+## ALPHA-166: Networking & Content Delivery
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** VPC › Bastion & ENIs
+
+### Question
+A legacy licensing server runs on an Amazon EC2 instance. The vendor's license is bound to the server's MAC address and a fixed private IP address. The company wants to be able to recover quickly to a standby instance if the primary instance fails, without requesting a new license. The standby instance is in the same Availability Zone. Which solution meets these requirements?
+
+### Options
+- **A.** Place both instances in a cluster placement group so that they share the same MAC address.
+- **B.** Attach a secondary elastic network interface to the primary instance, bind the license to that interface's MAC address and private IP address, and move the interface to the standby instance during failover.
+- **C.** Associate an Elastic IP address with the primary instance and reassociate it with the standby instance during failover.
+- **D.** Create an AMI of the primary instance every hour and launch the standby from the latest AMI during failover.
+
+### Correct answer: B
+
+**Summary:** A secondary ENI keeps its MAC address, private IPs and any Elastic IP when moved between instances in the same AZ, which suits licenses tied to a MAC or IP address.
+
+### Explanation
+- A is wrong: placement groups only influence physical placement; instances never share a MAC address.
+- B is correct: a network interface keeps its MAC address and private IP addresses when it is detached and attached to another instance in the same Availability Zone, so the license follows it.
+- C is wrong: an Elastic IP address is a public IPv4 address; the standby's MAC address and private IP address would still differ from the licensed ones.
+- D is wrong: a new instance gets a new primary network interface with a different MAC address and private IP address.
+
+**Key phrases:** bound to the server's MAC address · fixed private IP address · without requesting a new license · same Availability Zone
+**Hint:** Which VPC component owns the MAC address and the private IP address, and can it move from one instance to another?
+
+---
+
+## ALPHA-167: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Reliability
+**Services:** Elastic Load Balancing › Gateway Load Balancer
+
+### Question
+A company must inspect all inbound internet traffic to its web application VPC with a fleet of third-party virtual firewall appliances from AWS Marketplace. The appliances must scale horizontally, unhealthy appliances must be removed from service automatically, and traffic must pass through the appliances transparently without changing the source and destination IP addresses. Which solution meets these requirements?
+
+### Options
+- **A.** Place the appliances behind an Application Load Balancer and have the appliances forward requests to the web servers.
+- **B.** Configure the appliances as NAT instances in each public subnet and use Route 53 health checks to replace failed instances.
+- **C.** Place the appliances behind a Network Load Balancer and point the application's DNS name at the load balancer.
+- **D.** Deploy the appliances behind a Gateway Load Balancer, create Gateway Load Balancer endpoints, and update the internet gateway's ingress route table and the subnet route tables to send traffic through the endpoints.
+
+### Correct answer: D
+
+**Summary:** Gateway Load Balancer = transparent bump in the wire for third-party appliances: it sends packets to the fleet over GENEVE, health-checks and scales it, and is reached through GWLB endpoints in route tables.
+
+### Explanation
+- A is wrong: an Application Load Balancer terminates HTTP connections and opens new ones, so traffic is proxied rather than passed through unchanged.
+- B is wrong: NAT changes IP addresses, and NAT instances neither scale as a group nor fail over automatically through route tables.
+- C is wrong: clients would connect to the Network Load Balancer as their destination, so the appliances would have to proxy traffic instead of inspecting it transparently in the path.
+- D is correct: the Gateway Load Balancer passes packets unchanged to a health-checked, scalable appliance fleet over GENEVE, and route tables steer traffic through its endpoints, so inspection is transparent.
+
+**Key phrases:** third-party virtual firewall appliances · scale horizontally · removed from service automatically · transparently · without changing the source and destination IP addresses
+**Hint:** Which load balancer is built to put a fleet of appliances inline, as a bump in the wire, rather than to be the destination of requests?
+
+---
+
+## ALPHA-168: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** hard · **Pillars:** Security, Reliability
+**Services:** Elastic Load Balancing › Gateway Load Balancer, Transit Gateway
+
+### Question
+A company uses AWS Transit Gateway to connect 40 spoke VPCs. All traffic between spoke VPCs must be inspected by a fleet of stateful firewall appliances in a central inspection VPC that spans two Availability Zones. Testing shows that some connections fail because the request and the response pass through appliances in different Availability Zones. The design must also scale the appliance fleet automatically. Which TWO actions should a solutions architect take? (Select TWO.)
+
+### Options
+- **A.** Place all the appliances in a single Availability Zone.
+- **B.** Add static routes in each spoke VPC's route tables that point to the appliances' Elastic IP addresses.
+- **C.** Deploy the appliances behind a Gateway Load Balancer in the inspection VPC and route traffic from the transit gateway attachment subnets to Gateway Load Balancer endpoints.
+- **D.** Enable appliance mode on the transit gateway attachment for the inspection VPC.
+- **E.** Replace the transit gateway with VPC peering connections between each pair of spoke VPCs.
+
+### Correct answers: C, D (choose 2)
+
+**Summary:** Centralized inspection: transit gateway → inspection VPC → GWLB endpoints → Gateway Load Balancer and appliance fleet, with appliance mode on that attachment so both directions of a flow stay in one AZ.
+
+### Explanation
+- A is wrong: it removes the asymmetry but makes inspection, and so all spoke-to-spoke traffic, depend on one Availability Zone.
+- B is wrong: Elastic IP addresses are public addresses and cannot be route targets, and static routes give no scaling or health checks.
+- C is correct: the Gateway Load Balancer spreads flows across a health-checked appliance fleet that can scale, and the endpoints let route tables send transit traffic through it.
+- D is correct: appliance mode makes the transit gateway use the same Availability Zone attachment for both directions of a flow, so stateful appliances see the whole connection.
+- E is wrong: peering is not transitive, so traffic cannot be routed through a central inspection VPC, and 40 VPCs would need 780 connections.
+
+**Key phrases:** AWS Transit Gateway · 40 spoke VPCs · stateful firewall appliances · central inspection VPC · different Availability Zones · scale the appliance fleet automatically · TWO
+**Hint:** One part gives you a scalable, health-checked appliance fleet; the other makes the transit gateway keep both directions of a flow in the same Availability Zone.
+
+---
+
+## ALPHA-169: Networking & Content Delivery
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Services:** Route 53 › Alias records
+
+### Question
+A company hosts its website on an internet-facing Application Load Balancer, and its DNS zone is hosted in Amazon Route 53. The marketing team wants both the zone apex, example.com, and www.example.com to reach the website. The company wants to avoid paying for DNS queries where possible, and the records must keep working when the load balancer's IP addresses change. Which solution meets these requirements?
+
+### Options
+- **A.** Create alias A records for example.com and www.example.com that target the Application Load Balancer.
+- **B.** Create an A record for example.com that points to an Elastic IP address attached to the load balancer.
+- **C.** Create CNAME records for example.com and www.example.com that point to the load balancer's DNS name.
+- **D.** Create A records for example.com and www.example.com that contain the load balancer's current IP addresses.
+
+### Correct answer: A
+
+**Summary:** Alias records work at the zone apex, follow the AWS resource's changing IPs, and are free to query when they point to AWS targets such as ELB, CloudFront and S3 websites; a CNAME can't sit at the apex.
+
+### Explanation
+- A is correct: alias records are allowed at the zone apex, resolve to the load balancer's current addresses, and queries for alias records that point to AWS resources such as load balancers are free.
+- B is wrong: Application Load Balancers do not support Elastic IP addresses (Network Load Balancers do).
+- C is wrong: a CNAME record cannot be created at the zone apex, and Route 53 charges for CNAME queries.
+- D is wrong: a load balancer's IP addresses change over time, so fixed A records would break.
+
+**Key phrases:** internet-facing Application Load Balancer · zone apex, example.com · avoid paying for DNS queries · IP addresses change
+**Hint:** Which record type can sit at the zone apex, follows an AWS resource's changing addresses, and is free to query for AWS targets?
+
+---
+
+## ALPHA-170: Networking & Content Delivery
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
+**Services:** Route 53 › Alias records, S3 › Static website hosting
+
+### Question
+A company hosts a static website in an Amazon S3 bucket that has static website hosting enabled. The site must be served at the domain apex, example.com, which is hosted in Amazon Route 53. Which configuration meets this requirement?
+
+### Options
+- **A.** Create an A record for example.com that contains the IP address of the S3 website endpoint.
+- **B.** Name the bucket website-example and create an alias A record for example.com that targets the bucket's REST API endpoint.
+- **C.** Name the bucket example.com, enable static website hosting on it, and create a Route 53 alias A record for example.com that targets the bucket's website endpoint.
+- **D.** Keep the existing bucket name and create a CNAME record for example.com that points to the bucket's website endpoint.
+
+### Correct answer: C
+
+**Summary:** S3 website at the apex: name the bucket exactly after the domain and point a Route 53 alias record at its website endpoint (add CloudFront for HTTPS).
+
+### Explanation
+- A is wrong: S3 endpoint IP addresses change, so a fixed A record would break.
+- B is wrong: an alias to an S3 website needs the website endpoint of a bucket named exactly like the record, and the REST endpoint does not serve the site's index and error documents.
+- C is correct: Route 53 can alias the apex to an S3 website endpoint, and S3 serves the site from the bucket whose name matches the requested host name.
+- D is wrong: a CNAME cannot be created at the zone apex, and S3 would look for a bucket named after the requested host name.
+
+**Key phrases:** static website hosting enabled · domain apex, example.com
+**Hint:** An apex record cannot be a CNAME. And how does S3 know which bucket a website request is for?
+
+---
+
+## ALPHA-171: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** CloudFront › Geo restriction
+
+### Question
+A media company distributes videos through Amazon CloudFront from an Amazon S3 origin. Licensing agreements prohibit viewers in three countries from accessing any content in the distribution, and blocked viewers must receive an HTTP 403 response. Which solution meets these requirements with the LEAST operational overhead?
+
+### Options
+- **A.** Use Route 53 geolocation routing to return no answer to DNS queries from the three countries.
+- **B.** Add an S3 bucket policy that denies requests whose aws:SourceIp is in the IP ranges of the three countries.
+- **C.** Write a Lambda@Edge function that looks up each viewer's IP address in a geolocation database and returns 403.
+- **D.** Enable CloudFront geographic restrictions with a blocklist that contains the three countries.
+
+### Correct answer: D
+
+**Summary:** CloudFront geo restriction allows or blocks whole countries for an entire distribution and returns 403; finer rules (per path, per region) need AWS WAF or edge functions.
+
+### Explanation
+- A is wrong: DNS answers can be bypassed with other resolvers or cached addresses, and DNS cannot return an HTTP 403.
+- B is wrong: requests reach S3 from CloudFront, not from viewers, and country IP ranges would need constant maintenance.
+- C is wrong: it works, but it adds code, a database to maintain and per-request cost compared with the built-in setting.
+- D is correct: geographic restrictions block viewers by country for the whole distribution and return HTTP 403, with no code or IP lists to maintain.
+
+**Key phrases:** Licensing agreements · three countries · any content in the distribution · HTTP 403 · LEAST operational overhead
+**Hint:** The whole distribution is affected, and the rule is per country. Which built-in CloudFront setting does exactly that?
+
+---
+
+## ALPHA-172: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** CloudFront › Geo restriction, WAF
+
+### Question
+A company serves a global website through a single Amazon CloudFront distribution. A new licensing deal requires that only the /sports/* paths be blocked for viewers in two countries, while all other content stays available worldwide. Blocked requests must receive an HTTP 403 response. Which solution meets these requirements with the LEAST operational overhead?
+
+### Options
+- **A.** Use Route 53 geolocation routing to send viewers from the two countries to an error page.
+- **B.** Enable CloudFront geographic restrictions with a blocklist that contains the two countries.
+- **C.** Associate an AWS WAF web ACL with the distribution, with a rule that blocks requests that match both a geo match statement for the two countries and a URI path that starts with /sports/.
+- **D.** Create a second CloudFront distribution for /sports/* with geographic restrictions, and change the website's links to point to it.
+
+### Correct answer: C
+
+**Summary:** Geo restriction is all-or-nothing per distribution; to block a country for some paths only, use an AWS WAF rule that combines a geo match with a URI path match.
+
+### Explanation
+- A is wrong: DNS cannot tell paths apart, so it would block the whole site, and DNS-based blocking can be bypassed.
+- B is wrong: geographic restrictions apply to the whole distribution, so viewers in those countries would lose all content, not only /sports/*.
+- C is correct: a WAF rule can combine a country match and a path match, blocks only those requests with a 403, and needs no code or second distribution.
+- D is wrong: it needs a second domain, certificate and distribution, plus link changes, which is more overhead than one rule.
+
+**Key phrases:** single Amazon CloudFront distribution · only the /sports/* paths · two countries · all other content stays available worldwide · LEAST operational overhead
+**Hint:** CloudFront's built-in geographic restriction cannot tell paths apart. What can combine a country condition with a path condition?
+
+---
+
+## ALPHA-173: Compute & Serverless
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** EC2 Auto Scaling › Launch templates, EC2 › Spot Instances
+
+### Question
+An Auto Scaling group was created years ago with a launch configuration and runs a single On-Demand instance type. To cut costs, the company wants the group to run a mix of several instance types, with a baseline of On-Demand Instances and the rest as Spot Instances. Which change must a solutions architect make first?
+
+### Options
+- **A.** Create a new launch configuration that lists several instance types and sets a Spot maximum price.
+- **B.** Create a launch template from the launch configuration's settings and configure the Auto Scaling group with a mixed instances policy that uses it.
+- **C.** Enable instance refresh on the Auto Scaling group with a Spot percentage.
+- **D.** Create a second Auto Scaling group with a Spot launch configuration and attach both groups to the same load balancer.
+
+### Correct answer: B
+
+**Summary:** Mixed instance types and an On-Demand + Spot split in one group need a launch template with a mixed instances policy; launch configurations are legacy and hold one instance type.
+
+### Explanation
+- A is wrong: a launch configuration holds a single instance type and cannot define a mixed instances policy; launch configurations are a legacy option that gets no new features.
+- B is correct: a mixed instances policy, which sets several instance types, an On-Demand base and a Spot share, works only with launch templates.
+- C is wrong: instance refresh replaces instances to roll out a configuration change; it does not define instance types or a purchase mix.
+- D is wrong: two groups double the management work and cannot keep a combined On-Demand base and Spot share as capacity changes.
+
+**Key phrases:** launch configuration · mix of several instance types · baseline of On-Demand Instances · Spot Instances · first
+**Hint:** Which way of describing instances does an Auto Scaling group need before it can mix instance types and purchase options?
+
+---
+
+## ALPHA-174: Storage & Backup
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** S3 › Presigned URLs
+
+### Question
+A company sells downloadable reports that are stored as objects in a private Amazon S3 bucket. After a customer pays, the web application must let that customer download the purchased report directly from S3 for the next hour. Customers do not have AWS accounts, and the bucket must remain private. Which solution meets these requirements with the LEAST effort?
+
+### Options
+- **A.** Have the application generate a presigned GET URL for the object that expires in 1 hour, and return it to the customer.
+- **B.** Create an IAM user for each customer and grant it read access to its purchased reports.
+- **C.** Add a bucket policy statement that allows s3:GetObject from the customer's IP address for 1 hour.
+- **D.** Make the report objects public and give each object a long, random key name.
+
+### Correct answer: A
+
+**Summary:** A presigned URL lets whoever holds it perform one S3 action on one object until it expires, using the signer's permissions, while the bucket stays private.
+
+### Explanation
+- A is correct: a presigned URL grants the signer's access to that one object until it expires, so the customer downloads straight from S3 while the bucket stays private.
+- B is wrong: IAM users are for people and workloads in your organization, not for unlimited numbers of customers, and they bring credentials to manage.
+- C is wrong: editing the bucket policy for every purchase does not scale, policies have a size limit, and customers' IP addresses change or are shared.
+- D is wrong: the objects would be public, so anyone with the link could download them forever, and an unguessable name is not access control.
+
+**Key phrases:** private Amazon S3 bucket · for the next hour · do not have AWS accounts · the bucket must remain private · LEAST effort
+**Hint:** The application has AWS credentials and the customer does not. How can the application hand over time-limited access to one object?
+
+---
+
+## ALPHA-175: Storage & Backup
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Security, Cost Optimization
+**Services:** S3 › Presigned URLs
+
+### Question
+Users upload videos of up to 2 GB from a single-page web application. Today, uploads pass through Amazon API Gateway and an AWS Lambda function that writes them to Amazon S3, and large uploads fail because they exceed the request payload limits. The company wants uploads to go directly from the browser to a private S3 bucket without passing through API Gateway or Lambda. Which TWO actions should a solutions architect take? (Select TWO.)
+
+### Options
+- **A.** Add a CORS rule to the bucket that allows PUT requests from the web application's origin.
+- **B.** Enable S3 Transfer Acceleration and allow public writes to the bucket.
+- **C.** Increase the Lambda function's memory to 10 GB so that it can buffer the upload.
+- **D.** Have a Lambda function behind API Gateway generate a presigned URL for a PUT of the object key and return it to the browser, which then uploads the file to that URL.
+- **E.** Request a service quota increase that raises the API Gateway payload limit to 2 GB.
+
+### Correct answers: A, D (choose 2)
+
+**Summary:** Direct browser-to-S3 uploads: the backend returns a presigned PUT URL, the browser uploads the bytes straight to S3, and a CORS rule on the bucket allows the application's origin.
+
+### Explanation
+- A is correct: the browser sends the upload to the S3 domain, which is a different origin from the application, so the bucket must allow it with CORS.
+- B is wrong: public writes would let anyone upload anything, and acceleration speeds up transfers without solving authorization.
+- C is wrong: memory does not change Lambda's invocation payload limit, so the request still fails.
+- D is correct: the API call that returns the URL is tiny, and the browser sends the file straight to S3 with the signer's permission while the bucket stays private (very large files can use presigned multipart upload parts).
+- E is wrong: API Gateway's 10 MB payload limit cannot be raised.
+
+**Key phrases:** up to 2 GB · single-page web application · exceed the request payload limits · directly from the browser · private S3 bucket · TWO
+**Hint:** Let the backend hand out permission, not carry the bytes. And what does a browser need before it may send a request to another origin?
+
+---
+
+## ALPHA-176: Storage & Backup
+**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** FSx › OpenZFS
+
+### Question
+A company runs Linux analytics applications that read and write files on an on-premises file server built on the ZFS file system and shared over NFS. The applications need sub-millisecond latency, and the team relies on ZFS snapshots and clones to create instant test copies of datasets. The company wants to move the file system to AWS with the fewest changes to applications and processes. Which storage service should a solutions architect recommend?
+
+### Options
+- **A.** Amazon FSx for OpenZFS
+- **B.** Amazon FSx for Lustre linked to an S3 bucket
+- **C.** Amazon EFS with Elastic throughput
+- **D.** Amazon FSx for Windows File Server
+
+### Correct answer: A
+
+**Summary:** FSx for OpenZFS = managed ZFS over NFS: sub-millisecond latency, snapshots and instant clones; the lift-and-shift target for ZFS or Linux NFS file servers.
+
+### Explanation
+- A is correct: it is a managed ZFS file system served over NFS with sub-millisecond latency, snapshots and instant clones, so applications and processes barely change.
+- B is wrong: Lustre is a parallel file system for HPC and uses its own client; it does not offer the ZFS snapshot and clone workflow.
+- C is wrong: EFS is NFS but does not provide ZFS snapshots and clones, so the team's instant test-copy workflow would have to change.
+- D is wrong: it serves SMB shares for Windows workloads, not an NFS file system with ZFS features.
+
+**Key phrases:** Linux analytics applications · ZFS file system · shared over NFS · sub-millisecond latency · snapshots and clones · fewest changes
+**Hint:** Linux clients, NFS, and the team's habits depend on one specific file system. Which FSx option runs it?
+
+---
+
+## ALPHA-177: Databases & Caching
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** hard · **Pillars:** Reliability, Cost Optimization
+**Services:** DynamoDB › Backups & PITR, Backup
+
+### Question
+A company stores orders in an Amazon DynamoDB table. An audit sets two requirements: the team must be able to undo accidental writes or deletes by restoring the table to any second within the last 14 days, and a monthly backup must be kept for 7 years at the lowest storage cost. Which TWO actions meet these requirements? (Select TWO.)
+
+### Options
+- **A.** Convert the table to a DynamoDB global table in a second Region so that bad writes can be undone from the replica.
+- **B.** Create on-demand backups from the DynamoDB console every month and keep them in warm storage for 7 years.
+- **C.** Enable point-in-time recovery on the table.
+- **D.** Enable DynamoDB Streams and replay the stream to rebuild the table after a bad write.
+- **E.** Create an AWS Backup plan with a monthly rule that keeps backups for 7 years and moves them to cold storage, with AWS Backup's advanced features for DynamoDB turned on.
+
+### Correct answers: C, E (choose 2)
+
+**Summary:** DynamoDB PITR = restore to any second within up to 35 days (into a new table); keeping backups for years at low cost = AWS Backup plans with lifecycle to cold storage.
+
+### Explanation
+- A is wrong: global tables replicate the bad write or delete to the replica within seconds.
+- B is wrong: manual backups are easy to miss, and keeping them in warm storage for 7 years costs more than cold storage.
+- C is correct: point-in-time recovery can restore the table to any second within its recovery period, up to the last 35 days, into a new table.
+- D is wrong: a stream keeps changes for only 24 hours and is not a backup.
+- E is correct: AWS Backup schedules and retains the monthly backups and, with advanced DynamoDB features, moves them to cheaper cold storage for the 7 years.
+
+**Key phrases:** undo accidental writes or deletes · any second within the last 14 days · monthly backup must be kept for 7 years · lowest storage cost · TWO
+**Hint:** One requirement needs per-second restore points over a few weeks; the other needs long retention with cheap storage. DynamoDB and AWS Backup each cover one.
+
+---
+
+## ALPHA-178: Databases & Caching
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Operational Excellence, Performance Efficiency
+**Services:** Keyspaces
+
+### Question
+A company runs an Apache Cassandra cluster on self-managed Amazon EC2 instances. The operations team spends many hours on patching, node replacement and capacity planning. The company wants a serverless, fully managed database that is compatible with its existing Cassandra Query Language (CQL) application code and drivers. Which service should a solutions architect recommend?
+
+### Options
+- **A.** Amazon DynamoDB
+- **B.** Amazon Keyspaces (for Apache Cassandra)
+- **C.** Amazon DocumentDB (with MongoDB compatibility)
+- **D.** Amazon RDS for PostgreSQL
+
+### Correct answer: B
+
+**Summary:** Keyspaces = serverless, managed Apache Cassandra-compatible database; existing CQL code and drivers keep working.
+
+### Explanation
+- A is wrong: DynamoDB has its own API, so the CQL application code and drivers would have to be rewritten.
+- B is correct: Keyspaces is a serverless, managed Cassandra-compatible database, so existing CQL code and drivers keep working without servers to patch.
+- C is wrong: DocumentDB is compatible with MongoDB, not Cassandra.
+- D is wrong: it is a relational database, so the data model and code would have to change.
+
+**Key phrases:** Apache Cassandra cluster · self-managed · serverless, fully managed · Cassandra Query Language (CQL)
+**Hint:** Keep the Cassandra API and drop the servers.
+
+---
+
+## ALPHA-179: Application Integration
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Services:** API Gateway › Caching
+
+### Question
+A REST API in Amazon API Gateway exposes GET /products?category={name}, backed by an AWS Lambda function that queries a database. To reduce load, the team enabled API Gateway caching on the stage with a 300-second TTL. Since then, users who ask for one category sometimes receive the products of a different category. Which change fixes the problem while keeping the cache?
+
+### Options
+- **A.** Migrate the API to an HTTP API, which caches each query string separately.
+- **B.** Allow clients to send Cache-Control: max-age=0 to invalidate the cache entry.
+- **C.** Reduce the cache TTL to 0 seconds.
+- **D.** Mark the category query string parameter as a cache key parameter on the method.
+
+### Correct answer: D
+
+**Summary:** API Gateway caching (REST APIs only) keys on the resource path plus the parameters you mark as cache keys; leave a query string or header out and different requests share one cached response.
+
+### Explanation
+- A is wrong: HTTP APIs do not support API Gateway caching at all.
+- B is wrong: invalidation refreshes one entry, but every category still shares the same key, so wrong responses keep appearing.
+- C is wrong: a TTL of 0 effectively turns caching off, which gives up the cache instead of fixing it.
+- D is correct: API Gateway builds the cache key from the resource path plus the parameters marked as cache keys, so each category then gets its own cached response.
+
+**Key phrases:** REST API · GET /products?category={name} · enabled API Gateway caching on the stage · 300-second TTL · a different category · keeping the cache
+**Hint:** Two requests share a cached response when their cache keys match. What is in the key, and what is missing?
+
+---
+
+## ALPHA-180: Application Integration
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** AppSync
+
+### Question
+A company is building a mobile app that displays a live sports scoreboard. In one request, the app must fetch data from several sources (an Amazon DynamoDB table and an AWS Lambda function) with a query language that lets the client choose which fields to return, and it must receive score updates in real time. The company wants a managed service with the least custom code. Which solution meets these requirements?
+
+### Options
+- **A.** Amazon SNS mobile push notifications for every score change.
+- **B.** An Amazon API Gateway REST API with one endpoint per data source, which the app polls every second.
+- **C.** An AWS AppSync GraphQL API with DynamoDB and Lambda resolvers, and GraphQL subscriptions for score updates.
+- **D.** An Amazon API Gateway WebSocket API with a Lambda function that stores connection IDs and pushes updates.
+
+### Correct answer: C
+
+**Summary:** AppSync = managed GraphQL: one query across many data sources with client-chosen fields, plus real-time subscriptions.
+
+### Explanation
+- A is wrong: push notifications alert users but do not fetch combined data or keep a live in-app view up to date.
+- B is wrong: the app would make several requests per refresh, receive fixed responses, and poll instead of receiving updates.
+- C is correct: AppSync is managed GraphQL: one query can fetch client-chosen fields from several data sources, and subscriptions push updates to connected clients in real time.
+- D is wrong: it can push updates, but the team must write the connection handling and data aggregation itself, and clients cannot choose fields.
+
+**Key phrases:** live sports scoreboard · In one request · several sources · choose which fields to return · in real time · least custom code
+**Hint:** Client-chosen fields from several sources in one request, plus live updates: which API style and which AWS service provide both?
+
+---
+
+## ALPHA-181: Disaster Recovery & Migration
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** hard · **Pillars:** Reliability
+**Services:** DR strategies › Multi-site active-active, DynamoDB › Global tables, Route 53 › Routing policies
+
+### Question
+A payments company runs a stateless web tier on Amazon EC2 instances behind Application Load Balancers and stores its data in Amazon DynamoDB. The business requires the application to serve users from two AWS Regions at the same time, with either Region able to accept writes, and a Regional failure must cause no more than seconds of disruption with near-zero data loss. Which TWO actions should a solutions architect take? (Select TWO.)
+
+### Options
+- **A.** Use Route 53 latency-based routing with health checks on each Region's load balancer.
+- **B.** Take hourly on-demand backups of the table and copy them to the second Region.
+- **C.** Run a scaled-down copy of the web tier in the second Region and scale it out after a failure.
+- **D.** Use Route 53 failover routing with the second Region as a passive secondary.
+- **E.** Convert the table to a DynamoDB global table with replicas in both Regions.
+
+### Correct answers: A, E (choose 2)
+
+**Summary:** Multi-site active-active: every Region serves traffic (Route 53 latency or weighted routing with health checks) on a multi-Region writable data store such as DynamoDB global tables; lowest RTO and RPO, highest cost.
+
+### Explanation
+- A is correct: users go to their nearest healthy Region, and a failed Region drops out of DNS answers automatically.
+- B is wrong: backup and restore loses up to an hour of data and takes far longer than seconds to recover.
+- C is wrong: that is warm standby: the second Region does not serve users or accept writes, and recovery takes minutes.
+- D is wrong: failover routing is active-passive, so only one Region serves users at a time.
+- E is correct: global tables replicate between Regions within about a second and accept writes in every replica Region, so both Regions serve reads and writes.
+
+**Key phrases:** two AWS Regions at the same time · either Region able to accept writes · no more than seconds of disruption · near-zero data loss · TWO
+**Hint:** Both Regions are live and both take writes. What does the data layer need, and how do users reach whichever Region is healthy?
+
+---
+
+## ALPHA-182: Compute & Serverless
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
+**Services:** Elastic Beanstalk
+
+### Question
+A small development team has built a Java web application and wants to deploy it to AWS. The team does not want to manage capacity provisioning, load balancing, Auto Scaling or health monitoring itself, but it wants to keep access to the underlying Amazon EC2 instances and to roll out new versions with minimal downtime. Which service meets these requirements with the LEAST effort?
+
+### Options
+- **A.** Amazon EC2 instances configured with user data scripts
+- **B.** Amazon EKS with managed node groups
+- **C.** AWS Elastic Beanstalk
+- **D.** AWS CloudFormation templates written by the team
+
+### Correct answer: C
+
+**Summary:** Elastic Beanstalk = upload code and it provisions and runs EC2, load balancing, Auto Scaling and health monitoring, with rolling, immutable or blue/green deployments, while you keep access to the resources.
+
+### Explanation
+- A is wrong: the team would manage scaling, load balancing, health monitoring and deployments by hand.
+- B is wrong: the team would have to containerize the application and operate Kubernetes, which is far more effort.
+- C is correct: Beanstalk provisions and manages the EC2 instances, load balancer, Auto Scaling and health monitoring from uploaded code, supports rolling and immutable deployments, and still gives access to the instances.
+- D is wrong: the team would still design, write and maintain every resource and the deployment process itself.
+
+**Key phrases:** small development team · Java web application · does not want to manage capacity provisioning · keep access to the underlying Amazon EC2 instances · minimal downtime · LEAST effort
+**Hint:** Upload the code and let a service build and run the environment around it.
+
+---
+
+## ALPHA-183: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Systems Manager › State Manager
+
+### Question
+A company must make sure that a security monitoring agent is installed and configured on every Amazon EC2 instance that has the tag Environment=Production, including instances launched in the future. If someone removes or misconfigures the agent, it must be corrected automatically within 30 minutes. All instances are managed by AWS Systems Manager. Which solution meets these requirements with the LEAST operational overhead?
+
+### Options
+- **A.** Use AWS Systems Manager Patch Manager with a patch baseline that includes the agent.
+- **B.** Add the agent installation to the instances' user data scripts.
+- **C.** Use AWS Systems Manager Run Command to install and configure the agent on the tagged instances.
+- **D.** Create an AWS Systems Manager State Manager association that targets the tag, applies a document that installs and configures the agent, and runs every 30 minutes.
+
+### Correct answer: D
+
+**Summary:** State Manager associations keep instances in a defined state on a schedule and pick up new targets by tag; Run Command is one-off, Patch Manager is for patching.
+
+### Explanation
+- A is wrong: Patch Manager applies patches from baselines; it does not keep an agent installed and configured.
+- B is wrong: user data runs at first boot only, so removal or misconfiguration later is never corrected.
+- C is wrong: Run Command runs once, so later instances and later drift are not handled.
+- D is correct: the association targets instances by tag, including new ones, and re-applies the desired state on its schedule, correcting drift automatically.
+
+**Key phrases:** every Amazon EC2 instance that has the tag · instances launched in the future · corrected automatically within 30 minutes · LEAST operational overhead
+**Hint:** Running a command once is not enough; the agent must be kept in place. Which Systems Manager capability re-applies a desired state on a schedule?
+
+---
+
+## ALPHA-184: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** hard · **Pillars:** Operational Excellence, Security
+**Services:** CloudFormation › StackSets, Organizations
+
+### Question
+A company uses AWS Organizations with 150 member accounts, and new accounts are added every week. The security team needs an identical IAM role for auditing in every member account, including accounts that join later, and the role must be removed when an account leaves the organization. The team will define the role in an AWS CloudFormation template. Which TWO steps meet these requirements with the LEAST operational overhead? (Select TWO.)
+
+### Options
+- **A.** Create a CloudFormation stack set with service-managed permissions after enabling trusted access between CloudFormation StackSets and AWS Organizations.
+- **B.** Create a stack set with self-managed permissions, and create the administration and execution roles in every account manually.
+- **C.** Turn on automatic deployment for the stack set, targeting the organization's root or OUs, and set it to delete stacks when accounts are removed.
+- **D.** Write a script that runs every week, lists new accounts, and deploys the template in each one.
+- **E.** Attach a service control policy that creates the IAM role in each account.
+
+### Correct answers: A, C (choose 2)
+
+**Summary:** Service-managed StackSets with automatic deployment roll a template out to every account in target OUs, including new ones, and can remove the stacks when accounts leave.
+
+### Explanation
+- A is correct: service-managed permissions let StackSets deploy into member accounts through Organizations, with no roles to create by hand in each account.
+- B is wrong: every new account would need its roles created by hand before it could receive the stack.
+- C is correct: automatic deployment adds the stack to accounts that join the target OUs and deletes it from accounts that leave.
+- D is wrong: a custom script must be built, secured and maintained, and it leaves gaps between runs.
+- E is wrong: SCPs only limit permissions; they never create resources.
+
+**Key phrases:** AWS Organizations · 150 member accounts · new accounts are added every week · every member account · removed when an account leaves · LEAST operational overhead · TWO
+**Hint:** One feature deploys a template to many accounts using Organizations instead of hand-made roles; another setting reacts when accounts join or leave.
+
+---
+
+## ALPHA-185: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Service Catalog
+
+### Question
+A central cloud team wants developers to launch only approved, preconfigured environments, such as an Amazon EC2 web stack with mandated instance types and encryption, defined in AWS CloudFormation templates. Developers must not receive permissions to create the underlying resources directly, and the team wants to manage versions of the approved templates. Which solution meets these requirements?
+
+### Options
+- **A.** Share the templates in an S3 bucket and grant developers permission to create CloudFormation stacks and every resource in the templates.
+- **B.** Publish the templates as products in an AWS Service Catalog portfolio, grant developers access to the portfolio, and add a launch constraint with an IAM role that can create the resources.
+- **C.** Use AWS Config rules to delete resources that do not match the approved templates.
+- **D.** Use a service control policy that allows only the approved instance types.
+
+### Correct answer: B
+
+**Summary:** Service Catalog = a curated portfolio of approved, versioned CloudFormation products; launch constraints let users launch them without permissions for the underlying resources.
+
+### Explanation
+- A is wrong: developers would hold broad permissions to create the resources directly and could launch anything.
+- B is correct: developers launch only the approved, versioned products, and the launch constraint's role creates the resources, so developers need no direct permissions for them.
+- C is wrong: Config detects problems after the fact, and developers would still need permissions to create resources.
+- D is wrong: an SCP can limit choices but offers no catalog or versions, and developers would still need direct permissions.
+
+**Key phrases:** approved, preconfigured environments · must not receive permissions to create the underlying resources directly · manage versions
+**Hint:** Developers should pick from a catalog and launch, while a separate role does the actual resource creation.
+
+---
+
+## ALPHA-186: Monitoring, Management & Governance
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Security, Reliability
+**Services:** Trusted Advisor
+
+### Question
+A company with an AWS Business Support plan wants a single place that recommends improvements across cost optimization, security, fault tolerance, performance and service quotas. Examples include idle load balancers, underused EC2 instances, security groups that allow unrestricted access, and resources nearing their service quotas. Which AWS service should the company use?
+
+### Options
+- **A.** AWS Trusted Advisor
+- **B.** AWS Compute Optimizer
+- **C.** AWS Cost Explorer
+- **D.** Amazon Inspector
+
+### Correct answer: A
+
+**Summary:** Trusted Advisor = best-practice checks across cost, performance, security, fault tolerance, service limits and operational excellence; the full set needs Business Support or higher.
+
+### Explanation
+- A is correct: Trusted Advisor runs best-practice checks across cost optimization, security, fault tolerance, performance, service limits and operational excellence, and Business Support unlocks the full set of checks.
+- B is wrong: it recommends right-sizing for compute resources only, not security, fault tolerance or quotas.
+- C is wrong: it analyzes spend and offers some right-sizing and purchase recommendations, but no security, fault tolerance or quota checks.
+- D is wrong: Inspector finds software vulnerabilities and network exposure, not cost or quota issues.
+
+**Key phrases:** AWS Business Support plan · a single place · idle load balancers · security groups that allow unrestricted access · service quotas
+**Hint:** The checks span several categories at once, not just compute size or spend.
+
+---
+
+## ALPHA-187: Monitoring, Management & Governance
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** Health Dashboard, EventBridge
+
+### Question
+AWS occasionally schedules events that affect specific Amazon EC2 instances, such as an instance retirement because of degraded underlying hardware. An operations team wants an automated response: when such an event is scheduled for one of its EBS-backed instances, a runbook must stop and start the instance to move it to healthy hardware, and the team must be notified. Which solution meets these requirements?
+
+### Options
+- **A.** Create a CloudWatch alarm on the StatusCheckFailed_System metric that recovers the instance.
+- **B.** Have an operator check the AWS Health Dashboard every morning.
+- **C.** Use AWS Config to record instance configuration changes and send alerts.
+- **D.** Create an Amazon EventBridge rule that matches AWS Health events for scheduled EC2 changes and targets an AWS Systems Manager Automation runbook and an Amazon SNS topic.
+
+### Correct answer: D
+
+**Summary:** AWS Health (the Health Dashboard) reports account-specific events such as scheduled maintenance and retirements; send them through EventBridge to automate responses and notifications.
+
+### Explanation
+- A is wrong: the alarm reacts after a hardware failure; a scheduled event is announced in advance and does not fail a status check.
+- B is wrong: manual checks are not an automated response.
+- C is wrong: Config records configuration changes; it does not receive AWS scheduled maintenance events.
+- D is correct: AWS Health sends account-specific events, including scheduled retirements, to EventBridge, which can start the runbook and notify the team.
+
+**Key phrases:** schedules events that affect specific Amazon EC2 instances · instance retirement · automated response · the team must be notified
+**Hint:** AWS publishes account-specific events about your resources. Where can a rule pick them up and start automation?
+
+---
+
+## ALPHA-188: Monitoring, Management & Governance
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Managed Grafana
+
+### Question
+A company runs workloads in 30 AWS accounts and collects metrics in Amazon CloudWatch and in Amazon Managed Service for Prometheus. Operators want shared, interactive dashboards that combine both data sources across all accounts, with sign-in through the company's IAM Identity Center users. The company does not want to install, scale or patch dashboard servers. Which solution meets these requirements?
+
+### Options
+- **A.** Create an Amazon Managed Grafana workspace with CloudWatch and Prometheus data sources for the accounts, and IAM Identity Center authentication.
+- **B.** Run open-source Grafana on Amazon EC2 instances behind an Application Load Balancer.
+- **C.** Export the metrics to Amazon S3 every hour and build Amazon QuickSight dashboards.
+- **D.** Use AWS X-Ray service maps in each account.
+
+### Correct answer: A
+
+**Summary:** Managed Grafana = serverless Grafana workspaces that query CloudWatch, Prometheus, X-Ray, OpenSearch and more across accounts, with IAM Identity Center or SAML sign-in.
+
+### Explanation
+- A is correct: Managed Grafana runs the Grafana servers for you, queries CloudWatch and Prometheus across accounts, and signs users in through IAM Identity Center.
+- B is wrong: the company would install, scale and patch the dashboard servers itself.
+- C is wrong: it needs a custom export pipeline, and hourly business intelligence reports are not interactive operational dashboards.
+- D is wrong: X-Ray shows request traces and service maps, not combined metric dashboards from CloudWatch and Prometheus.
+
+**Key phrases:** 30 AWS accounts · Amazon CloudWatch · Amazon Managed Service for Prometheus · interactive dashboards · IAM Identity Center · does not want to install, scale or patch
+**Hint:** The team wants a popular open-source dashboard tool, without running its servers.
+
+---
+
+## ALPHA-189: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Operational Excellence, Performance Efficiency
+**Services:** MSK
+
+### Question
+A company runs Apache Kafka on premises for event streaming. Dozens of producer and consumer applications use the Kafka client libraries and Kafka Connect. The company wants to move to a managed service on AWS without changing application code. Which service should a solutions architect recommend?
+
+### Options
+- **A.** Amazon MQ
+- **B.** Amazon Kinesis Data Streams
+- **C.** Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+- **D.** Amazon SQS
+
+### Correct answer: C
+
+**Summary:** Existing Kafka applications → Amazon MSK (Kafka-compatible, provisioned or serverless, with MSK Connect for Kafka Connect); Kinesis needs its own API.
+
+### Explanation
+- A is wrong: Amazon MQ runs ActiveMQ and RabbitMQ brokers, not Kafka.
+- B is wrong: Kinesis has its own API, so producers and consumers would have to be rewritten.
+- C is correct: MSK runs Apache Kafka as a managed service, so existing clients keep working, and MSK Connect runs Kafka Connect connectors.
+- D is wrong: SQS is a message queue with its own API, not a Kafka-compatible stream.
+
+**Key phrases:** Apache Kafka · Kafka client libraries · Kafka Connect · without changing application code
+**Hint:** Keep the Kafka APIs; drop the brokers you manage.
+
+---
+
+## ALPHA-190: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** Athena › Federated query
+
+### Question
+Analysts use Amazon Athena to query clickstream data in Amazon S3. They now need to join it, using SQL in Athena, with customer records in an Amazon RDS for MySQL database and with order data in an Amazon DynamoDB table. The company wants to avoid building and maintaining ETL pipelines that copy the data into S3. Which solution meets these requirements?
+
+### Options
+- **A.** Export the DynamoDB table to S3 every night and query it with Athena.
+- **B.** Use Athena Federated Query with data source connectors for MySQL and DynamoDB, which run on AWS Lambda.
+- **C.** Run AWS Glue ETL jobs every hour to copy the RDS and DynamoDB data to S3.
+- **D.** Load all three datasets into Amazon Redshift with COPY commands.
+
+### Correct answer: B
+
+**Summary:** Athena Federated Query runs SQL across S3 and other sources such as RDS, DynamoDB and on-premises databases through Lambda-based connectors, without ETL.
+
+### Explanation
+- A is wrong: it copies data on a schedule and still does not reach the RDS data.
+- B is correct: federated queries let Athena join S3 data with RDS and DynamoDB in place through Lambda-based connectors, with no ETL pipeline.
+- C is wrong: that is the ETL pipeline the company wants to avoid, and the copies would lag behind the source.
+- D is wrong: it adds a data warehouse and load jobs to maintain, which is ETL by another name.
+
+**Key phrases:** Amazon Athena · join it, using SQL in Athena · Amazon RDS for MySQL · Amazon DynamoDB · avoid building and maintaining ETL pipelines
+**Hint:** Can Athena reach data where it lives, instead of the data being copied to S3 first?
