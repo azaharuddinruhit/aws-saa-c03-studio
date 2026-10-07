@@ -65,7 +65,7 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-tb{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13px var(--sans);box-shadow:var(--shadow);white-space:nowrap}
 .mm-tb:hover{border-color:var(--accent)}
 .mm-tb svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-/* one column on the right: view controls (expand, collapse, progress, legend) above zoom (+, −, fit) */
+/* one column on the right: view controls (legend while progress is on, progress, expand, collapse) above zoom (+, −, fit) */
 .mm-zoom{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:flex-end;gap:14px;z-index:5}
 .mm-grp{display:grid;gap:6px}
 .mm-zoom .mm-tb{width:38px;height:38px;padding:0;justify-content:center}
@@ -144,10 +144,10 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
   </div>
   <div class="mm-zoom">
     <div class="mm-grp">
+      <button type="button" class="mm-tb" id="legendBtn" aria-controls="legend" aria-expanded="false" aria-label="Progress legend" title="Show or hide the progress legend" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+      <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" aria-label="My progress" title="My progress: colour services by your quiz results"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5"/></svg></button>
       <button type="button" class="mm-tb" id="expandBtn" aria-label="Expand all" title="Expand all: open every branch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
       <button type="button" class="mm-tb" id="collapseBtn" aria-label="Collapse all" title="Collapse all: fold back to the domains"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button>
-      <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" aria-label="My progress" title="My progress: colour services by your quiz results"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5"/></svg></button>
-      <button type="button" class="mm-tb" id="legendBtn" aria-controls="legend" aria-expanded="false" aria-label="Progress legend" title="Show or hide the progress legend" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
     </div>
     <div class="mm-grp">
       <button type="button" class="mm-tb" id="zoomIn" aria-label="Zoom in" title="Zoom in (+)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
