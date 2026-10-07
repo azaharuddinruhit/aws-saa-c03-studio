@@ -109,6 +109,8 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-chip b{font-weight:700}
 .mm-chip .n{font:600 11px var(--mono);color:var(--muted)}
 button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
+.mm-chip.mm-practice{padding:6px 12px;font-weight:600;border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.mm-chip.mm-practice b{color:var(--accent)}
 .mm-chip.primary{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
 .mm-links-list{display:grid;gap:6px}
 .mm-links-list a{display:flex;gap:8px;align-items:baseline;font-size:14px;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:8px 11px}
@@ -530,6 +532,14 @@ function progressHTML(list, what) {
     <ol class="mm-qs">${rows}</ol>
     <p class="mm-note" style="margin-top:10px">Latest answer to each question in the <a href="../index.html">Studio's practice quizzes</a>, saved in this browser. α β γ are the three question sets.</p></div>`;
 }
+// one practice link per question set that has questions for the service; the Studio works one set at a time
+function practiceHTML(name) {
+  const perBank = DATA.banks.map((b, bi) => ({ b, c: S[name].q.filter(qi => DATA.questions[qi][0] === bi).length })).filter(x => x.c);
+  if (!perBank.length) return '';
+  return `<div><h3>Practise ${esc(name)}</h3><div class="mm-chips">${perBank.map(({ b, c }) =>
+    `<a class="mm-chip noico mm-practice" href="../index.html#/practice/${esc(b.key)}/${encodeURIComponent(name)}" target="_blank" rel="noopener" title="Opens the Studio in a new tab and selects ${esc(b.label)}"><b>${esc(b.symbol)}</b> ${esc(b.label)} <span class="n">${c}</span></a>`).join('')}</div>
+    <p class="mm-note" style="margin-top:8px">Opens a quiz in a new tab: unseen and missed questions first, then any due for review; ones you've mastered wait until they're due, unless nothing else is left.</p></div>`;
+}
 function serviceHTML(n) {
   const s = S[n.name];
   const dom = DATA.domains.find(d => d.n === s.domain);
@@ -541,6 +551,7 @@ function serviceHTML(n) {
   return `<div class="mm-p-head">${iconHTML(s.icon, n.name)}<div><h2 id="panelTitle">${esc(n.name)}</h2><p>${esc(s.cat)} · Domain ${dom.n}, ${esc(dom.short)}</p></div>${CLOSE}</div>
     <p class="mm-cue">${esc(s.cue)}</p>
     ${s.traps.length ? `<div><h3>Exam traps</h3><ul>${s.traps.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
+    ${practiceHTML(n.name)}
     ${counts.length ? `<div><h3>Tested in</h3><div class="mm-chips">${counts.map(({ d, c }) => `<span class="mm-chip noico${d.n === s.domain ? ' primary' : ''}"><b>${d.n}</b> ${esc(d.short)} <span class="n">${c}</span></span>`).join('')}</div></div>` : ''}
     ${s.twins.length ? `<div><h3>Don't confuse with</h3><div class="mm-chips">${s.twins.map(t => chip('s:' + t)).join('')}</div></div>` : ''}
     ${s.features.length ? `<div><h3>Features</h3><div class="mm-chips">${s.features.map(f => chip('f:' + n.name + '|' + f)).join('')}</div></div>` : ''}
