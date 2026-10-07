@@ -280,17 +280,18 @@ function render(anchor) {
   visible = [];
   (function walk(n) { visible.push(n); if (isOpen(n)) n.children.forEach(walk); })(root);
   nodesEl.innerHTML = visible.map(nodeHTML).join('');
-  for (const el of nodesEl.children) {
-    const n = byId.get(el.dataset.id);
-    n.el = el;
-    n.w = el.offsetWidth;
-    n.h = el.offsetHeight;
-  }
+  for (const el of nodesEl.children) byId.get(el.dataset.id).el = el;
+  paintOverlay();   // before measuring: the score badges change each node's width
+  layout(anchor, before);
+}
+// measure the nodes as drawn and place them; run again whenever their size can change (fonts, scores)
+function layout(anchor, before) {
+  if (anchor && anchor.el && !before) before = screenPos(anchor);
+  for (const n of visible) { n.w = n.el.offsetWidth; n.h = n.el.offsetHeight; }
   span(root);
   place(root, 0, 0);
   for (const n of visible) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
   drawLinks();
-  paintOverlay();
   if (before) {   // keep the node that was clicked where it was on screen
     const after = screenPos(anchor);
     view.x += before.x - after.x;
@@ -650,17 +651,28 @@ if (startNode && panelDepth() === 0) {
 if (startNode) select(startNode, 'history');
 else if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 addEventListener('resize', () => { setTopbarHeight(); if (!touched) fit(false, READABLE); });
+// node sizes changed without a rebuild: lay out again, keeping the selected node (or the fitted view) steady
+function relayout() {
+  const sel = selected && byId.get(selected);
+  layout(sel && sel.el && sel.el.isConnected ? sel : null);
+  if (!touched) fit(false, READABLE);
+}
+// the web fonts can arrive after the first layout, and their text is a different width
+if (document.fonts) {
+  document.fonts.ready.then(relayout);
+  document.fonts.addEventListener('loadingdone', relayout);
+}
 // another tab (the Studio, or a Gist sync) may save new answers
 addEventListener('storage', e => {
   if (e.key && !DATA.banks.some(b => e.key === b.prefix + 'attempts')) return;
   readAttempts();
-  if (overlay) paintOverlay();
+  if (overlay) { paintOverlay(); relayout(); }
   if (panelFor) showPanel(panelFor);
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   readAttempts();
-  if (overlay) paintOverlay();
+  if (overlay) { paintOverlay(); relayout(); }
 });
 
 })();
