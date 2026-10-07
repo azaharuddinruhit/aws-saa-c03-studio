@@ -226,34 +226,6 @@ A retail application reads product catalog items from an Amazon DynamoDB table a
 
 ---
 
-## ALPHA-009: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
-**Services:** ElastiCache › Engine choice
-
-### Question
-A gaming company is building a real-time leaderboard. After every match a player's score changes, and millions of players must be able to read the top 100 and their own rank in under a millisecond. If a cache node or a whole Availability Zone fails, the rankings must stay available without being rebuilt from the game database. Which solution meets these requirements?
-
-### Options
-- **A.** Amazon ElastiCache for Redis with a single primary node and daily snapshots exported to Amazon S3.
-- **B.** Amazon ElastiCache for Memcached with nodes spread across three Availability Zones.
-- **C.** Amazon ElastiCache for Redis with a replica in another Availability Zone, Multi-AZ with automatic failover, and scores in a sorted set.
-- **D.** Amazon DynamoDB with a DAX cluster in front of it and a global secondary index on the score attribute.
-
-### Correct answer: C
-
-**Summary:** Leaderboards: ElastiCache for Redis sorted sets give sub-millisecond ranking; add a replica with Multi-AZ automatic failover so the rankings survive node or AZ loss.
-
-### Explanation
-- A is wrong: Redis has the ranking structure, but a node failure takes the leaderboard down and loses every score change since the last snapshot.
-- B is wrong: Memcached has no ranking data structure and no replication, so a lost node loses its keys.
-- C is correct: a sorted set keeps players ordered by score and returns ranks and the top 100 in sub-millisecond time, and Multi-AZ with automatic failover promotes the replica in another zone with the data intact.
-- D is wrong: DynamoDB has no ranking structure, so a player's rank needs index queries, and DAX only caches results that go stale after every match, so reads are not sub-millisecond.
-
-**Key phrases:** their own rank in under a millisecond · a whole Availability Zone fails · without being rebuilt
-**Hint:** One engine has a data structure that keeps members ranked by score. Then check which option also survives the loss of a node or a zone.
-
----
-
 ## ALPHA-010: Networking & Content Delivery
 **Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** easy · **Pillars:** Cost Optimization, Security
 **Services:** VPC › Gateway endpoints, VPC › PrivateLink & interface endpoints
@@ -503,34 +475,6 @@ A trading platform sends account transactions (deposits, withdrawals) to a proce
 
 **Key phrases:** exactly once · in the order they were submitted · different accounts may be processed in parallel · set aside for investigation · without blocking the other accounts
 **Hint:** Ordering per account but parallelism across accounts. Which SQS FIFO attribute defines the scope of ordering?
-
----
-
-## ALPHA-019: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
-**Services:** EventBridge
-
-### Question
-A SaaS company uses a third-party help desk provider that publishes ticket events to AWS customers through Amazon EventBridge. High-priority tickets must invoke an AWS Lambda function within seconds, and all other tickets must go to an Amazon SQS queue for batch handling. The company must not poll the provider's API or host its own webhook endpoint. Which configuration meets these requirements?
-
-### Options
-- **A.** Create an EventBridge API destination for the provider's API and a rule that routes high-priority tickets to the Lambda function and the rest to the queue.
-- **B.** Associate the provider's partner event source with a partner event bus, and create rules on that bus whose event patterns match the priority field and target the Lambda function or the queue.
-- **C.** Create rules on the account's default event bus whose event patterns match the provider's ticket events by priority.
-- **D.** Create an EventBridge pipe with the provider's API as its source and the Lambda function as its target, filtering on priority.
-
-### Correct answer: B
-
-**Summary:** SaaS partner events: associate the partner event source with a partner event bus, then route with content-based rules on that bus.
-
-### Explanation
-- A is wrong: API destinations send events out to HTTP endpoints; they do not receive events from the provider.
-- B is correct: the partner event source delivers the provider's events to a partner event bus, and content-based event patterns route high-priority tickets to Lambda and the rest to SQS with no code.
-- C is wrong: partner events arrive on the partner event bus created from the event source, so rules on the default bus never see them.
-- D is wrong: pipes read from AWS sources such as queues and streams, not from a SaaS provider's API.
-
-**Key phrases:** publishes ticket events to AWS customers through Amazon EventBridge · within seconds · must not poll the provider's API or host its own webhook endpoint
-**Hint:** Events from a SaaS partner do not arrive on the default event bus. What do you set up first, and where do the rules go?
 
 ---
 
@@ -967,34 +911,6 @@ A company hires a third-party monitoring vendor that needs read-only access to r
 
 ---
 
-## ALPHA-036: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
-**Services:** Macie, EventBridge
-
-### Question
-A company has 400 Amazon S3 buckets, and teams create new buckets every week without telling the security team. The security team must find out which buckets hold data such as credit card numbers or passport numbers, and must be notified automatically when new findings appear. The solution must use managed services and no custom code. Which solution meets these requirements?
-
-### Options
-- **A.** Enable Amazon GuardDuty S3 Protection, and route its findings to an Amazon SNS topic with an Amazon EventBridge rule.
-- **B.** Create an S3 Object Lambda access point that checks objects for card numbers as they are read and alerts the security team.
-- **C.** Enable Amazon Macie automated sensitive data discovery, and route Macie findings to an Amazon SNS topic with an Amazon EventBridge rule.
-- **D.** Enable the AWS Config managed rules s3-bucket-public-read-prohibited and s3-bucket-ssl-requests-only with notifications to Amazon SNS.
-
-### Correct answer: C
-
-**Summary:** Sensitive data inside S3 objects = Macie (automated discovery covers new buckets); GuardDuty S3 Protection watches access activity, Config watches settings.
-
-### Explanation
-- A is wrong: GuardDuty S3 Protection analyzes S3 API activity for threats such as unusual access or exfiltration; it does not look inside objects for sensitive data.
-- B is wrong: it is custom code, and it sees only objects that someone happens to read through that access point.
-- C is correct: automated sensitive data discovery continuously samples objects in every bucket, including new ones, to find data types such as card and passport numbers, and Macie publishes its findings to EventBridge.
-- D is wrong: Config evaluates bucket settings, not the data stored in the objects.
-
-**Key phrases:** without telling the security team · credit card numbers or passport numbers · notified automatically · no custom code
-**Hint:** One service watches what happens to S3; another looks inside the objects. Which one does this requirement need, and how does it cover buckets nobody told it about?
-
----
-
 ## ALPHA-037: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** Certificate Manager, CloudFront
@@ -1078,36 +994,6 @@ Analysts run ad hoc SQL queries with Amazon Athena over five years of applicatio
 
 **Key phrases:** uncompressed JSON · single flat prefix · filter on a date range · four of the roughly sixty fields · scan far more data than expected · TWO
 **Hint:** Athena bills and waits on bytes scanned. One change lets it skip whole files; the other lets it skip the columns nobody asked for.
-
----
-
-## ALPHA-040: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** hard · **Pillars:** Performance Efficiency
-**Services:** EC2 › Placement groups & EFA
-
-### Question
-A research team runs a tightly coupled simulation across 40 Amazon EC2 instances that exchange messages with MPI throughout every run, and the job finishes only when all nodes finish. Profiling shows that time spent in the operating system's network stack and network distance between nodes dominate the run time. The team needs the lowest possible node-to-node latency and the highest throughput between the instances. Which TWO actions should a solutions architect take? (Select TWO.)
-
-### Options
-- **A.** Launch the instances in a spread placement group so that no two instances share underlying hardware.
-- **B.** Launch the instances in a partition placement group across two Availability Zones.
-- **C.** Attach two additional elastic network interfaces to each instance to multiply its network bandwidth.
-- **D.** Launch the instances in a cluster placement group in a single Availability Zone.
-- **E.** Use an instance type that supports Elastic Fabric Adapter and attach an EFA to each instance.
-
-### Correct answers: D, E (choose 2)
-
-**Summary:** Tightly coupled HPC (MPI): cluster placement group in one AZ for proximity, plus Elastic Fabric Adapter for OS-bypass networking.
-
-### Explanation
-- A is wrong: a spread placement group deliberately separates instances, which increases the distance between them.
-- B is wrong: partition groups isolate failure domains for distributed data stores, and spanning zones raises latency.
-- C is wrong: extra network interfaces do not raise an instance's bandwidth limit or lower its latency.
-- D is correct: a cluster placement group packs instances onto closely connected hardware for the lowest latency and highest throughput between them.
-- E is correct: EFA lets MPI traffic bypass the operating system's network stack, which removes the time profiling found there.
-
-**Key phrases:** tightly coupled · MPI · operating system's network stack · lowest possible node-to-node latency · TWO
-**Hint:** One choice decides how physically close the instances are; the other lets MPI traffic skip the operating system's network stack.
 
 ---
 
@@ -1395,34 +1281,6 @@ A genomics company runs short-lived batch analyses on hundreds of Amazon EC2 ins
 
 ---
 
-## ALPHA-052: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
-**Services:** GuardDuty
-
-### Question
-A company with 120 accounts in AWS Organizations wants to be told automatically when an EC2 instance appears to be compromised or when someone uses stolen credentials, based on the CloudTrail, VPC flow and DNS activity in each account. Findings from every account, including accounts created in the future, must appear in one security account. The company does not want to deploy agents or analyze logs itself. What should a solutions architect do?
-
-### Options
-- **A.** Enable AWS Security Hub in every account with the AWS Foundational Security Best Practices standard and aggregate findings in the security account.
-- **B.** Enable Amazon Detective with the security account as its administrator account.
-- **C.** Create an organization trail and VPC Flow Logs, send them to a central Amazon OpenSearch Service domain, and write alerting rules for suspicious patterns.
-- **D.** Enable Amazon GuardDuty with the security account as delegated administrator and auto-enable for all member accounts.
-
-### Correct answer: D
-
-**Summary:** Threat detection from AWS logs without agents = GuardDuty (organization-wide via delegated admin); Security Hub aggregates, Detective investigates.
-
-### Explanation
-- A is wrong: Security Hub checks configurations and collects findings from other services; it does not analyze activity to detect compromised instances or credential misuse.
-- B is wrong: Detective investigates findings after they exist; it does not generate threat detections.
-- C is wrong: this is the do-it-yourself log analysis the company wants to avoid.
-- D is correct: GuardDuty analyzes CloudTrail, VPC flow and DNS activity without agents to detect compromised instances and credential misuse, and a delegated administrator with auto-enable covers current and future accounts.
-
-**Key phrases:** compromised · stolen credentials · including accounts created in the future · does not want to deploy agents or analyze logs itself
-**Hint:** Aggregating findings, investigating findings and producing findings are three different services. Which one produces them from the logs AWS already has?
-
----
-
 ## ALPHA-054: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
 **Services:** Config › Rules & remediation, Systems Manager › Automation, EventBridge
@@ -1478,34 +1336,6 @@ An application runs on Amazon EC2 instances in an Auto Scaling group. The applic
 
 **Key phrases:** leaks memory slowly · CPU utilization stays low · memory utilization crosses 85% · no change to the application code
 **Hint:** Which metrics can the hypervisor see, and which ones need an agent running inside the instance?
-
----
-
-## ALPHA-056: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
-**Services:** CloudWatch › Logs, CloudWatch › Alarms
-
-### Question
-A company's application writes its logs to Amazon CloudWatch Logs. Operations wants to be paged automatically whenever the string OutOfMemoryError appears more than five times within five minutes, and wants no code or scheduled jobs to maintain. What is the simplest way to meet this requirement?
-
-### Options
-- **A.** Turn on CloudWatch Logs anomaly detection for the log group and alarm on the anomalies it reports.
-- **B.** Create a CloudWatch Logs subscription filter that streams matching events to an AWS Lambda function that counts them and publishes to Amazon SNS.
-- **C.** Create a CloudWatch Logs metric filter for the pattern, and a CloudWatch alarm that notifies an Amazon SNS topic when the sum exceeds five in a five-minute period.
-- **D.** Run a CloudWatch Logs Insights query every five minutes from an Amazon EventBridge schedule and a Lambda function, and page when the count exceeds five.
-
-### Correct answer: C
-
-**Summary:** Alert on a log pattern count = CloudWatch Logs metric filter + CloudWatch alarm; anomaly detection is for unusual patterns, not fixed thresholds.
-
-### Explanation
-- A is wrong: anomaly detection flags unusual patterns compared with a learned baseline; it does not enforce a fixed count of a specific string.
-- B is wrong: it works, but it is code to write and maintain for what a metric filter does natively.
-- C is correct: the metric filter turns matching lines into a metric as they arrive, and a standard alarm with a five-minute period and a threshold of five pages the team, with nothing to maintain.
-- D is wrong: it is a scheduled job plus code, which the team wants to avoid.
-
-**Key phrases:** more than five times within five minutes · no code or scheduled jobs
-**Hint:** The requirement is a fixed count over a fixed window, which is exactly what an ordinary alarm evaluates once the log lines become a metric.
 
 ---
 
@@ -2163,34 +1993,6 @@ An application sends about 3 TB of logs per month to Amazon CloudWatch Logs, and
 
 ---
 
-## ALPHA-081: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
-**Services:** VPC › Flow Logs
-
-### Question
-After a security incident, a company must be able to answer which source IP addresses actually connected to a particular Amazon EC2 instance, which connection attempts were rejected by security groups or network ACLs, and how many bytes were transferred, for any time in the last 90 days. The instances run several operating systems, and the company does not want to install agents or store full packet captures. What should a solutions architect do?
-
-### Options
-- **A.** Enable Amazon GuardDuty, which analyzes VPC flow data, and search its findings for the instance's IP address.
-- **B.** Enable VPC Traffic Mirroring on the instance's network interface and send the traffic to a monitoring appliance.
-- **C.** Run VPC Reachability Analyzer between the instance and the internet gateway.
-- **D.** Enable VPC Flow Logs, publish them to Amazon S3 with a 90-day lifecycle rule, and query them with Amazon Athena.
-
-### Correct answer: D
-
-**Summary:** Who actually connected, what was rejected, how many bytes = VPC Flow Logs (to S3, queried with Athena); Reachability Analyzer only checks configuration.
-
-### Explanation
-- A is wrong: GuardDuty uses flow data internally but only surfaces findings about threats, not a record of every connection you can query.
-- B is wrong: mirroring copies full packets, which the company does not want to store, and it needs a target appliance to run.
-- C is wrong: Reachability Analyzer checks configuration for paths that could exist; it records no actual past traffic.
-- D is correct: flow logs record accepted and rejected flows with addresses, ports, bytes and the action taken, need no agents, and Athena queries them in S3 for as long as they are kept.
-
-**Key phrases:** actually connected · rejected by security groups or network ACLs · last 90 days · does not want to install agents or store full packet captures
-**Hint:** Some options describe what could happen, some raise alerts, and some record what actually happened on the network. Which one keeps a queryable record of every flow?
-
----
-
 ## ALPHA-082: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
 **Services:** Directory Service › Managed Microsoft AD, Directory Service › AD Connector
@@ -2277,36 +2079,6 @@ An internal REST API built with Amazon API Gateway must be reachable only from a
 
 ---
 
-## ALPHA-085: Networking & Content Delivery
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** hard · **Pillars:** Security
-**Services:** VPC › Internet gateways, VPC › NAT gateways
-
-### Question
-Amazon EC2 instances in a private subnet have IPv6 addresses only. They must download updates from vendor endpoints on the internet: some of those endpoints have IPv6 addresses and one repository has only IPv4 addresses. Nothing on the internet may be able to start a connection to the instances. Which TWO actions should a solutions architect take? (Select TWO.)
-
-### Options
-- **A.** Attach an internet gateway and route ::/0 to it, relying on the security groups to block inbound connections.
-- **B.** Add an egress-only internet gateway to the VPC and route the subnet's ::/0 traffic to it.
-- **C.** Assign an Elastic IP address to each instance so that the IPv4-only repository can be reached.
-- **D.** Route the 64:ff9b::/96 prefix to the internet gateway so that it translates IPv6 traffic to IPv4.
-- **E.** Create a NAT gateway in a public subnet, enable DNS64 on the private subnet, and route 64:ff9b::/96 to the NAT gateway.
-
-### Correct answers: B, E (choose 2)
-
-**Summary:** IPv6-only subnets: egress-only internet gateway for IPv6 destinations, plus DNS64 and a NAT gateway (NAT64, 64:ff9b::/96) for IPv4-only destinations.
-
-### Explanation
-- A is wrong: IPv6 addresses are publicly routable, so an internet gateway makes the instances reachable, and the design would depend entirely on every security group staying correct.
-- B is correct: an egress-only internet gateway lets instances start outbound IPv6 connections and refuses connections started from the internet.
-- C is wrong: Elastic IP addresses are public IPv4 addresses for instances with IPv4 networking, and they would make the instances reachable from the internet.
-- D is wrong: an internet gateway does not translate between IPv6 and IPv4; NAT64 is a NAT gateway feature.
-- E is correct: DNS64 returns synthesized IPv6 addresses for IPv4-only names, and the NAT gateway translates that traffic to IPv4 (NAT64), outbound only.
-
-**Key phrases:** IPv6 addresses only · only IPv4 addresses · Nothing on the internet may be able to start a connection · TWO
-**Hint:** IPv6 destinations need an outbound-only IPv6 gateway. IPv4-only destinations need something that translates between the two address families.
-
----
-
 ## ALPHA-086: Monitoring, Management & Governance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** Systems Manager › Patch Manager, Systems Manager › Run Command
@@ -2332,34 +2104,6 @@ A company must patch several hundred Amazon EC2 instances running Amazon Linux a
 
 **Key phrases:** monthly schedule · approved maintenance window · report showing which instances are missing patches · avoid building its own tooling
 **Hint:** One Systems Manager capability owns patch baselines, scheduling and compliance reporting.
-
----
-
-## ALPHA-087: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
-**Services:** MQ
-
-### Question
-A company is migrating a legacy order-processing application to AWS. Some components send and receive messages through the JMS API, and others use the AMQP 1.0 protocol, all through one on-premises message broker. The team cannot change application code before the migration deadline, and messaging must keep working if an Availability Zone fails. Which solution meets these requirements?
-
-### Options
-- **A.** Use Amazon SQS with the Amazon SQS Java Messaging Library for the JMS components.
-- **B.** Use Amazon MQ for ActiveMQ with an active/standby broker deployment across two Availability Zones.
-- **C.** Use Amazon MQ for ActiveMQ with a single-instance broker, which supports both JMS and AMQP 1.0.
-- **D.** Replace the broker with Amazon SNS topics and Amazon SQS queues subscribed to them.
-
-### Correct answer: B
-
-**Summary:** Legacy JMS/AMQP/MQTT/STOMP brokers move to Amazon MQ unchanged; use an active/standby (or cluster) deployment for AZ resilience.
-
-### Explanation
-- A is wrong: the library maps a subset of JMS onto SQS, but the AMQP 1.0 components have no SQS equivalent and would have to be rewritten.
-- B is correct: ActiveMQ supports JMS and AMQP 1.0, so neither group of components changes, and the active/standby deployment fails over to the second zone automatically.
-- C is wrong: the protocols match, but a single-instance broker runs in one Availability Zone and fails with it.
-- D is wrong: SNS and SQS have their own APIs, so the messaging code would have to be rewritten.
-
-**Key phrases:** JMS API · AMQP 1.0 protocol · cannot change application code · if an Availability Zone fails
-**Hint:** Both the protocols and the Availability Zone requirement matter. Which managed broker speaks both, and in which deployment mode?
 
 ---
 
@@ -2421,34 +2165,6 @@ A company has connected its data center to a VPC with AWS Direct Connect. Applic
 
 ---
 
-## ALPHA-090: Disaster Recovery & Migration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Cost Optimization
-**Services:** Storage Gateway › File Gateway
-
-### Question
-A media company's on-premises editing workstations write finished projects to an NFS share on an aging appliance that is nearly full. The company wants each finished file to be stored as an object in Amazon S3 so that S3 lifecycle rules apply, while editors keep using an NFS mount on premises and recently used files stay fast to open locally. Which solution meets these requirements?
-
-### Options
-- **A.** Deploy an Amazon S3 File Gateway on premises and present its NFS share to the workstations.
-- **B.** Deploy AWS Storage Gateway Volume Gateway in cached mode and format the iSCSI volume with a file system shared over NFS.
-- **C.** Create an Amazon FSx for OpenZFS file system and mount it on the workstations over AWS Direct Connect.
-- **D.** Run AWS DataSync nightly from the appliance to Amazon S3 and have editors keep writing to the appliance.
-
-### Correct answer: A
-
-**Summary:** Files on premises over NFS/SMB stored as S3 objects with a local cache = S3 File Gateway; Volume Gateway stores blocks, not objects.
-
-### Explanation
-- A is correct: S3 File Gateway stores each file as an S3 object, where lifecycle rules apply, presents an NFS share, and keeps recently used data in a local cache.
-- B is wrong: Volume Gateway stores block volumes, not individual files as S3 objects, so S3 lifecycle rules cannot act on the files.
-- C is wrong: it provides NFS, but the files live in FSx rather than as S3 objects, and there is no local cache on premises.
-- D is wrong: the appliance stays the primary store and keeps filling up.
-
-**Key phrases:** stored as an object in Amazon S3 · lifecycle rules apply · NFS mount on premises · recently used files stay fast
-**Hint:** Several hybrid services keep data local and in AWS. Only one presents a file share while storing each file as an S3 object.
-
----
-
 ## ALPHA-091: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
 **Services:** EC2 Auto Scaling › Warm pools & lifecycle hooks
@@ -2474,34 +2190,6 @@ An Auto Scaling group runs worker instances that process long jobs and upload re
 
 **Key phrases:** terminated while jobs are still running · finish its current job · up to 15 minutes · without disabling scale-in
 **Hint:** Which Auto Scaling feature pauses an instance in a wait state so that your own code can finish first?
-
----
-
-## ALPHA-092: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
-**Services:** Neptune
-
-### Question
-A social network wants to suggest people a user may know by finding members two or three steps away through friendships and shared groups, ranked by how many connections lead to them. The data covers 300 million members and billions of relationships, and each suggestion must be computed in milliseconds as relationships change. Which database is the BEST fit?
-
-### Options
-- **A.** Amazon DynamoDB with an adjacency-list design that stores each relationship as an item, queried one step at a time from the application.
-- **B.** Amazon Aurora PostgreSQL with a relationships table queried through recursive common table expressions.
-- **C.** Amazon Neptune.
-- **D.** Amazon OpenSearch Service with each member's list of friends and groups indexed as a document.
-
-### Correct answer: C
-
-**Summary:** Multi-step relationship traversal (friends of friends, recommendations, fraud rings) = Neptune; key-value and relational designs need repeated lookups or recursive joins.
-
-### Explanation
-- A is wrong: one step is a fast query, but every further step multiplies the queries and joins in the application, so multi-step traversals over billions of relationships are not milliseconds.
-- B is wrong: each extra step is another recursive join over billions of rows, which grows slow and hard to tune.
-- C is correct: Neptune is a graph database that stores relationships natively and traverses several steps with Gremlin or openCypher in milliseconds.
-- D is wrong: a search engine finds matching documents but cannot follow relationships from one document to the next, so friends of friends need repeated queries.
-
-**Key phrases:** two or three steps away · billions of relationships · in milliseconds
-**Hint:** The questions are all about following relationships several steps deep. Which engine is built to traverse them rather than join tables or issue repeated lookups?
 
 ---
 
@@ -2560,64 +2248,6 @@ A monolithic application is being split into three containerized services that w
 
 **Key phrases:** /api, /admin and /static · one entry point · each service to scale on its own · Select TWO
 **Hint:** Only one load balancer type can see the URL path, and each service needs a scaling policy of its own.
-
----
-
-## ALPHA-095: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Cost Optimization
-**Services:** CloudFront › Edge functions
-
-### Question
-A company serves a website through Amazon CloudFront at millions of requests per second. On every viewer request it must normalize the URL and add a few headers, work that takes well under a millisecond and needs no network access. Separately, only when a request is not in the cache, it must call an external authorization API over the network, which takes about 50 ms, to decide which origin path to use. The company wants the lowest added latency and cost. Which TWO actions meet these requirements? (Select TWO.)
-
-### Options
-- **A.** Use a CloudFront function on the viewer request event to normalize the URL and add the headers.
-- **B.** Use a Lambda@Edge function on the viewer request event to normalize the URL and add the headers.
-- **C.** Use a Lambda@Edge function on the origin request event that calls the authorization API.
-- **D.** Use a CloudFront function on the origin request event that calls the authorization API.
-- **E.** Use a CloudFront function on the viewer request event that calls the authorization API for every request.
-
-### Correct answers: A, C (choose 2)
-
-**Summary:** CloudFront Functions: viewer events only, sub-ms, no network, cheapest. Lambda@Edge: network access and origin events (cache misses) for heavier work.
-
-### Explanation
-- A is correct: CloudFront Functions run in a lightweight runtime at the edge location, are built for sub-millisecond request changes at very high rates, and cost a fraction of Lambda@Edge.
-- B is wrong: Lambda@Edge works but adds more latency and cost than a CloudFront function for simple work on every request.
-- C is correct: Lambda@Edge can make network calls, and the origin request event runs only on cache misses, so the 50 ms call is paid only when CloudFront goes to the origin.
-- D is wrong: CloudFront Functions run only on viewer events and cannot make network calls.
-- E is wrong: CloudFront Functions cannot make network calls, and running the check on every request would add the call even to cache hits.
-
-**Key phrases:** millions of requests per second · needs no network access · only when a request is not in the cache · external authorization API over the network · TWO
-**Hint:** Edge code comes in two kinds, and each runs on different events with different abilities. Match each task to the cheapest kind and event that can do it.
-
----
-
-## ALPHA-096: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency
-**Services:** Local Zones & Wavelength, Outposts
-
-### Question
-A media production company in a large city runs latency-sensitive editing workstations that must reach their compute and storage in AWS with single-digit millisecond latency. The nearest AWS Region adds about 30 milliseconds of round-trip latency, which is too much. The company does not want to run hardware in its own facility, and the workloads should stay part of its existing VPC. Which solution meets these requirements?
-
-### Options
-- **A.** Run the workloads on Amazon EC2 instances in an AWS Local Zone near the city, in a subnet of the existing VPC.
-- **B.** Deploy the workloads to an AWS Wavelength Zone in a telecom carrier's 5G network.
-- **C.** Install AWS Outposts racks in the company's own facility.
-- **D.** Put AWS Global Accelerator in front of the workloads in the Region so that traffic enters the AWS network at the nearest edge location.
-
-### Correct answer: A
-
-**Summary:** Single-digit-ms latency in a metro area without your own hardware = Local Zone; Global Accelerator shortens the path but cannot move the compute.
-
-### Explanation
-- A is correct: a Local Zone puts AWS compute and storage in the metropolitan area as an extension of the Region's VPC, giving single-digit millisecond latency with no hardware on site.
-- B is wrong: Wavelength Zones serve applications reached by mobile devices over a carrier's 5G network, not wired workstations in a studio.
-- C is wrong: Outposts would meet the latency target but puts AWS-managed racks in the company's facility, which it does not want.
-- D is wrong: Global Accelerator improves the network path, but the compute stays in the Region about 30 milliseconds away.
-
-**Key phrases:** single-digit millisecond latency · about 30 milliseconds · does not want to run hardware in its own facility · existing VPC
-**Hint:** Speeding up the network path to the Region cannot remove the distance. What puts AWS compute in the same city?
 
 ---
 
@@ -2735,34 +2365,6 @@ A company runs a permanent 60-node Amazon EMR cluster that is busy for about fou
 
 ---
 
-## ALPHA-101: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
-**Services:** Control Tower
-
-### Question
-A company plans to grow from 5 to about 60 AWS accounts over the next year. It wants each new account created from a standard blueprint with a preconfigured VPC and centralized logging, wants preventive and detective guardrails applied automatically, and wants a dashboard that shows which accounts have drifted from the standard. The company wants to avoid building and maintaining this itself. What should a solutions architect recommend?
-
-### Options
-- **A.** Set up AWS Control Tower, vend accounts through Account Factory, and use its controls and dashboard.
-- **B.** Use AWS Organizations with CloudFormation StackSets for the VPC and logging, SCPs for guardrails, and an AWS Config aggregator for compliance.
-- **C.** Publish the account baseline as AWS Service Catalog products that each team launches after creating an account.
-- **D.** Create each account manually in AWS Organizations, attach a service control policy to it, and track drift with a spreadsheet of each account's settings.
-
-### Correct answer: A
-
-**Summary:** Managed multi-account landing zone (account vending, guardrails, drift dashboard) = Control Tower; Organizations + StackSets + Config is the do-it-yourself version.
-
-### Explanation
-- A is correct: Control Tower builds the landing zone with centralized logging, vends accounts from a blueprint, applies preventive and detective controls, and reports drift and compliance in one dashboard.
-- B is wrong: these are the right building blocks, but the company would assemble, connect and maintain them itself, with no account vending or drift dashboard.
-- C is wrong: Service Catalog offers approved products, but it does not create accounts, apply guardrails or report drift.
-- D is wrong: SCPs give preventive guardrails only, and everything else stays manual.
-
-**Key phrases:** standard blueprint · applied automatically · drifted from the standard · avoid building and maintaining this itself
-**Hint:** All the pieces can be assembled from Organizations, StackSets and Config. Which service already packages them as a landing zone?
-
----
-
 ## ALPHA-102: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
 **Services:** IAM › MFA, IAM Identity Center
@@ -2790,34 +2392,6 @@ A security review of a company's AWS Organizations management account finds that
 
 **Key phrases:** root user has an access key · no multi-factor authentication · password is shared · few tasks that require root · Select TWO
 **Hint:** Root cannot be deleted or restricted by an IAM policy, so the answer is about its credentials and about what people use day to day.
-
----
-
-## ALPHA-103: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
-**Services:** IAM › Access Analyzer
-
-### Question
-A compliance team must know continuously, across 40 accounts, which Amazon S3 buckets, IAM roles, AWS KMS keys and Amazon SQS queues can be accessed by principals outside the organization, whether through public access or grants to specific external accounts. The team must review each finding and does not want to read every resource policy by hand. What should a solutions architect recommend?
-
-### Options
-- **A.** Use the Amazon Macie bucket inventory to list buckets that are public or shared with other accounts.
-- **B.** Create an organization-wide IAM Access Analyzer external access analyzer and review its findings.
-- **C.** Enable the AWS Config managed rules that detect public S3 buckets and public SQS queues across the organization.
-- **D.** Enable Amazon GuardDuty in every account and review its findings.
-
-### Correct answer: B
-
-**Summary:** Which resources can be reached from outside the organization (public or cross-account) = IAM Access Analyzer with the organization as zone of trust.
-
-### Explanation
-- A is wrong: Macie reports on S3 buckets only, so roles, keys and queues are not covered.
-- B is correct: IAM Access Analyzer applies automated reasoning to the policies of buckets, roles, keys, queues and more, and reports any access from outside the organization, public or cross-account.
-- C is wrong: these rules flag public access only, miss grants to specific external accounts, and do not cover role trust policies.
-- D is wrong: GuardDuty detects active threats from logs; it does not evaluate who resource policies allow.
-
-**Key phrases:** S3 buckets, IAM roles, AWS KMS keys and Amazon SQS queues · outside the organization · grants to specific external accounts
-**Hint:** Some options cover only S3 or only public access. Which one reasons over the policies of all these resource types and treats the organization as the trusted boundary?
 
 ---
 
@@ -2849,34 +2423,6 @@ A company encrypts objects in Amazon S3 with a customer managed AWS KMS key in e
 
 ---
 
-## ALPHA-105: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
-**Services:** CloudHSM, KMS
-
-### Question
-A payments company runs its own certificate authority. Its signing application uses the PKCS #11 interface, and an audit requires that the keys be kept in single-tenant hardware security modules that only the company can use, with no way for AWS to use the keys. The company wants AWS to handle the hardware's availability, patching and backups. Which solution meets these requirements?
-
-### Options
-- **A.** Use AWS KMS with a customer managed key in a custom key store backed by an AWS CloudHSM cluster.
-- **B.** Use AWS KMS with a customer managed key that has imported key material.
-- **C.** Use an AWS CloudHSM cluster with HSMs in two Availability Zones through its PKCS #11 library.
-- **D.** Use AWS Private CA to issue the certificates, with the CA's private key generated and held by the service.
-
-### Correct answer: C
-
-**Summary:** Exclusive single-tenant HSMs with standard interfaces (PKCS #11, JCE, CNG) = CloudHSM; a KMS custom key store keeps keys in CloudHSM but still uses the KMS API.
-
-### Explanation
-- A is wrong: the key material sits in the company's HSMs, but the application must call the AWS KMS API, which has no PKCS #11 interface.
-- B is wrong: KMS runs on multi-tenant HSMs that AWS operates, and it offers no PKCS #11 interface.
-- C is correct: CloudHSM gives single-tenant HSMs whose keys and users only the company controls, exposes PKCS #11, and AWS manages the hardware, patching and backups.
-- D is wrong: Private CA keeps its keys in HSMs that AWS manages for the service, not in hardware under the company's exclusive control, and the application's PKCS #11 signing would not apply.
-
-**Key phrases:** PKCS #11 interface · single-tenant hardware security modules · no way for AWS to use the keys · availability, patching and backups
-**Hint:** One option keeps the keys in the company's own HSMs but still makes the application talk to a different API. Which one lets the application use PKCS #11 directly?
-
----
-
 ## ALPHA-106: Networking & Content Delivery
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
 **Services:** VPN › Client VPN
@@ -2902,34 +2448,6 @@ Two hundred remote employees must reach internal applications running on private
 
 **Key phrases:** Two hundred remote employees · no public endpoints exposed · scoped by group · from laptops anywhere on the internet
 **Hint:** A managed remote-access VPN whose users are authenticated by your own identity provider.
-
----
-
-## ALPHA-107: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
-**Services:** Transfer Family
-
-### Question
-Fifty partner companies upload nightly files to a company's on-premises SFTP server using their existing SFTP clients and SSH keys. The company wants the files to land directly in Amazon S3 without running servers. The partners' firewalls allow outbound SFTP connections only to a fixed list of IP addresses that they configure once. Which solution meets these requirements?
-
-### Options
-- **A.** Create an AWS Transfer Family SFTP server with a publicly accessible endpoint, backed by the S3 bucket, and import each partner's SSH public key.
-- **B.** Create an AWS Transfer Family SFTP server with an internet-facing VPC endpoint that uses Elastic IP addresses, backed by the S3 bucket, and import each partner's SSH public key.
-- **C.** Deploy AWS DataSync agents to pull files from each partner's SFTP server every night.
-- **D.** Deploy an Amazon S3 File Gateway and give the partners access to its file share over the internet.
-
-### Correct answer: B
-
-**Summary:** Managed SFTP/FTPS/FTP into S3 = AWS Transfer Family; for static IPs to allowlist, use an internet-facing VPC endpoint with Elastic IP addresses.
-
-### Explanation
-- A is wrong: a publicly accessible endpoint has no Elastic IP addresses to allowlist, so the partners have no fixed addresses to configure.
-- B is correct: Transfer Family is managed SFTP that writes straight to S3 with the partners' existing keys, and an internet-facing VPC endpoint has Elastic IP addresses the partners can allowlist once.
-- C is wrong: DataSync pulls from locations you can reach; the partners want to keep pushing with their own clients, and it means 50 integrations to set up.
-- D is wrong: File Gateway serves NFS and SMB shares, not SFTP, so the partners' clients would have to change.
-
-**Key phrases:** existing SFTP clients and SSH keys · without running servers · fixed list of IP addresses
-**Hint:** A managed SFTP service is the obvious part. Which of its endpoint types gives addresses that never change?
 
 ---
 
@@ -2960,34 +2478,6 @@ A company's disaster recovery plan fails over to a second Region where it normal
 
 **Key phrases:** quotas in that Region were still at their defaults · failover to succeed · warning before quotas become a problem · Select TWO
 **Hint:** Quotas are counted per account and per Region. One action fixes the failure, the other gives early warning.
-
----
-
-## ALPHA-109: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
-**Services:** X-Ray
-
-### Question
-A company runs a serverless API built from Amazon API Gateway, eight AWS Lambda functions and Amazon DynamoDB. Some requests take several seconds, but each function's average and p99 duration look normal in CloudWatch. The team needs to see, for an individual slow request, how much time each component and each downstream call consumed. What should a solutions architect recommend?
-
-### Options
-- **A.** Enable CloudWatch Lambda Insights on every function to collect detailed performance metrics.
-- **B.** Enable AWS X-Ray tracing on API Gateway and the Lambda functions, instrument the DynamoDB calls, and examine the traces of the slow requests.
-- **C.** Use CloudWatch Logs Insights to query all eight functions' logs for invocations with long durations.
-- **D.** Create a CloudWatch dashboard showing the p99.9 duration of every function and of the API Gateway stage.
-
-### Correct answer: B
-
-**Summary:** Where did one request spend its time across services = X-Ray traces; per-function metrics and logs cannot correlate a single request.
-
-### Explanation
-- A is wrong: Lambda Insights adds per-function resource and performance metrics; it does not follow a single request across API Gateway, functions and DynamoDB.
-- B is correct: X-Ray records a segment for each service and downstream call of one request, so a trace shows exactly where a slow request spent its time.
-- C is wrong: each function logs separately with no shared request identifier by default, so one request's path across components cannot be reconstructed reliably.
-- D is wrong: percentiles are still per component; they do not show how one slow request divided its time.
-
-**Key phrases:** each function's average and p99 duration look normal · for an individual slow request · each downstream call
-**Hint:** Per-function metrics, however detailed, cannot follow one request across services. What can?
 
 ---
 
@@ -3049,92 +2539,6 @@ A company exposes a public REST API through Amazon API Gateway to hundreds of th
 
 ---
 
-## ALPHA-112: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization, Sustainability
-**Services:** Batch
-
-### Question
-A research team submits thousands of independent containerized jobs each night. The jobs need different amounts of CPU and memory, some run for several hours and need up to 64 GB of memory, and some cannot start until others finish. The team wants jobs queued, retried and placed on compute that appears when work is waiting and disappears when the queue is empty, without managing clusters or writing scheduling logic. Which solution meets these requirements?
-
-### Options
-- **A.** Run each job as an Amazon ECS task on AWS Fargate, started by an Amazon EventBridge rule at night.
-- **B.** Use an AWS Step Functions Distributed Map state that invokes an AWS Lambda function for each job.
-- **C.** Keep a permanent Amazon ECS cluster on Amazon EC2 sized for the nightly peak, and schedule the tasks on it.
-- **D.** Submit the jobs to AWS Batch job queues backed by a managed compute environment, with job definitions for resources and job dependencies for ordering.
-
-### Correct answer: D
-
-**Summary:** Queues of batch jobs with varied resources, long runtimes and dependencies = AWS Batch; Fargate alone has no queue, Lambda has 15-minute and 10 GB limits.
-
-### Explanation
-- A is wrong: Fargate runs the containers, but there is no queue, dependency handling or retry logic, so thousands of jobs would have to be orchestrated by custom code.
-- B is wrong: Lambda stops each invocation at 15 minutes and offers at most 10 GB of memory, so multi-hour, 64 GB jobs cannot run.
-- C is wrong: a peak-sized cluster sits idle by day, and the team would still manage the cluster and its scheduling.
-- D is correct: Batch queues jobs, retries them, honours dependencies, sizes compute to the vCPU and memory each job asks for, and scales the environment down when the queue empties.
-
-**Key phrases:** several hours · up to 64 GB of memory · cannot start until others finish · without managing clusters or writing scheduling logic
-**Hint:** Look for the service whose core concepts are job queues, job definitions and dependencies, rather than one that only starts containers or functions.
-
----
-
-## ALPHA-113: Analytics & Data Processing
-**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Operational Excellence
-**Services:** Glue › Data Catalog & crawlers, Glue › ETL jobs
-
-### Question
-A company receives daily CSV files from 30 suppliers in Amazon S3. Column names differ between suppliers, new suppliers are added without notice, and analysts query the data with Amazon Athena. The company wants a serverless pipeline that catalogs every supplier's files, including new ones, automatically, and each night converts only the files that arrived since the last run into partitioned Parquet with consistent column names. Which TWO actions meet these requirements? (Select TWO.)
-
-### Options
-- **A.** Run a nightly Amazon EMR cluster with an Apache Spark job that renames the columns and converts all of the files to Parquet.
-- **B.** Run an AWS Glue crawler on a schedule over the supplier prefixes so that new files and new schemas are added to the Data Catalog.
-- **C.** Load each night's files into Amazon Redshift Serverless and UNLOAD the tables to S3 as Parquet.
-- **D.** Trigger an AWS Lambda function for each new object that converts the CSV file to Parquet in memory.
-- **E.** Run an AWS Glue ETL job with job bookmarks enabled that applies the column mapping and writes partitioned Parquet.
-
-### Correct answers: B, E (choose 2)
-
-**Summary:** Serverless S3 ETL: a Glue crawler catalogs schemas (including new sources), and a Glue ETL job with job bookmarks processes only new data into partitioned Parquet.
-
-### Explanation
-- A is wrong: EMR means clusters to run and tune, which the serverless requirement excludes, and converting all files each night repeats finished work.
-- B is correct: a scheduled crawler infers each supplier's schema, including new suppliers, into the Data Catalog with no servers.
-- C is wrong: it adds a data warehouse and load jobs when the data should stay in S3 for Athena.
-- D is wrong: it is custom code, large files can exceed Lambda's memory and time limits, and the column mapping and partitioning would be hand-written.
-- E is correct: a serverless Glue job maps the columns and writes partitioned Parquet, and job bookmarks make each run process only the files that arrived since the last one.
-
-**Key phrases:** new suppliers are added without notice · serverless pipeline · only the files that arrived since the last run · TWO
-**Hint:** One component discovers schemas into the catalog; the other transforms the data and remembers what it already processed.
-
----
-
-## ALPHA-114: Analytics & Data Processing
-**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
-**Services:** QuickSight
-
-### Question
-A company keeps curated sales data in Amazon S3 and queries it with Amazon Athena. Two hundred business users need interactive dashboards with filters, which must stay fast at month-end when most of them open the dashboards at once, without every filter change running a new scan of S3. The data is refreshed once a day, and the company does not want to run BI servers. Which solution meets these requirements?
-
-### Options
-- **A.** Build Amazon QuickSight dashboards that use direct query mode against Athena.
-- **B.** Build Amazon QuickSight dashboards on a SPICE dataset that refreshes daily from Athena.
-- **C.** Build dashboards in Amazon Managed Grafana with Athena as the data source.
-- **D.** Run a self-managed BI server on Amazon EC2 behind an Application Load Balancer, with a cache of the Athena results.
-
-### Correct answer: B
-
-**Summary:** Many concurrent dashboard users on slowly changing data: QuickSight with a SPICE dataset; direct query re-runs the source query on every interaction.
-
-### Explanation
-- A is wrong: direct query runs an Athena query for every interaction, so month-end concurrency slows the dashboards and every filter change scans S3.
-- B is correct: SPICE holds the data in QuickSight's in-memory engine, so hundreds of users filter without new Athena scans, and a daily refresh matches how often the data changes.
-- C is wrong: Grafana is aimed at operational metrics, and each panel queries Athena directly, so filters still trigger new scans.
-- D is wrong: a BI server on EC2 is infrastructure to size, patch and scale, which the company does not want.
-
-**Key phrases:** stay fast at month-end · without every filter change running a new scan · refreshed once a day · does not want to run BI servers
-**Hint:** The data changes daily, so the dashboards do not need to query S3 on every click. Where can the BI service keep its own copy?
-
----
-
 ## ALPHA-115: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Security
 **Services:** S3 › Access control
@@ -3188,34 +2592,6 @@ A company runs the same web application in eu-west-1, us-east-1 and ap-southeast
 
 **Key phrases:** users in Germany must always be served · regardless of latency · whichever Region answers fastest · move away from an unhealthy Region
 **Hint:** One requirement is about where the user is, the other about which Region is fastest. Route 53 has a policy for each, and records can be combined.
-
----
-
-## ALPHA-117: Compute & Serverless
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
-**Services:** EC2 › Hibernation
-
-### Question
-Developers use Amazon EC2 instances with 64 GB of memory for an application that spends about 20 minutes loading a large dataset into memory at start-up. The instances are idle overnight and at weekends, and the company pays for those hours. Developers want to resume within a couple of minutes with the dataset already in memory, exactly as they left it. Which approach reduces cost while meeting that expectation?
-
-### Options
-- **A.** Enable hibernation and hibernate the instances when they are idle.
-- **B.** Buy a Compute Savings Plan for the instances so that the idle hours cost less.
-- **C.** Create an AMI each evening, terminate the instances, and launch replacements from the AMI each morning.
-- **D.** Stop the instances when idle and move the dataset files to a faster io2 Block Express volume so that loading is quicker.
-
-### Correct answer: A
-
-**Summary:** Keep in-memory state while not paying for idle instance hours = EC2 hibernation (RAM saved to the encrypted root EBS volume).
-
-### Explanation
-- A is correct: hibernation saves the instance's memory to its encrypted root EBS volume and stops instance billing, and starting the instance restores the memory, so the dataset is already loaded.
-- B is wrong: a Savings Plan lowers the hourly rate but still pays for every idle hour.
-- C is wrong: an AMI holds disk contents, not memory, so the 20-minute load still happens at every launch.
-- D is wrong: stopping ends billing, but memory is lost, so the dataset must still be read back into memory, and the faster volume costs more.
-
-**Key phrases:** 64 GB of memory · about 20 minutes loading · already in memory, exactly as they left it
-**Hint:** Stopping saves money but loses memory. Which stop-like action writes the memory to disk first?
 
 ---
 
@@ -3303,34 +2679,6 @@ A company uses AWS Organizations with all features enabled and has 60 member acc
 
 **Key phrases:** every account · created in the future · fixed automatically · LEAST operational overhead · Select TWO
 **Hint:** One service enforces WAF rules across an organization and fixes resources that are out of line. What does it rely on to discover those resources?
-
----
-
-## ALPHA-122: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
-**Services:** Security Hub
-
-### Question
-A company runs 40 AWS accounts in AWS Organizations and uses Amazon GuardDuty, Amazon Inspector and Amazon Macie in every account and in three Regions. The security team wants one place to see and prioritize the findings from all of these services across every account and Region, and wants every account checked continuously against AWS best-practice security controls, with minimal custom code. Which solution meets these requirements?
-
-### Options
-- **A.** Use an AWS Config aggregator in a delegated administrator account and deploy the Operational Best Practices conformance packs to every account.
-- **B.** Send findings from each service to Amazon EventBridge, deliver them through Amazon Data Firehose to a central S3 bucket, query them with Amazon Athena, and write custom AWS Config rules for the best-practice checks.
-- **C.** Enable Amazon Detective in a central account and invite all member accounts so that investigators can explore findings.
-- **D.** Enable AWS Security Hub with a delegated administrator account, turn it on automatically for new accounts, configure cross-Region aggregation, and enable the AWS Foundational Security Best Practices standard.
-
-### Correct answer: D
-
-**Summary:** Security Hub gathers security findings across accounts and Regions and continuously checks each account against best-practice standards; a Config aggregator covers configuration only.
-
-### Explanation
-- A is wrong: it shows configuration compliance across accounts, but it does not collect GuardDuty, Inspector or Macie findings.
-- B is wrong: it can work, but it is a custom pipeline, and every best-practice check would have to be written and maintained by hand.
-- C is wrong: Detective investigates the root cause of individual findings; it is not the central findings dashboard and runs no security standards.
-- D is correct: Security Hub automatically collects findings from GuardDuty, Inspector and Macie into one standard format, aggregates them across accounts and Regions into the administrator account, and its security standards continuously score each account against best-practice controls.
-
-**Key phrases:** one place to see and prioritize the findings · every account and Region · best-practice security controls · minimal custom code
-**Hint:** One service both gathers findings from the other security services and scores accounts against a security standard.
 
 ---
 
@@ -3471,62 +2819,6 @@ A company is moving a vendor application to AWS. The vendor supports the applica
 
 **Key phrases:** only on Oracle Database · installed on the database host operating system · custom OS configuration · automate as much
 **Hint:** You need OS access to the database host and managed automation at the same time.
-
----
-
-## ALPHA-129: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
-**Services:** Aurora › Cloning
-
-### Question
-A company has a 20 TB Amazon Aurora MySQL production cluster. The QA team works in a separate AWS account and needs a fresh, writable copy of the production database every morning for destructive tests, which it deletes at the end of the day. Restoring from a shared snapshot takes hours, and each copy is billed for the full 20 TB. Which solution provides the copy MOST quickly and cost-effectively?
-
-### Options
-- **A.** Share the production cluster with the QA account through AWS Resource Access Manager, and create a cross-account Aurora clone each morning.
-- **B.** Share a manual snapshot with the QA account each night and restore it into a new cluster each morning.
-- **C.** Add an Aurora Global Database secondary cluster for the QA team to use.
-- **D.** Replicate the production cluster to a cluster in the QA account with AWS DMS ongoing replication.
-
-### Correct answer: A
-
-**Summary:** Fast, cheap, writable copies of Aurora, even in another account via AWS RAM = Aurora cloning (copy-on-write); restores and replicas are slower or read-only.
-
-### Explanation
-- A is correct: an Aurora clone uses copy-on-write, so it is ready in minutes whatever the size, only changed pages cost extra, and clones can be created in another account through AWS RAM.
-- B is wrong: this is the current slow process, and every restored cluster pays for a full copy of the storage.
-- C is wrong: the secondary cluster is read-only, so destructive tests are impossible, and it stays a permanent full copy.
-- D is wrong: it keeps a full copy permanently, and destructive tests would break the replication.
-
-**Key phrases:** separate AWS account · writable copy · destructive tests · full 20 TB · MOST quickly and cost-effectively
-**Hint:** Aurora can create a writable copy that shares storage pages with the source, even for another account.
-
----
-
-## ALPHA-130: Storage & Backup
-**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
-**Services:** S3 › Glacier & retrieval
-
-### Question
-A hospital stores medical images, about 25 MB each, in Amazon S3. After 90 days each image is read about once a quarter, but when a doctor requests one it must be returned within milliseconds. The images must survive the loss of an Availability Zone and are kept for 10 years. Which storage choice is the MOST cost-effective for images older than 90 days?
-
-### Options
-- **A.** Use a lifecycle rule to move the images to S3 One Zone-Infrequent Access after 90 days.
-- **B.** Use a lifecycle rule to move the images to S3 Glacier Instant Retrieval after 90 days.
-- **C.** Store the images in S3 Intelligent-Tiering from upload so that each object moves to a cheaper tier when it is not accessed.
-- **D.** Use a lifecycle rule to move the images to S3 Standard-Infrequent Access after 90 days.
-
-### Correct answer: B
-
-**Summary:** Known rare access (about once a quarter) with millisecond reads: S3 Glacier Instant Retrieval; One Zone-IA fails AZ resilience, Intelligent-Tiering suits unknown patterns.
-
-### Explanation
-- A is wrong: One Zone-IA keeps data in a single Availability Zone, which breaks the resilience requirement, and it still costs more per GB than Glacier Instant Retrieval.
-- B is correct: Glacier Instant Retrieval is built for data read about once a quarter: millisecond reads, storage across multiple zones, and the lowest storage price of the millisecond-access classes.
-- C is wrong: a read every quarter keeps moving objects back to the Frequent Access tier, every object pays a monitoring charge, and for a known pattern a lifecycle rule to the right class costs less.
-- D is wrong: Standard-IA meets the access and resilience needs but costs about three times as much per GB as Glacier Instant Retrieval for data read once a quarter.
-
-**Key phrases:** about 25 MB each · about once a quarter · within milliseconds · survive the loss of an Availability Zone · MOST cost-effective
-**Hint:** Every option here reads in milliseconds. Compare storage price for a known, quarterly access pattern, and check which option keeps copies in more than one zone.
 
 ---
 
@@ -3900,62 +3192,6 @@ A company has 2,000 employees whose identities are stored in an on-premises Micr
 
 ---
 
-## ALPHA-163: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
-**Services:** Inspector
-
-### Question
-After a widely publicized vulnerability is announced in a popular Java logging library, a security team must find out within hours which of its Amazon EC2 instances, container images in Amazon ECR and AWS Lambda functions include an affected version. The team must also be alerted automatically if an image pushed or a function deployed later includes it. Which solution requires the LEAST operational effort?
-
-### Options
-- **A.** Activate Amazon Inspector for EC2, ECR and Lambda, and review its findings for the vulnerability's CVE ID.
-- **B.** Enable Amazon GuardDuty Runtime Monitoring on the instances and containers, and search its findings for the library's name.
-- **C.** Use AWS Systems Manager Inventory to collect installed software from the instances and query it for the library version.
-- **D.** Turn on Amazon ECR basic scanning on push for every repository and review the scan results.
-
-### Correct answer: A
-
-**Summary:** Which resources run a vulnerable package = Amazon Inspector (continuous CVE scanning of EC2, ECR images and Lambda); GuardDuty is threat detection.
-
-### Explanation
-- A is correct: Inspector continuously inventories the packages in instances, images and functions, rescans them when a new CVE is published or a new image or function appears, and reports each affected resource.
-- B is wrong: GuardDuty detects suspicious runtime behavior; it does not match installed package versions against vulnerability databases.
-- C is wrong: it covers only managed instances, not images or Lambda functions, and the queries and alerts would be built by hand.
-- D is wrong: it covers container images only, and basic scanning checks an image when it is pushed rather than continuously, so EC2 and Lambda are missed.
-
-**Key phrases:** include an affected version · EC2 instances, container images in Amazon ECR and AWS Lambda functions · alerted automatically · LEAST operational effort
-**Hint:** Detecting attacks in progress and knowing which software versions are installed are different jobs. Which service matches installed packages against published vulnerabilities across all three compute types?
-
----
-
-## ALPHA-164: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
-**Services:** Detective
-
-### Question
-Amazon GuardDuty reports that an IAM role's credentials were used from an IP address in an unusual country. Before deciding whether to revoke the role's sessions, the security team needs to see every API call the role made over the past few weeks, which resources and IP addresses it interacted with, and how that compares with the role's normal behavior. The team does not want to write queries or build dashboards. What should the team use?
-
-### Options
-- **A.** AWS Security Hub, using an insight that groups findings by the affected IAM role.
-- **B.** AWS CloudTrail Lake, querying the role's management events over the past few weeks with SQL.
-- **C.** IAM Access Analyzer, reviewing the external access and unused access findings for the role.
-- **D.** Amazon Detective, opening the GuardDuty finding in the role's behavior graph.
-
-### Correct answer: D
-
-**Summary:** Investigating a finding (what did this principal do, and is it normal?) = Detective; Security Hub aggregates findings, CloudTrail Lake needs your own queries.
-
-### Explanation
-- A is wrong: Security Hub aggregates and prioritizes findings; it holds no history of the role's API calls and no behavior baseline.
-- B is wrong: the data is there, but the team would write the queries and the comparison with normal behavior itself, which it wants to avoid.
-- C is wrong: Access Analyzer reports what the role could access or has not used, not what it actually did.
-- D is correct: Detective builds behavior graphs from CloudTrail, VPC Flow Logs and GuardDuty findings automatically, with visualizations of the role's activity and its baseline.
-
-**Key phrases:** past few weeks · how that compares with the role's normal behavior · does not want to write queries or build dashboards
-**Hint:** The threat is already detected. Which service turns existing logs into an investigation view with a behavior baseline, ready to open from the finding?
-
----
-
 ## ALPHA-166: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
 **Services:** VPC › Bastion & ENIs
@@ -4298,34 +3534,6 @@ A company stores orders in an Amazon DynamoDB table. An audit sets two requireme
 
 ---
 
-## ALPHA-178: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Operational Excellence, Performance Efficiency
-**Services:** Keyspaces
-
-### Question
-A company runs an Apache Cassandra cluster on self-managed Amazon EC2 instances. The application's code and drivers use the Cassandra Query Language (CQL) and must not be rewritten. The company wants no servers to patch, no capacity planning, payment per request during quiet periods, and a copy of the data in a second AWS Region for disaster recovery. Which solution meets these requirements?
-
-### Options
-- **A.** Migrate to Amazon DynamoDB global tables in on-demand capacity mode.
-- **B.** Migrate to Amazon Keyspaces (for Apache Cassandra) with on-demand capacity and multi-Region replication.
-- **C.** Move the cluster to storage-optimized EC2 instances in Auto Scaling groups in two Regions.
-- **D.** Migrate to Amazon DocumentDB global clusters.
-
-### Correct answer: B
-
-**Summary:** Self-managed Cassandra to serverless without code changes = Amazon Keyspaces (on-demand capacity, multi-Region replication); DynamoDB needs a rewrite.
-
-### Explanation
-- A is wrong: DynamoDB meets the operational and Regional needs, but it has its own API, so the CQL code and drivers would have to be rewritten.
-- B is correct: Keyspaces is serverless and Cassandra-compatible, so CQL code and drivers keep working, on-demand mode bills per request, and multi-Region replication keeps a copy in the second Region.
-- C is wrong: the company would still patch, replace and size the servers itself.
-- D is wrong: DocumentDB is compatible with MongoDB, not Cassandra, so the code would have to change.
-
-**Key phrases:** must not be rewritten · no servers to patch, no capacity planning · payment per request · second AWS Region
-**Hint:** Keep the Cassandra API, drop the servers, and check which option still offers multi-Region replication.
-
----
-
 ## ALPHA-180: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
 **Services:** AppSync
@@ -4381,34 +3589,6 @@ A payments company runs a stateless web tier on Amazon EC2 instances behind Appl
 
 **Key phrases:** two AWS Regions at the same time · either Region able to accept writes · no more than seconds of disruption · near-zero data loss · TWO
 **Hint:** Both Regions are live and both take writes. What does the data layer need, and how do users reach whichever Region is healthy?
-
----
-
-## ALPHA-182: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
-**Services:** Elastic Beanstalk
-
-### Question
-A small team has built a Java web application packaged as a WAR file and wants to deploy it to AWS. The team does not want to manage capacity provisioning, load balancing, Auto Scaling or health monitoring, but it must keep SSH access to the underlying Amazon EC2 instances to run a vendor's profiling tool, and it wants rolling deployments of new versions. Which service meets these requirements with the LEAST effort?
-
-### Options
-- **A.** AWS App Runner, deploying the application from a container image.
-- **B.** Amazon Lightsail instances behind a Lightsail load balancer.
-- **C.** AWS Elastic Beanstalk with a Java environment and rolling deployments.
-- **D.** Amazon ECS on AWS Fargate with a service behind an Application Load Balancer.
-
-### Correct answer: C
-
-**Summary:** Upload code, get a managed EC2 environment you can still log in to = Elastic Beanstalk; App Runner and Fargate hide the hosts entirely.
-
-### Explanation
-- A is wrong: App Runner is fully managed with no access to the underlying hosts, and the application would first have to be containerized.
-- B is wrong: Lightsail has no Auto Scaling, so capacity and deployments would be handled by the team.
-- C is correct: Beanstalk provisions and manages the EC2 instances, load balancer, Auto Scaling and health monitoring from the uploaded code, supports rolling deployments, and keeps the instances accessible.
-- D is wrong: Fargate gives no access to the underlying hosts, and the application would have to be containerized.
-
-**Key phrases:** WAR file · must keep SSH access to the underlying Amazon EC2 instances · rolling deployments
-**Hint:** Several services hide the infrastructure. Only one of them builds the environment from your code and still leaves you the instances.
 
 ---
 
@@ -4498,34 +3678,6 @@ A central cloud team wants developers to launch only approved, preconfigured env
 
 ---
 
-## ALPHA-186: Monitoring, Management & Governance
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Security, Reliability
-**Services:** Trusted Advisor
-
-### Question
-A company with an AWS Business Support plan wants one service that regularly checks its accounts across several categories: idle load balancers and underused EC2 instances, security groups that allow unrestricted access and a root user without MFA, RDS instances without Multi-AZ, and resources that are close to their service quotas. Which service should the company use?
-
-### Options
-- **A.** AWS Trusted Advisor
-- **B.** AWS Security Hub with the AWS Foundational Security Best Practices standard
-- **C.** AWS Cost Optimization Hub with AWS Compute Optimizer recommendations
-- **D.** AWS Config with the Operational Best Practices conformance packs
-
-### Correct answer: A
-
-**Summary:** One service with checks across cost, security, fault tolerance, performance and service quotas = Trusted Advisor (full checks with Business Support or higher).
-
-### Explanation
-- A is correct: Trusted Advisor runs checks across cost optimization, security, fault tolerance, performance, service limits and operational excellence, and Business Support unlocks the full set.
-- B is wrong: Security Hub checks security controls only; it does not report idle resources or quota usage.
-- C is wrong: these cover cost and right-sizing only, not security, fault tolerance or quotas.
-- D is wrong: Config evaluates resource configuration, but it does not find idle or underused resources or report service quota usage.
-
-**Key phrases:** one service · across several categories · close to their service quotas
-**Hint:** Several services check one of these categories well. Only one covers cost, security, fault tolerance and quotas together.
-
----
-
 ## ALPHA-187: Monitoring, Management & Governance
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
 **Services:** Health Dashboard, EventBridge
@@ -4551,34 +3703,6 @@ AWS occasionally schedules events that affect specific Amazon EC2 instances, suc
 
 **Key phrases:** schedules events that affect specific Amazon EC2 instances · instance retirement · automated response · the team must be notified
 **Hint:** AWS publishes account-specific events about your resources. Where can a rule pick them up and start automation?
-
----
-
-## ALPHA-189: Analytics & Data Processing
-**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Operational Excellence, Performance Efficiency
-**Services:** MSK
-
-### Question
-A company runs Apache Kafka on premises. Dozens of producer and consumer applications use the Kafka client libraries and Kafka Connect connectors, and only their client configuration may change. The company wants a managed AWS service in which it never chooses broker instance types, plans broker counts or manages storage, and pays for the throughput it uses. Which solution meets these requirements?
-
-### Options
-- **A.** Amazon Kinesis Data Streams in on-demand capacity mode.
-- **B.** An Amazon MSK provisioned cluster with storage auto scaling turned on.
-- **C.** Amazon MSK Serverless, with MSK Connect running the connectors.
-- **D.** Amazon MQ for RabbitMQ with a cluster deployment.
-
-### Correct answer: C
-
-**Summary:** Kafka without broker management: MSK Serverless (plus MSK Connect); MSK provisioned still needs broker sizing, Kinesis needs code changes.
-
-### Explanation
-- A is wrong: there is nothing to size, but Kinesis has its own API, so producers and consumers would have to be rewritten.
-- B is wrong: MSK provisioned keeps the Kafka APIs, but the company still chooses broker instance types and counts and scales them.
-- C is correct: MSK Serverless runs Kafka-compatible clusters with no brokers or storage to manage and bills for throughput, and MSK Connect runs the Kafka Connect connectors.
-- D is wrong: RabbitMQ is a different broker with different protocols, so the Kafka clients cannot connect to it.
-
-**Key phrases:** only their client configuration may change · never chooses broker instance types · pays for the throughput it uses
-**Hint:** Keep the Kafka APIs, and among the Kafka-compatible options pick the one with no brokers to size at all.
 
 ---
 
@@ -5405,3 +4529,879 @@ A company's development and test environments run on Amazon EC2 instances in Aut
 
 **Key phrases:** 24 hours a day · only from 08:00 to 18:00 on weekdays · minimal effort
 **Hint:** The usage follows the clock exactly, and Auto Scaling can change capacity on a schedule.
+
+---
+
+## ALPHA-219: Databases & Caching
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** ElastiCache › Engine choice
+
+### Question
+A gaming company is building a real-time leaderboard. After every match a player's score changes, and millions of players must be able to read the top 100 and their own rank in under a millisecond. If a cache node or a whole Availability Zone fails, the rankings must stay available without being rebuilt from the game database. Which solution meets these requirements?
+
+### Options
+- **A.** Amazon ElastiCache for Redis with a single primary node and daily snapshots exported to Amazon S3.
+- **B.** Amazon ElastiCache for Memcached with nodes spread across three Availability Zones.
+- **C.** Amazon ElastiCache for Redis with a replica in another Availability Zone, Multi-AZ with automatic failover, and scores in a sorted set.
+- **D.** Amazon DynamoDB with a DAX cluster in front of it and a global secondary index on the score attribute.
+
+### Correct answer: C
+
+**Summary:** Leaderboards: ElastiCache for Redis sorted sets give sub-millisecond ranking; add a replica with Multi-AZ automatic failover so the rankings survive node or AZ loss.
+
+### Explanation
+- A is wrong: Redis has the ranking structure, but a node failure takes the leaderboard down and loses every score change since the last snapshot.
+- B is wrong: Memcached has no ranking data structure and no replication, so a lost node loses its keys.
+- C is correct: a sorted set keeps players ordered by score and returns ranks and the top 100 in sub-millisecond time, and Multi-AZ with automatic failover promotes the replica in another zone with the data intact.
+- D is wrong: DynamoDB has no ranking structure, so a player's rank needs index queries, and DAX only caches results that go stale after every match, so reads are not sub-millisecond.
+
+**Key phrases:** their own rank in under a millisecond · a whole Availability Zone fails · without being rebuilt
+**Hint:** One engine has a data structure that keeps members ranked by score. Then check which option also survives the loss of a node or a zone.
+
+---
+
+## ALPHA-220: Application Integration
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Services:** EventBridge
+
+### Question
+A SaaS company uses a third-party help desk provider that publishes ticket events to AWS customers through Amazon EventBridge. High-priority tickets must invoke an AWS Lambda function within seconds, and all other tickets must go to an Amazon SQS queue for batch handling. The company must not poll the provider's API or host its own webhook endpoint. Which configuration meets these requirements?
+
+### Options
+- **A.** Create an EventBridge API destination for the provider's API and a rule that routes high-priority tickets to the Lambda function and the rest to the queue.
+- **B.** Associate the provider's partner event source with a partner event bus, and create rules on that bus whose event patterns match the priority field and target the Lambda function or the queue.
+- **C.** Create rules on the account's default event bus whose event patterns match the provider's ticket events by priority.
+- **D.** Create an EventBridge pipe with the provider's API as its source and the Lambda function as its target, filtering on priority.
+
+### Correct answer: B
+
+**Summary:** SaaS partner events: associate the partner event source with a partner event bus, then route with content-based rules on that bus.
+
+### Explanation
+- A is wrong: API destinations send events out to HTTP endpoints; they do not receive events from the provider.
+- B is correct: the partner event source delivers the provider's events to a partner event bus, and content-based event patterns route high-priority tickets to Lambda and the rest to SQS with no code.
+- C is wrong: partner events arrive on the partner event bus created from the event source, so rules on the default bus never see them.
+- D is wrong: pipes read from AWS sources such as queues and streams, not from a SaaS provider's API.
+
+**Key phrases:** publishes ticket events to AWS customers through Amazon EventBridge · within seconds · must not poll the provider's API or host its own webhook endpoint
+**Hint:** Events from a SaaS partner do not arrive on the default event bus. What do you set up first, and where do the rules go?
+
+---
+
+## ALPHA-221: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Macie, EventBridge
+
+### Question
+A company has 400 Amazon S3 buckets, and teams create new buckets every week without telling the security team. The security team must find out which buckets hold data such as credit card numbers or passport numbers, and must be notified automatically when new findings appear. The solution must use managed services and no custom code. Which solution meets these requirements?
+
+### Options
+- **A.** Enable Amazon GuardDuty S3 Protection, and route its findings to an Amazon SNS topic with an Amazon EventBridge rule.
+- **B.** Create an S3 Object Lambda access point that checks objects for card numbers as they are read and alerts the security team.
+- **C.** Enable Amazon Macie automated sensitive data discovery, and route Macie findings to an Amazon SNS topic with an Amazon EventBridge rule.
+- **D.** Enable the AWS Config managed rules s3-bucket-public-read-prohibited and s3-bucket-ssl-requests-only with notifications to Amazon SNS.
+
+### Correct answer: C
+
+**Summary:** Sensitive data inside S3 objects = Macie (automated discovery covers new buckets); GuardDuty S3 Protection watches access activity, Config watches settings.
+
+### Explanation
+- A is wrong: GuardDuty S3 Protection analyzes S3 API activity for threats such as unusual access or exfiltration; it does not look inside objects for sensitive data.
+- B is wrong: it is custom code, and it sees only objects that someone happens to read through that access point.
+- C is correct: automated sensitive data discovery continuously samples objects in every bucket, including new ones, to find data types such as card and passport numbers, and Macie publishes its findings to EventBridge.
+- D is wrong: Config evaluates bucket settings, not the data stored in the objects.
+
+**Key phrases:** without telling the security team · credit card numbers or passport numbers · notified automatically · no custom code
+**Hint:** One service watches what happens to S3; another looks inside the objects. Which one does this requirement need, and how does it cover buckets nobody told it about?
+
+---
+
+## ALPHA-222: Compute & Serverless
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Services:** EC2 › Placement groups & EFA
+
+### Question
+A research team runs a tightly coupled simulation across 40 Amazon EC2 instances that exchange messages with MPI throughout every run, and the job finishes only when all nodes finish. Profiling shows that time spent in the operating system's network stack and network distance between nodes dominate the run time. The team needs the lowest possible node-to-node latency and the highest throughput between the instances. Which TWO actions should a solutions architect take? (Select TWO.)
+
+### Options
+- **A.** Launch the instances in a spread placement group so that no two instances share underlying hardware.
+- **B.** Launch the instances in a partition placement group across two Availability Zones.
+- **C.** Attach two additional elastic network interfaces to each instance to multiply its network bandwidth.
+- **D.** Launch the instances in a cluster placement group in a single Availability Zone.
+- **E.** Use an instance type that supports Elastic Fabric Adapter and attach an EFA to each instance.
+
+### Correct answers: D, E (choose 2)
+
+**Summary:** Tightly coupled HPC (MPI): cluster placement group in one AZ for proximity, plus Elastic Fabric Adapter for OS-bypass networking.
+
+### Explanation
+- A is wrong: a spread placement group deliberately separates instances, which increases the distance between them.
+- B is wrong: partition groups isolate failure domains for distributed data stores, and spanning zones raises latency.
+- C is wrong: extra network interfaces do not raise an instance's bandwidth limit or lower its latency.
+- D is correct: a cluster placement group packs instances onto closely connected hardware for the lowest latency and highest throughput between them.
+- E is correct: EFA lets MPI traffic bypass the operating system's network stack, which removes the time profiling found there.
+
+**Key phrases:** tightly coupled · MPI · operating system's network stack · lowest possible node-to-node latency · TWO
+**Hint:** One choice decides how physically close the instances are; the other lets MPI traffic skip the operating system's network stack.
+
+---
+
+## ALPHA-223: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** GuardDuty
+
+### Question
+A company with 120 accounts in AWS Organizations wants to be told automatically when an EC2 instance appears to be compromised or when someone uses stolen credentials, based on the CloudTrail, VPC flow and DNS activity in each account. Findings from every account, including accounts created in the future, must appear in one security account. The company does not want to deploy agents or analyze logs itself. What should a solutions architect do?
+
+### Options
+- **A.** Enable AWS Security Hub in every account with the AWS Foundational Security Best Practices standard and aggregate findings in the security account.
+- **B.** Enable Amazon Detective with the security account as its administrator account.
+- **C.** Create an organization trail and VPC Flow Logs, send them to a central Amazon OpenSearch Service domain, and write alerting rules for suspicious patterns.
+- **D.** Enable Amazon GuardDuty with the security account as delegated administrator and auto-enable for all member accounts.
+
+### Correct answer: D
+
+**Summary:** Threat detection from AWS logs without agents = GuardDuty (organization-wide via delegated admin); Security Hub aggregates, Detective investigates.
+
+### Explanation
+- A is wrong: Security Hub checks configurations and collects findings from other services; it does not analyze activity to detect compromised instances or credential misuse.
+- B is wrong: Detective investigates findings after they exist; it does not generate threat detections.
+- C is wrong: this is the do-it-yourself log analysis the company wants to avoid.
+- D is correct: GuardDuty analyzes CloudTrail, VPC flow and DNS activity without agents to detect compromised instances and credential misuse, and a delegated administrator with auto-enable covers current and future accounts.
+
+**Key phrases:** compromised · stolen credentials · including accounts created in the future · does not want to deploy agents or analyze logs itself
+**Hint:** Aggregating findings, investigating findings and producing findings are three different services. Which one produces them from the logs AWS already has?
+
+---
+
+## ALPHA-224: Monitoring, Management & Governance
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** CloudWatch › Logs, CloudWatch › Alarms
+
+### Question
+A company's application writes its logs to Amazon CloudWatch Logs. Operations wants to be paged automatically whenever the string OutOfMemoryError appears more than five times within five minutes, and wants no code or scheduled jobs to maintain. What is the simplest way to meet this requirement?
+
+### Options
+- **A.** Turn on CloudWatch Logs anomaly detection for the log group and alarm on the anomalies it reports.
+- **B.** Create a CloudWatch Logs subscription filter that streams matching events to an AWS Lambda function that counts them and publishes to Amazon SNS.
+- **C.** Create a CloudWatch Logs metric filter for the pattern, and a CloudWatch alarm that notifies an Amazon SNS topic when the sum exceeds five in a five-minute period.
+- **D.** Run a CloudWatch Logs Insights query every five minutes from an Amazon EventBridge schedule and a Lambda function, and page when the count exceeds five.
+
+### Correct answer: C
+
+**Summary:** Alert on a log pattern count = CloudWatch Logs metric filter + CloudWatch alarm; anomaly detection is for unusual patterns, not fixed thresholds.
+
+### Explanation
+- A is wrong: anomaly detection flags unusual patterns compared with a learned baseline; it does not enforce a fixed count of a specific string.
+- B is wrong: it works, but it is code to write and maintain for what a metric filter does natively.
+- C is correct: the metric filter turns matching lines into a metric as they arrive, and a standard alarm with a five-minute period and a threshold of five pages the team, with nothing to maintain.
+- D is wrong: it is a scheduled job plus code, which the team wants to avoid.
+
+**Key phrases:** more than five times within five minutes · no code or scheduled jobs
+**Hint:** The requirement is a fixed count over a fixed window, which is exactly what an ordinary alarm evaluates once the log lines become a metric.
+
+---
+
+## ALPHA-225: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** VPC › Flow Logs
+
+### Question
+After a security incident, a company must be able to answer which source IP addresses actually connected to a particular Amazon EC2 instance, which connection attempts were rejected by security groups or network ACLs, and how many bytes were transferred, for any time in the last 90 days. The instances run several operating systems, and the company does not want to install agents or store full packet captures. What should a solutions architect do?
+
+### Options
+- **A.** Enable Amazon GuardDuty, which analyzes VPC flow data, and search its findings for the instance's IP address.
+- **B.** Enable VPC Traffic Mirroring on the instance's network interface and send the traffic to a monitoring appliance.
+- **C.** Run VPC Reachability Analyzer between the instance and the internet gateway.
+- **D.** Enable VPC Flow Logs, publish them to Amazon S3 with a 90-day lifecycle rule, and query them with Amazon Athena.
+
+### Correct answer: D
+
+**Summary:** Who actually connected, what was rejected, how many bytes = VPC Flow Logs (to S3, queried with Athena); Reachability Analyzer only checks configuration.
+
+### Explanation
+- A is wrong: GuardDuty uses flow data internally but only surfaces findings about threats, not a record of every connection you can query.
+- B is wrong: mirroring copies full packets, which the company does not want to store, and it needs a target appliance to run.
+- C is wrong: Reachability Analyzer checks configuration for paths that could exist; it records no actual past traffic.
+- D is correct: flow logs record accepted and rejected flows with addresses, ports, bytes and the action taken, need no agents, and Athena queries them in S3 for as long as they are kept.
+
+**Key phrases:** actually connected · rejected by security groups or network ACLs · last 90 days · does not want to install agents or store full packet captures
+**Hint:** Some options describe what could happen, some raise alerts, and some record what actually happened on the network. Which one keeps a queryable record of every flow?
+
+---
+
+## ALPHA-226: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** hard · **Pillars:** Security
+**Services:** VPC › Internet gateways, VPC › NAT gateways
+
+### Question
+Amazon EC2 instances in a private subnet have IPv6 addresses only. They must download updates from vendor endpoints on the internet: some of those endpoints have IPv6 addresses and one repository has only IPv4 addresses. Nothing on the internet may be able to start a connection to the instances. Which TWO actions should a solutions architect take? (Select TWO.)
+
+### Options
+- **A.** Attach an internet gateway and route ::/0 to it, relying on the security groups to block inbound connections.
+- **B.** Add an egress-only internet gateway to the VPC and route the subnet's ::/0 traffic to it.
+- **C.** Assign an Elastic IP address to each instance so that the IPv4-only repository can be reached.
+- **D.** Route the 64:ff9b::/96 prefix to the internet gateway so that it translates IPv6 traffic to IPv4.
+- **E.** Create a NAT gateway in a public subnet, enable DNS64 on the private subnet, and route 64:ff9b::/96 to the NAT gateway.
+
+### Correct answers: B, E (choose 2)
+
+**Summary:** IPv6-only subnets: egress-only internet gateway for IPv6 destinations, plus DNS64 and a NAT gateway (NAT64, 64:ff9b::/96) for IPv4-only destinations.
+
+### Explanation
+- A is wrong: IPv6 addresses are publicly routable, so an internet gateway makes the instances reachable, and the design would depend entirely on every security group staying correct.
+- B is correct: an egress-only internet gateway lets instances start outbound IPv6 connections and refuses connections started from the internet.
+- C is wrong: Elastic IP addresses are public IPv4 addresses for instances with IPv4 networking, and they would make the instances reachable from the internet.
+- D is wrong: an internet gateway does not translate between IPv6 and IPv4; NAT64 is a NAT gateway feature.
+- E is correct: DNS64 returns synthesized IPv6 addresses for IPv4-only names, and the NAT gateway translates that traffic to IPv4 (NAT64), outbound only.
+
+**Key phrases:** IPv6 addresses only · only IPv4 addresses · Nothing on the internet may be able to start a connection · TWO
+**Hint:** IPv6 destinations need an outbound-only IPv6 gateway. IPv4-only destinations need something that translates between the two address families.
+
+---
+
+## ALPHA-227: Application Integration
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** MQ
+
+### Question
+A company is migrating a legacy order-processing application to AWS. Some components send and receive messages through the JMS API, and others use the AMQP 1.0 protocol, all through one on-premises message broker. The team cannot change application code before the migration deadline, and messaging must keep working if an Availability Zone fails. Which solution meets these requirements?
+
+### Options
+- **A.** Use Amazon SQS with the Amazon SQS Java Messaging Library for the JMS components.
+- **B.** Use Amazon MQ for ActiveMQ with an active/standby broker deployment across two Availability Zones.
+- **C.** Use Amazon MQ for ActiveMQ with a single-instance broker, which supports both JMS and AMQP 1.0.
+- **D.** Replace the broker with Amazon SNS topics and Amazon SQS queues subscribed to them.
+
+### Correct answer: B
+
+**Summary:** Legacy JMS/AMQP/MQTT/STOMP brokers move to Amazon MQ unchanged; use an active/standby (or cluster) deployment for AZ resilience.
+
+### Explanation
+- A is wrong: the library maps a subset of JMS onto SQS, but the AMQP 1.0 components have no SQS equivalent and would have to be rewritten.
+- B is correct: ActiveMQ supports JMS and AMQP 1.0, so neither group of components changes, and the active/standby deployment fails over to the second zone automatically.
+- C is wrong: the protocols match, but a single-instance broker runs in one Availability Zone and fails with it.
+- D is wrong: SNS and SQS have their own APIs, so the messaging code would have to be rewritten.
+
+**Key phrases:** JMS API · AMQP 1.0 protocol · cannot change application code · if an Availability Zone fails
+**Hint:** Both the protocols and the Availability Zone requirement matter. Which managed broker speaks both, and in which deployment mode?
+
+---
+
+## ALPHA-228: Disaster Recovery & Migration
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Cost Optimization
+**Services:** Storage Gateway › File Gateway
+
+### Question
+A media company's on-premises editing workstations write finished projects to an NFS share on an aging appliance that is nearly full. The company wants each finished file to be stored as an object in Amazon S3 so that S3 lifecycle rules apply, while editors keep using an NFS mount on premises and recently used files stay fast to open locally. Which solution meets these requirements?
+
+### Options
+- **A.** Deploy an Amazon S3 File Gateway on premises and present its NFS share to the workstations.
+- **B.** Deploy AWS Storage Gateway Volume Gateway in cached mode and format the iSCSI volume with a file system shared over NFS.
+- **C.** Create an Amazon FSx for OpenZFS file system and mount it on the workstations over AWS Direct Connect.
+- **D.** Run AWS DataSync nightly from the appliance to Amazon S3 and have editors keep writing to the appliance.
+
+### Correct answer: A
+
+**Summary:** Files on premises over NFS/SMB stored as S3 objects with a local cache = S3 File Gateway; Volume Gateway stores blocks, not objects.
+
+### Explanation
+- A is correct: S3 File Gateway stores each file as an S3 object, where lifecycle rules apply, presents an NFS share, and keeps recently used data in a local cache.
+- B is wrong: Volume Gateway stores block volumes, not individual files as S3 objects, so S3 lifecycle rules cannot act on the files.
+- C is wrong: it provides NFS, but the files live in FSx rather than as S3 objects, and there is no local cache on premises.
+- D is wrong: the appliance stays the primary store and keeps filling up.
+
+**Key phrases:** stored as an object in Amazon S3 · lifecycle rules apply · NFS mount on premises · recently used files stay fast
+**Hint:** Several hybrid services keep data local and in AWS. Only one presents a file share while storing each file as an S3 object.
+
+---
+
+## ALPHA-229: Databases & Caching
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** Neptune
+
+### Question
+A social network wants to suggest people a user may know by finding members two or three steps away through friendships and shared groups, ranked by how many connections lead to them. The data covers 300 million members and billions of relationships, and each suggestion must be computed in milliseconds as relationships change. Which database is the BEST fit?
+
+### Options
+- **A.** Amazon DynamoDB with an adjacency-list design that stores each relationship as an item, queried one step at a time from the application.
+- **B.** Amazon Aurora PostgreSQL with a relationships table queried through recursive common table expressions.
+- **C.** Amazon Neptune.
+- **D.** Amazon OpenSearch Service with each member's list of friends and groups indexed as a document.
+
+### Correct answer: C
+
+**Summary:** Multi-step relationship traversal (friends of friends, recommendations, fraud rings) = Neptune; key-value and relational designs need repeated lookups or recursive joins.
+
+### Explanation
+- A is wrong: one step is a fast query, but every further step multiplies the queries and joins in the application, so multi-step traversals over billions of relationships are not milliseconds.
+- B is wrong: each extra step is another recursive join over billions of rows, which grows slow and hard to tune.
+- C is correct: Neptune is a graph database that stores relationships natively and traverses several steps with Gremlin or openCypher in milliseconds.
+- D is wrong: a search engine finds matching documents but cannot follow relationships from one document to the next, so friends of friends need repeated queries.
+
+**Key phrases:** two or three steps away · billions of relationships · in milliseconds
+**Hint:** The questions are all about following relationships several steps deep. Which engine is built to traverse them rather than join tables or issue repeated lookups?
+
+---
+
+## ALPHA-230: Networking & Content Delivery
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** CloudFront › Edge functions
+
+### Question
+A company serves a website through Amazon CloudFront at millions of requests per second. On every viewer request it must normalize the URL and add a few headers, work that takes well under a millisecond and needs no network access. Separately, only when a request is not in the cache, it must call an external authorization API over the network, which takes about 50 ms, to decide which origin path to use. The company wants the lowest added latency and cost. Which TWO actions meet these requirements? (Select TWO.)
+
+### Options
+- **A.** Use a CloudFront function on the viewer request event to normalize the URL and add the headers.
+- **B.** Use a Lambda@Edge function on the viewer request event to normalize the URL and add the headers.
+- **C.** Use a Lambda@Edge function on the origin request event that calls the authorization API.
+- **D.** Use a CloudFront function on the origin request event that calls the authorization API.
+- **E.** Use a CloudFront function on the viewer request event that calls the authorization API for every request.
+
+### Correct answers: A, C (choose 2)
+
+**Summary:** CloudFront Functions: viewer events only, sub-ms, no network, cheapest. Lambda@Edge: network access and origin events (cache misses) for heavier work.
+
+### Explanation
+- A is correct: CloudFront Functions run in a lightweight runtime at the edge location, are built for sub-millisecond request changes at very high rates, and cost a fraction of Lambda@Edge.
+- B is wrong: Lambda@Edge works but adds more latency and cost than a CloudFront function for simple work on every request.
+- C is correct: Lambda@Edge can make network calls, and the origin request event runs only on cache misses, so the 50 ms call is paid only when CloudFront goes to the origin.
+- D is wrong: CloudFront Functions run only on viewer events and cannot make network calls.
+- E is wrong: CloudFront Functions cannot make network calls, and running the check on every request would add the call even to cache hits.
+
+**Key phrases:** millions of requests per second · needs no network access · only when a request is not in the cache · external authorization API over the network · TWO
+**Hint:** Edge code comes in two kinds, and each runs on different events with different abilities. Match each task to the cheapest kind and event that can do it.
+
+---
+
+## ALPHA-231: Compute & Serverless
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** Local Zones & Wavelength, Outposts
+
+### Question
+A media production company in a large city runs latency-sensitive editing workstations that must reach their compute and storage in AWS with single-digit millisecond latency. The nearest AWS Region adds about 30 milliseconds of round-trip latency, which is too much. The company does not want to run hardware in its own facility, and the workloads should stay part of its existing VPC. Which solution meets these requirements?
+
+### Options
+- **A.** Run the workloads on Amazon EC2 instances in an AWS Local Zone near the city, in a subnet of the existing VPC.
+- **B.** Deploy the workloads to an AWS Wavelength Zone in a telecom carrier's 5G network.
+- **C.** Install AWS Outposts racks in the company's own facility.
+- **D.** Put AWS Global Accelerator in front of the workloads in the Region so that traffic enters the AWS network at the nearest edge location.
+
+### Correct answer: A
+
+**Summary:** Single-digit-ms latency in a metro area without your own hardware = Local Zone; Global Accelerator shortens the path but cannot move the compute.
+
+### Explanation
+- A is correct: a Local Zone puts AWS compute and storage in the metropolitan area as an extension of the Region's VPC, giving single-digit millisecond latency with no hardware on site.
+- B is wrong: Wavelength Zones serve applications reached by mobile devices over a carrier's 5G network, not wired workstations in a studio.
+- C is wrong: Outposts would meet the latency target but puts AWS-managed racks in the company's facility, which it does not want.
+- D is wrong: Global Accelerator improves the network path, but the compute stays in the Region about 30 milliseconds away.
+
+**Key phrases:** single-digit millisecond latency · about 30 milliseconds · does not want to run hardware in its own facility · existing VPC
+**Hint:** Speeding up the network path to the Region cannot remove the distance. What puts AWS compute in the same city?
+
+---
+
+## ALPHA-232: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Control Tower
+
+### Question
+A company plans to grow from 5 to about 60 AWS accounts over the next year. It wants each new account created from a standard blueprint with a preconfigured VPC and centralized logging, wants preventive and detective guardrails applied automatically, and wants a dashboard that shows which accounts have drifted from the standard. The company wants to avoid building and maintaining this itself. What should a solutions architect recommend?
+
+### Options
+- **A.** Set up AWS Control Tower, vend accounts through Account Factory, and use its controls and dashboard.
+- **B.** Use AWS Organizations with CloudFormation StackSets for the VPC and logging, SCPs for guardrails, and an AWS Config aggregator for compliance.
+- **C.** Publish the account baseline as AWS Service Catalog products that each team launches after creating an account.
+- **D.** Create each account manually in AWS Organizations, attach a service control policy to it, and track drift with a spreadsheet of each account's settings.
+
+### Correct answer: A
+
+**Summary:** Managed multi-account landing zone (account vending, guardrails, drift dashboard) = Control Tower; Organizations + StackSets + Config is the do-it-yourself version.
+
+### Explanation
+- A is correct: Control Tower builds the landing zone with centralized logging, vends accounts from a blueprint, applies preventive and detective controls, and reports drift and compliance in one dashboard.
+- B is wrong: these are the right building blocks, but the company would assemble, connect and maintain them itself, with no account vending or drift dashboard.
+- C is wrong: Service Catalog offers approved products, but it does not create accounts, apply guardrails or report drift.
+- D is wrong: SCPs give preventive guardrails only, and everything else stays manual.
+
+**Key phrases:** standard blueprint · applied automatically · drifted from the standard · avoid building and maintaining this itself
+**Hint:** All the pieces can be assembled from Organizations, StackSets and Config. Which service already packages them as a landing zone?
+
+---
+
+## ALPHA-233: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Services:** IAM › Access Analyzer
+
+### Question
+A compliance team must know continuously, across 40 accounts, which Amazon S3 buckets, IAM roles, AWS KMS keys and Amazon SQS queues can be accessed by principals outside the organization, whether through public access or grants to specific external accounts. The team must review each finding and does not want to read every resource policy by hand. What should a solutions architect recommend?
+
+### Options
+- **A.** Use the Amazon Macie bucket inventory to list buckets that are public or shared with other accounts.
+- **B.** Create an organization-wide IAM Access Analyzer external access analyzer and review its findings.
+- **C.** Enable the AWS Config managed rules that detect public S3 buckets and public SQS queues across the organization.
+- **D.** Enable Amazon GuardDuty in every account and review its findings.
+
+### Correct answer: B
+
+**Summary:** Which resources can be reached from outside the organization (public or cross-account) = IAM Access Analyzer with the organization as zone of trust.
+
+### Explanation
+- A is wrong: Macie reports on S3 buckets only, so roles, keys and queues are not covered.
+- B is correct: IAM Access Analyzer applies automated reasoning to the policies of buckets, roles, keys, queues and more, and reports any access from outside the organization, public or cross-account.
+- C is wrong: these rules flag public access only, miss grants to specific external accounts, and do not cover role trust policies.
+- D is wrong: GuardDuty detects active threats from logs; it does not evaluate who resource policies allow.
+
+**Key phrases:** S3 buckets, IAM roles, AWS KMS keys and Amazon SQS queues · outside the organization · grants to specific external accounts
+**Hint:** Some options cover only S3 or only public access. Which one reasons over the policies of all these resource types and treats the organization as the trusted boundary?
+
+---
+
+## ALPHA-234: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
+**Services:** CloudHSM, KMS
+
+### Question
+A payments company runs its own certificate authority. Its signing application uses the PKCS #11 interface, and an audit requires that the keys be kept in single-tenant hardware security modules that only the company can use, with no way for AWS to use the keys. The company wants AWS to handle the hardware's availability, patching and backups. Which solution meets these requirements?
+
+### Options
+- **A.** Use AWS KMS with a customer managed key in a custom key store backed by an AWS CloudHSM cluster.
+- **B.** Use AWS KMS with a customer managed key that has imported key material.
+- **C.** Use an AWS CloudHSM cluster with HSMs in two Availability Zones through its PKCS #11 library.
+- **D.** Use AWS Private CA to issue the certificates, with the CA's private key generated and held by the service.
+
+### Correct answer: C
+
+**Summary:** Exclusive single-tenant HSMs with standard interfaces (PKCS #11, JCE, CNG) = CloudHSM; a KMS custom key store keeps keys in CloudHSM but still uses the KMS API.
+
+### Explanation
+- A is wrong: the key material sits in the company's HSMs, but the application must call the AWS KMS API, which has no PKCS #11 interface.
+- B is wrong: KMS runs on multi-tenant HSMs that AWS operates, and it offers no PKCS #11 interface.
+- C is correct: CloudHSM gives single-tenant HSMs whose keys and users only the company controls, exposes PKCS #11, and AWS manages the hardware, patching and backups.
+- D is wrong: Private CA keeps its keys in HSMs that AWS manages for the service, not in hardware under the company's exclusive control, and the application's PKCS #11 signing would not apply.
+
+**Key phrases:** PKCS #11 interface · single-tenant hardware security modules · no way for AWS to use the keys · availability, patching and backups
+**Hint:** One option keeps the keys in the company's own HSMs but still makes the application talk to a different API. Which one lets the application use PKCS #11 directly?
+
+---
+
+## ALPHA-235: Application Integration
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Services:** Transfer Family
+
+### Question
+Fifty partner companies upload nightly files to a company's on-premises SFTP server using their existing SFTP clients and SSH keys. The company wants the files to land directly in Amazon S3 without running servers. The partners' firewalls allow outbound SFTP connections only to a fixed list of IP addresses that they configure once. Which solution meets these requirements?
+
+### Options
+- **A.** Create an AWS Transfer Family SFTP server with a publicly accessible endpoint, backed by the S3 bucket, and import each partner's SSH public key.
+- **B.** Create an AWS Transfer Family SFTP server with an internet-facing VPC endpoint that uses Elastic IP addresses, backed by the S3 bucket, and import each partner's SSH public key.
+- **C.** Deploy AWS DataSync agents to pull files from each partner's SFTP server every night.
+- **D.** Deploy an Amazon S3 File Gateway and give the partners access to its file share over the internet.
+
+### Correct answer: B
+
+**Summary:** Managed SFTP/FTPS/FTP into S3 = AWS Transfer Family; for static IPs to allowlist, use an internet-facing VPC endpoint with Elastic IP addresses.
+
+### Explanation
+- A is wrong: a publicly accessible endpoint has no Elastic IP addresses to allowlist, so the partners have no fixed addresses to configure.
+- B is correct: Transfer Family is managed SFTP that writes straight to S3 with the partners' existing keys, and an internet-facing VPC endpoint has Elastic IP addresses the partners can allowlist once.
+- C is wrong: DataSync pulls from locations you can reach; the partners want to keep pushing with their own clients, and it means 50 integrations to set up.
+- D is wrong: File Gateway serves NFS and SMB shares, not SFTP, so the partners' clients would have to change.
+
+**Key phrases:** existing SFTP clients and SSH keys · without running servers · fixed list of IP addresses
+**Hint:** A managed SFTP service is the obvious part. Which of its endpoint types gives addresses that never change?
+
+---
+
+## ALPHA-236: Monitoring, Management & Governance
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Services:** X-Ray
+
+### Question
+A company runs a serverless API built from Amazon API Gateway, eight AWS Lambda functions and Amazon DynamoDB. Some requests take several seconds, but each function's average and p99 duration look normal in CloudWatch. The team needs to see, for an individual slow request, how much time each component and each downstream call consumed. What should a solutions architect recommend?
+
+### Options
+- **A.** Enable CloudWatch Lambda Insights on every function to collect detailed performance metrics.
+- **B.** Enable AWS X-Ray tracing on API Gateway and the Lambda functions, instrument the DynamoDB calls, and examine the traces of the slow requests.
+- **C.** Use CloudWatch Logs Insights to query all eight functions' logs for invocations with long durations.
+- **D.** Create a CloudWatch dashboard showing the p99.9 duration of every function and of the API Gateway stage.
+
+### Correct answer: B
+
+**Summary:** Where did one request spend its time across services = X-Ray traces; per-function metrics and logs cannot correlate a single request.
+
+### Explanation
+- A is wrong: Lambda Insights adds per-function resource and performance metrics; it does not follow a single request across API Gateway, functions and DynamoDB.
+- B is correct: X-Ray records a segment for each service and downstream call of one request, so a trace shows exactly where a slow request spent its time.
+- C is wrong: each function logs separately with no shared request identifier by default, so one request's path across components cannot be reconstructed reliably.
+- D is wrong: percentiles are still per component; they do not show how one slow request divided its time.
+
+**Key phrases:** each function's average and p99 duration look normal · for an individual slow request · each downstream call
+**Hint:** Per-function metrics, however detailed, cannot follow one request across services. What can?
+
+---
+
+## ALPHA-237: Compute & Serverless
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization, Sustainability
+**Services:** Batch
+
+### Question
+A research team submits thousands of independent containerized jobs each night. The jobs need different amounts of CPU and memory, some run for several hours and need up to 64 GB of memory, and some cannot start until others finish. The team wants jobs queued, retried and placed on compute that appears when work is waiting and disappears when the queue is empty, without managing clusters or writing scheduling logic. Which solution meets these requirements?
+
+### Options
+- **A.** Run each job as an Amazon ECS task on AWS Fargate, started by an Amazon EventBridge rule at night.
+- **B.** Use an AWS Step Functions Distributed Map state that invokes an AWS Lambda function for each job.
+- **C.** Keep a permanent Amazon ECS cluster on Amazon EC2 sized for the nightly peak, and schedule the tasks on it.
+- **D.** Submit the jobs to AWS Batch job queues backed by a managed compute environment, with job definitions for resources and job dependencies for ordering.
+
+### Correct answer: D
+
+**Summary:** Queues of batch jobs with varied resources, long runtimes and dependencies = AWS Batch; Fargate alone has no queue, Lambda has 15-minute and 10 GB limits.
+
+### Explanation
+- A is wrong: Fargate runs the containers, but there is no queue, dependency handling or retry logic, so thousands of jobs would have to be orchestrated by custom code.
+- B is wrong: Lambda stops each invocation at 15 minutes and offers at most 10 GB of memory, so multi-hour, 64 GB jobs cannot run.
+- C is wrong: a peak-sized cluster sits idle by day, and the team would still manage the cluster and its scheduling.
+- D is correct: Batch queues jobs, retries them, honours dependencies, sizes compute to the vCPU and memory each job asks for, and scales the environment down when the queue empties.
+
+**Key phrases:** several hours · up to 64 GB of memory · cannot start until others finish · without managing clusters or writing scheduling logic
+**Hint:** Look for the service whose core concepts are job queues, job definitions and dependencies, rather than one that only starts containers or functions.
+
+---
+
+## ALPHA-238: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Operational Excellence
+**Services:** Glue › Data Catalog & crawlers, Glue › ETL jobs
+
+### Question
+A company receives daily CSV files from 30 suppliers in Amazon S3. Column names differ between suppliers, new suppliers are added without notice, and analysts query the data with Amazon Athena. The company wants a serverless pipeline that catalogs every supplier's files, including new ones, automatically, and each night converts only the files that arrived since the last run into partitioned Parquet with consistent column names. Which TWO actions meet these requirements? (Select TWO.)
+
+### Options
+- **A.** Run a nightly Amazon EMR cluster with an Apache Spark job that renames the columns and converts all of the files to Parquet.
+- **B.** Run an AWS Glue crawler on a schedule over the supplier prefixes so that new files and new schemas are added to the Data Catalog.
+- **C.** Load each night's files into Amazon Redshift Serverless and UNLOAD the tables to S3 as Parquet.
+- **D.** Trigger an AWS Lambda function for each new object that converts the CSV file to Parquet in memory.
+- **E.** Run an AWS Glue ETL job with job bookmarks enabled that applies the column mapping and writes partitioned Parquet.
+
+### Correct answers: B, E (choose 2)
+
+**Summary:** Serverless S3 ETL: a Glue crawler catalogs schemas (including new sources), and a Glue ETL job with job bookmarks processes only new data into partitioned Parquet.
+
+### Explanation
+- A is wrong: EMR means clusters to run and tune, which the serverless requirement excludes, and converting all files each night repeats finished work.
+- B is correct: a scheduled crawler infers each supplier's schema, including new suppliers, into the Data Catalog with no servers.
+- C is wrong: it adds a data warehouse and load jobs when the data should stay in S3 for Athena.
+- D is wrong: it is custom code, large files can exceed Lambda's memory and time limits, and the column mapping and partitioning would be hand-written.
+- E is correct: a serverless Glue job maps the columns and writes partitioned Parquet, and job bookmarks make each run process only the files that arrived since the last one.
+
+**Key phrases:** new suppliers are added without notice · serverless pipeline · only the files that arrived since the last run · TWO
+**Hint:** One component discovers schemas into the catalog; the other transforms the data and remembers what it already processed.
+
+---
+
+## ALPHA-239: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** QuickSight
+
+### Question
+A company keeps curated sales data in Amazon S3 and queries it with Amazon Athena. Two hundred business users need interactive dashboards with filters, which must stay fast at month-end when most of them open the dashboards at once, without every filter change running a new scan of S3. The data is refreshed once a day, and the company does not want to run BI servers. Which solution meets these requirements?
+
+### Options
+- **A.** Build Amazon QuickSight dashboards that use direct query mode against Athena.
+- **B.** Build Amazon QuickSight dashboards on a SPICE dataset that refreshes daily from Athena.
+- **C.** Build dashboards in Amazon Managed Grafana with Athena as the data source.
+- **D.** Run a self-managed BI server on Amazon EC2 behind an Application Load Balancer, with a cache of the Athena results.
+
+### Correct answer: B
+
+**Summary:** Many concurrent dashboard users on slowly changing data: QuickSight with a SPICE dataset; direct query re-runs the source query on every interaction.
+
+### Explanation
+- A is wrong: direct query runs an Athena query for every interaction, so month-end concurrency slows the dashboards and every filter change scans S3.
+- B is correct: SPICE holds the data in QuickSight's in-memory engine, so hundreds of users filter without new Athena scans, and a daily refresh matches how often the data changes.
+- C is wrong: Grafana is aimed at operational metrics, and each panel queries Athena directly, so filters still trigger new scans.
+- D is wrong: a BI server on EC2 is infrastructure to size, patch and scale, which the company does not want.
+
+**Key phrases:** stay fast at month-end · without every filter change running a new scan · refreshed once a day · does not want to run BI servers
+**Hint:** The data changes daily, so the dashboards do not need to query S3 on every click. Where can the BI service keep its own copy?
+
+---
+
+## ALPHA-240: Compute & Serverless
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** EC2 › Hibernation
+
+### Question
+Developers use Amazon EC2 instances with 64 GB of memory for an application that spends about 20 minutes loading a large dataset into memory at start-up. The instances are idle overnight and at weekends, and the company pays for those hours. Developers want to resume within a couple of minutes with the dataset already in memory, exactly as they left it. Which approach reduces cost while meeting that expectation?
+
+### Options
+- **A.** Enable hibernation and hibernate the instances when they are idle.
+- **B.** Buy a Compute Savings Plan for the instances so that the idle hours cost less.
+- **C.** Create an AMI each evening, terminate the instances, and launch replacements from the AMI each morning.
+- **D.** Stop the instances when idle and move the dataset files to a faster io2 Block Express volume so that loading is quicker.
+
+### Correct answer: A
+
+**Summary:** Keep in-memory state while not paying for idle instance hours = EC2 hibernation (RAM saved to the encrypted root EBS volume).
+
+### Explanation
+- A is correct: hibernation saves the instance's memory to its encrypted root EBS volume and stops instance billing, and starting the instance restores the memory, so the dataset is already loaded.
+- B is wrong: a Savings Plan lowers the hourly rate but still pays for every idle hour.
+- C is wrong: an AMI holds disk contents, not memory, so the 20-minute load still happens at every launch.
+- D is wrong: stopping ends billing, but memory is lost, so the dataset must still be read back into memory, and the faster volume costs more.
+
+**Key phrases:** 64 GB of memory · about 20 minutes loading · already in memory, exactly as they left it
+**Hint:** Stopping saves money but loses memory. Which stop-like action writes the memory to disk first?
+
+---
+
+## ALPHA-241: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Security Hub
+
+### Question
+A company runs 40 AWS accounts in AWS Organizations and uses Amazon GuardDuty, Amazon Inspector and Amazon Macie in every account and in three Regions. The security team wants one place to see and prioritize the findings from all of these services across every account and Region, and wants every account checked continuously against AWS best-practice security controls, with minimal custom code. Which solution meets these requirements?
+
+### Options
+- **A.** Use an AWS Config aggregator in a delegated administrator account and deploy the Operational Best Practices conformance packs to every account.
+- **B.** Send findings from each service to Amazon EventBridge, deliver them through Amazon Data Firehose to a central S3 bucket, query them with Amazon Athena, and write custom AWS Config rules for the best-practice checks.
+- **C.** Enable Amazon Detective in a central account and invite all member accounts so that investigators can explore findings.
+- **D.** Enable AWS Security Hub with a delegated administrator account, turn it on automatically for new accounts, configure cross-Region aggregation, and enable the AWS Foundational Security Best Practices standard.
+
+### Correct answer: D
+
+**Summary:** Security Hub gathers security findings across accounts and Regions and continuously checks each account against best-practice standards; a Config aggregator covers configuration only.
+
+### Explanation
+- A is wrong: it shows configuration compliance across accounts, but it does not collect GuardDuty, Inspector or Macie findings.
+- B is wrong: it can work, but it is a custom pipeline, and every best-practice check would have to be written and maintained by hand.
+- C is wrong: Detective investigates the root cause of individual findings; it is not the central findings dashboard and runs no security standards.
+- D is correct: Security Hub automatically collects findings from GuardDuty, Inspector and Macie into one standard format, aggregates them across accounts and Regions into the administrator account, and its security standards continuously score each account against best-practice controls.
+
+**Key phrases:** one place to see and prioritize the findings · every account and Region · best-practice security controls · minimal custom code
+**Hint:** One service both gathers findings from the other security services and scores accounts against a security standard.
+
+---
+
+## ALPHA-242: Cost Management & Optimization
+**Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
+**Services:** Aurora › Cloning
+
+### Question
+A company has a 20 TB Amazon Aurora MySQL production cluster. The QA team works in a separate AWS account and needs a fresh, writable copy of the production database every morning for destructive tests, which it deletes at the end of the day. Restoring from a shared snapshot takes hours, and each copy is billed for the full 20 TB. Which solution provides the copy MOST quickly and cost-effectively?
+
+### Options
+- **A.** Share the production cluster with the QA account through AWS Resource Access Manager, and create a cross-account Aurora clone each morning.
+- **B.** Share a manual snapshot with the QA account each night and restore it into a new cluster each morning.
+- **C.** Add an Aurora Global Database secondary cluster for the QA team to use.
+- **D.** Replicate the production cluster to a cluster in the QA account with AWS DMS ongoing replication.
+
+### Correct answer: A
+
+**Summary:** Fast, cheap, writable copies of Aurora, even in another account via AWS RAM = Aurora cloning (copy-on-write); restores and replicas are slower or read-only.
+
+### Explanation
+- A is correct: an Aurora clone uses copy-on-write, so it is ready in minutes whatever the size, only changed pages cost extra, and clones can be created in another account through AWS RAM.
+- B is wrong: this is the current slow process, and every restored cluster pays for a full copy of the storage.
+- C is wrong: the secondary cluster is read-only, so destructive tests are impossible, and it stays a permanent full copy.
+- D is wrong: it keeps a full copy permanently, and destructive tests would break the replication.
+
+**Key phrases:** separate AWS account · writable copy · destructive tests · full 20 TB · MOST quickly and cost-effectively
+**Hint:** Aurora can create a writable copy that shares storage pages with the source, even for another account.
+
+---
+
+## ALPHA-243: Storage & Backup
+**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** S3 › Glacier & retrieval
+
+### Question
+A hospital stores medical images, about 25 MB each, in Amazon S3. After 90 days each image is read about once a quarter, but when a doctor requests one it must be returned within milliseconds. The images must survive the loss of an Availability Zone and are kept for 10 years. Which storage choice is the MOST cost-effective for images older than 90 days?
+
+### Options
+- **A.** Use a lifecycle rule to move the images to S3 One Zone-Infrequent Access after 90 days.
+- **B.** Use a lifecycle rule to move the images to S3 Glacier Instant Retrieval after 90 days.
+- **C.** Store the images in S3 Intelligent-Tiering from upload so that each object moves to a cheaper tier when it is not accessed.
+- **D.** Use a lifecycle rule to move the images to S3 Standard-Infrequent Access after 90 days.
+
+### Correct answer: B
+
+**Summary:** Known rare access (about once a quarter) with millisecond reads: S3 Glacier Instant Retrieval; One Zone-IA fails AZ resilience, Intelligent-Tiering suits unknown patterns.
+
+### Explanation
+- A is wrong: One Zone-IA keeps data in a single Availability Zone, which breaks the resilience requirement, and it still costs more per GB than Glacier Instant Retrieval.
+- B is correct: Glacier Instant Retrieval is built for data read about once a quarter: millisecond reads, storage across multiple zones, and the lowest storage price of the millisecond-access classes.
+- C is wrong: a read every quarter keeps moving objects back to the Frequent Access tier, every object pays a monitoring charge, and for a known pattern a lifecycle rule to the right class costs less.
+- D is wrong: Standard-IA meets the access and resilience needs but costs about three times as much per GB as Glacier Instant Retrieval for data read once a quarter.
+
+**Key phrases:** about 25 MB each · about once a quarter · within milliseconds · survive the loss of an Availability Zone · MOST cost-effective
+**Hint:** Every option here reads in milliseconds. Compare storage price for a known, quarterly access pattern, and check which option keeps copies in more than one zone.
+
+---
+
+## ALPHA-244: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
+**Services:** Inspector
+
+### Question
+After a widely publicized vulnerability is announced in a popular Java logging library, a security team must find out within hours which of its Amazon EC2 instances, container images in Amazon ECR and AWS Lambda functions include an affected version. The team must also be alerted automatically if an image pushed or a function deployed later includes it. Which solution requires the LEAST operational effort?
+
+### Options
+- **A.** Activate Amazon Inspector for EC2, ECR and Lambda, and review its findings for the vulnerability's CVE ID.
+- **B.** Enable Amazon GuardDuty Runtime Monitoring on the instances and containers, and search its findings for the library's name.
+- **C.** Use AWS Systems Manager Inventory to collect installed software from the instances and query it for the library version.
+- **D.** Turn on Amazon ECR basic scanning on push for every repository and review the scan results.
+
+### Correct answer: A
+
+**Summary:** Which resources run a vulnerable package = Amazon Inspector (continuous CVE scanning of EC2, ECR images and Lambda); GuardDuty is threat detection.
+
+### Explanation
+- A is correct: Inspector continuously inventories the packages in instances, images and functions, rescans them when a new CVE is published or a new image or function appears, and reports each affected resource.
+- B is wrong: GuardDuty detects suspicious runtime behavior; it does not match installed package versions against vulnerability databases.
+- C is wrong: it covers only managed instances, not images or Lambda functions, and the queries and alerts would be built by hand.
+- D is wrong: it covers container images only, and basic scanning checks an image when it is pushed rather than continuously, so EC2 and Lambda are missed.
+
+**Key phrases:** include an affected version · EC2 instances, container images in Amazon ECR and AWS Lambda functions · alerted automatically · LEAST operational effort
+**Hint:** Detecting attacks in progress and knowing which software versions are installed are different jobs. Which service matches installed packages against published vulnerabilities across all three compute types?
+
+---
+
+## ALPHA-245: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** Detective
+
+### Question
+Amazon GuardDuty reports that an IAM role's credentials were used from an IP address in an unusual country. Before deciding whether to revoke the role's sessions, the security team needs to see every API call the role made over the past few weeks, which resources and IP addresses it interacted with, and how that compares with the role's normal behavior. The team does not want to write queries or build dashboards. What should the team use?
+
+### Options
+- **A.** AWS Security Hub, using an insight that groups findings by the affected IAM role.
+- **B.** AWS CloudTrail Lake, querying the role's management events over the past few weeks with SQL.
+- **C.** IAM Access Analyzer, reviewing the external access and unused access findings for the role.
+- **D.** Amazon Detective, opening the GuardDuty finding in the role's behavior graph.
+
+### Correct answer: D
+
+**Summary:** Investigating a finding (what did this principal do, and is it normal?) = Detective; Security Hub aggregates findings, CloudTrail Lake needs your own queries.
+
+### Explanation
+- A is wrong: Security Hub aggregates and prioritizes findings; it holds no history of the role's API calls and no behavior baseline.
+- B is wrong: the data is there, but the team would write the queries and the comparison with normal behavior itself, which it wants to avoid.
+- C is wrong: Access Analyzer reports what the role could access or has not used, not what it actually did.
+- D is correct: Detective builds behavior graphs from CloudTrail, VPC Flow Logs and GuardDuty findings automatically, with visualizations of the role's activity and its baseline.
+
+**Key phrases:** past few weeks · how that compares with the role's normal behavior · does not want to write queries or build dashboards
+**Hint:** The threat is already detected. Which service turns existing logs into an investigation view with a behavior baseline, ready to open from the finding?
+
+---
+
+## ALPHA-246: Databases & Caching
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Operational Excellence, Performance Efficiency
+**Services:** Keyspaces
+
+### Question
+A company runs an Apache Cassandra cluster on self-managed Amazon EC2 instances. The application's code and drivers use the Cassandra Query Language (CQL) and must not be rewritten. The company wants no servers to patch, no capacity planning, payment per request during quiet periods, and a copy of the data in a second AWS Region for disaster recovery. Which solution meets these requirements?
+
+### Options
+- **A.** Migrate to Amazon DynamoDB global tables in on-demand capacity mode.
+- **B.** Migrate to Amazon Keyspaces (for Apache Cassandra) with on-demand capacity and multi-Region replication.
+- **C.** Move the cluster to storage-optimized EC2 instances in Auto Scaling groups in two Regions.
+- **D.** Migrate to Amazon DocumentDB global clusters.
+
+### Correct answer: B
+
+**Summary:** Self-managed Cassandra to serverless without code changes = Amazon Keyspaces (on-demand capacity, multi-Region replication); DynamoDB needs a rewrite.
+
+### Explanation
+- A is wrong: DynamoDB meets the operational and Regional needs, but it has its own API, so the CQL code and drivers would have to be rewritten.
+- B is correct: Keyspaces is serverless and Cassandra-compatible, so CQL code and drivers keep working, on-demand mode bills per request, and multi-Region replication keeps a copy in the second Region.
+- C is wrong: the company would still patch, replace and size the servers itself.
+- D is wrong: DocumentDB is compatible with MongoDB, not Cassandra, so the code would have to change.
+
+**Key phrases:** must not be rewritten · no servers to patch, no capacity planning · payment per request · second AWS Region
+**Hint:** Keep the Cassandra API, drop the servers, and check which option still offers multi-Region replication.
+
+---
+
+## ALPHA-247: Compute & Serverless
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Services:** Elastic Beanstalk
+
+### Question
+A small team has built a Java web application packaged as a WAR file and wants to deploy it to AWS. The team does not want to manage capacity provisioning, load balancing, Auto Scaling or health monitoring, but it must keep SSH access to the underlying Amazon EC2 instances to run a vendor's profiling tool, and it wants rolling deployments of new versions. Which service meets these requirements with the LEAST effort?
+
+### Options
+- **A.** AWS App Runner, deploying the application from a container image.
+- **B.** Amazon Lightsail instances behind a Lightsail load balancer.
+- **C.** AWS Elastic Beanstalk with a Java environment and rolling deployments.
+- **D.** Amazon ECS on AWS Fargate with a service behind an Application Load Balancer.
+
+### Correct answer: C
+
+**Summary:** Upload code, get a managed EC2 environment you can still log in to = Elastic Beanstalk; App Runner and Fargate hide the hosts entirely.
+
+### Explanation
+- A is wrong: App Runner is fully managed with no access to the underlying hosts, and the application would first have to be containerized.
+- B is wrong: Lightsail has no Auto Scaling, so capacity and deployments would be handled by the team.
+- C is correct: Beanstalk provisions and manages the EC2 instances, load balancer, Auto Scaling and health monitoring from the uploaded code, supports rolling deployments, and keeps the instances accessible.
+- D is wrong: Fargate gives no access to the underlying hosts, and the application would have to be containerized.
+
+**Key phrases:** WAR file · must keep SSH access to the underlying Amazon EC2 instances · rolling deployments
+**Hint:** Several services hide the infrastructure. Only one of them builds the environment from your code and still leaves you the instances.
+
+---
+
+## ALPHA-248: Monitoring, Management & Governance
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Security, Reliability
+**Services:** Trusted Advisor
+
+### Question
+A company with an AWS Business Support plan wants one service that regularly checks its accounts across several categories: idle load balancers and underused EC2 instances, security groups that allow unrestricted access and a root user without MFA, RDS instances without Multi-AZ, and resources that are close to their service quotas. Which service should the company use?
+
+### Options
+- **A.** AWS Trusted Advisor
+- **B.** AWS Security Hub with the AWS Foundational Security Best Practices standard
+- **C.** AWS Cost Optimization Hub with AWS Compute Optimizer recommendations
+- **D.** AWS Config with the Operational Best Practices conformance packs
+
+### Correct answer: A
+
+**Summary:** One service with checks across cost, security, fault tolerance, performance and service quotas = Trusted Advisor (full checks with Business Support or higher).
+
+### Explanation
+- A is correct: Trusted Advisor runs checks across cost optimization, security, fault tolerance, performance, service limits and operational excellence, and Business Support unlocks the full set.
+- B is wrong: Security Hub checks security controls only; it does not report idle resources or quota usage.
+- C is wrong: these cover cost and right-sizing only, not security, fault tolerance or quotas.
+- D is wrong: Config evaluates resource configuration, but it does not find idle or underused resources or report service quota usage.
+
+**Key phrases:** one service · across several categories · close to their service quotas
+**Hint:** Several services check one of these categories well. Only one covers cost, security, fault tolerance and quotas together.
+
+---
+
+## ALPHA-249: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Operational Excellence, Performance Efficiency
+**Services:** MSK
+
+### Question
+A company runs Apache Kafka on premises. Dozens of producer and consumer applications use the Kafka client libraries and Kafka Connect connectors, and only their client configuration may change. The company wants a managed AWS service in which it never chooses broker instance types, plans broker counts or manages storage, and pays for the throughput it uses. Which solution meets these requirements?
+
+### Options
+- **A.** Amazon Kinesis Data Streams in on-demand capacity mode.
+- **B.** An Amazon MSK provisioned cluster with storage auto scaling turned on.
+- **C.** Amazon MSK Serverless, with MSK Connect running the connectors.
+- **D.** Amazon MQ for RabbitMQ with a cluster deployment.
+
+### Correct answer: C
+
+**Summary:** Kafka without broker management: MSK Serverless (plus MSK Connect); MSK provisioned still needs broker sizing, Kinesis needs code changes.
+
+### Explanation
+- A is wrong: there is nothing to size, but Kinesis has its own API, so producers and consumers would have to be rewritten.
+- B is wrong: MSK provisioned keeps the Kafka APIs, but the company still chooses broker instance types and counts and scales them.
+- C is correct: MSK Serverless runs Kafka-compatible clusters with no brokers or storage to manage and bills for throughput, and MSK Connect runs the Kafka Connect connectors.
+- D is wrong: RabbitMQ is a different broker with different protocols, so the Kafka clients cannot connect to it.
+
+**Key phrases:** only their client configuration may change · never chooses broker instance types · pays for the throughput it uses
+**Hint:** Keep the Kafka APIs, and among the Kafka-compatible options pick the one with no brokers to size at all.
