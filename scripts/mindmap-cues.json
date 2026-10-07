@@ -115,12 +115,6 @@
       "traps": ["It collects and scores findings; it does not detect threats on its own."],
       "twins": ["Detective", "Config"]
     },
-    "Verified Access": {
-      "domain": 1, "icon": null, "icons": [], "sheet": null,
-      "cue": "Zero-trust access to internal web apps without a VPN, checking user identity and device posture on every request.",
-      "traps": ["Remote access to a whole network is Client VPN; per-app access without a VPN is Verified Access."],
-      "twins": ["VPN"]
-    },
     "VPC": {
       "domain": 1, "icon": "vpc", "icons": ["igw", "nat", "vpce", "privatelink", "peering", "nacl", "flowlogs"], "sheet": "02-networking.html#vpc",
       "cue": "Your private network: subnets and route tables, security groups (stateful) and network ACLs (stateless), NAT, endpoints and peering.",
@@ -143,7 +137,7 @@
       "domain": 2, "icon": "s2svpn", "icons": ["clientvpn", "vgw", "cgw"], "sheet": "02-networking.html#hybrid",
       "cue": "Encrypted tunnels over the internet. Site-to-Site connects networks in minutes; Client VPN connects individual users.",
       "traps": ["Quick and cheap to set up, but bandwidth and latency vary with the internet."],
-      "twins": ["Direct Connect", "Verified Access"]
+      "twins": ["Direct Connect"]
     },
     "Elastic Load Balancing": {
       "domain": 2, "icon": "elb", "icons": ["alb", "nlb", "gwlb"], "sheet": "02-networking.html#elb",
@@ -517,12 +511,6 @@
       "traps": [],
       "twins": ["CloudWatch"]
     },
-    "Managed Grafana": {
-      "domain": 2, "icon": "grafana", "icons": [], "sheet": "09-monitoring.html#observe",
-      "cue": "Managed Grafana dashboards over CloudWatch, Prometheus and other data sources.",
-      "traps": [],
-      "twins": ["QuickSight"]
-    },
     "Service Quotas": {
       "domain": 2, "icon": null, "icons": [], "sheet": null,
       "cue": "View and raise service limits, and alarm before you hit them.",
@@ -593,7 +581,7 @@
       "domain": 3, "icon": "quicksight", "icons": [], "sheet": "10-analytics.html#bi",
       "cue": "Serverless business intelligence dashboards with per-user pricing.",
       "traps": [],
-      "twins": ["Managed Grafana"]
+      "twins": []
     },
     "SageMaker": {
       "domain": 3, "icon": "sagemaker", "icons": [], "sheet": "10-analytics.html#ai",

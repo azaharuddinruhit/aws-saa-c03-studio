@@ -11,7 +11,7 @@ A media company runs an image-processing pipeline. Uploaded images are placed in
 
 ### Options
 - **A.** Create an Auto Scaling group of Standard Reserved Instances sized for the average queue depth and add a step scaling policy on CPU utilization to add On-Demand instances at peak.
-- **B.** Create an Auto Scaling group with a mixed instances policy that uses several instance types across multiple Availability Zones, a small On-Demand base capacity, and Spot Instances for the remainder. Use a target tracking policy on a custom 'backlog per instance' metric derived from the SQS queue depth.
+- **B.** Use an Auto Scaling group with a mixed instances policy (several instance types and AZs, a small On-Demand base, Spot for the rest) and target tracking on SQS backlog per instance.
 - **C.** Create an EC2 Fleet request for Spot Instances of a single instance type in a single Availability Zone with the lowestPrice allocation strategy. Scale manually when the queue grows.
 - **D.** Create an Auto Scaling group of On-Demand instances of a single type and purchase a 3-year Compute Savings Plan sized for peak capacity. Use scheduled scaling to add capacity during business hours.
 
@@ -40,7 +40,7 @@ A payments API uses AWS Lambda functions behind Amazon API Gateway. The function
 ### Options
 - **A.** Attach the Lambda functions to private subnets and create an interface VPC endpoint for the third-party API. Set reserved concurrency to 1,000 so that the database gets a steady load.
 - **B.** Remove the Lambda functions from the VPC and make the RDS instance publicly accessible with a security group allowing all Lambda IP ranges. Increase max_connections on the database.
-- **C.** Attach the Lambda functions to private subnets in at least two Availability Zones. Deploy a NAT gateway in a public subnet in each AZ and route the private subnets' default route to it. Place an Amazon RDS Proxy in front of the database and have the functions connect through the proxy.
+- **C.** Attach the functions to private subnets in two AZs with a NAT gateway in each AZ for internet access, and connect to the database through RDS Proxy.
 - **D.** Attach the Lambda functions to public subnets of the VPC, enable auto-assign public IPv4, and route 0.0.0.0/0 to an internet gateway. Increase the DB instance size.
 
 ### Correct answer: C
@@ -67,9 +67,9 @@ A team is moving a containerized order-processing service to Amazon ECS on AWS F
 
 ### Options
 - **A.** Create one IAM role with S3 read access, ECR pull, and CloudWatch Logs permissions, and specify it only as the task execution role.
-- **B.** Create an IAM user with S3 read access, generate an access key, and store it as an environment variable in the task definition.
+- **B.** Create an IAM user with read access to the bucket, generate an access key, and store it as an environment variable in the task definition so that the code can call Amazon S3.
 - **C.** Attach an IAM instance profile with S3 read access to the Fargate infrastructure so all tasks inherit it.
-- **D.** Define a task role that grants read-only access to the specific S3 bucket for the application code, and a separate task execution role (with the AmazonECSTaskExecutionRolePolicy) that allows the ECS agent to pull from ECR and write to CloudWatch Logs.
+- **D.** Grant S3 read access on the bucket to a task role for the application, and use a separate task execution role for pulling images from ECR and writing logs.
 
 ### Correct answer: D
 
@@ -290,9 +290,9 @@ Amazon EC2 instances in private subnets of a VPC upload roughly 20 TB per month 
 A company hosts a web application behind an Application Load Balancer in us-east-1 (primary) and a warm standby stack behind another ALB in eu-west-1. All users should be sent to us-east-1 during normal operation, and traffic must automatically shift to eu-west-1 if the primary ALB becomes unhealthy. The company uses the domain app.example.com in Amazon Route 53. Which configuration meets these requirements?
 
 ### Options
-- **A.** Create two weighted records with weights 100 and 0 and no health checks, then change the weights manually during an outage.
+- **A.** Create two weighted alias records with weights 100 and 0 and no health checks, and have an operator swap the weights manually when the primary Region has an outage.
 - **B.** Create two records using geolocation routing with the default location set to eu-west-1.
-- **C.** Create two alias records for app.example.com using the failover routing policy: a PRIMARY record pointing to the us-east-1 ALB with 'Evaluate Target Health' or an associated health check, and a SECONDARY record pointing to the eu-west-1 ALB.
+- **C.** Create failover alias records: PRIMARY for the us-east-1 ALB with Evaluate Target Health, and SECONDARY for the eu-west-1 ALB.
 - **D.** Create two alias records using latency-based routing, one for each Region's ALB, and associate a health check with each.
 
 ### Correct answer: C
@@ -318,10 +318,10 @@ A company hosts a web application behind an Application Load Balancer in us-east
 An online learning company serves HLS video (a manifest plus thousands of segment files) stored in a private Amazon S3 bucket to paying subscribers worldwide. Only authenticated subscribers may watch, users must not be able to bypass the CDN by using S3 URLs, and viewers need low latency. The company does not want to generate a separate signed URL for each segment. Which solution meets these requirements?
 
 ### Options
-- **A.** Use Amazon CloudFront with origin access control (OAC) so that only CloudFront can read the private bucket, and configure the distribution to require signed cookies that the application issues to authenticated subscribers.
+- **A.** Use CloudFront with origin access control on the private bucket, and require signed cookies that the application issues to subscribers.
 - **B.** Place Amazon CloudFront in front of the bucket with the bucket open to any principal, and use AWS WAF rate-based rules to deter abuse.
 - **C.** Generate S3 presigned URLs for the manifest and every segment file and return them to the authenticated user.
-- **D.** Make the S3 bucket public, place Amazon CloudFront in front of it, and require CloudFront signed URLs for the manifest only.
+- **D.** Make the S3 bucket public, place Amazon CloudFront in front of it, and require CloudFront signed URLs for the manifest only, so that only subscribers can discover the segment names.
 
 ### Correct answer: A
 
@@ -347,8 +347,8 @@ A company uses AWS Organizations with 40 member accounts grouped into OUs. The s
 
 ### Options
 - **A.** Create an IAM policy with the required denies and attach it to every IAM user in each account using AWS CloudFormation StackSets.
-- **B.** Attach service control policies (SCPs) to the root or relevant OUs that deny cloudtrail:StopLogging and cloudtrail:DeleteTrail and deny actions when aws:RequestedRegion is not in the approved list (excluding global services with NotAction).
-- **C.** Apply IAM permissions boundaries to all roles and users in each member account and require developers to attach them at creation time.
+- **B.** Attach SCPs to the root or OUs that deny cloudtrail:StopLogging and cloudtrail:DeleteTrail and deny requests outside the approved Regions (except global services).
+- **C.** Apply IAM permissions boundaries to all roles and users in each member account that deny the CloudTrail actions and other Regions, and require developers to attach them at creation time.
 - **D.** Enable AWS Config rules with automatic remediation that re-enable CloudTrail and terminate resources launched in disallowed Regions.
 
 ### Correct answer: B
@@ -403,7 +403,7 @@ A microservices application on Amazon ECS connects to an Amazon RDS for PostgreS
 
 ### Options
 - **A.** Store the credentials in an S3 object encrypted with SSE-KMS and have the application download it at startup; use S3 Object Lambda to rotate the value.
-- **B.** Store the credentials in AWS Secrets Manager encrypted with a customer managed KMS key, enable automatic rotation every 30 days using the managed RDS rotation function, and grant the ECS task role secretsmanager:GetSecretValue. Use AWS CloudTrail to audit access.
+- **B.** Store the credentials in Secrets Manager with a customer managed KMS key, automatic 30-day rotation, access through the task role, and CloudTrail auditing.
 - **C.** Store the credentials in environment variables in the ECS task definition, encrypted at rest by the ECS service, and redeploy the tasks with new values every 30 days.
 - **D.** Store the credentials as a SecureString in AWS Systems Manager Parameter Store (standard tier) and write a cron job on an EC2 instance to change the password every 30 days.
 
@@ -488,7 +488,7 @@ A trading platform sends account transactions (deposits, withdrawals) to a proce
 ### Options
 - **A.** Use an Amazon SNS standard topic with an Amazon SQS standard queue subscribed for each account.
 - **B.** Use a single Amazon SQS FIFO queue with the same MessageGroupId for all messages so that global ordering is guaranteed.
-- **C.** Use an Amazon SQS FIFO queue with the account ID as the MessageGroupId and a deduplication ID (or content-based deduplication), and configure a dead-letter queue with a maxReceiveCount.
+- **C.** Use an SQS FIFO queue with the account ID as the MessageGroupId, deduplication, and a dead-letter queue.
 - **D.** Use an Amazon SQS standard queue and have the consumers sort messages by timestamp before processing.
 
 ### Correct answer: C
@@ -571,9 +571,9 @@ A research institution must migrate 400 TB of data from its on-premises data cen
 
 ### Options
 - **A.** Deploy an AWS DataSync agent on premises and transfer the data over the existing connection.
-- **B.** Order multiple AWS Snowball Edge Storage Optimized devices, load the data locally, and ship the devices back to AWS to be imported into Amazon S3.
+- **B.** Order several Snowball Edge Storage Optimized devices, load them on site, and ship them back for import into Amazon S3.
 - **C.** Order an AWS Snowmobile to transfer the data.
-- **D.** Use Amazon S3 Transfer Acceleration to upload the data over the existing internet connection.
+- **D.** Use Amazon S3 Transfer Acceleration to upload the data over the existing internet connection through the nearest AWS edge location.
 
 ### Correct answer: B
 
@@ -582,8 +582,9 @@ A research institution must migrate 400 TB of data from its on-premises data cen
 ### Explanation
 - A is wrong: DataSync is limited by the same 200 Mbps connection, so the transfer would take months.
 - B is correct: several Snowball Edge Storage Optimized devices can be loaded in parallel on site and shipped, so the whole 400 TB moves within weeks without touching the slow link.
-- C is wrong: Snowmobile was designed for moves of tens of petabytes or more, far beyond 400 TB.
+- C is wrong: Snowmobile was built for moves of tens of petabytes or more, far beyond 400 TB, and AWS retired it in 2024.
 - D is wrong: Transfer Acceleration speeds long-distance transfers but still runs over the same shared 200 Mbps link, which needs about 185 days to move 400 TB.
+- Note: AWS closed Snowball Edge to new customers on November 7, 2025; existing customers can keep using it, and AWS now points new offline transfers to AWS Data Transfer Terminal and online transfers to AWS DataSync. B remains the intended answer to this question.
 
 **Key phrases:** 400 TB · within 6 weeks · 200 Mbps internet connection · more than 3 months
 **Hint:** Do the math: 400 TB over 200 Mbps. Which option avoids the network, and which one is sized for exabytes rather than terabytes?
@@ -626,10 +627,10 @@ A company is migrating a 5 TB on-premises Oracle database to Amazon Aurora Postg
 A three-tier web application (ALB, EC2 Auto Scaling group, Amazon RDS for MySQL) runs in us-east-1. Management wants a disaster recovery strategy in another Region with an RTO of 1 hour and an RPO of 5 minutes, while keeping DR costs as low as possible. Which strategy should the architect implement?
 
 ### Options
-- **A.** Warm standby: run a scaled-down but fully functional copy of the whole stack in the DR Region with a cross-Region read replica, ready to scale up.
+- **A.** Warm standby: run a scaled-down but fully functional copy of the whole stack in the DR Region around the clock, with a cross-Region read replica, ready to scale up to full capacity when a disaster occurs.
 - **B.** Backup and restore: copy nightly RDS snapshots and AMIs to the DR Region and restore everything when a disaster occurs.
 - **C.** Multi-site active-active: run full-capacity stacks in both Regions with a multi-master database and Route 53 weighted routing.
-- **D.** Pilot light: create a cross-Region RDS read replica, copy AMIs to the DR Region, keep the Auto Scaling group and ALB defined by infrastructure as code with the minimum capacity at zero, and promote the replica and scale out during a disaster.
+- **D.** Pilot light: replicate the database to the DR Region with a cross-Region read replica, keep AMIs and infrastructure as code ready with zero compute, and scale out during a disaster.
 
 ### Correct answer: D
 
@@ -703,36 +704,6 @@ A self-managed PostgreSQL database runs on a single Amazon EC2 instance. The wor
 
 **Key phrases:** sustained 40,000 IOPS · consistent sub-millisecond latency · survive an instance stop or an instance failure · latency is too high and too variable
 **Hint:** IOPS alone no longer separates gp3 from io2; latency does. Then consider what else sits between the instance and the volume and has its own limit.
-
----
-
-## ALPHA-026: Databases & Caching
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Performance Efficiency
-**Services:** RDS › RDS Proxy, RDS › Multi-AZ
-
-### Question
-Thousands of concurrent AWS Lambda invocations open connections to an Amazon RDS for PostgreSQL Multi-AZ DB instance, and the database regularly exhausts its connection limit. The business also requires that failover complete in under 40 seconds, and it wants heavy reporting queries served by a standby instance rather than the writer. Which TWO actions should the solutions architect take? (Select TWO.)
-
-### Options
-- **A.** Raise the max_connections parameter in a custom DB parameter group to the maximum the instance class allows.
-- **B.** Put an Amazon RDS Proxy in front of the database and have the Lambda functions connect to the proxy endpoint.
-- **C.** Convert the deployment to a Multi-AZ DB cluster with two readable standby instances.
-- **D.** Direct the reporting queries to the standby of the existing Multi-AZ DB instance deployment.
-- **E.** Create a cross-Region read replica and promote it manually if the primary fails.
-
-### Correct answers: B, C (choose 2)
-
-**Summary:** RDS Proxy absorbs connection churn from many short-lived Lambda calls, and a Multi-AZ DB cluster's standbys are readable for fast failover.
-
-### Explanation
-- A is wrong: raising max_connections trades memory for more connections and does not address the churn of thousands of short-lived clients.
-- B is correct: RDS Proxy pools and reuses database connections, so thousands of short-lived Lambda invocations share a small number of connections instead of exhausting the limit.
-- C is correct: a Multi-AZ DB cluster typically fails over in under 35 seconds, and its two standby instances are readable, so reporting queries can run on a standby instead of the writer.
-- D is wrong: the standby of a Multi-AZ DB instance deployment cannot serve reads, and that deployment type typically takes 60 to 120 seconds to fail over.
-- E is wrong: a cross-Region read replica must be promoted manually, which cannot meet a 40-second failover target, and it does nothing for connection exhaustion.
-
-**Key phrases:** thousands of concurrent · exhausts its connection limit · under 40 seconds · served by a standby instance · TWO
-**Hint:** One action absorbs connection churn from short-lived compute. For the other, compare the two RDS Multi-AZ deployment options on failover time and on whether their standbys can serve reads.
 
 ---
 
@@ -866,7 +837,7 @@ Account A stores reports in an Amazon S3 bucket. The objects are encrypted with 
 ### Options
 - **A.** Change the bucket's default encryption to SSE-S3 so that a KMS key is not involved in the download.
 - **B.** Enable S3 Bucket Keys on the bucket so that requests no longer call AWS KMS for every object.
-- **C.** Add a statement to the KMS key policy that allows the Account B role to call kms:Decrypt, and allow kms:Decrypt on that key in the role's IAM policy.
+- **C.** Grant the Account B role kms:Decrypt in the KMS key policy and in the role's IAM policy.
 - **D.** Set the bucket's Object Ownership to bucket owner enforced so that ACLs no longer affect access.
 
 ### Correct answer: C
@@ -1044,7 +1015,7 @@ A company serves www.example.com through an Amazon CloudFront distribution whose
 ### Explanation
 - A is wrong: HTTP to the origin leaves the CloudFront-to-load-balancer leg unencrypted, which the requirements forbid.
 - B is wrong: moving the load balancer relocates the workload and adds latency for no benefit, since each service can simply use its own certificate.
-- C is wrong: public certificates issued by ACM cannot be exported and imported elsewhere.
+- C is wrong: only ACM public certificates requested as exportable can have their private key exported, which this one was not, and a certificate imported into ACM is never renewed automatically, which breaks the renewal requirement.
 - D is correct: CloudFront can use only ACM certificates issued in us-east-1, while an Application Load Balancer uses a certificate from its own Region, so the domain needs one certificate in each Region and ACM renews both automatically.
 
 **Key phrases:** viewers to CloudFront · CloudFront to the load balancer · renewal must be automatic · cannot be selected on the CloudFront distribution
@@ -1260,7 +1231,7 @@ A company runs 600 Amazon EC2 instances of the current generation on Linux for a
 A company runs 40 Amazon RDS for PostgreSQL development and test databases. They are idle overnight and at weekends, but developers occasionally need them at unpredictable times, and each database must be reachable whenever someone connects. The company wants to pay as little as possible for the idle periods with minimal ongoing administration. Which solution should the solutions architect recommend?
 
 ### Options
-- **A.** Migrate the databases to Amazon Aurora Serverless v2 and set a low minimum Aurora capacity unit value so capacity scales down when the databases are idle.
+- **A.** Migrate the databases to Aurora Serverless v2 with a low minimum capacity.
 - **B.** Move each database to the smallest available instance class and enable storage autoscaling.
 - **C.** Schedule an AWS Lambda function to stop the DB instances each evening and start them each morning.
 - **D.** Purchase 1-year Reserved Instances for all 40 databases to reduce the hourly rate.
@@ -1318,9 +1289,9 @@ A cost review of an AWS account finds several thousand gp2 Amazon EBS volumes at
 A company gives each development team its own sandbox account in AWS Organizations. Several teams have left large instances and GPU clusters running over weekends. Finance wants an alert when a sandbox account's forecast monthly spend passes $2,000, and wants further provisioning stopped automatically once actual spend reaches $2,500, without writing custom code. What should a solutions architect do?
 
 ### Options
-- **A.** Create an AWS Budgets cost budget for each sandbox account with an alert on forecasted spend at $2,000, and a budget action at $2,500 that applies a restrictive service control policy to the account and notifies the team.
+- **A.** Create an AWS Budgets budget per sandbox account with a forecast alert at $2,000 and a budget action at $2,500 that applies a restrictive SCP.
 - **B.** Review AWS Cost Explorer every Monday and ask teams to delete resources in accounts that went over the limit.
-- **C.** Enable AWS Cost Anomaly Detection for each sandbox account and have it terminate resources when it finds an anomaly.
+- **C.** Enable AWS Cost Anomaly Detection for each sandbox account with a $2,000 threshold, and have it terminate resources automatically when it finds an anomaly above $2,500.
 - **D.** Lower the EC2 vCPU service quotas in each sandbox account.
 
 ### Correct answer: A
@@ -1348,8 +1319,8 @@ A company runs workloads for eight business units in a shared set of AWS account
 ### Options
 - **A.** Create an AWS Budgets budget for each business unit without activating any tags.
 - **B.** Move each business unit's resources into its own VPC so that costs are reported per VPC.
-- **C.** Rely on AWS Cost Explorer, which groups costs by every resource tag as soon as the tag is applied.
-- **D.** Activate BusinessUnit as a user-defined cost allocation tag in the management account, and deliver the AWS Cost and Usage Report through Data Exports to Amazon S3 for querying with Amazon Athena.
+- **C.** Rely on AWS Cost Explorer, which groups costs by every resource tag as soon as the tag is applied, and export its monthly report to CSV for finance.
+- **D.** Activate BusinessUnit as a cost allocation tag, and query the Cost and Usage Report in Amazon S3 with Amazon Athena.
 
 ### Correct answer: D
 
@@ -1363,36 +1334,6 @@ A company runs workloads for eight business units in a shared set of AWS account
 
 **Key phrases:** each business unit's monthly AWS cost · query with SQL · does not appear anywhere in the billing data
 **Hint:** Tags live on resources, but billing data ignores them until one switch is flipped in the management account.
-
----
-
-## ALPHA-049: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** hard · **Pillars:** Cost Optimization, Sustainability
-**Services:** S3 › Storage classes, S3 › Storage Lens
-
-### Question
-A company stores 900 TB in an Amazon S3 bucket. Access patterns are unknown and shift from month to month, and the company cannot accept retrieval delays for data that turns out to be active. An earlier S3 Lifecycle rule that moved every object to S3 Standard-IA after 30 days increased the bill instead of reducing it, because a large share of the objects are smaller than 128 KB. Which combination of actions reduces storage cost while keeping millisecond access? (Select TWO.)
-
-### Options
-- **A.** Add an S3 Lifecycle rule that transitions all objects to S3 Glacier Flexible Retrieval after 60 days.
-- **B.** Move the data to S3 One Zone-IA to halve the per-GB storage rate.
-- **C.** Activate the S3 Intelligent-Tiering Deep Archive Access tier for all objects so the coldest data moves automatically.
-- **D.** Use Amazon S3 Storage Lens to identify the prefixes dominated by objects smaller than 128 KB, and aggregate those objects before upload.
-- **E.** Store the objects in the S3 Intelligent-Tiering storage class and leave the automatic Frequent Access and Infrequent Access tiers enabled.
-
-### Correct answers: D, E (choose 2)
-
-**Summary:** Intelligent-Tiering handles unpredictable access with no retrieval fee, but its 128 KB minimum means very small objects need separate handling.
-
-### Explanation
-- A is wrong: Glacier Flexible Retrieval restores take minutes to hours, which breaks the millisecond requirement.
-- B is wrong: One Zone-IA keeps only one Availability Zone's copy, reducing durability against zone loss, and it carries the same per-object minimum that caused the problem.
-- C is wrong: the Deep Archive Access tier is opt-in precisely because retrieval can take up to 12 hours.
-- D is correct: Standard-IA bills a 128 KB minimum per object and Intelligent-Tiering never moves objects below 128 KB out of the Frequent Access tier, so the small objects are why the earlier rule backfired, and Storage Lens shows where they are concentrated so aggregation is aimed where it pays.
-- E is correct: Intelligent-Tiering moves each object between the Frequent Access and Infrequent Access tiers based on observed access, both of which serve millisecond retrievals, and it charges no retrieval fee when an object turns out to be active again, which is exactly the unknown-pattern case.
-
-**Key phrases:** access patterns are unknown · smaller than 128 KB · millisecond access · Select TWO
-**Hint:** Two facts collide here: a 128 KB per-object minimum, and a hard requirement for millisecond reads.
 
 ---
 
@@ -1433,9 +1374,9 @@ A genomics company runs short-lived batch analyses on hundreds of Amazon EC2 ins
 
 ### Options
 - **A.** Create an Amazon EFS file system with Elastic throughput and copy the 200 TB dataset into it before each run.
-- **B.** Mount the S3 bucket on every instance with Mountpoint for Amazon S3 and write results directly to the bucket.
+- **B.** Mount the S3 bucket on every instance with Mountpoint for Amazon S3, read the reference dataset through it, and write the results directly to the bucket.
 - **C.** Attach a single io2 Block Express volume with Multi-Attach to all of the instances.
-- **D.** Create an Amazon FSx for Lustre scratch file system linked to the S3 bucket, run the analysis against it, export the results to S3, and delete the file system after each run.
+- **D.** Create an FSx for Lustre scratch file system linked to the S3 bucket for each run, and delete it afterwards.
 
 ### Correct answer: D
 
@@ -1463,7 +1404,7 @@ A company with 120 accounts in AWS Organizations wants continuous detection of t
 - **A.** Create an organization trail in AWS CloudTrail and have analysts query it with Amazon Athena every day for suspicious patterns.
 - **B.** Enable Amazon Inspector in every account and aggregate its findings in the security account.
 - **C.** Enable Amazon Macie in every account with the security account as its delegated administrator.
-- **D.** Enable Amazon GuardDuty, designate the security account as the GuardDuty delegated administrator for the organization, and turn on auto-enable so that every existing and new member account is covered.
+- **D.** Enable Amazon GuardDuty with the security account as delegated administrator and auto-enable for all member accounts.
 
 ### Correct answer: D
 
@@ -1477,34 +1418,6 @@ A company with 120 accounts in AWS Organizations wants continuous detection of t
 
 **Key phrases:** continuous detection of threats · including accounts created in the future · does not want to deploy agents or analyze logs itself
 **Hint:** Managed threat detection from logs AWS already collects, rolled up to one account for the whole organization.
-
----
-
-## ALPHA-053: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
-**Services:** CloudTrail, S3 › Object Lock
-
-### Question
-An auditor requires that API activity from every account in a company's organization be captured in a single, tamper-evident location that account administrators cannot alter or delete for seven years. What should a solutions architect implement?
-
-### Options
-- **A.** Forward CloudWatch Logs from each account into a central log group with a seven-year retention setting.
-- **B.** Create an AWS CloudTrail organization trail that delivers to a central S3 bucket in a dedicated log archive account, enable log file validation, and apply S3 Object Lock in compliance mode with a seven-year retention period.
-- **C.** Enable a separate CloudTrail trail in each account that delivers to a bucket in that same account, and turn on S3 Versioning for each bucket.
-- **D.** Enable AWS Config in every account and deliver configuration snapshots to a central S3 bucket.
-
-### Correct answer: B
-
-**Summary:** An organization trail plus log file validation plus Object Lock in compliance mode makes an audit trail tamper-evident, even to root.
-
-### Explanation
-- A is wrong: nothing here makes the central log group tamper-evident, and it does not guarantee organization-wide capture.
-- B is correct: an organization trail is created once in the management account and captures every current and future member account, delivery into a dedicated log archive account puts the logs outside the control of the accounts being audited, log file validation produces signed digest files that prove nothing was altered, and Object Lock in compliance mode blocks deletion by anyone, including the root user, until retention expires.
-- C is wrong: logs kept in the audited account remain under that administrator's control, and versioning alone does not prevent deletion.
-- D is wrong: AWS Config records resource configuration state, not the API activity the auditor asked for.
-
-**Key phrases:** every account · tamper-evident · cannot alter or delete · seven years
-**Hint:** Three separate requirements: every account, provably unaltered, and undeletable for a fixed term.
 
 ---
 
@@ -1546,10 +1459,10 @@ A security team wants any Amazon S3 bucket in a production account that becomes 
 An application runs on Amazon EC2 instances in an Auto Scaling group. The application leaks memory slowly, and instances become unresponsive after several days even though CPU utilization stays low. The operations team wants the Auto Scaling group to replace an instance automatically once its memory utilization crosses 85%, with no change to the application code. What should a solutions architect do?
 
 ### Options
-- **A.** Enable EC2 detailed monitoring at a one-minute period, which adds memory metrics, and configure a target tracking policy on memory utilization.
+- **A.** Enable EC2 detailed monitoring at a one-minute period, which adds guest memory metrics to the AWS/EC2 namespace, and configure a target tracking policy on memory utilization so that instances above 85% are replaced.
 - **B.** Create a CloudWatch alarm on the default EC2 MemoryUtilization metric and attach an EC2 Auto Scaling simple scaling policy to it.
 - **C.** Set the Auto Scaling group health check type to ELB with a 60-second grace period.
-- **D.** Install the CloudWatch agent on the instances to publish a memory utilization metric, create a CloudWatch alarm on that metric, and use an Amazon EventBridge rule on the alarm's state change to invoke an AWS Lambda function that sets the instance's health to Unhealthy so that the Auto Scaling group replaces it.
+- **D.** Install the CloudWatch agent to publish memory utilization, alarm on it, and have an EventBridge rule on the alarm invoke a Lambda function that marks the instance Unhealthy so the group replaces it.
 
 ### Correct answer: D
 
@@ -1680,34 +1593,6 @@ A company ingests payment events into Amazon S3 for analytics using Amazon Data 
 
 ---
 
-## ALPHA-060: Analytics & Data Processing
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
-**Services:** OpenSearch Service
-
-### Question
-A company runs a single-node Amazon OpenSearch Service domain that powers the search bar on its storefront. During a recent Availability Zone impairment the search bar was unavailable for two hours, and during a later indexing spike the cluster became unstable and stopped answering queries. Which configuration change best addresses both problems?
-
-### Options
-- **A.** Put an Application Load Balancer with health checks in front of the domain across two Availability Zones.
-- **B.** Create a second single-node domain in another Availability Zone and switch the application endpoint manually when the first one fails.
-- **C.** Redeploy the domain as a Multi-AZ with Standby configuration across three Availability Zones, with three dedicated master nodes and two replicas of every shard.
-- **D.** Increase the instance size of the single data node and enable Auto-Tune.
-
-### Correct answer: C
-
-**Summary:** OpenSearch Multi-AZ with Standby keeps a full replica in each zone and isolates cluster management on dedicated master nodes.
-
-### Explanation
-- A is wrong: a load balancer cannot spread traffic across nodes that do not exist, and OpenSearch Service already fronts the domain with a managed endpoint.
-- B is wrong: a manual endpoint switch means another multi-hour outage, and the second domain holds none of the data.
-- C is correct: Multi-AZ with Standby keeps a full copy of the data in each of three Availability Zones, which is why it requires two replicas of every shard, so the domain keeps serving when one zone is impaired, and its dedicated master nodes handle cluster management apart from indexing and query traffic, which keeps the cluster stable during indexing spikes.
-- D is wrong: a larger single node is still one node in one Availability Zone, so the same outage recurs.
-
-**Key phrases:** single-node · Availability Zone impairment · indexing spike · cluster became unstable
-**Hint:** Two failures here: losing a zone, and the cluster's management work competing with its data work.
-
----
-
 ## ALPHA-061: Analytics & Data Processing
 **Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
 **Services:** Lake Formation
@@ -1744,10 +1629,10 @@ A company keeps a data lake in Amazon S3 catalogued in the AWS Glue Data Catalog
 A company uses AWS Backup to protect Amazon EBS volumes, Amazon RDS databases and Amazon DynamoDB tables in its production account. After a ransomware incident at a peer company, the security team requires that backups cannot be deleted or have their retention shortened by anyone, including administrators of the production account, for 35 days. A usable copy must also survive even if the production account is fully compromised. Which solution meets these requirements?
 
 ### Options
-- **A.** Create a backup vault in a separate, dedicated backup account in the same organization, enable AWS Backup Vault Lock in compliance mode on it, and add a copy rule to the backup plan that copies every recovery point to that vault.
+- **A.** Copy every recovery point to a backup vault in a separate backup account, and enable Vault Lock in compliance mode on that vault.
 - **B.** Enable S3 Object Lock on the production account's backup vault with a 35-day retention period.
 - **C.** Enable AWS Backup Vault Lock in governance mode on the production account's backup vault.
-- **D.** Attach an IAM policy in the production account that denies backup:DeleteRecoveryPoint to every user and role.
+- **D.** Attach an IAM policy in the production account that denies backup:DeleteRecoveryPoint and backup:UpdateRecoveryPointLifecycle to every user and role, including administrators.
 
 ### Correct answer: A
 
@@ -1888,10 +1773,10 @@ A company is launching a mobile app and a single-page web app for consumers. Use
 Administrators connect to Linux Amazon EC2 instances in private subnets through a bastion host that allows SSH from the corporate IP range. The security team wants to close all inbound ports, stop managing SSH keys, and keep a record of every command run in each session. What should a solutions architect do?
 
 ### Options
-- **A.** Use EC2 Instance Connect to push a temporary SSH key for each session, keeping port 22 open to the corporate IP range.
+- **A.** Use EC2 Instance Connect to push a temporary SSH public key for each session through the AWS API, keeping port 22 open only to the corporate IP range and removing the long-lived keys.
 - **B.** Replace the bastion host with a NAT gateway so administrators can reach the instances without public IP addresses.
 - **C.** Move the bastion host into a private subnet and allow SSH to it only through an AWS Site-to-Site VPN connection.
-- **D.** Attach an instance profile with the AmazonSSMManagedInstanceCore policy to the instances, remove the bastion host and the inbound SSH rules, and have administrators connect through AWS Systems Manager Session Manager with session logging enabled.
+- **D.** Give the instances an instance profile with the AmazonSSMManagedInstanceCore policy, remove the bastion host and inbound SSH rules, and use Session Manager with session logging.
 
 ### Correct answer: D
 
@@ -1975,9 +1860,9 @@ Workloads in several VPCs send outbound traffic to the internet through a centra
 
 ### Options
 - **A.** Add network ACL rules in the egress VPC that allow HTTPS only to the IP addresses the approved domains resolve to today.
-- **B.** Deploy AWS Network Firewall in the egress VPC, route traffic from the transit gateway through the firewall endpoints before the NAT gateways, and use a stateful domain list rule group that allows only the approved domains.
+- **B.** Deploy AWS Network Firewall in the egress VPC in front of the NAT gateways, with a stateful domain list rule group that allows only the approved domains.
 - **C.** Add outbound rules to every workload security group that allow HTTPS only to the approved domain names.
-- **D.** Run a fleet of self-managed proxy servers on Amazon EC2 in the egress VPC and maintain the allowlist in their configuration.
+- **D.** Run a fleet of self-managed forward proxy servers on Amazon EC2 in the egress VPC behind a Network Load Balancer, and maintain the domain allowlist in their configuration.
 
 ### Correct answer: B
 
@@ -2002,7 +1887,7 @@ Workloads in several VPCs send outbound traffic to the internet through a centra
 A content management system runs on Linux Amazon EC2 instances in an Auto Scaling group across three Availability Zones. Every instance must read and write the same set of uploaded media files, and the files must remain available if one Availability Zone fails. Which storage option meets these requirements?
 
 ### Options
-- **A.** An Amazon EFS file system using a Regional storage class, mounted on every instance through a mount target in each Availability Zone.
+- **A.** An Amazon EFS file system with a mount target in each Availability Zone.
 - **B.** An instance store volume on each instance, kept in sync between instances by a cron job.
 - **C.** An Amazon EBS io2 volume with Multi-Attach enabled, attached to every instance.
 - **D.** An Amazon FSx for Windows File Server file system in a Single-AZ deployment.
@@ -2031,8 +1916,8 @@ During flash sales, an order service on Amazon EC2 writes each order directly to
 
 ### Options
 - **A.** Put an Amazon ElastiCache cluster in front of the database to hold the orders.
-- **B.** Have the order service send each order to an Amazon SQS queue, and have a group of workers consume the queue and write to the database at a rate it can sustain.
-- **C.** Scale the database up permanently to the largest instance class so that it can absorb the peak.
+- **B.** Send each order to an Amazon SQS queue, and have workers write the orders to the database at a rate it can sustain.
+- **C.** Scale the database up permanently to the largest instance class with Provisioned IOPS storage so that it can absorb the peak write rate.
 - **D.** Add RDS read replicas and spread the order writes across them.
 
 ### Correct answer: B
@@ -2173,8 +2058,8 @@ A retailer's analysts run complex SQL with multi-table joins and aggregations ov
 
 ### Options
 - **A.** Store the data in Amazon DynamoDB and use DynamoDB Streams to precompute the dashboard results.
-- **B.** Query all of the data directly in S3 with Amazon Athena and point the dashboards at Athena.
-- **C.** Store the 30 TB in Amazon Redshift, enable concurrency scaling for the dashboard peaks, and query the history in S3 through Redshift Spectrum external tables.
+- **B.** Query all of the data directly in S3 with Amazon Athena, and point the dashboards for all 200 business users at Athena through its JDBC driver.
+- **C.** Store the 30 TB in Amazon Redshift with concurrency scaling, and query the S3 history through Redshift Spectrum.
 - **D.** Load all 430 TB into Amazon RDS for PostgreSQL and add read replicas for the dashboards.
 
 ### Correct answer: C
@@ -2256,8 +2141,8 @@ A company is migrating a Windows Server application with Microsoft SQL Server to
 An application sends about 3 TB of logs per month to Amazon CloudWatch Logs, and its log groups use the default retention setting. Engineers query only the last 30 days, but compliance requires keeping every log for 7 years, with retrieval within 48 hours when an auditor asks. The CloudWatch Logs storage bill grows every month. Which solution is MOST cost-effective?
 
 ### Options
-- **A.** Set the log groups' retention to 30 days and rely on CloudWatch Logs to archive expired logs to Amazon S3 automatically.
-- **B.** Set the log groups' retention to 30 days, and add a subscription filter that streams the logs through Amazon Data Firehose to an S3 bucket with a lifecycle rule that transitions objects to S3 Glacier Deep Archive.
+- **A.** Set the log groups' retention to 30 days and rely on CloudWatch Logs to archive each expired log event to an Amazon S3 bucket in the Glacier Deep Archive storage class automatically.
+- **B.** Set retention to 30 days, and stream the logs through a subscription filter and Amazon Data Firehose to S3 with a lifecycle rule to Glacier Deep Archive.
 - **C.** Keep the default retention and create an Amazon OpenSearch Service domain to hold the older logs.
 - **D.** Set the log groups' retention to 7 years so that older logs expire automatically.
 
@@ -2371,8 +2256,8 @@ An internal REST API built with Amazon API Gateway must be reachable only from a
 
 ### Options
 - **A.** Create a VPC link so that the API integrates with private resources in the VPC.
-- **B.** Keep a regional API and attach a resource policy that denies requests from source IP addresses outside the corporate range.
-- **C.** Create the API as a private REST API, expose it through an interface VPC endpoint for API Gateway, and attach a resource policy that allows only requests arriving through that endpoint (aws:SourceVpce).
+- **B.** Keep a regional API and attach a resource policy that denies requests from source IP addresses outside the corporate and NAT gateway ranges, so that internet callers are rejected.
+- **C.** Make it a private REST API reached through an interface VPC endpoint, with a resource policy that allows only that endpoint (aws:SourceVpce).
 - **D.** Keep a regional API and require IAM (SigV4) authentication on every method.
 
 ### Correct answer: C
@@ -2455,7 +2340,7 @@ A company is migrating a legacy order-processing application to AWS. Its compone
 
 ### Options
 - **A.** Replace the broker with Amazon SNS topics and HTTPS subscriptions.
-- **B.** Migrate the queues to Amazon MQ for ActiveMQ in an active/standby deployment across two Availability Zones and repoint the application at the broker endpoints.
+- **B.** Migrate to an Amazon MQ for ActiveMQ active/standby broker across two Availability Zones.
 - **C.** Run the existing broker software on a single Amazon EC2 instance in one Availability Zone.
 - **D.** Replace the broker with Amazon SQS queues and rewrite the messaging layer to use the SQS API.
 
@@ -2483,8 +2368,8 @@ A regulator requires that a company keep a copy of certain Amazon S3 objects in 
 
 ### Options
 - **A.** Enable S3 Same-Region Replication and copy the destination bucket to another Region nightly.
-- **B.** Enable S3 Cross-Region Replication with S3 Replication Time Control, turn on replication metrics and events, and run S3 Batch Replication for the existing objects.
-- **C.** Enable S3 Cross-Region Replication without Replication Time Control and rely on its best-effort replication.
+- **B.** Enable Cross-Region Replication with Replication Time Control and replication metrics, and use S3 Batch Replication for existing objects.
+- **C.** Enable S3 Cross-Region Replication without Replication Time Control, rely on its best-effort replication, and check the replication status of each object weekly.
 - **D.** Schedule an AWS DataSync task between the two buckets every 15 minutes.
 
 ### Correct answer: B
@@ -2568,10 +2453,10 @@ A media company's on-premises editing workstations write finished projects to an
 An Auto Scaling group runs worker instances that process long jobs and upload results to Amazon S3. During scale-in, instances are terminated while jobs are still running and partly written results are lost. The team wants each instance to finish its current job, for up to 15 minutes, before termination, without disabling scale-in. What should a solutions architect do?
 
 ### Options
-- **A.** Set the Auto Scaling group's default cooldown to 900 seconds.
-- **B.** Add an Auto Scaling lifecycle hook for instance termination with a 15-minute heartbeat timeout, and have the worker finish its job, upload the result, and then call CompleteLifecycleAction.
+- **A.** Set the Auto Scaling group's default cooldown to 900 seconds so that a scale-in activity waits 15 minutes before it terminates instances.
+- **B.** Add a termination lifecycle hook with a 15-minute heartbeat timeout, and have the worker call CompleteLifecycleAction after it uploads the result.
 - **C.** Enable instance scale-in protection on every instance in the group.
-- **D.** Increase the Auto Scaling group's health check grace period to 15 minutes.
+- **D.** Increase the Auto Scaling group's health check grace period to 15 minutes so that an instance that is still busy with a job is not terminated during scale-in.
 
 ### Correct answer: B
 
@@ -2766,9 +2651,9 @@ A company runs nightly data-transformation jobs as Amazon ECS tasks on AWS Farga
 An Amazon EFS file system stores 40 TB of engineering data. Files are read heavily for about a week after they are created and then almost never read again, but they must stay instantly available if someone does open one. The company wants to cut EFS storage cost with no application changes. What should a solutions architect do?
 
 ### Options
-- **A.** Enable EFS lifecycle management so that files not accessed for 30 days move to the Infrequent Access storage class, and enable the policy that moves a file back when it is read again.
+- **A.** Enable EFS lifecycle management to move files to Infrequent Access after 30 days without access, and back to Standard when they are read again.
 - **B.** Recreate the file system as EFS One Zone and copy all of the data into it.
-- **C.** Copy files older than 30 days to S3 Glacier Deep Archive and delete them from EFS.
+- **C.** Copy files older than 30 days to S3 Glacier Deep Archive with a nightly script and delete them from EFS, leaving a small placeholder file that points to the archived copy.
 - **D.** Run a nightly job on the clients that compresses files older than 30 days.
 
 ### Correct answer: A
@@ -2794,10 +2679,10 @@ An Amazon EFS file system stores 40 TB of engineering data. Files are read heavi
 A company backs up its on-premises servers to physical tapes with a commercial backup application and ships the tapes to an off-site vault. It wants to keep the same backup software and workflows, stop buying and shipping tapes, and store long-term backups at the lowest possible cost. Which solution meets these requirements?
 
 ### Options
-- **A.** Deploy an AWS Storage Gateway Tape Gateway on premises, present it to the backup software as a virtual tape library, and archive virtual tapes to S3 Glacier Deep Archive.
+- **A.** Deploy a Tape Gateway as a virtual tape library for the backup software, and archive the virtual tapes to S3 Glacier Deep Archive.
 - **B.** Use AWS DataSync to copy the backup application's disk staging area to S3 Standard every night.
 - **C.** Replace the backup software with AWS Backup and protect the on-premises servers with it.
-- **D.** Deploy an Amazon S3 File Gateway and point the backup software at its NFS share instead of the tape library.
+- **D.** Deploy an Amazon S3 File Gateway on premises, point the backup software at its NFS share instead of the tape library, and add a lifecycle rule to Glacier Deep Archive.
 
 ### Correct answer: A
 
@@ -2852,10 +2737,10 @@ A company runs a permanent 60-node Amazon EMR cluster that is busy for about fou
 A company plans to grow from 5 to about 60 AWS accounts over the next year. It wants each new account created from a standard template with a preconfigured VPC and centralized logging, wants guardrails that prevent common misconfigurations, and wants a dashboard showing which accounts drift from the standard. The company wants to avoid building this itself. What should a solutions architect recommend?
 
 ### Options
-- **A.** Set up AWS Control Tower to create a landing zone, provision accounts through Account Factory, apply its mandatory and optional controls, and use its dashboard for drift and compliance.
+- **A.** Set up AWS Control Tower, vend accounts through Account Factory, and use its controls and dashboard.
 - **B.** Deploy AWS Config aggregators in a central account and ask teams to fix the findings.
 - **C.** Write AWS CloudFormation StackSets that each team runs by hand after creating an account.
-- **D.** Create the accounts manually in AWS Organizations and attach a service control policy to each one.
+- **D.** Create each account manually in AWS Organizations, attach a service control policy to it, and track drift with a spreadsheet of each account's settings.
 
 ### Correct answer: A
 
@@ -2911,8 +2796,8 @@ A compliance team must know continuously, across 40 accounts, which Amazon S3 bu
 
 ### Options
 - **A.** Enable the AWS Config required-tags managed rule across the organization.
-- **B.** Create an IAM Access Analyzer external access analyzer with the organization as its zone of trust in a delegated administrator account, and review its findings.
-- **C.** Schedule an AWS Lambda function that reads every resource policy and flags wildcard principals.
+- **B.** Create an organization-wide IAM Access Analyzer external access analyzer and review its findings.
+- **C.** Schedule an AWS Lambda function in each account that reads every resource policy and flags principals that are wildcards or belong to other accounts.
 - **D.** Enable Amazon GuardDuty in every account and review its findings.
 
 ### Correct answer: B
@@ -2922,7 +2807,7 @@ A compliance team must know continuously, across 40 accounts, which Amazon S3 bu
 ### Explanation
 - A is wrong: the required-tags rule checks tagging, not who is able to access a resource.
 - B is correct: IAM Access Analyzer applies automated reasoning to resource policies and reports which resources can be reached from outside the chosen zone of trust, covering bucket, role, key and queue policies among others, and an organization analyzer in a delegated administrator account covers every account continuously.
-- C is wrong: evaluating policies correctly is the hard part that Access Analyzer solves with formal reasoning, and a wildcard search misses conditions and explicit cross-account grants.
+- C is wrong: evaluating policies correctly, including their conditions, is the hard part that Access Analyzer solves with formal reasoning, and custom code in 40 accounts is the manual work the team wants to avoid.
 - D is wrong: GuardDuty detects active threats from log analysis; it does not evaluate resource policies for external access.
 
 **Key phrases:** across 40 accounts · principals outside the organization · does not want to read every resource policy by hand
@@ -2938,9 +2823,9 @@ A compliance team must know continuously, across 40 accounts, which Amazon S3 bu
 A company encrypts objects in Amazon S3 with a customer managed AWS KMS key in eu-west-1. A new policy requires that the key material be rotated every year with no re-encryption of existing objects, and that a disaster recovery copy of the bucket in eu-central-1 be readable without cross-Region KMS calls on every request. What should a solutions architect do?
 
 ### Options
-- **A.** Export the key material from the existing key and import it into a new key in eu-central-1.
+- **A.** Export the key material from the existing key in eu-west-1 and import it into a new customer managed key in eu-central-1 so that both Regions decrypt the same objects locally.
 - **B.** Change the bucket to SSE-S3 so that AWS manages rotation and Regional availability.
-- **C.** Create a multi-Region customer managed key with a replica in eu-central-1, enable automatic annual key rotation, and configure S3 Cross-Region Replication to encrypt the destination objects with the replica key.
+- **C.** Create a multi-Region customer managed key with a replica in eu-central-1, turn on automatic rotation, and have replication encrypt with the replica key.
 - **D.** Create an independent customer managed key in eu-central-1 and rotate both keys by hand each year.
 
 ### Correct answer: C
@@ -3194,10 +3079,10 @@ A research team submits thousands of independent containerized jobs each night. 
 A company receives daily CSV exports from 30 suppliers into Amazon S3. The files have inconsistent column names and there is no catalog, and analysts want to query the data with Amazon Athena in a columnar format. The company wants a serverless pipeline that discovers the schema, applies the column mapping and writes partitioned Parquet, without managing servers. Which solution meets these requirements?
 
 ### Options
-- **A.** Run a nightly Amazon EMR cluster with a custom Spark job to convert the files.
+- **A.** Run a nightly Amazon EMR cluster with a custom Apache Spark job that maps the columns and converts the files to partitioned Parquet.
 - **B.** Load the CSV files into an Amazon Redshift cluster and let the analysts query them there.
 - **C.** Have each analyst run Athena CREATE TABLE AS SELECT statements over the raw CSV files.
-- **D.** Run an AWS Glue crawler to catalog the incoming files, then an AWS Glue ETL job that applies the mapping and writes partitioned Parquet for Athena.
+- **D.** Use an AWS Glue crawler to catalog the files and a Glue ETL job to write mapped, partitioned Parquet.
 
 ### Correct answer: D
 
@@ -3223,7 +3108,7 @@ A company keeps curated sales data in Amazon S3 and queries it with Amazon Athen
 
 ### Options
 - **A.** Export query results to spreadsheets each morning and email them to the users.
-- **B.** Build the dashboards in Amazon QuickSight and import the data into SPICE so that queries are served from its in-memory engine.
+- **B.** Build Amazon QuickSight dashboards on a SPICE dataset.
 - **C.** Give every business user access to the Athena console with a set of saved queries.
 - **D.** Run a self-managed BI server on Amazon EC2 behind an Application Load Balancer.
 
@@ -3252,8 +3137,8 @@ A 300 TB data lake in a single Amazon S3 bucket is shared by a dozen teams in di
 ### Options
 - **A.** Enable S3 Object Lock and tag each prefix with the owning team.
 - **B.** Split the data lake into a dozen buckets, one per team.
-- **C.** Create an S3 access point for each team with its own access point policy, make the restricted team's access point VPC-only, and have applications use the access points instead of the bucket name.
-- **D.** Move the team-specific rules into IAM policies in each team's account and delete the bucket policy.
+- **C.** Create an S3 access point per team with its own policy, and make the restricted team's access point accept requests only from its VPC.
+- **D.** Move the team-specific rules out of the bucket policy into IAM policies in each team's own account, and delete the bucket policy so that it stays small.
 
 ### Correct answer: C
 
@@ -3279,9 +3164,9 @@ A company runs the same web application in eu-west-1, us-east-1 and ap-southeast
 
 ### Options
 - **A.** Use geoproximity routing with a bias toward eu-west-1 for all users.
-- **B.** Use latency-based routing for all users with health checks, relying on eu-west-1 usually being fastest for German users.
+- **B.** Use latency-based routing with health checks for all users, relying on eu-west-1 usually measuring fastest for users in Germany and nearby countries.
 - **C.** Use weighted routing with a higher weight on eu-west-1 and health checks on each record.
-- **D.** Create a geolocation record for Germany that points to eu-west-1, add latency records for the three Regions as the default location, and associate a health check with every record.
+- **D.** Use a geolocation record for Germany to eu-west-1 and latency records for everyone else as the default, with health checks.
 
 ### Correct answer: D
 
@@ -3306,7 +3191,7 @@ A company runs the same web application in eu-west-1, us-east-1 and ap-southeast
 Developers use large memory-optimized Amazon EC2 instances for an application that takes about 20 minutes to load a large in-memory dataset at start-up. The instances are unused overnight and at weekends, but developers want to resume work within a couple of minutes with the dataset already loaded. Which approach reduces cost while meeting that expectation?
 
 ### Options
-- **A.** Enable hibernation on the instances and hibernate them when idle, so that memory is saved to the encrypted root EBS volume and restored on start.
+- **A.** Enable hibernation and hibernate the instances when they are idle.
 - **B.** Move the workload to Spot Instances and accept interruptions overnight.
 - **C.** Terminate the instances each night and launch replacements from an AMI in the morning.
 - **D.** Stop the instances when they are idle and start them again each morning.
@@ -3335,9 +3220,9 @@ A genomics institute publishes 500 TB of reference datasets in Amazon S3 to thou
 
 ### Options
 - **A.** Move the datasets to S3 Glacier Deep Archive to lower the transfer cost.
-- **B.** Serve the datasets through Amazon CloudFront with compression enabled.
+- **B.** Serve the datasets through Amazon CloudFront with compression enabled, so that each download transfers fewer bytes.
 - **C.** Give researchers presigned URLs with a short expiry for each download.
-- **D.** Enable Requester Pays on the bucket so that requesters are billed for the requests and data transfer of their own downloads.
+- **D.** Enable Requester Pays on the bucket so that downloaders are billed.
 
 ### Correct answer: D
 
@@ -3362,9 +3247,9 @@ A genomics institute publishes 500 TB of reference datasets in Amazon S3 to thou
 A manufacturing company ingests 2 million sensor readings per minute and queries them almost entirely as time-windowed aggregates over the last 7 days, while keeping 5 years of history for occasional trend analysis. Storing everything in Amazon RDS has become expensive. The team wants a cost-effective purpose-built option that tiers old data automatically. Which solution should a solutions architect recommend?
 
 ### Options
-- **A.** Load the readings into Amazon Redshift and run the 7-day queries there.
+- **A.** Load the readings into Amazon Redshift, run the 7-day queries there, and unload older data to Amazon S3 for occasional trend queries.
 - **B.** Store each reading as an item in Amazon DynamoDB with a 5-year TTL.
-- **C.** Store the readings in Amazon Timestream, which keeps recent data in a fast in-memory store and moves older data to cheaper storage automatically.
+- **C.** Store the readings in Amazon Timestream, which tiers recent and older data automatically.
 - **D.** Keep Amazon RDS for MySQL and add read replicas for the analytical queries.
 
 ### Correct answer: C
@@ -3380,36 +3265,6 @@ A manufacturing company ingests 2 million sensor readings per minute and queries
 
 **Key phrases:** 2 million sensor readings per minute · time-windowed aggregates · 5 years of history · tiers old data automatically
 **Hint:** Match the data shape to a purpose-built engine that tiers hot and cold data for you.
-
----
-
-## ALPHA-120: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** hard · **Pillars:** Cost Optimization, Reliability
-**Services:** Data transfer pricing, Elastic Load Balancing › NLB
-
-### Question
-A company runs a high-throughput internal service on Amazon EC2 instances spread across three Availability Zones behind an internal Network Load Balancer, with client applications in the same VPC and the same Availability Zones. The service moves petabytes per month, and the bill shows large inter-Availability Zone data transfer charges. Which combination of changes will reduce those charges? (Select TWO.)
-
-### Options
-- **A.** Turn off cross-zone load balancing on the Network Load Balancer so that each zonal node forwards only to targets in its own Availability Zone.
-- **B.** Have clients connect to the load balancer's zonal DNS name for their own Availability Zone, keeping healthy targets registered in every zone.
-- **C.** Enable sticky sessions so that each client keeps talking to the same target.
-- **D.** Move all of the instances into a single Availability Zone.
-- **E.** Turn on cross-zone load balancing so that requests are spread evenly across all targets.
-
-### Correct answers: A, B (choose 2)
-
-**Summary:** Disabling NLB cross-zone load balancing plus zone-aware DNS keeps traffic, and its cost, inside each Availability Zone.
-
-### Explanation
-- A is correct: with cross-zone load balancing disabled, a Network Load Balancer node forwards only to targets in its own Availability Zone, so requests stop crossing zones and the per-GB inter-zone charge for that traffic disappears.
-- B is correct: resolving the zone-specific DNS name keeps each client's request inside its own Availability Zone from the start, as long as that zone has healthy targets to serve it.
-- C is wrong: stickiness pins a client to one target that may well be in another Availability Zone, so it does not prevent cross-zone traffic.
-- D is wrong: a single Availability Zone removes the charge but also removes the service's ability to survive the loss of a zone.
-- E is wrong: cross-zone load balancing distributes requests to targets in every zone, which is precisely what generates the inter-zone traffic being billed.
-
-**Key phrases:** inter-Availability Zone data transfer charges · petabytes per month · Select TWO
-**Hint:** Inter-zone charges come from requests crossing zones. Two settings decide whether they do.
 
 ---
 
@@ -3499,34 +3354,6 @@ A company serves static website assets through an Amazon CloudFront distribution
 
 ---
 
-## ALPHA-124: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Performance Efficiency
-**Services:** Lambda › Event sources
-
-### Question
-An AWS Lambda function processes messages from an Amazon SQS standard queue through an event source mapping with a batch size of 10. Sometimes one message in a batch contains bad data and the function throws an error. The whole batch then becomes visible again, so messages that were already processed successfully are processed again. The company wants only the failed messages to be retried, while still processing messages in batches for efficiency. Which solution meets these requirements?
-
-### Options
-- **A.** Turn on ReportBatchItemFailures for the event source mapping and have the function catch errors per message and return the IDs of the failed messages in a batchItemFailures list.
-- **B.** Set the queue visibility timeout to six times the function timeout.
-- **C.** Set the batch size to 1 so that each message is processed and retried on its own.
-- **D.** Configure an on-failure destination on the Lambda function that sends failed events to another SQS queue.
-
-### Correct answer: A
-
-**Summary:** ReportBatchItemFailures lets a Lambda SQS consumer return only the failed message IDs, so successful messages in the batch are not retried.
-
-### Explanation
-- A is correct: with partial batch responses, Lambda deletes the messages that succeeded and returns only the reported message IDs to the queue, so good messages are not processed again and batching is kept.
-- B is wrong: this is the recommended setting to avoid duplicate processing while a batch is still running, but it does not change the fact that one error returns the whole batch to the queue.
-- C is wrong: this stops good messages from being reprocessed, but it gives up batching, which multiplies invocations and cost and lowers throughput.
-- D is wrong: on-failure destinations apply to asynchronous invocations; an SQS event source mapping invokes the function synchronously, so the whole batch is still retried.
-
-**Key phrases:** one message in a batch · whole batch · only the failed messages · in batches for efficiency
-**Hint:** The function can tell the event source mapping which messages in the batch failed.
-
----
-
 ## ALPHA-125: Compute & Serverless
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
 **Services:** EC2 › Capacity Reservations, EC2 › Reserved Instances & Savings Plans
@@ -3535,9 +3362,9 @@ An AWS Lambda function processes messages from an Amazon SQS standard queue thro
 A retailer is preparing for a 3-week sales event that starts in one month. The application needs 400 m6i.2xlarge instances in a specific Availability Zone for the whole event, and the company cannot risk InsufficientInstanceCapacity errors when it scales out. The company does not want any commitment that lasts beyond the event. Which solution meets these requirements?
 
 ### Options
-- **A.** Create an On-Demand Capacity Reservation for 400 m6i.2xlarge instances in that Availability Zone that starts before the event and has an end date set for when the event finishes.
+- **A.** Create an On-Demand Capacity Reservation for 400 m6i.2xlarge instances in that Availability Zone, ending when the event ends.
 - **B.** Purchase 1-year zonal Standard Reserved Instances for 400 m6i.2xlarge instances in that Availability Zone.
-- **C.** Launch the instances with an EC2 Fleet of Spot Instances that uses the capacity-optimized allocation strategy.
+- **C.** Launch the instances with an EC2 Fleet of Spot Instances that uses the capacity-optimized allocation strategy across several instance types in that Availability Zone.
 - **D.** Purchase a Compute Savings Plan that covers the expected hourly spend of 400 m6i.2xlarge instances.
 
 ### Correct answer: A
@@ -3751,62 +3578,6 @@ A company replicates on-premises backup data to Amazon S3 every night. About 3 T
 
 ---
 
-## ALPHA-133: Storage & Backup
-**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization, Performance Efficiency
-**Services:** EBS › Volume types
-
-### Question
-A MySQL database runs on an Amazon EC2 instance with a 500 GiB gp2 Amazon EBS volume. The data set will not grow, but the workload now needs a sustained 6,000 IOPS, and the volume is running out of burst credits every afternoon. Which solution provides the required performance MOST cost-effectively?
-
-### Options
-- **A.** Increase the gp2 volume to 2,000 GiB so that its baseline reaches 6,000 IOPS.
-- **B.** Modify the volume to gp3, keep it at 500 GiB, and provision 6,000 IOPS.
-- **C.** Modify the volume to io2 at 500 GiB with 6,000 provisioned IOPS.
-- **D.** Modify the volume to st1 at 500 GiB.
-
-### Correct answer: B
-
-**Summary:** gp2 ties IOPS to size (3 IOPS/GiB); gp3 decouples them, so buying IOPS on gp3 beats buying unused GiB on gp2.
-
-### Explanation
-- A is wrong: 2,000 GiB x 3 IOPS/GiB does reach 6,000 IOPS, but the company pays for 1,500 GiB of storage it does not need.
-- B is correct: gp3 includes 3,000 IOPS at any size and sells additional IOPS separately, so 500 GiB with 6,000 IOPS is the cheapest fit, and Elastic Volumes makes the change without downtime.
-- C is wrong: io2 meets the requirement, but its per-GiB and per-IOPS prices are much higher than gp3 for a workload that does not need io2 durability or latency.
-- D is wrong: st1 is an HDD volume built for large sequential throughput and cannot deliver 6,000 small random IOPS, and AWS does not support it as a database boot or transactional volume.
-
-**Key phrases:** 500 GiB gp2 · sustained 6,000 IOPS · running out of burst credits · MOST cost-effectively
-**Hint:** gp2 gives 3 IOPS per GiB. gp3 gives 3,000 IOPS at any size and lets you buy extra IOPS separately.
-
----
-
-## ALPHA-134: Storage & Backup
-**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency
-**Services:** EBS › Volume types
-
-### Question
-A team needs a Provisioned IOPS SSD (io1) Amazon EBS volume that delivers 32,000 IOPS for a database whose data files occupy only 200 GiB. What is the SMALLEST io1 volume size the team can create that supports 32,000 provisioned IOPS?
-
-### Options
-- **A.** 200 GiB
-- **B.** 320 GiB
-- **C.** 640 GiB
-- **D.** 1,600 GiB
-
-### Correct answer: C
-
-**Summary:** io1 caps provisioned IOPS at 50 per GiB, so size = IOPS / 50; the volume may need to be bigger than the data.
-
-### Explanation
-- A is wrong: 200 GiB x 50 allows at most 10,000 IOPS.
-- B is wrong: 320 GiB x 50 allows at most 16,000 IOPS.
-- C is correct: 32,000 IOPS / 50 IOPS per GiB = 640 GiB, the smallest size that allows 32,000 IOPS.
-- D is wrong: 1,600 GiB works, but it is larger than needed; it comes from wrongly using a 20:1 ratio.
-
-**Key phrases:** io1 · 32,000 IOPS · 200 GiB · SMALLEST
-**Hint:** io1 allows at most 50 provisioned IOPS per GiB of volume size.
-
----
-
 ## ALPHA-135: Storage & Backup
 **Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency
 **Services:** EFS › Performance & throughput modes
@@ -3865,62 +3636,6 @@ An application serves thumbnails from a single Amazon S3 bucket, with all object
 
 ---
 
-## ALPHA-137: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
-**Services:** S3 › Storage classes
-
-### Question
-A company is launching an application that will store 50 million objects in Amazon S3. The average object size is 32 KB, and each object is read a few times per month. The team must choose whether to store the objects in S3 Standard or S3 Standard-IA. Assume S3 Standard costs $0.023 per GB-month, S3 Standard-IA costs $0.0125 per GB-month, and 1 GB = 1,000,000 KB. Which statement about the monthly storage cost is correct?
-
-### Options
-- **A.** Standard-IA would cost about $80 per month against about $37 for Standard, because Standard-IA bills each object as at least 128 KB, so Standard is cheaper.
-- **B.** Standard-IA would cost about $20 per month against about $37 for Standard, a saving of roughly 46%.
-- **C.** Both classes cost the same, because S3 bills small objects per request rather than per GB.
-- **D.** Standard-IA would cost about $80 per month, but it is still cheaper overall once Standard's retrieval fees are counted.
-
-### Correct answer: A
-
-**Summary:** Standard-IA bills objects under 128 KB as 128 KB, so small objects can cost more in IA than in Standard; lifecycle rules skip them by default for this reason.
-
-### Explanation
-- A is correct: 50 million x 32 KB = 1,600 GB, or about $37 in Standard; Standard-IA bills 50 million x 128 KB = 6,400 GB, or $80, before its retrieval fees.
-- B is wrong: this bills the objects at their real size and ignores Standard-IA's 128 KB minimum billable object size.
-- C is wrong: storage is billed per GB-month in both classes; request charges come on top and are higher for Standard-IA.
-- D is wrong: S3 Standard has no retrieval fee; Standard-IA charges per GB retrieved, which widens the gap.
-
-**Key phrases:** 50 million objects · 32 KB · a few times per month · $0.023 · $0.0125
-**Hint:** Standard-IA has a minimum billable object size. Bill each 32 KB object at that size and redo the math.
-
----
-
-## ALPHA-138: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** hard · **Pillars:** Cost Optimization
-**Services:** S3 › Lifecycle rules, S3 › Glacier & retrieval
-
-### Question
-An application writes 50 MB log files to Amazon S3 Standard. Each file is read frequently for the first 7 days, rarely after that but must then be retrievable within milliseconds, and must be deleted 45 days after creation. Assume these prices per GB-month: S3 Standard $0.023, S3 Standard-IA $0.0125, S3 Glacier Instant Retrieval $0.004, and a 30-day month. Which lifecycle policy is the MOST cost-effective?
-
-### Options
-- **A.** Keep the files in S3 Standard and expire them after 45 days.
-- **B.** Transition the files to S3 Glacier Instant Retrieval after 7 days and expire them after 45 days.
-- **C.** Transition the files to S3 Standard-IA after 7 days and expire them after 45 days.
-- **D.** Transition the files to S3 Standard-IA after 30 days and expire them after 45 days.
-
-### Correct answer: B
-
-**Summary:** A minimum-duration charge does not always cancel the savings: price each option over the object's whole life, including the billed minimum.
-
-### Explanation
-- A is wrong: 1.5 months x $0.023 = about $0.0345 per GB, the second most expensive option.
-- B is correct: 7 days of Standard (about $0.0054) plus the 90-day minimum in Glacier Instant Retrieval (3 x $0.004 = $0.012) is about $0.0174 per GB, half the cost of Standard, with millisecond access.
-- C is wrong: a lifecycle rule cannot move objects to Standard-IA until they have been stored for at least 30 days.
-- D is wrong: 30 days of Standard ($0.023) plus Standard-IA's billed 30-day minimum ($0.0125) is about $0.0355 per GB, more than keeping the files in Standard.
-
-**Key phrases:** 50 MB · first 7 days · within milliseconds · deleted 45 days after creation · MOST cost-effective
-**Hint:** Price each option per GB for the file's whole life, and remember each class's minimum storage duration: 30 days for Standard-IA, 90 days for Glacier Instant Retrieval.
-
----
-
 ## ALPHA-139: Storage & Backup
 **Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Reliability
 **Services:** S3 › Glacier & retrieval
@@ -3946,94 +3661,6 @@ A company must keep 500 TB of compliance records for 10 years. The records are a
 
 **Key phrases:** 500 TB · 10 years · almost never accessed · within 24 hours · LOWEST storage cost
 **Hint:** Deep Archive Standard retrievals complete within 12 hours; Bulk retrievals complete within 48 hours.
-
----
-
-## ALPHA-140: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
-**Services:** DynamoDB › Capacity modes
-
-### Question
-An Amazon DynamoDB table in provisioned capacity mode stores 6 KB order items and 2.5 KB event items. At peak the application performs 80 strongly consistent reads per second of order items and 100 standard (non-transactional) writes per second of event items. Which TWO settings are the MINIMUM that handle the peak without throttling? (Select TWO.)
-
-### Options
-- **A.** 160 read capacity units
-- **B.** 120 read capacity units
-- **C.** 80 read capacity units
-- **D.** 250 write capacity units
-- **E.** 300 write capacity units
-
-### Correct answers: A, E (choose 2)
-
-**Summary:** Round item sizes up (4 KB for reads, 1 KB for writes), then multiply by the request rate.
-
-### Explanation
-- A is correct: a 6 KB item rounds up to 8 KB, which is 2 RCU per strongly consistent read, and 80 x 2 = 160 RCU.
-- B is wrong: this uses 6 / 4 = 1.5 RCU per read without rounding up to whole 4 KB units.
-- C is wrong: this is the eventually consistent figure; strongly consistent reads need the full 2 RCU per 6 KB item.
-- D is wrong: this uses 2.5 WCU per write without rounding up to whole 1 KB units.
-- E is correct: a 2.5 KB item rounds up to 3 KB, which is 3 WCU per write, and 100 x 3 = 300 WCU.
-
-**Key phrases:** 6 KB · 2.5 KB · 80 strongly consistent reads per second · 100 standard · MINIMUM · TWO
-**Hint:** 1 RCU = one strongly consistent read per second of up to 4 KB; 1 WCU = one write per second of up to 1 KB. Round each item size up first.
-
----
-
-## ALPHA-141: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Cost Optimization
-**Services:** DynamoDB › Capacity modes
-
-### Question
-A retail application uses an Amazon DynamoDB table in provisioned capacity mode. Product items are 10 KB. The catalog page performs 600 eventually consistent reads per second. Checkout uses TransactWriteItems to update 3 KB inventory items at 50 items per second. How much capacity must be provisioned for this traffic?
-
-### Options
-- **A.** 900 RCU and 300 WCU
-- **B.** 1,800 RCU and 300 WCU
-- **C.** 750 RCU and 150 WCU
-- **D.** 900 RCU and 150 WCU
-
-### Correct answer: A
-
-**Summary:** Round up, then halve for eventually consistent reads and double for transactional reads or writes.
-
-### Explanation
-- A is correct: 10 KB rounds up to 12 KB = 3 RCU strongly consistent, half for eventually consistent: 600 x 1.5 = 900 RCU; 3 KB = 3 WCU, doubled for transactions: 50 x 6 = 300 WCU.
-- B is wrong: 1,800 RCU is the strongly consistent figure; eventually consistent reads cost half as much.
-- C is wrong: this skips rounding 10 KB up to 12 KB and forgets that transactional writes consume twice the capacity.
-- D is wrong: the reads are right, but transactional writes consume 2 WCU per KB, so 50 x 3 KB needs 300 WCU.
-
-**Key phrases:** 10 KB · 600 eventually consistent reads per second · TransactWriteItems · 3 KB · 50 items per second
-**Hint:** Round each item up to 4 KB (reads) or 1 KB (writes) first. Eventually consistent reads cost half; transactional writes cost double.
-
----
-
-## ALPHA-142: Analytics & Data Processing
-**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Performance Efficiency
-**Services:** Kinesis Data Streams
-
-### Question
-A company ingests clickstream events into Amazon Kinesis Data Streams in provisioned mode. Producers send 5,000 records per second, and each record is 3 KB (assume 1 MB = 1,000 KB). Three separate consumer applications each read the full stream using the standard (shared-throughput) GetRecords API. The stream has 15 shards, and the consumers are falling behind. Which TWO changes will each give every consumer enough read throughput? (Select TWO.)
-
-### Options
-- **A.** Increase the data retention period to 7 days.
-- **B.** Register the three consumers for enhanced fan-out.
-- **C.** Increase the stream to 20 shards.
-- **D.** Reduce the stream to 5 shards, because 5,000 records per second needs only 5 shards.
-- **E.** Increase the stream to 23 shards.
-
-### Correct answers: B, E (choose 2)
-
-**Summary:** Size shards for writes (1 MB/s or 1,000 records/s) and for reads (2 MB/s shared); with several consumers, enhanced fan-out removes the shared read limit.
-
-### Explanation
-- A is wrong: retention controls how long records are kept, not how fast consumers can read them.
-- B is correct: each consumer gets a dedicated 2 MB/s per shard, or 30 MB/s across 15 shards, twice the 15 MB/s it needs.
-- C is wrong: 20 shards x 2 MB/s = 40 MB/s of shared read throughput, less than the 45 MB/s the three consumers need.
-- D is wrong: the records limit allows 5 shards, but 5,000 x 3 KB = 15 MB/s of writes needs 15 shards at 1 MB/s each.
-- E is correct: three consumers each reading 15 MB/s need 45 MB/s, and 23 shards x 2 MB/s = 46 MB/s covers it.
-
-**Key phrases:** 5,000 records per second · 3 KB · Three separate consumer applications · standard (shared-throughput) · 15 shards · TWO
-**Hint:** Each shard accepts 1 MB/s or 1,000 records/s in and serves 2 MB/s out, shared by all standard consumers. Enhanced fan-out gives each consumer its own 2 MB/s per shard.
 
 ---
 
@@ -4064,34 +3691,6 @@ An AWS Lambda function behind Amazon API Gateway takes an average of 3 seconds p
 
 **Key phrases:** average of 3 seconds · slow third-party API · 400 requests per second · concurrency quota of 1,000 · TWO
 **Hint:** Concurrency = requests per second x average duration in seconds.
-
----
-
-## ALPHA-144: Compute & Serverless
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Performance Efficiency
-**Services:** Lambda
-
-### Question
-An AWS Lambda function processes images and runs 10 million times per month. Load testing gives these average durations: 1,700 ms at 512 MB, 800 ms at 1,024 MB, 350 ms at 2,048 MB, and 300 ms at 4,096 MB. Lambda compute is billed per GB-second. Which memory setting has the LOWEST compute cost?
-
-### Options
-- **A.** 512 MB
-- **B.** 1,024 MB
-- **C.** 4,096 MB
-- **D.** 2,048 MB
-
-### Correct answer: D
-
-**Summary:** Lambda cost follows memory x duration; for CPU-bound code more memory can be both faster and cheaper, up to the point where duration stops falling.
-
-### Explanation
-- A is wrong: 0.5 GB x 1.7 s = 0.85 GB-seconds per invocation, the second most expensive.
-- B is wrong: 1 GB x 0.8 s = 0.8 GB-seconds per invocation.
-- C is wrong: 4 GB x 0.3 s = 1.2 GB-seconds per invocation; the function has stopped getting much faster, so the extra memory is wasted.
-- D is correct: 2 GB x 0.35 s = 0.7 GB-seconds per invocation, the lowest, and also much faster than the smaller settings (7 million GB-seconds per month against 8 million at 1,024 MB).
-
-**Key phrases:** 10 million times per month · GB-second · LOWEST compute cost
-**Hint:** Multiply memory in GB by duration in seconds for each setting. More memory also means more CPU, so duration can fall faster than memory rises.
 
 ---
 
@@ -4181,62 +3780,6 @@ A company is creating a subnet for Amazon EC2 instances and interface endpoints 
 
 ---
 
-## ALPHA-148: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Reliability, Operational Excellence
-**Services:** VPC › Subnets & routing
-
-### Question
-A company is designing a new VPC across three Availability Zones. Each Availability Zone needs one private subnet that can hold 400 IP addresses and one public subnet that can hold 200 IP addresses. The company wants the smallest VPC CIDR block that fits all six subnets so that it keeps as much of its address plan free as possible. Which VPC CIDR block should the team choose?
-
-### Options
-- **A.** /22
-- **B.** /21
-- **C.** /20
-- **D.** /16
-
-### Correct answer: C
-
-**Summary:** Size subnets with the 5 reserved IPs in mind, sum them, then round up: 3 x /23 + 3 x /24 = 2,304 addresses needs a /20.
-
-### Explanation
-- A is wrong: a /22 has 1,024 addresses, not even enough for the three private subnets.
-- B is wrong: a /21 has 2,048 addresses, but the subnets need 2,304.
-- C is correct: each private subnet needs a /23 (512, 507 usable) and each public subnet a /24 (256, 251 usable); 3 x 512 + 3 x 256 = 2,304 addresses, which needs a /20 (4,096).
-- D is wrong: a /16 fits, but it takes 65,536 addresses from the company's plan and makes overlaps with other networks more likely.
-
-**Key phrases:** three Availability Zones · 400 IP addresses · 200 IP addresses · smallest VPC CIDR block
-**Hint:** Size each subnet first (remember the 5 reserved addresses), add up the address space, then round up to the next CIDR block.
-
----
-
-## ALPHA-149: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency
-**Services:** DynamoDB › Partition design
-
-### Question
-A live-voting application stores vote totals in an Amazon DynamoDB table that uses on-demand capacity mode, with one item per candidate and candidate_id as the partition key. Each vote is an UpdateItem call that adds 1 to the candidate's item, which is smaller than 1 KB. During a televised final, the leading candidate receives 4,500 votes per second, and writes to that item are throttled even though the table as a whole is far below its limits. Which solution removes the throttling?
-
-### Options
-- **A.** Switch the table to provisioned capacity mode with 5,000 WCU.
-- **B.** Put a DynamoDB Accelerator (DAX) cluster in front of the table.
-- **C.** Split each candidate's total across 3 items (candidate_id#0 to candidate_id#2) and add them together when reading.
-- **D.** Split each candidate's total across 10 items with a random suffix (candidate_id#0 to candidate_id#9) and add them together when reading.
-
-### Correct answer: D
-
-**Summary:** A partition caps at 1,000 WCU and 3,000 RCU, so a hot key needs write sharding: shards >= hot write rate / 1,000, summed on read.
-
-### Explanation
-- A is wrong: table-level capacity does not lift the per-partition limit; the single hot item is still capped at 1,000 WCU.
-- B is wrong: DAX caches reads; every write still goes through to the same item in DynamoDB.
-- C is wrong: 3 shards x 1,000 WCU = 3,000 writes per second, still below the 4,500 needed.
-- D is correct: 4,500 / 1,000 WCU per partition means at least 5 shards; 10 shards take about 450 writes per second each, well under the limit with headroom for growth.
-
-**Key phrases:** on-demand capacity mode · one item per candidate · 4,500 votes per second · throttled · far below its limits
-**Hint:** A single partition, and therefore any single item, supports at most 1,000 WCU and 3,000 RCU per second, whatever the table's capacity mode.
-
----
-
 ## ALPHA-150: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
 **Services:** Route 53 › Routing policies
@@ -4262,62 +3805,6 @@ A company is running a canary release. Amazon Route 53 has two weighted records 
 
 **Key phrases:** canary release · weight 200 · weight 50 · percentage
 **Hint:** Each record receives its weight divided by the sum of all weights in the group.
-
----
-
-## ALPHA-151: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
-**Services:** CloudFront › Caching
-
-### Question
-A news website uses Amazon CloudFront in front of an origin fleet that can handle at most 1,500 requests per second. During breaking news, viewers send 30,000 requests per second, the cache hit ratio is 90%, and the origin is overloaded. What cache hit ratio must CloudFront reach to keep the origin within its capacity, and which change is MOST likely to achieve it?
-
-### Options
-- **A.** At least 92%; enable Origin Shield.
-- **B.** At least 95%; change the distribution to price class All to use more edge locations.
-- **C.** At least 95%; remove unneeded query strings, cookies and headers from the cache key and enable Origin Shield.
-- **D.** At least 95%; lower the TTLs so that content stays fresh.
-
-### Correct answer: C
-
-**Summary:** Origin load = requests x (1 - hit ratio); going from 90% to 95% halves origin traffic.
-
-### Explanation
-- A is wrong: at 92% the origin would still receive 30,000 x 8% = 2,400 requests per second.
-- B is wrong: the number is right, but more edge locations spread requests across more caches, which does not raise the hit ratio.
-- C is correct: 30,000 x (1 - 0.95) = 1,500 requests per second, and a smaller cache key plus Origin Shield's extra caching layer are the standard ways to raise the hit ratio.
-- D is wrong: the number is right, but shorter TTLs make objects expire sooner and lower the hit ratio.
-
-**Key phrases:** at most 1,500 requests per second · 30,000 requests per second · cache hit ratio is 90% · MOST likely
-**Hint:** Origin requests = total requests x (1 - cache hit ratio).
-
----
-
-## ALPHA-152: Cost Management & Optimization
-**Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** medium · **Pillars:** Cost Optimization
-**Services:** VPC › Gateway endpoints, VPC › NAT gateways
-
-### Question
-Applications in private subnets move about 60 TB per month to and from Amazon S3 in the same Region through a NAT gateway. Assume NAT gateway data processing costs $0.045 per GB and 1 TB = 1,000 GB. The company wants to cut this cost without changing application code. Which solution saves the most, and roughly how much per month?
-
-### Options
-- **A.** Create an S3 interface endpoint, saving about $2,700 per month.
-- **B.** Create an S3 gateway endpoint and add it to the private subnets' route tables, saving about $2,700 per month.
-- **C.** Replace the NAT gateway with a NAT instance, saving about $2,700 per month.
-- **D.** Enable S3 Transfer Acceleration, saving about $270 per month.
-
-### Correct answer: B
-
-**Summary:** Traffic from private subnets to S3 through a NAT gateway pays per GB; an S3 gateway endpoint is free and needs only a route-table change.
-
-### Explanation
-- A is wrong: interface endpoints charge per hour and per GB processed, so they save less than $2,700.
-- B is correct: 60,000 GB x $0.045 = $2,700 per month of NAT processing, and gateway endpoints for S3 have no hourly or data processing charge.
-- C is wrong: a NAT instance still costs money to run, has limited bandwidth, and must be managed and made highly available.
-- D is wrong: Transfer Acceleration adds a per-GB charge and does not bypass the NAT gateway.
-
-**Key phrases:** 60 TB per month · same Region · NAT gateway · $0.045 per GB · without changing application code
-**Hint:** Multiply 60 TB by $0.045 per GB. Which S3 endpoint type has no hourly or per-GB charge?
 
 ---
 
@@ -4377,176 +3864,6 @@ An Amazon RDS for PostgreSQL database stores order data, and automated backups a
 
 ---
 
-## ALPHA-155: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
-**Services:** CloudWatch › Alarms
-
-### Question
-An Amazon CloudWatch alarm watches an application's error rate with a 1-minute period. Short one-minute spikes are normal and must not trigger the alarm, but a real problem must page the on-call engineer within 3 minutes of starting. Which alarm configuration meets both requirements?
-
-### Options
-- **A.** Alarm when 1 out of 1 datapoints breaches the threshold.
-- **B.** Alarm when 5 out of 5 datapoints breach the threshold.
-- **C.** Change the period to 5 minutes and alarm when 1 out of 1 datapoints breaches.
-- **D.** Alarm when 2 out of 3 datapoints breach the threshold.
-
-### Correct answer: D
-
-**Summary:** M out of N alarms filter out single spikes; time to alarm is about M x period.
-
-### Explanation
-- A is wrong: every one-minute spike would trigger the alarm.
-- B is wrong: a real problem needs 5 minutes of breaching data before the alarm fires, missing the 3-minute requirement.
-- C is wrong: a 5-minute period cannot alarm within 3 minutes, and averaging over 5 minutes can hide a real problem.
-- D is correct: a single spike is only 1 breaching datapoint and is ignored, while a sustained problem fires after 2 minutes.
-
-**Key phrases:** 1-minute period · one-minute spikes · within 3 minutes
-**Hint:** Time to alarm is roughly the number of breaching datapoints needed x the period.
-
----
-
-## ALPHA-156: Application Integration
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
-**Services:** EC2 Auto Scaling › Target tracking
-
-### Question
-Workers on Amazon EC2 instances consume messages from an Amazon SQS queue. Each instance processes 10 messages per second, and a message may wait at most 60 seconds in the queue. At peak the queue holds 18,000 visible messages. The team uses target tracking on a custom backlog-per-instance metric. What target value should the team set, and how many instances will the group run at peak?
-
-### Options
-- **A.** A target of 10 messages per instance; 1,800 instances at peak.
-- **B.** A target of 600 messages per instance; 30 instances at peak.
-- **C.** A target of 60 messages per instance; 300 instances at peak.
-- **D.** A target of 70% average CPU utilization; about 30 instances at peak.
-
-### Correct answer: B
-
-**Summary:** Backlog-per-instance target = processing rate x acceptable latency; instances = queue depth / target.
-
-### Explanation
-- A is wrong: 10 is the processing rate per second, not the backlog an instance can clear in 60 seconds.
-- B is correct: 10 messages/s x 60 s = 600 messages per instance, and 18,000 / 600 = 30 instances.
-- C is wrong: 60 is the wait time in seconds, not a backlog; this would run 10 times more instances than needed.
-- D is wrong: CPU utilization does not reflect how many messages are waiting, so it cannot guarantee the 60-second wait.
-
-**Key phrases:** 10 messages per second · at most 60 seconds · 18,000 visible messages · backlog-per-instance
-**Hint:** Acceptable backlog per instance = messages an instance processes per second x the longest acceptable wait.
-
----
-
-## ALPHA-157: Storage & Backup
-**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
-**Services:** S3 › Performance & Transfer Acceleration
-
-### Question
-A company uploads a 2 TB database export file to Amazon S3 each week using multipart upload. The upload tool is configured with a 100 MB part size, and the upload fails before completing. Assume 1 TB = 1,000,000 MB. Which change will allow the upload to succeed?
-
-### Options
-- **A.** Upload the file with a single PUT request instead of multipart upload.
-- **B.** Reduce the part size to 50 MB so that each part uploads faster.
-- **C.** Enable S3 Transfer Acceleration on the bucket.
-- **D.** Increase the part size to at least 200 MB, for example 256 MB.
-
-### Correct answer: D
-
-**Summary:** Multipart upload allows at most 10,000 parts (5 MB to 5 GB each), so minimum part size = file size / 10,000; a single PUT tops out at 5 GB.
-
-### Explanation
-- A is wrong: a single PUT can upload at most 5 GB, far less than 2 TB.
-- B is wrong: 50 MB parts would need 40,000 parts, even further over the 10,000-part limit.
-- C is wrong: Transfer Acceleration speeds up the network path but does not change the 10,000-part limit.
-- D is correct: 2,000,000 MB / 100 MB = 20,000 parts, over the 10,000-part limit; the minimum part size is 2,000,000 / 10,000 = 200 MB, and 256 MB needs about 7,813 parts.
-
-**Key phrases:** 2 TB · multipart upload · 100 MB part size · fails before completing
-**Hint:** A multipart upload can have at most 10,000 parts. How many 100 MB parts does 2 TB need?
-
----
-
-## ALPHA-158: Compute & Serverless
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
-**Services:** Step Functions, Lambda › Limits
-
-### Question
-A nightly AWS Lambda function reads a manifest of 50,000 records and calls an external API once per record. Each call takes about 40 ms and the records are independent of each other. The function processes the records in a loop and now times out every night. Which solution will complete the job with the LEAST operational overhead?
-
-### Options
-- **A.** Increase the function timeout to 60 minutes.
-- **B.** Use an AWS Step Functions Distributed Map state to process the manifest in batches of 5,000 records, each handled by its own Lambda invocation.
-- **C.** Increase the function's memory to 10,240 MB so that each record is processed faster.
-- **D.** Configure provisioned concurrency for the function.
-
-### Correct answer: B
-
-**Summary:** Lambda runs at most 15 minutes per invocation; if records x time per record exceeds that, split the work (for example with a Step Functions Distributed Map).
-
-### Explanation
-- A is wrong: the maximum Lambda timeout is 15 minutes (900 seconds), and the loop needs about 2,000 seconds.
-- B is correct: 50,000 x 40 ms = 2,000 seconds, more than the 900-second limit; batches of 5,000 records take about 200 seconds each and run in parallel, with retries handled by Step Functions.
-- C is wrong: the time is spent waiting on the external API, so more memory and CPU barely shorten it.
-- D is wrong: provisioned concurrency removes cold starts but does not raise the 15-minute limit on a single invocation.
-
-**Key phrases:** 50,000 records · 40 ms · independent of each other · times out · LEAST operational overhead
-**Hint:** How long does 50,000 x 40 ms take, and what is the maximum Lambda timeout?
-
----
-
-## ALPHA-159: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
-**Services:** SQS › FIFO queues
-
-### Question
-An order system publishes events to an Amazon SQS FIFO queue, using the order ID as the message group ID so that events for each order stay in sequence. The queue does not use high throughput mode. Producers call SendMessage once per event, and at peak they must send 2,500 messages per second, but calls are being throttled. Which TWO changes will each let the producers reach 2,500 messages per second while keeping per-order ordering? (Select TWO.)
-
-### Options
-- **A.** Send the messages with SendMessageBatch in batches of 5.
-- **B.** Send the messages with SendMessageBatch in batches of 10.
-- **C.** Replace the FIFO queue with a standard queue.
-- **D.** Enable high throughput mode for the FIFO queue.
-- **E.** Add more consumer instances to read from the queue.
-
-### Correct answers: B, D (choose 2)
-
-**Summary:** A FIFO queue without high throughput mode allows 300 calls/s per action, or 3,000 messages/s with batches of 10; high throughput mode goes further while keeping per-group order.
-
-### Explanation
-- A is wrong: 300 calls per second x 5 messages = 1,500 messages per second, still below 2,500.
-- B is correct: 300 calls per second x 10 messages = 3,000 messages per second, which covers 2,500 (consumers should also receive and delete in batches).
-- C is wrong: a standard queue has nearly unlimited throughput but does not guarantee order, which breaks the per-order sequence.
-- D is correct: high throughput mode raises the limit per message group ID, and with many distinct order IDs the queue can far exceed 2,500 messages per second.
-- E is wrong: the throttling happens on the send side, so more consumers do not help the producers.
-
-**Key phrases:** SQS FIFO queue · message group ID · does not use high throughput mode · SendMessage once per event · 2,500 messages per second · TWO
-**Hint:** Without high throughput mode, a FIFO queue supports 300 API calls per second per action, and a batch call can carry up to 10 messages.
-
----
-
-## ALPHA-160: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Cost Optimization, Performance Efficiency
-**Services:** S3 › Encryption
-
-### Question
-A data lake bucket in Amazon S3 uses SSE-KMS with a customer managed key. Applications perform 6,000 GET and 5,000 PUT requests per second, and each request causes a call to AWS KMS. The account's KMS quota for cryptographic operations in the Region is 10,000 requests per second, shared by all keys, and requests are failing with ThrottlingException. The security team requires that the customer managed key remain in use. Which solution is the MOST cost-effective?
-
-### Options
-- **A.** Switch the bucket's default encryption to SSE-S3.
-- **B.** Add exponential backoff and retries to the applications.
-- **C.** Create a second customer managed key and encrypt half of the objects with it.
-- **D.** Enable S3 Bucket Keys for SSE-KMS on the bucket.
-
-### Correct answer: D
-
-**Summary:** SSE-KMS makes one KMS call per S3 request against an account-wide quota; S3 Bucket Keys cut those calls (and their cost) by up to 99% while keeping the customer managed key.
-
-### Explanation
-- A is wrong: SSE-S3 avoids KMS calls but stops using the customer managed key, which the security team requires.
-- B is wrong: retries smooth short bursts, but the sustained 11,000 calls per second stays above the 10,000 quota, so requests keep failing or queue up.
-- C is wrong: the quota is shared by all keys in the account and Region, so two keys still share the same 10,000 requests per second.
-- D is correct: 6,000 + 5,000 = 11,000 KMS calls per second exceeds the 10,000 quota; a bucket key lets S3 generate data keys from a bucket-level key, cutting KMS calls and KMS costs by up to 99% (existing objects can be re-encrypted with a copy to benefit).
-
-**Key phrases:** SSE-KMS with a customer managed key · 6,000 GET and 5,000 PUT requests per second · 10,000 requests per second · shared by all keys · ThrottlingException · MOST cost-effective
-**Hint:** Add up the KMS calls per second and compare with the quota. Which S3 feature cuts the number of KMS calls instead of spreading them out?
-
----
-
 ## ALPHA-161: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
 **Services:** IAM › Federation
@@ -4557,8 +3874,8 @@ A company has 2,000 employees whose identities are stored in an on-premises Micr
 ### Options
 - **A.** Create one IAM user per AD group and share its access keys with the group's members through AWS Secrets Manager.
 - **B.** Create an IAM user for each employee and synchronize passwords from Active Directory with a scheduled script.
-- **C.** Create an IAM SAML identity provider that trusts AD FS, create an IAM role for each AD group whose trust policy allows that provider, and map AD groups to the roles in the AD FS claims so that users assume a role through AssumeRoleWithSAML.
-- **D.** Create an Amazon Cognito user pool, import the employees, and allow the user pool to sign users in to the AWS Management Console.
+- **C.** Create an IAM SAML identity provider for AD FS and an IAM role per AD group that trusts it, so that users sign in through AssumeRoleWithSAML.
+- **D.** Create an Amazon Cognito user pool, import the employees from Active Directory, and allow the user pool to sign users in to the AWS Management Console with their AD passwords.
 
 ### Correct answer: C
 
@@ -4572,36 +3889,6 @@ A company has 2,000 employees whose identities are stored in an on-premises Micr
 
 **Key phrases:** already federated through Active Directory Federation Services (AD FS) · SAML 2.0 identity provider · corporate credentials · based on their AD group · no long-term AWS credentials
 **Hint:** The company already runs an identity provider that speaks SAML 2.0. How can AWS trust it so that users receive temporary role credentials instead of IAM users?
-
----
-
-## ALPHA-162: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** hard · **Pillars:** Security, Operational Excellence
-**Services:** IAM › Federation
-
-### Question
-A team deploys to AWS from GitHub Actions workflows. Today the workflows use an IAM user's access keys stored as a GitHub secret, and a security review requires the team to remove all long-term credentials. Only workflows running on the main branch of the company's repository may deploy, and each run must receive short-lived credentials. Which TWO steps should a solutions architect take? (Select TWO.)
-
-### Options
-- **A.** Store the access keys in AWS Secrets Manager and have each workflow run retrieve them at the start.
-- **B.** Create an IAM OpenID Connect (OIDC) identity provider in the account for GitHub's token issuer, token.actions.githubusercontent.com, with sts.amazonaws.com as the audience.
-- **C.** Rotate the IAM user's access keys every 24 hours with a scheduled AWS Lambda function that updates the GitHub secret.
-- **D.** Create an IAM role whose trust policy allows sts:AssumeRoleWithWebIdentity from that provider, with a condition on the token's sub claim that matches the company's repository and the main branch.
-- **E.** Create an IAM role whose trust policy allows sts:AssumeRoleWithSAML from GitHub, and store the role ARN as a GitHub secret.
-
-### Correct answers: B, D (choose 2)
-
-**Summary:** CI/CD outside AWS: trust the platform's OIDC issuer with an IAM OIDC identity provider and let a role be assumed through AssumeRoleWithWebIdentity, scoped by the token's sub claim, so each run gets temporary credentials.
-
-### Explanation
-- A is wrong: the workflow would need credentials to read Secrets Manager in the first place, and the stored keys are still long-term.
-- B is correct: the OIDC identity provider lets IAM trust the signed token that GitHub issues for each workflow run, so no secret has to be stored in GitHub.
-- C is wrong: rotated access keys are still long-term credentials stored outside AWS, which the security review forbids.
-- D is correct: each run exchanges its token for temporary role credentials, and the sub condition limits the role to the main branch of the company's repository.
-- E is wrong: GitHub Actions issues OIDC tokens, not SAML assertions, so a SAML trust cannot be satisfied.
-
-**Key phrases:** GitHub Actions · remove all long-term credentials · Only workflows running on the main branch · short-lived credentials · TWO
-**Hint:** GitHub can issue a signed identity token for each workflow run. What must exist in IAM to trust that token, and where do you restrict which repository and branch may use it?
 
 ---
 
@@ -4661,34 +3948,6 @@ Amazon GuardDuty raised a finding that an IAM role's credentials were used from 
 
 ---
 
-## ALPHA-165: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security
-**Services:** Verified Access
-
-### Question
-A company hosts internal web applications behind an internal Application Load Balancer in a VPC. Employees currently connect through a client VPN, which grants network-level access to the whole VPC. The company wants to adopt zero trust: each HTTP request must be evaluated against the user's identity from IAM Identity Center and the security posture of the user's managed device, without a VPN client. Which solution meets these requirements?
-
-### Options
-- **A.** Make the load balancer internet-facing and add a listener rule that authenticates users with Amazon Cognito.
-- **B.** Use AWS Verified Access with IAM Identity Center as the user trust provider and a device trust provider, and attach access policies to each application endpoint.
-- **C.** Use AWS Site-to-Site VPN connections from each employee's home network.
-- **D.** Use AWS Client VPN with authorization rules for each subnet.
-
-### Correct answer: B
-
-**Summary:** Verified Access = VPN-less, zero-trust access to internal applications, checking every request against the user's identity and device posture.
-
-### Explanation
-- A is wrong: Cognito authentication checks the user's identity but not the device's security posture, and it exposes the load balancer to the internet.
-- B is correct: Verified Access evaluates every request against user identity and device posture before it reaches the application, with no VPN client.
-- C is wrong: Site-to-Site VPN connects networks, not individual users, and it still grants network-level access.
-- D is wrong: it still needs a VPN client and grants network-level access instead of evaluating each request.
-
-**Key phrases:** Employees currently connect through a client VPN · zero trust · each HTTP request · security posture of the user's managed device · without a VPN client
-**Hint:** Which AWS service puts a policy check in front of each application, using both who the user is and what device they use, with no VPN?
-
----
-
 ## ALPHA-166: Networking & Content Delivery
 **Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
 **Services:** VPC › Bastion & ENIs
@@ -4698,9 +3957,9 @@ A legacy licensing server runs on an Amazon EC2 instance. The vendor's license i
 
 ### Options
 - **A.** Place both instances in a cluster placement group so that they share the same MAC address.
-- **B.** Attach a secondary elastic network interface to the primary instance, bind the license to that interface's MAC address and private IP address, and move the interface to the standby instance during failover.
+- **B.** Attach a secondary network interface, bind the license to its MAC address and private IP address, and move it to the standby during failover.
 - **C.** Associate an Elastic IP address with the primary instance and reassociate it with the standby instance during failover.
-- **D.** Create an AMI of the primary instance every hour and launch the standby from the latest AMI during failover.
+- **D.** Create an AMI of the primary instance every hour, launch the standby from the latest AMI during failover, and copy the license file to it from Amazon S3.
 
 ### Correct answer: B
 
@@ -4727,8 +3986,8 @@ A company must inspect all inbound internet traffic to its web application VPC w
 ### Options
 - **A.** Place the appliances behind an Application Load Balancer and have the appliances forward requests to the web servers.
 - **B.** Configure the appliances as NAT instances in each public subnet and use Route 53 health checks to replace failed instances.
-- **C.** Place the appliances behind a Network Load Balancer and point the application's DNS name at the load balancer.
-- **D.** Deploy the appliances behind a Gateway Load Balancer, create Gateway Load Balancer endpoints, and update the internet gateway's ingress route table and the subnet route tables to send traffic through the endpoints.
+- **C.** Place the appliances behind a Network Load Balancer with cross-zone load balancing enabled, and point the application's DNS name at the load balancer so that all inbound traffic reaches them first.
+- **D.** Put the appliances behind a Gateway Load Balancer and route traffic through Gateway Load Balancer endpoints using the internet gateway's ingress route table.
 
 ### Correct answer: D
 
@@ -5059,34 +4318,6 @@ A company runs an Apache Cassandra cluster on self-managed Amazon EC2 instances.
 
 ---
 
-## ALPHA-179: Application Integration
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
-**Services:** API Gateway › Caching
-
-### Question
-A REST API in Amazon API Gateway exposes GET /products?category={name}, backed by an AWS Lambda function that queries a database. To reduce load, the team enabled API Gateway caching on the stage with a 300-second TTL. Since then, users who ask for one category sometimes receive the products of a different category. Which change fixes the problem while keeping the cache?
-
-### Options
-- **A.** Migrate the API to an HTTP API, which caches each query string separately.
-- **B.** Allow clients to send Cache-Control: max-age=0 to invalidate the cache entry.
-- **C.** Reduce the cache TTL to 0 seconds.
-- **D.** Mark the category query string parameter as a cache key parameter on the method.
-
-### Correct answer: D
-
-**Summary:** API Gateway caching (REST APIs only) keys on the resource path plus the parameters you mark as cache keys; leave a query string or header out and different requests share one cached response.
-
-### Explanation
-- A is wrong: HTTP APIs do not support API Gateway caching at all.
-- B is wrong: invalidation refreshes one entry, but every category still shares the same key, so wrong responses keep appearing.
-- C is wrong: a TTL of 0 effectively turns caching off, which gives up the cache instead of fixing it.
-- D is correct: API Gateway builds the cache key from the resource path plus the parameters marked as cache keys, so each category then gets its own cached response.
-
-**Key phrases:** REST API · GET /products?category={name} · enabled API Gateway caching on the stage · 300-second TTL · a different category · keeping the cache
-**Hint:** Two requests share a cached response when their cache keys match. What is in the key, and what is missing?
-
----
-
 ## ALPHA-180: Application Integration
 **Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
 **Services:** AppSync
@@ -5183,8 +4414,8 @@ A company must make sure that a security monitoring agent is installed and confi
 ### Options
 - **A.** Use AWS Systems Manager Patch Manager with a patch baseline that includes the agent.
 - **B.** Add the agent installation to the instances' user data scripts.
-- **C.** Use AWS Systems Manager Run Command to install and configure the agent on the tagged instances.
-- **D.** Create an AWS Systems Manager State Manager association that targets the tag, applies a document that installs and configures the agent, and runs every 30 minutes.
+- **C.** Use AWS Systems Manager Run Command with a tag-based target to install and configure the agent on every instance that has the tag Environment=Production.
+- **D.** Create a State Manager association that targets the tag and applies a document that installs and configures the agent every 30 minutes.
 
 ### Correct answer: D
 
@@ -5295,10 +4526,10 @@ A company with an AWS Business Support plan wants a single place that recommends
 AWS occasionally schedules events that affect specific Amazon EC2 instances, such as an instance retirement because of degraded underlying hardware. An operations team wants an automated response: when such an event is scheduled for one of its EBS-backed instances, a runbook must stop and start the instance to move it to healthy hardware, and the team must be notified. Which solution meets these requirements?
 
 ### Options
-- **A.** Create a CloudWatch alarm on the StatusCheckFailed_System metric that recovers the instance.
+- **A.** Create a CloudWatch alarm on the StatusCheckFailed_System metric that recovers the instance onto new hardware as soon as the system status check fails.
 - **B.** Have an operator check the AWS Health Dashboard every morning.
 - **C.** Use AWS Config to record instance configuration changes and send alerts.
-- **D.** Create an Amazon EventBridge rule that matches AWS Health events for scheduled EC2 changes and targets an AWS Systems Manager Automation runbook and an Amazon SNS topic.
+- **D.** Create an EventBridge rule for AWS Health scheduled EC2 events that starts a Systems Manager Automation runbook and notifies an SNS topic.
 
 ### Correct answer: D
 
@@ -5315,34 +4546,6 @@ AWS occasionally schedules events that affect specific Amazon EC2 instances, suc
 
 ---
 
-## ALPHA-188: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
-**Services:** Managed Grafana
-
-### Question
-A company runs workloads in 30 AWS accounts and collects metrics in Amazon CloudWatch and in Amazon Managed Service for Prometheus. Operators want shared, interactive dashboards that combine both data sources across all accounts, with sign-in through the company's IAM Identity Center users. The company does not want to install, scale or patch dashboard servers. Which solution meets these requirements?
-
-### Options
-- **A.** Create an Amazon Managed Grafana workspace with CloudWatch and Prometheus data sources for the accounts, and IAM Identity Center authentication.
-- **B.** Run open-source Grafana on Amazon EC2 instances behind an Application Load Balancer.
-- **C.** Export the metrics to Amazon S3 every hour and build Amazon QuickSight dashboards.
-- **D.** Use AWS X-Ray service maps in each account.
-
-### Correct answer: A
-
-**Summary:** Managed Grafana = serverless Grafana workspaces that query CloudWatch, Prometheus, X-Ray, OpenSearch and more across accounts, with IAM Identity Center or SAML sign-in.
-
-### Explanation
-- A is correct: Managed Grafana runs the Grafana servers for you, queries CloudWatch and Prometheus across accounts, and signs users in through IAM Identity Center.
-- B is wrong: the company would install, scale and patch the dashboard servers itself.
-- C is wrong: it needs a custom export pipeline, and hourly business intelligence reports are not interactive operational dashboards.
-- D is wrong: X-Ray shows request traces and service maps, not combined metric dashboards from CloudWatch and Prometheus.
-
-**Key phrases:** 30 AWS accounts · Amazon CloudWatch · Amazon Managed Service for Prometheus · interactive dashboards · IAM Identity Center · does not want to install, scale or patch
-**Hint:** The team wants a popular open-source dashboard tool, without running its servers.
-
----
-
 ## ALPHA-189: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Operational Excellence, Performance Efficiency
 **Services:** MSK
@@ -5351,10 +4554,10 @@ A company runs workloads in 30 AWS accounts and collects metrics in Amazon Cloud
 A company runs Apache Kafka on premises for event streaming. Dozens of producer and consumer applications use the Kafka client libraries and Kafka Connect. The company wants to move to a managed service on AWS without changing application code. Which service should a solutions architect recommend?
 
 ### Options
-- **A.** Amazon MQ
-- **B.** Amazon Kinesis Data Streams
+- **A.** Amazon MQ (managed ActiveMQ and RabbitMQ brokers)
+- **B.** Amazon Kinesis Data Streams with the Kinesis Client Library
 - **C.** Amazon Managed Streaming for Apache Kafka (Amazon MSK)
-- **D.** Amazon SQS
+- **D.** Amazon Simple Queue Service (Amazon SQS)
 
 ### Correct answer: C
 
@@ -5396,3 +4599,801 @@ Analysts use Amazon Athena to query clickstream data in Amazon S3. They now need
 
 **Key phrases:** Amazon Athena · join it, using SQL in Athena · Amazon RDS for MySQL · Amazon DynamoDB · avoid building and maintaining ETL pipelines
 **Hint:** Can Athena reach data where it lives, instead of the data being copied to S3 first?
+
+---
+
+## ALPHA-191: Storage & Backup
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Services:** S3 › Encryption, KMS › Key policies & grants
+
+### Question
+A healthcare company stores patient documents in an Amazon S3 bucket. Auditors require that every use of the encryption key be recorded together with the identity of the caller, that the security team rather than the application administrators decide who may use the key, and that the company be able to make every object unreadable at once by disabling the key. Which encryption option meets these requirements?
+
+### Options
+- **A.** Server-side encryption with the AWS managed key for Amazon S3 (aws/s3), with AWS CloudTrail data events turned on for the bucket.
+- **B.** Server-side encryption with an AWS KMS customer managed key (SSE-KMS) whose key policy the security team controls.
+- **C.** Server-side encryption with Amazon S3 managed keys (SSE-S3), with S3 server access logging enabled so that every GET request on the encrypted objects is recorded.
+- **D.** Server-side encryption with customer-provided keys (SSE-C), with the keys generated and stored by the application team and supplied on every request.
+
+### Correct answer: B
+
+**Summary:** Needing to control, audit and revoke the key points to SSE-KMS with a customer managed key; SSE-S3 and AWS managed keys give no key policy to own and no key to disable.
+
+### Explanation
+- A is wrong: the key policy of an AWS managed key cannot be edited and the key cannot be disabled, so the security team can neither restrict nor revoke its use.
+- B is correct: a customer managed key has its own key policy that the security team owns, every encrypt and decrypt request to AWS KMS is logged in CloudTrail with the caller's identity, and disabling the key makes the objects unreadable.
+- C is wrong: S3 owns and manages SSE-S3 keys, so there is no key policy for the security team to control, no record of key use and no key to disable.
+- D is wrong: AWS does not store or log SSE-C keys, and the application team, not the security team, would hold them.
+
+**Key phrases:** every use of the encryption key be recorded · security team rather than the application administrators · unreadable at once by disabling the key
+**Hint:** Which option gives the company its own key, with its own policy, whose every use is an API call that CloudTrail records?
+
+---
+
+## ALPHA-192: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** IAM Identity Center, IAM › Federation
+
+### Question
+A company is growing its organization in AWS Organizations to 25 accounts. Employees already sign in to all corporate applications through Okta, a SAML 2.0 identity provider. The company wants employees to use their Okta credentials for every AWS account, wants users and groups provisioned automatically from Okta so that a deactivated employee loses access the same day, and wants permissions managed in one place. Which solution meets these requirements with the LEAST operational overhead?
+
+### Options
+- **A.** Create an Amazon Cognito user pool federated with Okta, and use the pool's tokens to sign employees in to the AWS Management Console of each account.
+- **B.** Enable IAM Identity Center with Okta as the external identity provider, turn on SCIM provisioning, and assign permission sets to Okta groups.
+- **C.** Create an IAM SAML identity provider for Okta and a matching set of IAM roles in each of the 25 accounts, and maintain the group-to-role mappings in Okta's application settings.
+- **D.** Create IAM users for all employees in a central identity account, let them assume roles in the member accounts, and run an AWS Lambda function that disables users who are deactivated in Okta.
+
+### Correct answer: B
+
+**Summary:** Workforce access to many accounts with an existing IdP: IAM Identity Center with the IdP as external identity source, SCIM provisioning and permission sets.
+
+### Explanation
+- A is wrong: Cognito signs users in to your own applications; it does not provide workforce access to the AWS Management Console.
+- B is correct: Identity Center federates once with Okta for every account in the organization, SCIM keeps users and groups in step with Okta automatically, and permission sets are assigned centrally.
+- C is wrong: it works, but the identity provider and roles must be built and maintained in all 25 accounts, so nothing is managed in one place.
+- D is wrong: IAM users are long-term identities, and the deprovisioning function is custom code that the company would have to own.
+
+**Key phrases:** 25 accounts · Okta, a SAML 2.0 identity provider · provisioned automatically · managed in one place · LEAST operational overhead
+**Hint:** One AWS service gives a single sign-in across all accounts in the organization and can take its users and groups from an external identity provider.
+
+---
+
+## ALPHA-193: Monitoring, Management & Governance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** CloudTrail
+
+### Question
+Yesterday an Amazon RDS DB instance in a production account was deleted. Nobody has created any trails, event data stores or other logging in the account. The operations manager needs to find out quickly which IAM principal deleted the DB instance and from which IP address. What should a solutions architect do?
+
+### Options
+- **A.** Run the AWS Trusted Advisor security checks for the account and open the report of recently deleted resources.
+- **B.** Search the VPC Flow Logs of the database subnets for connections that were closed at the time of the deletion.
+- **C.** Review the database engine's error log in Amazon CloudWatch Logs for the shutdown message and the client that requested it.
+- **D.** Look up the DeleteDBInstance event in AWS CloudTrail Event history.
+
+### Correct answer: D
+
+**Summary:** Who did what in the last 90 days: CloudTrail Event history works with no setup; create a trail only for longer retention or delivery to S3.
+
+### Explanation
+- A is wrong: Trusted Advisor checks the account against best practices; it does not record who called which API.
+- B is wrong: flow logs were never enabled, and they record network traffic, not API calls or the identity that made them.
+- C is wrong: engine logs describe activity inside the database, not the AWS API call that deleted the instance.
+- D is correct: CloudTrail Event history keeps 90 days of management events in each Region without any setup, including the calling principal and its source IP address.
+
+**Key phrases:** Nobody has created any trails · which IAM principal deleted the DB instance · which IP address
+**Hint:** AWS records recent management API calls in every account by default, even without a trail.
+
+---
+
+## ALPHA-194: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Services:** VPC › Security groups
+
+### Question
+An application has an internet-facing Application Load Balancer, application servers in an Auto Scaling group, and an Amazon RDS for MySQL database, each in its own subnets. Instances are replaced often, so their IP addresses change. The security team requires that the application servers accept traffic only from the load balancer and that the database accept connections on port 3306 only from the application servers. Which approach meets these requirements with the LEAST ongoing maintenance?
+
+### Options
+- **A.** Allow port 3306 from the whole VPC CIDR range on the database security group and require IAM database authentication for every connection.
+- **B.** Give each tier its own security group, and in each inbound rule reference the security group of the tier that is allowed to connect.
+- **C.** Add inbound rules for the instances' current private IP addresses, and update them from an AWS Lambda function each time the Auto Scaling group launches or terminates an instance.
+- **D.** Use network ACLs on the database subnets that allow port 3306 from the application subnets' CIDR ranges, plus the ephemeral ports for the return traffic, and deny everything else.
+
+### Correct answer: B
+
+**Summary:** Chain tiers by referencing security groups (ALB SG → app SG → DB SG); the rules follow instances as their IP addresses change.
+
+### Explanation
+- A is wrong: every resource in the VPC could still reach the database over the network, which the requirement forbids.
+- B is correct: a rule that references a security group allows any current member of that group, so instances can come and go without rule changes, and nothing else can connect.
+- C is wrong: it needs custom code and leaves gaps while rules are being updated.
+- D is wrong: a CIDR range admits anything placed in those subnets, not only the application servers, and stateless rules in both directions add upkeep.
+
+**Key phrases:** IP addresses change · only from the load balancer · only from the application servers · LEAST ongoing maintenance
+**Hint:** A security group rule can name another security group as its source instead of an IP range.
+
+---
+
+## ALPHA-195: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** hard · **Pillars:** Security
+**Services:** IAM › Policy evaluation, Organizations › SCPs
+
+### Question
+A developer's IAM role in a member account of an organization in AWS Organizations has an identity-based policy that allows s3:* on all resources. Reads from a bucket named finance-archive in the same account succeed, but every attempt to delete an object fails with an AccessDenied error. Which TWO conditions could each explain the failure? (Select TWO.)
+
+### Options
+- **A.** S3 Versioning is enabled on the bucket, and versioning rejects delete requests from IAM roles.
+- **B.** The bucket policy contains a Deny statement for s3:DeleteObject that applies to every principal except an approved list.
+- **C.** A service control policy that applies to the account allows only s3:Get* and s3:List* actions for Amazon S3.
+- **D.** The bucket policy does not mention the developer's role, so the role is denied by default even though its own policy allows the action.
+- **E.** IAM does not apply wildcard actions such as s3:* to destructive operations, so s3:DeleteObject must be listed by name.
+
+### Correct answers: B, C (choose 2)
+
+**Summary:** Policy evaluation: an explicit Deny anywhere wins, then SCPs (and boundaries) cap what is possible, then an Allow is needed; within one account an identity-policy Allow is enough.
+
+### Explanation
+- A is wrong: with versioning a simple delete adds a delete marker; it does not deny the request.
+- B is correct: an explicit Deny in any applicable policy overrides every Allow, including the role's s3:*.
+- C is correct: an SCP sets the maximum permissions for the account, so an action it does not allow is denied even when the role's own policy allows it.
+- D is wrong: within one account an Allow in the identity-based policy is enough; a bucket policy that is silent about the role denies nothing.
+- E is wrong: wildcards cover every matching action, including deletes; there is no such exception.
+
+**Key phrases:** allows s3:* on all resources · Reads · succeed · delete an object fails · TWO
+**Hint:** An explicit deny anywhere wins, and an SCP sets the most an account's principals can ever do.
+
+---
+
+## ALPHA-196: Storage & Backup
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
+**Services:** EBS › Encryption, KMS
+
+### Question
+A company has 200 unencrypted Amazon EBS volumes attached to running EC2 instances in one Region. A new policy requires all EBS data to be encrypted at rest with a customer managed AWS KMS key, including every volume that anyone creates in the future, with as little ongoing effort as possible. Which TWO actions meet these requirements? (Select TWO.)
+
+### Options
+- **A.** Call ModifyVolume on each existing volume with the encryption flag and the customer managed key, which encrypts the data in place without downtime.
+- **B.** Copy the AMIs that the instances were launched from with encryption enabled, so that the attached volumes become encrypted at the next reboot.
+- **C.** Turn on default encryption with the customer managed key for the S3 bucket that stores the account's EBS snapshots.
+- **D.** Turn on EBS encryption by default for the Region, with the customer managed key as the default key.
+- **E.** Snapshot each existing volume, create a new volume from the snapshot encrypted with the customer managed key, and swap it in for the original during a maintenance window.
+
+### Correct answers: D, E (choose 2)
+
+**Summary:** EBS: turn on encryption by default for everything new; encrypt existing volumes by snapshotting and creating an encrypted copy, since in-place encryption is impossible.
+
+### Explanation
+- A is wrong: ModifyVolume changes size, type and performance; an existing unencrypted volume cannot be encrypted in place.
+- B is wrong: encrypting an AMI affects only instances launched from it later; volumes that are already attached stay unencrypted.
+- C is wrong: EBS snapshots are not stored in a bucket you own, so there is no bucket setting that encrypts them.
+- D is correct: the account setting encrypts every new volume in the Region with that key, whoever creates it, with nothing else to enforce.
+- E is correct: encryption cannot be turned on for an existing volume, but a volume created from a snapshot can be encrypted, so each volume is replaced by an encrypted copy.
+
+**Key phrases:** 200 unencrypted Amazon EBS volumes · customer managed AWS KMS key · every volume that anyone creates in the future · TWO
+**Hint:** Existing volumes cannot be encrypted in place, and there is an account-level setting for everything created from now on.
+
+---
+
+## ALPHA-197: Security, Identity & Compliance
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
+**Services:** Certificate Manager, Elastic Load Balancing › ALB
+
+### Question
+A public web application runs on Amazon EC2 instances behind an Application Load Balancer that currently listens only on HTTP. The company must encrypt traffic between users and the load balancer with a free, publicly trusted certificate that renews automatically, and users who type an http:// address must be sent to the HTTPS site. Which solution meets these requirements with the LEAST operational effort?
+
+### Options
+- **A.** Buy a certificate from a commercial certificate authority, install it on every EC2 instance, and open port 443 on the instances' security group.
+- **B.** Generate a self-signed certificate, import it into AWS Certificate Manager, attach it to a new HTTPS listener, and leave the HTTP listener forwarding as it does today.
+- **C.** Put a Network Load Balancer with a TLS listener in front of the Application Load Balancer and keep the existing HTTP listener for users who do not use HTTPS.
+- **D.** Request a public certificate in AWS Certificate Manager, add an HTTPS listener that uses it, and make the HTTP listener redirect to HTTPS.
+
+### Correct answer: D
+
+**Summary:** HTTPS on an ALB: ACM public certificate on an HTTPS listener (free, auto-renewed) plus an HTTP listener rule that redirects to HTTPS.
+
+### Explanation
+- A is wrong: the certificate costs money, must be installed and renewed on every instance by hand, and nothing redirects HTTP.
+- B is wrong: browsers do not trust a self-signed certificate, ACM does not renew imported certificates, and HTTP users are never redirected.
+- C is wrong: it adds a second load balancer and still serves plain HTTP instead of redirecting it.
+- D is correct: ACM public certificates are free when used with integrated services such as load balancers and renew automatically, and a listener redirect action sends HTTP users to HTTPS.
+
+**Key phrases:** free, publicly trusted certificate that renews automatically · http:// address must be sent to the HTTPS site · LEAST operational effort
+**Hint:** The load balancer can terminate TLS with a certificate that AWS issues and renews, and a listener can answer with a redirect.
+
+---
+
+## ALPHA-198: Networking & Content Delivery
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** hard · **Pillars:** Security, Reliability
+**Services:** VPC › PrivateLink & interface endpoints, VPC › Gateway endpoints, Direct Connect
+
+### Question
+A company's data center connects to a VPC in us-east-1 through AWS Direct Connect with a private virtual interface. On-premises servers must upload data to Amazon S3 in us-east-1 over this private connection only, never across the internet, and the company does not want to run proxy servers. Amazon EC2 instances in the VPC already reach S3 through an S3 gateway endpoint. What should a solutions architect do?
+
+### Options
+- **A.** Add the data center's CIDR range to the gateway endpoint's route table entries and to its endpoint policy so that on-premises traffic can use it.
+- **B.** Create an S3 interface endpoint in the VPC and have the on-premises servers use its endpoint-specific DNS names.
+- **C.** Enable S3 Transfer Acceleration on the bucket and point the on-premises servers at the bucket's accelerated endpoint.
+- **D.** Run a fleet of EC2 proxy instances in the VPC behind a Network Load Balancer that forwards on-premises requests to the gateway endpoint.
+
+### Correct answer: B
+
+**Summary:** On premises to S3 privately over Direct Connect or VPN: use an S3 interface endpoint; gateway endpoints only serve traffic that starts inside the VPC.
+
+### Explanation
+- A is wrong: a gateway endpoint is reachable only from inside the VPC; traffic arriving over Direct Connect cannot be routed through it.
+- B is correct: an interface endpoint has private IP addresses in the VPC's subnets, which the data center reaches over the private virtual interface, so uploads never leave the private path.
+- C is wrong: Transfer Acceleration sends traffic over the internet to the nearest edge location, which the requirement forbids.
+- D is wrong: it would work, but it is exactly the proxy fleet the company does not want to run.
+
+**Key phrases:** private virtual interface · over this private connection only · does not want to run proxy servers · S3 gateway endpoint
+**Hint:** One S3 endpoint type is only a route-table target inside the VPC; the other has private IP addresses that anything routed to the VPC can reach.
+
+---
+
+## ALPHA-199: Monitoring, Management & Governance
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** CloudWatch › Alarms, EC2
+
+### Question
+A legacy licensing server runs on a single Amazon EC2 instance with an EBS root volume and cannot be clustered. If the underlying host hardware fails, the instance must come back automatically on healthy hardware with the same instance ID, private IP address and Elastic IP address. Which solution meets this requirement?
+
+### Options
+- **A.** Create an AMI of the instance every hour and have an operator launch a replacement from the latest AMI when the host fails.
+- **B.** Put the instance in an Auto Scaling group with a minimum, maximum and desired capacity of 1.
+- **C.** Create an Amazon CloudWatch alarm on the StatusCheckFailed_System metric that triggers the EC2 recover action.
+- **D.** Create an Amazon CloudWatch alarm on CPUUtilization that reboots the instance when the metric drops to zero for five minutes.
+
+### Correct answer: C
+
+**Summary:** Single-instance hardware failure: a CloudWatch alarm on StatusCheckFailed_System with the recover action keeps the instance ID, IPs and EBS volumes.
+
+### Explanation
+- A is wrong: a launch from an AMI is a new instance with a new ID and private IP address, and it is neither automatic nor current.
+- B is wrong: Auto Scaling replaces a failed instance with a new one, which has a new instance ID and private IP address.
+- C is correct: the recover action moves the same instance to healthy hardware and keeps its instance ID, private IP addresses, Elastic IP address and EBS volumes.
+- D is wrong: a reboot runs on the same failed host, and CPU utilization is not a reliable sign of a hardware failure.
+
+**Key phrases:** cannot be clustered · underlying host hardware fails · same instance ID, private IP address and Elastic IP address
+**Hint:** One EC2 action moves the same instance to new hardware rather than launching a different one.
+
+---
+
+## ALPHA-200: Compute & Serverless
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** hard · **Pillars:** Reliability
+**Services:** Lambda › Event sources, S3 › Event notifications, SQS
+
+### Question
+Partners upload invoices to an Amazon S3 bucket. Each upload must be processed by an AWS Lambda function that calls an ERP API, which accepts at most 10 concurrent requests and is sometimes unavailable for up to an hour. No upload may be skipped, and the company wants to avoid custom polling code. Which design meets these requirements?
+
+### Options
+- **A.** Schedule the function every 5 minutes with Amazon EventBridge to list the bucket and process objects it has not seen, tracking them in a DynamoDB table.
+- **B.** Have S3 event notifications invoke the function directly and set the function's reserved concurrency to 10.
+- **C.** Send S3 event notifications to an Amazon SNS topic with the function subscribed, and raise the function timeout to 15 minutes so that each call can wait for the ERP API.
+- **D.** Send S3 event notifications to an SQS queue with a dead-letter queue, and consume it with a Lambda event source mapping whose maximum concurrency is 10.
+
+### Correct answer: D
+
+**Summary:** S3 → SQS → Lambda: the queue buffers events through outages, the event source mapping's maximum concurrency protects the downstream API, and a DLQ catches poison messages.
+
+### Explanation
+- A is wrong: this is the custom polling and state tracking the company wants to avoid.
+- B is wrong: S3 invokes Lambda asynchronously, and a failing event is retried only twice, so an hour-long ERP outage would drop uploads.
+- C is wrong: SNS also invokes Lambda asynchronously with limited retries and no concurrency cap of 10, and a 15-minute wait cannot ride out an hour-long outage.
+- D is correct: the queue holds every event durably while the API is down, failed messages return after the visibility timeout and are retried, maximum concurrency keeps calls at 10, and the dead-letter queue keeps any message that still fails.
+
+**Key phrases:** at most 10 concurrent requests · unavailable for up to an hour · No upload may be skipped · avoid custom polling code
+**Hint:** Put a durable buffer between S3 and the function, and let the trigger limit how many copies of the function run at once.
+
+---
+
+## ALPHA-201: Compute & Serverless
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** Lambda › Limits, Fargate, EventBridge › Scheduler
+
+### Question
+A nightly report job runs as an AWS Lambda function. As the data has grown, the job now takes about 45 minutes and fails every night. The job can be packaged as a container, needs 8 GB of memory, and must start at 01:00 each night. The company does not want to manage any servers. Which solution meets these requirements?
+
+### Options
+- **A.** Run the container as an Amazon ECS task on AWS Fargate, started at 01:00 by an Amazon EventBridge Scheduler schedule.
+- **B.** Raise the function timeout to 60 minutes so that the job has room to finish.
+- **C.** Raise the function memory to the 10,240 MB maximum so that the extra CPU brings the job under the 15-minute limit.
+- **D.** Launch an Amazon EC2 instance each night from a scheduled script, run the job from the instance's user data, and terminate the instance afterwards.
+
+### Correct answer: A
+
+**Summary:** Jobs longer than Lambda's 15-minute limit: run them as ECS tasks on Fargate (or AWS Batch), triggered on a schedule by EventBridge.
+
+### Explanation
+- A is correct: Fargate runs the container without servers and without a time limit, supports 8 GB of memory, and EventBridge Scheduler starts the task on time each night.
+- B is wrong: the maximum Lambda timeout is 15 minutes, so the job still cannot finish in one invocation.
+- C is wrong: more memory adds CPU, but nothing guarantees that a 45-minute job falls below 15 minutes, and the job will keep growing.
+- D is wrong: this brings back server images to build, patch and troubleshoot, which the company wants to avoid.
+
+**Key phrases:** about 45 minutes · packaged as a container · start at 01:00 each night · does not want to manage any servers
+**Hint:** Lambda has a hard per-invocation time limit. Which serverless option runs a container for as long as it needs?
+
+---
+
+## ALPHA-202: Databases & Caching
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Reliability
+**Services:** RDS › Multi-AZ, RDS › Read replicas
+
+### Question
+An Amazon RDS for PostgreSQL database runs as a Single-AZ DB instance. The business requires that the database survive the failure of its Availability Zone with automatic failover, no loss of committed transactions, and no change to the application's connection string. Which solution meets these requirements?
+
+### Options
+- **A.** Create a read replica in another Availability Zone and promote it if the primary fails.
+- **B.** Convert the DB instance to a Multi-AZ deployment.
+- **C.** Keep automated backups and restore the latest backup into another Availability Zone if the primary's zone fails.
+- **D.** Place an Amazon RDS Proxy in front of the DB instance so that it redirects connections automatically when the instance fails.
+
+### Correct answer: B
+
+**Summary:** High availability within a Region: RDS Multi-AZ (synchronous standby, automatic failover, same endpoint); read replicas are for scaling reads.
+
+### Explanation
+- A is wrong: replication to a read replica is asynchronous, so recent commits can be lost, promotion is a manual step, and the replica has its own endpoint.
+- B is correct: Multi-AZ keeps a synchronously replicated standby in another Availability Zone and fails over automatically by pointing the same DNS endpoint at it.
+- C is wrong: a restore takes time, creates a new endpoint and loses changes made after the last uploaded transaction log.
+- D is wrong: a proxy pools connections, but with a Single-AZ instance there is no standby for it to fail over to.
+
+**Key phrases:** Single-AZ DB instance · automatic failover · no loss of committed transactions · no change to the application's connection string
+**Hint:** Which RDS feature replicates synchronously to a standby and fails over behind the same endpoint?
+
+---
+
+## ALPHA-203: Compute & Serverless
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
+**Services:** EC2 Auto Scaling, Elastic Load Balancing › ALB
+
+### Question
+A web application runs on Amazon EC2 instances in an Auto Scaling group behind an Application Load Balancer. Occasionally the application process on an instance hangs. The instance keeps passing its EC2 status checks, and the load balancer marks it unhealthy and stops sending it traffic, but the instance keeps running, so the group serves with less capacity until someone terminates it by hand. What should a solutions architect do?
+
+### Options
+- **A.** Shorten the load balancer's health check interval and lower its unhealthy threshold so that hung instances are detected sooner.
+- **B.** Add a CloudWatch alarm on CPU utilization and a step scaling policy that launches extra instances when CPU rises across the group.
+- **C.** Turn on Elastic Load Balancing health checks for the Auto Scaling group.
+- **D.** Turn on cross-zone load balancing and connection draining on the load balancer so that traffic moves away from the hung instance faster.
+
+### Correct answer: C
+
+**Summary:** Set the Auto Scaling group's health check type to include ELB so instances the load balancer marks unhealthy are replaced, not just skipped.
+
+### Explanation
+- A is wrong: faster detection only removes the instance from the load balancer sooner; the group still relies on EC2 status checks and never replaces it.
+- B is wrong: extra instances make up for lost capacity but leave the hung instances running and costing money.
+- C is correct: with ELB health checks the group treats an instance that fails the load balancer's check as unhealthy and replaces it automatically.
+- D is wrong: these change how traffic is spread and drained; neither one replaces the hung instance.
+
+**Key phrases:** application process on an instance hangs · passing its EC2 status checks · until someone terminates it by hand
+**Hint:** The load balancer already knows the instance is broken. How does the Auto Scaling group learn that too?
+
+---
+
+## ALPHA-204: Compute & Serverless
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
+**Services:** EC2 Auto Scaling › Target tracking, Elastic Load Balancing › ALB
+
+### Question
+A stateless web API runs on Amazon EC2 instances in an Auto Scaling group behind an Application Load Balancer. The workload is I/O-bound: CPU stays below 30% even when response times climb, and load tests show that each instance serves about 1,000 requests per minute before latency rises. Traffic peaks at unpredictable times. The current target tracking policy on 50% average CPU never scales out. What should a solutions architect do?
+
+### Options
+- **A.** Move the group to an instance type with twice as many vCPUs so that each instance can handle more requests before latency rises.
+- **B.** Lower the CPU target of the existing target tracking policy to 15% so that the group scales out earlier.
+- **C.** Replace the policy with scheduled actions that add instances during business hours and remove them at night.
+- **D.** Use a target tracking policy on the ALBRequestCountPerTarget metric with a target a little below 1,000 requests per instance.
+
+### Correct answer: D
+
+**Summary:** Scale on the metric that limits the workload: for request-bound web tiers, target tracking on ALBRequestCountPerTarget instead of CPU.
+
+### Explanation
+- A is wrong: CPU is not the bottleneck, so more vCPUs cost more without raising the request capacity.
+- B is wrong: CPU does not follow this workload's load, so a lower target scales erratically and adds idle capacity.
+- C is wrong: the peaks are unpredictable, so a fixed schedule misses them.
+- D is correct: request count per target measures exactly what limits each instance here, so target tracking adds and removes instances to keep each one below its tested capacity.
+
+**Key phrases:** I/O-bound · CPU stays below 30% · about 1,000 requests per minute · unpredictable times
+**Hint:** Scale on the metric that actually tracks how busy each instance is for this workload.
+
+---
+
+## ALPHA-205: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** OpenSearch Service, DynamoDB › Streams
+
+### Question
+An online retailer stores 20 million products in an Amazon DynamoDB table. Customers now need a search box with full-text search, relevance ranking, typo tolerance and filtering by facets across product names and descriptions. Search results must reflect product changes within seconds, and the company wants to use managed services only. Which TWO actions meet these requirements? (Select TWO.)
+
+### Options
+- **A.** Create an Amazon OpenSearch Service domain and serve the search box's queries from its index.
+- **B.** Enable DynamoDB Streams on the table and have an AWS Lambda function index every change into the OpenSearch Service domain.
+- **C.** Add a global secondary index on the product name attribute and query it with a begins_with condition on the search text.
+- **D.** Run a Scan with a contains() filter expression on the description attribute for each search and sort the results in the application.
+- **E.** Export the table to Amazon S3 every night and search the export with Amazon Athena LIKE queries.
+
+### Correct answers: A, B (choose 2)
+
+**Summary:** Full-text search over DynamoDB data: index it in OpenSearch Service and keep the index current through DynamoDB Streams (or the zero-ETL integration).
+
+### Explanation
+- A is correct: OpenSearch is a managed search engine with full-text queries, relevance scoring, fuzzy matching and facets.
+- B is correct: the stream delivers each change within seconds, so the index follows the table; the managed DynamoDB zero-ETL integration with OpenSearch Service does the same without the function.
+- C is wrong: a key condition matches prefixes only, with no relevance ranking, typo tolerance or search inside descriptions.
+- D is wrong: each search reads the whole table, which is slow and expensive, and it still has no ranking or typo tolerance.
+- E is wrong: the results would be up to a day old, and LIKE queries offer no relevance ranking.
+
+**Key phrases:** full-text search, relevance ranking, typo tolerance · within seconds · managed services only · TWO
+**Hint:** DynamoDB is a key-value store, so search needs a search engine that DynamoDB keeps up to date.
+
+---
+
+## ALPHA-206: Databases & Caching
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** DynamoDB › Partition design
+
+### Question
+A company stores IoT telemetry in an Amazon DynamoDB table in on-demand capacity mode. The partition key is the reading date (for example 2026-10-07) and the sort key is a timestamp. Thousands of devices write every second, and writes are throttled even though the table is far below its account limits. Queries always read one device's readings over a time range. Which change resolves the throttling and still serves the queries efficiently?
+
+### Options
+- **A.** Use the device ID as the partition key and the timestamp as the sort key in a new table, and migrate the data to it.
+- **B.** Switch the table to provisioned capacity mode with enough write capacity units for the peak.
+- **C.** Put a DynamoDB Accelerator (DAX) cluster in front of the table.
+- **D.** Add a global secondary index with the device ID as its partition key and the timestamp as its sort key, and send the device queries to the index.
+
+### Correct answer: A
+
+**Summary:** Pick a high-cardinality partition key that matches the access pattern (device ID + timestamp sort key); a date or status key turns into one hot partition.
+
+### Explanation
+- A is correct: thousands of device IDs spread writes across many partitions, and each device's readings sit together, sorted by time, for range queries.
+- B is wrong: table capacity does not lift the per-partition limit, and every write still targets the same date key.
+- C is wrong: DAX caches reads; writes still go to the hot partition.
+- D is wrong: the index serves the query, but writes to the base table still all hit the date key and stay throttled.
+
+**Key phrases:** partition key is the reading date · Thousands of devices write every second · far below its account limits · one device's readings over a time range
+**Hint:** Every write today lands on the same key value. What would spread writes across many keys while matching how the data is read?
+
+---
+
+## ALPHA-207: Application Integration
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
+**Services:** API Gateway › Caching
+
+### Question
+A REST API in Amazon API Gateway returns the product catalog through GET /products, backed by AWS Lambda functions that query Amazon RDS. The catalog changes about once an hour, the same responses are requested thousands of times per minute, and the database is overloaded. The company wants to reduce database load and response latency with the fewest code changes. What should a solutions architect do?
+
+### Options
+- **A.** Raise the Lambda functions' reserved concurrency so that more queries can run against the database at the same time.
+- **B.** Enable API Gateway caching on the stage with a time to live of a few minutes.
+- **C.** Add Amazon RDS read replicas and change the Lambda code to send catalog queries to the replica endpoint.
+- **D.** Set API Gateway throttling to 100 requests per second for the stage so that the database is protected.
+
+### Correct answer: B
+
+**Summary:** Repeated identical GET responses on a REST API: enable API Gateway stage caching with a TTL that matches how often the data changes.
+
+### Explanation
+- A is wrong: more concurrent queries add to the database overload instead of removing it.
+- B is correct: repeated GET requests are answered from the stage cache, so Lambda and the database see a small fraction of the traffic, latency falls, and no code changes.
+- C is wrong: replicas spread the load but add database instances and require code changes, while the same queries still run thousands of times a minute.
+- D is wrong: throttling rejects requests with 429 errors instead of serving them faster.
+
+**Key phrases:** changes about once an hour · thousands of times per minute · fewest code changes
+**Hint:** The same response is requested again and again. Where can API Gateway itself keep it?
+
+---
+
+## ALPHA-208: Analytics & Data Processing
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** Kinesis Data Streams
+
+### Question
+A fleet of 50,000 delivery vehicles sends GPS updates to an Amazon Kinesis data stream in provisioned mode with 20 shards. The producers use the vehicle's region code as the partition key, and there are only five region codes. Producers receive ProvisionedThroughputExceededException errors even though the stream's total write rate is well below the capacity of 20 shards. Updates from each vehicle must stay in order. What should a solutions architect do?
+
+### Options
+- **A.** Increase the stream's data retention period to 7 days.
+- **B.** Double the stream to 40 shards so that each shard receives half as much data.
+- **C.** Use the vehicle ID as the partition key.
+- **D.** Register the consumers for enhanced fan-out so that each receives its own read throughput.
+
+### Correct answer: C
+
+**Summary:** Kinesis hot shards come from low-cardinality partition keys; use a high-cardinality key (vehicle ID) that still keeps the needed ordering.
+
+### Explanation
+- A is wrong: retention controls how long records are kept, not how fast they can be written.
+- B is wrong: with five key values, at most five shards receive data no matter how many shards exist.
+- C is correct: 50,000 distinct keys spread the writes across all shards, and each vehicle's updates still go to one shard in order.
+- D is wrong: enhanced fan-out raises read throughput; the errors come from writes.
+
+**Key phrases:** region code as the partition key · only five region codes · well below the capacity of 20 shards · must stay in order
+**Hint:** The partition key decides which shard each record goes to. How many shards can five key values reach?
+
+---
+
+## ALPHA-209: Networking & Content Delivery
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Services:** CloudFront › Caching, CloudFront › Origin access control
+
+### Question
+A website on www.example.com is served through one Amazon CloudFront distribution whose only origin is an Application Load Balancer, with caching disabled. The load balancer serves both a personalized API under /api/* and static images, scripts and stylesheets, which are also stored in an Amazon S3 bucket. Static files load slowly for distant users, API responses must never be cached, and everything must stay on the same domain. Which configuration should a solutions architect use?
+
+### Options
+- **A.** Add the S3 bucket as a second origin with OAC and a /static/* cache behavior with a long TTL, keeping the default behavior on the load balancer uncached.
+- **B.** Enable caching with a 24-hour TTL on the distribution's default cache behavior so that every response is served from the edge.
+- **C.** Create a second CloudFront distribution for the static files on static.example.com with a long TTL, and update every page to load its images, scripts and stylesheets from it.
+- **D.** Enable CloudFront Origin Shield for the load balancer origin so that fewer requests for static files reach it.
+
+### Correct answer: A
+
+**Summary:** Mixed static and dynamic content: one CloudFront distribution with cache behaviors per path pattern, cached S3 origin for static files and an uncached ALB origin for the API.
+
+### Explanation
+- A is correct: path-based cache behaviors let static files be cached at the edge from S3 while API requests keep going uncached to the load balancer, all on one domain.
+- B is wrong: the default behavior also carries the personalized API, so users would receive other users' cached responses.
+- C is wrong: it moves the files to a different domain, which the requirement rules out, and adds a distribution and certificate to manage.
+- D is wrong: with caching disabled nothing is stored, so Origin Shield has nothing to serve.
+
+**Key phrases:** caching disabled · API responses must never be cached · stay on the same domain
+**Hint:** One distribution can send different paths to different origins, each with its own caching rules.
+
+---
+
+## ALPHA-210: Storage & Backup
+**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Services:** S3 › Performance & Transfer Acceleration
+
+### Question
+An analytics application on Amazon EC2 uploads 20 GB result files to an Amazon S3 bucket in the same Region and later downloads them again. Uploads are slow, and a single network error forces the whole upload to restart. Downloads also take too long and use only a fraction of the instance's network bandwidth. Which TWO changes will improve upload and download performance? (Select TWO.)
+
+### Options
+- **A.** Enable S3 Versioning on the bucket so that an interrupted upload resumes from the last stored version.
+- **B.** Upload each file with multipart upload, sending parts in parallel and retrying only the parts that fail.
+- **C.** Download each file with several byte-range GET requests that run in parallel.
+- **D.** Enable S3 Transfer Acceleration on the bucket and use the accelerated endpoint from the instance.
+- **E.** Upload each file with a single PUT request and raise the operating system's TCP window size.
+
+### Correct answers: B, C (choose 2)
+
+**Summary:** Large S3 objects: multipart upload for parallel, resumable uploads (required above 5 GB) and parallel byte-range GETs for faster downloads.
+
+### Explanation
+- A is wrong: versioning keeps copies of completed objects; it does not resume interrupted uploads.
+- B is correct: parallel parts use more of the bandwidth, and a network error costs one part instead of the whole file.
+- C is correct: parallel ranged GETs open several connections to S3, so the download uses much more of the instance's bandwidth.
+- D is wrong: acceleration helps long-distance transfers through edge locations; an instance in the same Region gains nothing and pays extra.
+- E is wrong: a single PUT is limited to 5 GB, so a 20 GB file cannot be uploaded that way at all.
+
+**Key phrases:** 20 GB result files · same Region · forces the whole upload to restart · only a fraction of the instance's network bandwidth · TWO
+**Hint:** Both directions benefit from splitting one large transfer into many smaller ones that run in parallel.
+
+---
+
+## ALPHA-211: Networking & Content Delivery
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Services:** VPC › Subnets & routing, VPC › Internet gateways
+
+### Question
+A solutions architect launches an Amazon EC2 web server in a new subnet of a custom VPC. An internet gateway is attached to the VPC, the subnet uses the VPC's default network ACL, and the instance's security group allows inbound HTTP from anywhere. The web server cannot be reached from the internet. The subnet's route table contains only the local route, and the instance has only a private IPv4 address. Which TWO actions are required? (Select TWO.)
+
+### Options
+- **A.** Create a NAT gateway in the subnet and route 0.0.0.0/0 to it.
+- **B.** Add an inbound rule for port 80 to the subnet's network ACL.
+- **C.** Attach a second internet gateway to the VPC for inbound traffic.
+- **D.** Add a route for 0.0.0.0/0 that targets the internet gateway to the subnet's route table.
+- **E.** Associate an Elastic IP address with the instance.
+
+### Correct answers: D, E (choose 2)
+
+**Summary:** Reachable from the internet = a route to an internet gateway in the subnet's route table + a public or Elastic IP address + security group and NACL rules that allow it.
+
+### Explanation
+- A is wrong: a NAT gateway lets private instances start outbound connections; it never accepts connections from the internet.
+- B is wrong: the default network ACL already allows all inbound and outbound traffic.
+- C is wrong: a VPC can have only one internet gateway, and the existing one is already attached.
+- D is correct: without a default route to the internet gateway the subnet is private, so no traffic from the internet can reach it.
+- E is correct: the internet gateway maps a public address to the instance's private one; an instance with only a private address cannot be reached.
+
+**Key phrases:** only the local route · only a private IPv4 address · default network ACL · TWO
+**Hint:** A public subnet needs a route to the internet gateway, and the instance needs an address that the internet can reach.
+
+---
+
+## ALPHA-212: Storage & Backup
+**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** easy · **Pillars:** Cost Optimization
+**Services:** S3 › Storage classes
+
+### Question
+A video platform stores master files in S3 Standard and generates lower-resolution renditions from them, each several hundred megabytes. After the first week, a rendition is read only a few times a month, but it must then load in milliseconds. If a rendition is lost, it can be regenerated from its master file. Which storage class is the MOST cost-effective for the renditions after their first week?
+
+### Options
+- **A.** S3 Standard-Infrequent Access, which stores every rendition redundantly across several Availability Zones
+- **B.** S3 Standard, so that frequent reads in the first week and later reads cost the same per request
+- **C.** S3 Glacier Flexible Retrieval, with expedited retrievals whenever a viewer opens a rendition
+- **D.** S3 One Zone-Infrequent Access
+
+### Correct answer: D
+
+**Summary:** Infrequently read data that can be recreated (thumbnails, renditions, secondary copies): S3 One Zone-IA, the cheapest millisecond-access IA class.
+
+### Explanation
+- A is wrong: it meets the access needs but pays for multi-AZ resilience that regenerable renditions do not need.
+- B is wrong: Standard costs more per GB than the infrequent-access classes for data read only a few times a month.
+- C is wrong: Flexible Retrieval needs a restore before reading, and even expedited retrievals take minutes, not milliseconds.
+- D is correct: One Zone-IA costs about 20% less than Standard-IA with the same millisecond access, and its single-zone storage is acceptable for data that can be regenerated.
+
+**Key phrases:** read only a few times a month · load in milliseconds · can be regenerated · MOST cost-effective
+**Hint:** The renditions are infrequently read and can be recreated, so they do not need copies in several Availability Zones.
+
+---
+
+## ALPHA-213: Storage & Backup
+**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization, Reliability
+**Services:** S3 › Glacier & retrieval
+
+### Question
+A broadcaster archives 2 PB of video footage in S3 Glacier Flexible Retrieval. A few times a year, editors need one specific clip within 5 minutes for breaking news, and these urgent requests must not fail because AWS is short of retrieval capacity at a busy time. The rest of the archive must stay as cheap as possible. What should a solutions architect do?
+
+### Options
+- **A.** Move the whole archive to S3 Standard-IA so that every clip can be read in milliseconds.
+- **B.** Use expedited retrievals for the urgent clips and purchase provisioned retrieval capacity.
+- **C.** Use standard retrievals for the urgent clips and start them as soon as an editor asks.
+- **D.** Use bulk retrievals for the urgent clips, because bulk retrievals from Flexible Retrieval are free.
+
+### Correct answer: B
+
+**Summary:** Glacier Flexible Retrieval in minutes: expedited retrievals, plus provisioned retrieval capacity when urgent requests must always be accepted.
+
+### Explanation
+- A is wrong: keeping 2 PB in Standard-IA costs several times more than Flexible Retrieval for the sake of a few clips a year.
+- B is correct: expedited retrievals usually return data in 1 to 5 minutes, and provisioned capacity guarantees that expedited requests are accepted even when demand is high.
+- C is wrong: standard retrievals take about 3 to 5 hours, far beyond the 5-minute window.
+- D is wrong: bulk retrievals take about 5 to 12 hours, so they cannot meet the deadline.
+
+**Key phrases:** 2 PB · within 5 minutes · must not fail because AWS is short of retrieval capacity · as cheap as possible
+**Hint:** Flexible Retrieval has a retrieval option that takes minutes, and a way to guarantee capacity for it.
+
+---
+
+## ALPHA-214: Databases & Caching
+**Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** hard · **Pillars:** Cost Optimization
+**Services:** DynamoDB › Capacity modes
+
+### Question
+An Amazon DynamoDB table in on-demand capacity mode serves an internal application whose traffic is smooth and predictable: every day it ramps gradually from a low overnight level to about three times that at midday, and it has followed this pattern for a year and will for at least another year. Which TWO actions will reduce the table's cost the MOST without causing throttling? (Select TWO.)
+
+### Options
+- **A.** Switch the table to provisioned capacity mode with auto scaling between the overnight level and the midday peak.
+- **B.** Purchase DynamoDB reserved capacity for the baseline that is provisioned around the clock.
+- **C.** Put a DynamoDB Accelerator (DAX) cluster in front of the table so that most requests no longer reach DynamoDB.
+- **D.** Change the table class to DynamoDB Standard-Infrequent Access to lower the price of every request.
+- **E.** Convert the table to a global table so that traffic is shared between two Regions.
+
+### Correct answers: A, B (choose 2)
+
+**Summary:** Predictable DynamoDB traffic: provisioned capacity with auto scaling, plus reserved capacity for the always-on baseline; on-demand suits spiky or unknown traffic.
+
+### Explanation
+- A is correct: for steady, gradual traffic provisioned capacity that auto scaling keeps close to demand costs considerably less than paying per request.
+- B is correct: reserved capacity discounts provisioned throughput that is always in use, which the overnight baseline is.
+- C is wrong: DAX only absorbs repeated reads, adds a cluster to pay for, and does nothing for writes.
+- D is wrong: Standard-IA lowers storage prices but charges more per request, so a throughput-heavy table costs more.
+- E is wrong: every write is replicated to each Region and billed there, which raises the cost.
+
+**Key phrases:** smooth and predictable · ramps gradually · at least another year · TWO
+**Hint:** On-demand is priced for unpredictable traffic. What fits steady, gradual patterns, and how can the always-present part be discounted further?
+
+---
+
+## ALPHA-215: Databases & Caching
+**Exam domain:** 4 · **Task:** 4.3 · **Difficulty:** easy · **Pillars:** Cost Optimization, Operational Excellence
+**Services:** DynamoDB › TTL
+
+### Question
+An application writes user session records to an Amazon DynamoDB table. Each session is useless 24 hours after its last update, but the table now holds billions of items because nothing removes old sessions. The company wants expired sessions deleted automatically without consuming write capacity and without running any jobs. What should a solutions architect do?
+
+### Options
+- **A.** Store an expiry timestamp on each item and enable DynamoDB Time to Live (TTL) on that attribute.
+- **B.** Schedule an AWS Lambda function every hour that scans the table and deletes sessions older than 24 hours in batches.
+- **C.** Write each day's sessions to a new table and have a scheduled job delete the table from two days earlier.
+- **D.** Change the table class to DynamoDB Standard-Infrequent Access so that the old sessions cost less to store.
+
+### Correct answer: A
+
+**Summary:** Expiring data in DynamoDB: an epoch-time attribute plus TTL deletes items for free in the background, without consuming write capacity.
+
+### Explanation
+- A is correct: TTL deletes expired items in the background at no charge and without using the table's write capacity.
+- B is wrong: the scans and deletes consume read and write capacity, and the function is a job to run and maintain.
+- C is wrong: it needs application changes and a scheduled job, which the company wants to avoid.
+- D is wrong: a cheaper storage price still keeps billions of useless items; nothing is removed.
+
+**Key phrases:** useless 24 hours after its last update · without consuming write capacity · without running any jobs
+**Hint:** DynamoDB can delete items in the background once a timestamp attribute on them has passed.
+
+---
+
+## ALPHA-216: Networking & Content Delivery
+**Exam domain:** 4 · **Task:** 4.4 · **Difficulty:** medium · **Pillars:** Cost Optimization, Reliability
+**Services:** VPC › NAT gateways, Data transfer pricing
+
+### Question
+Private subnets in three Availability Zones all send internet-bound traffic through a single NAT gateway in AZ-a. The bill shows large cross-AZ data transfer charges for outbound traffic from AZ-b and AZ-c, and when AZ-a was impaired, instances in the other two zones lost internet access. Which TWO actions fix both problems? (Select TWO.)
+
+### Options
+- **A.** Route the private subnets' 0.0.0.0/0 traffic straight to the internet gateway.
+- **B.** Create a NAT gateway in a public subnet in each Availability Zone.
+- **C.** Give each zone's private subnets a route table whose default route targets the NAT gateway in the same zone.
+- **D.** Replace the NAT gateway with a larger NAT instance in AZ-a.
+- **E.** Add a second NAT gateway in AZ-a and split the private subnets' routes between the two.
+
+### Correct answers: B, C (choose 2)
+
+**Summary:** One NAT gateway per AZ with per-AZ route tables: zone-independent egress and no cross-AZ data processing charges.
+
+### Explanation
+- A is wrong: instances without public addresses cannot use an internet gateway, and making them public removes the private design.
+- B is correct: each zone gets its own NAT gateway, so losing one zone no longer cuts the others off.
+- C is correct: traffic then stays in its own zone, which removes the cross-AZ charge and the dependency on AZ-a.
+- D is wrong: it is still a single point in one zone, still causes cross-AZ traffic, and adds an instance to manage.
+- E is wrong: both gateways share AZ-a's fate, and traffic from the other zones still crosses zones.
+
+**Key phrases:** single NAT gateway in AZ-a · cross-AZ data transfer charges · lost internet access · TWO
+**Hint:** Keep each zone's outbound traffic inside that zone.
+
+---
+
+## ALPHA-217: Storage & Backup
+**Exam domain:** 4 · **Task:** 4.1 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Services:** EBS › Snapshots
+
+### Question
+Compliance rules require a company to keep a monthly snapshot of each of its 300 Amazon EBS volumes for 7 years. These snapshots are almost never restored, and a restore that takes up to 72 hours is acceptable. Daily snapshots, kept for 14 days, are used for everyday recovery and must restore quickly. The snapshot storage bill keeps growing. Which solution reduces cost the MOST while meeting the requirements?
+
+### Options
+- **A.** Enable fast snapshot restore on the monthly snapshots so that the rare restores are quick.
+- **B.** Delete the daily snapshots after one day and keep only the monthly snapshots in the standard tier.
+- **C.** Keep daily snapshots in the standard tier for 14 days, and move the monthly snapshots to the EBS Snapshots Archive tier for 7 years.
+- **D.** Copy the monthly snapshots into an Amazon S3 bucket in the same Region and add a lifecycle rule that moves them to S3 Glacier Deep Archive after one day.
+
+### Correct answer: C
+
+**Summary:** Long-retention, rarely restored EBS snapshots: EBS Snapshots Archive tier (up to 75% cheaper, 24-72 hour restore, 90-day minimum).
+
+### Explanation
+- A is wrong: fast snapshot restore is billed per hour per Availability Zone, so it raises cost for snapshots that are almost never used.
+- B is wrong: it breaks everyday recovery and leaves the 7-year snapshots in the expensive tier.
+- C is correct: the archive tier costs up to 75% less for long-retention snapshots, its 24 to 72 hour restore fits the requirement, and the daily snapshots stay instantly usable; Data Lifecycle Manager or AWS Backup can automate both.
+- D is wrong: EBS snapshots cannot be copied into a bucket you own or given an S3 storage class.
+
+**Key phrases:** monthly snapshot · 7 years · up to 72 hours is acceptable · must restore quickly
+**Hint:** EBS has a lower-cost storage tier for snapshots that are kept for a long time and rarely restored.
+
+---
+
+## ALPHA-218: Compute & Serverless
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Sustainability
+**Services:** EC2 Auto Scaling › Scheduled & predictive scaling
+
+### Question
+A company's development and test environments run on Amazon EC2 instances in Auto Scaling groups behind Application Load Balancers, 24 hours a day. Developers use them only from 08:00 to 18:00 on weekdays. The company wants to cut the compute cost of these environments with minimal effort and without affecting working hours. What should a solutions architect do?
+
+### Options
+- **A.** Move the environments to Dedicated Hosts and consolidate them onto fewer physical servers.
+- **B.** Switch the groups to larger instance types so that fewer instances are needed during the day.
+- **C.** Purchase 3-year Standard Reserved Instances for the instance types the environments use, so that every hour they run costs up to 72% less.
+- **D.** Add scheduled actions that set each Auto Scaling group's capacity to zero at 18:00 on weekdays and restore it at 08:00.
+
+### Correct answer: D
+
+**Summary:** Environments used on a fixed schedule: scheduled scaling actions (or Instance Scheduler) to scale to zero outside working hours.
+
+### Explanation
+- A is wrong: Dedicated Hosts cost more and still run around the clock.
+- B is wrong: it changes the instance mix, not the 118 idle hours a week that are being paid for.
+- C is wrong: a reservation is billed for every hour, including the roughly 70% of the week when nobody uses the environments.
+- D is correct: instances run only during the 50 working hours a week, so roughly 70% of the compute hours disappear without any change for developers.
+
+**Key phrases:** 24 hours a day · only from 08:00 to 18:00 on weekdays · minimal effort
+**Hint:** The usage follows the clock exactly, and Auto Scaling can change capacity on a schedule.

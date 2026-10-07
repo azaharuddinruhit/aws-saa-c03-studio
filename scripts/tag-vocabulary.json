@@ -30,8 +30,7 @@
         { "name": "Inspector", "features": [] },
         { "name": "Macie", "features": [] },
         { "name": "Detective", "features": [] },
-        { "name": "Security Hub", "features": [] },
-        { "name": "Verified Access", "features": [] }
+        { "name": "Security Hub", "features": [] }
       ]
     },
     {
@@ -138,7 +137,6 @@
         { "name": "Trusted Advisor", "features": [] },
         { "name": "Health Dashboard", "features": [] },
         { "name": "X-Ray", "features": [] },
-        { "name": "Managed Grafana", "features": [] },
         { "name": "Service Quotas", "features": [] }
       ]
     },
