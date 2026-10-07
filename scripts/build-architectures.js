@@ -1427,7 +1427,7 @@ function add(groupId, spec) {
 
 // ---- Migrating to AWS (after disaster recovery strategies)
 {
-  const d = diagram('d-mig', 960, 432, 'On-premises servers, an Oracle database, file shares and a large archive move to AWS with four tools. Application Migration Service replicates whole servers continuously and launches them as EC2 instances. DMS, with the Schema Conversion Tool, copies the database to Aurora PostgreSQL and keeps it in sync until cutover. DataSync copies file shares to S3, EFS or FSx. Snowball Edge devices ship the archive to S3 offline. Migration Hub tracks progress.');
+  const d = diagram('d-mig', 960, 432, 'On-premises servers, an Oracle database, file shares and a large archive move to AWS with four tools. Application Migration Service replicates whole servers continuously and launches them as EC2 instances. DMS, with the Schema Conversion Tool, copies the database to Aurora PostgreSQL and keeps it in sync until cutover. DataSync copies file shares to S3, EFS or FSx. Snowball Edge devices ship the archive to S3 offline. AWS Transform plans the waves and tracks progress.');
   d.zone(20, 20, 270, 380, { kind: 'onprem', label: 'Data center' });
   d.zone(670, 20, 270, 380, { kind: 'region', label: 'AWS Region' });
   const rows = [
@@ -1444,7 +1444,7 @@ function add(groupId, spec) {
     d.edge([R(a), L(t)], 'data');
     d.edge([R(t), L(z)], i === 3 ? 'alt' : 'in', i === 3 ? { label: 'by courier', lx: 638, ly: y + 20 } : {});
   });
-  d.label(480, 422, 'Migration Hub tracks every server and database through the move', { cls: 'd-lbl' });
+  d.label(480, 422, 'AWS Transform discovers the servers, plans the waves and tracks the move', { cls: 'd-lbl' });
   add('g-dr', {
     id: 'migration', title: 'Migrating to AWS',
     takeaway: 'Servers → Application Migration Service; databases → DMS (with SCT for a new engine); files → DataSync; more than the link can carry → Snowball.',
@@ -1470,12 +1470,13 @@ function add(groupId, spec) {
         ['SQL Server apps onto Aurora PostgreSQL with few code changes', 'Babelfish for Aurora PostgreSQL', 'Understands T-SQL'],
         ['Files, online, once or on a schedule', 'DataSync', 'To S3, EFS or FSx, with verification'],
         ['Tens of TB to PB, network too slow', 'Snowball Edge', 'Order several devices in parallel'],
-        ['Discover servers and plan', 'Application Discovery Service, Migration Hub', 'Inventory, dependencies, tracking']
+        ['Discover servers and plan', 'AWS Transform', 'Inventory, dependencies, migration waves, tracking']
       ])],
       ['Exam points', ul([
         'Do the bandwidth sum: about 10 TB a day on 1 Gbps. If the deadline beats the network, use Snowball; if the link is fine, DataSync over it.',
         '"Minimal downtime" for a database → DMS with <b>CDC</b>, not a dump and restore. "Different engine" → add SCT.',
-        '"Lift and shift hundreds of servers with minimal effort" → Application Migration Service (it replaced Server Migration Service).'
+        '"Lift and shift hundreds of servers with minimal effort" → Application Migration Service (it replaced Server Migration Service).',
+        'Application Discovery Service and Migration Hub closed to new customers in November 2025; AWS Transform now does the inventory, the wave plan and the tracking. Older questions may still name them.'
       ])]
     ]
   });

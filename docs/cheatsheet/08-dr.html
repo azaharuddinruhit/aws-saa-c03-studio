@@ -36,7 +36,7 @@ pick: {
       d1:    {q:'Is hours of downtime and data loss acceptable, at the lowest cost?', s:'Hours OK, lowest cost?', o:[['Yes','R:br'],['No','d2']]},
       d2:    {q:'Is ~30 minutes of downtime OK, with only core data running in the DR Region?', s:'Only data running?', o:[['Yes','R:pilot'],['No','d3']]},
       d3:    {q:'Is a few minutes of downtime OK, with a scaled-down copy always running?', s:'Scaled-down copy running?', o:[['Yes','R:warm'],['No','R:multi']]},
-      m1:    {q:'Do you first need an inventory of servers and their dependencies?', s:'Discover servers first?', o:[['Yes','R:ads'],['No','m2']]},
+      m1:    {q:'Do you first need an inventory of servers and their dependencies?', s:'Discover servers first?', o:[['Yes','R:transform'],['No','m2']]},
       m2:    {q:'Lift-and-shift servers to EC2 with minimal downtime?', s:'Rehost servers?', o:[['Yes','R:mgn'],['No','m3']]},
       m3:    {q:'Migrating a database?', s:'Database?', o:[['Yes','m4'],['No','m5']]},
       m4:    {q:'Is the target a different database engine (e.g. Oracle → PostgreSQL)?', s:'Different engine?', o:[['Yes','R:sctdms'],['No','R:dms']]},
@@ -47,7 +47,7 @@ pick: {
       pilot:   {t:'Pilot light', ico:'rds', w:'Data replicated live; compute switched on during failover. RTO tens of minutes.', alt:'Warm standby if some capacity must run already.'},
       warm:    {t:'Warm standby', ico:'asg', w:'A scaled-down but working copy always runs; scale out on failover.', alt:'RTO minutes.'},
       multi:   {t:'Multi-site active/active', ico:'route53', w:'Both Regions serve traffic; RPO and RTO near zero.', alt:'Aurora Global Database, DynamoDB Global Tables, Route 53.'},
-      ads:     {t:'Application Discovery Service', ico:'ads', w:'Collects server specs, utilization and dependencies to plan the migration.', alt:'Results appear in Migration Hub.'},
+      transform:{t:'AWS Transform', ico:'transform', w:'Discovers servers, utilization and dependencies, then groups them into migration waves.', alt:'It replaced Application Discovery Service and Migration Hub.'},
       mgn:     {t:'Application Migration Service', ico:'mgn', w:'Continuous block replication of servers to AWS; cut over in minutes.', alt:'The lift-and-shift (rehost) answer.'},
       sctdms:  {t:'SCT + DMS', ico:'dms', w:'SCT converts the schema; DMS copies data and keeps it in sync (CDC).', alt:'Source stays live until cutover.'},
       dms:     {t:'AWS DMS', ico:'dms', w:'Full load + change data capture for minimal-downtime migration.', alt:'Huge DB + slow link → Snowball first.'},
@@ -121,7 +121,7 @@ blocks: {
 migrate: {
   icon: 'mgn', eyebrow: 'Move applications', title: 'Migration strategies & tools', test: 'Migration',
   one: 'Moving applications to AWS: discover what you have, pick a strategy from the <b>7 Rs</b>, and use the right tool.',
-  picks: [['mgn','"Lift-and-shift servers, minimal downtime" → <b>Application Migration Service</b>'],['ads','"Inventory servers and dependencies first" → <b>Application Discovery Service</b>'],['migrationhub','"Track all migrations in one place" → <b>Migration Hub</b>']],
+  picks: [['mgn','"Lift-and-shift servers, minimal downtime" → <b>Application Migration Service</b>'],['transform','"Inventory servers, plan waves, track progress" → <b>AWS Transform</b>'],['dms','"Oracle to Aurora PostgreSQL" → <b>SCT + DMS</b>']],
   explain: [
     {tab:'The 7 Rs', type:'list', items:[
       ['Retire','Turn it off; nobody needs it.'],
@@ -133,20 +133,20 @@ migrate: {
       ['Refactor','Re-architect as cloud-native (Lambda, containers, DynamoDB).']],
       aid:'Least effort → <b>Rehost</b>. Managed benefits, little change → <b>Replatform</b>. Most benefit, most effort → <b>Refactor</b>.'},
     {tab:'Tools', type:'picker', opts:{
-      ads:{n:'Application Discovery Service', short:'Discovery Service', ico:'ads', tag:'Plan', pts:['Agentless (VMware) or agent-based','Specs, utilization, dependencies','Feeds Migration Hub']},
+      transform:{n:'AWS Transform', short:'Transform', ico:'transform', tag:'Plan & track', pts:['Server inventory and dependencies','Migration waves, progress tracking','Replaced Discovery Service and Migration Hub']},
       mgn:{n:'Application Migration Service', short:'MGN', ico:'mgn', tag:'Rehost', pts:['Continuous block replication','Test launches, then cutover','Servers become EC2']},
-      hub:{n:'Migration Hub', short:'Migration Hub', ico:'migrationhub', tag:'Track', pts:['One dashboard for migrations','Strategy recommendations']},
       dms:{n:'DMS + SCT', short:'DMS + SCT', ico:'dms', tag:'Databases', pts:['DMS copies data, CDC keeps sync','SCT converts schemas']}
     }, scen:[
-      ['"Find all servers and dependencies before planning"','ads','Discovery Service builds the inventory.'],
+      ['"Find all servers and dependencies before planning"','transform','AWS Transform builds the inventory and the wave plan.'],
       ['"Move 200 VMs to EC2 with minimal downtime"','mgn','MGN replicates continuously and cuts over fast.'],
-      ['"See every migration\'s status in one place"','hub','Migration Hub tracks progress across tools.'],
+      ['"See every migration\'s status in one place"','transform','AWS Transform tracks progress (Migration Hub did before).'],
       ['"Move Oracle to Aurora PostgreSQL"','dms','SCT converts the schema; DMS moves the data.']
     ]}
   ],
   traps: [
     '<b>Lift-and-shift → Application Migration Service.</b> The older Server Migration Service is retired.',
     '<b>Discover dependencies first</b>, or apps break mid-move.',
+    '<b>Application Discovery Service and Migration Hub are closed to new customers</b> (November 2025). AWS Transform does both jobs; older questions may still name them for inventory and tracking.',
     '<b>Replatform ≠ refactor.</b> Moving a DB to RDS is replatform; rewriting the app is refactor.'
   ],
   details: {sum:'evaluator, VMware, mainframe', facts:[
@@ -202,9 +202,9 @@ const Q = [
   ['Building blocks','Encrypted backups must be decryptable in the DR Region with the same key.',['KMS multi-Region keys','AWS managed keys','SSE-C','CloudHSM in one Region'],0,'Multi-Region keys share key material across Regions.'],
   ['Building blocks','The whole infrastructure must be recreated identically in the DR Region.',['CloudFormation (StackSets) templates','Manual console setup','AMIs only','Trusted Advisor'],0,'Infrastructure as code rebuilds consistently.'],
   ['Building blocks','One policy must copy backups of EC2, RDS, DynamoDB and EFS to another Region and account.',['AWS Backup with cross-Region and cross-account copy','Data Lifecycle Manager','S3 CRR','DMS'],0,'AWS Backup centralizes backups across services.'],
-  ['Migration','Before planning, list all on-prem servers, their utilization and dependencies.',['AWS Application Discovery Service','Application Migration Service','DataSync','Trusted Advisor'],0,'Discovery Service builds the inventory.'],
+  ['Migration','Before planning, list all on-prem servers, their utilization and dependencies.',['AWS Transform','Application Migration Service','DataSync','Trusted Advisor'],0,'AWS Transform builds the inventory (it replaced Application Discovery Service).'],
   ['Migration','Lift-and-shift 300 servers to EC2 with minimal downtime.',['AWS Application Migration Service','Server Migration Service','Rebuild from scratch','Snowball'],0,'MGN replicates continuously and cuts over quickly.'],
-  ['Migration','Track the status of all migrations in one dashboard.',['AWS Migration Hub','CloudWatch','Config','Trusted Advisor'],0,'Migration Hub tracks migrations across tools.'],
+  ['Migration','Track the status of all migrations in one place.',['AWS Transform','CloudWatch','Config','Trusted Advisor'],0,'AWS Transform tracks migrations (it replaced Migration Hub).'],
   ['Migration','An in-house CRM will be replaced by a SaaS product.',['Repurchase','Rehost','Replatform','Retain'],0,'Moving to SaaS is repurchase.'],
   ['Migration','Move the database to RDS without changing application code.',['Replatform','Refactor','Rehost','Retire'],0,'Small change for managed benefits = replatform.'],
   ['Migration','Rewrite a monolith as microservices on Lambda.',['Refactor','Rehost','Replatform','Relocate'],0,'Re-architecting is refactor.'],
@@ -227,7 +227,7 @@ const FC = [
   ['Building blocks','S3 replication SLA option?','Replication Time Control: 99.99% within 15 minutes.'],
   ['Migration','The 7 Rs?','Retire, Retain, Rehost, Relocate, Replatform, Repurchase, Refactor.'],
   ['Migration','Lift-and-shift tool?','AWS Application Migration Service (MGN).'],
-  ['Migration','Server inventory and dependencies?','AWS Application Discovery Service.'],
+  ['Migration','Server inventory and dependencies?','AWS Transform (formerly Application Discovery Service).'],
   ['Data transfer','DMS vs SCT?','DMS moves data (full load + CDC). SCT converts schemas.'],
   ['Data transfer','When Snowball?','When the network transfer would take weeks.']
 ];
@@ -261,9 +261,9 @@ const TRAPS = [
   ['"Automatic DNS failover"','Route 53 failover + health checks'],
   ['"Clients keep hitting the failed Region"','Lower TTL / Global Accelerator'],
   ['"Decrypt in the DR Region"','KMS multi-Region keys'],
-  ['"Inventory servers and dependencies"','Application Discovery Service'],
+  ['"Inventory servers and dependencies"','AWS Transform','Formerly Application Discovery Service'],
   ['"Lift-and-shift servers"','Application Migration Service','Not Server Migration Service (retired)'],
-  ['"Track migrations"','Migration Hub'],
+  ['"Track migrations"','AWS Transform','Formerly Migration Hub'],
   ['"Replace with SaaS"','Repurchase'],
   ['"DB to RDS, no code change"','Replatform'],
   ['"Rewrite as microservices"','Refactor'],
