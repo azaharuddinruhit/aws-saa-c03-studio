@@ -73,6 +73,7 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-tb[aria-checked="true"] .mm-sw::after{transform:translateX(12px)}
 .mm-zoom{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:grid;gap:6px;z-index:5}
 .mm-zoom .mm-tb{width:38px;height:38px;padding:0;justify-content:center}
+.mm-zoom .mm-tb[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .mm-legend{position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));right:64px;max-width:420px;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:9px 12px;font-size:12px;color:var(--muted);line-height:1.45}
 .mm-legend .row{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
 .mm-legend .row span{display:inline-flex;align-items:center;gap:5px}
@@ -149,6 +150,7 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
     <button type="button" class="mm-tb" id="collapseBtn" title="Fold back to the domains"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span>Collapse<span class="lbl-long"> all</span></span></button>
   </div>
   <div class="mm-zoom">
+    <button type="button" class="mm-tb" id="legendBtn" aria-controls="legend" aria-expanded="false" aria-label="Progress legend" title="Show or hide the progress legend" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
     <button type="button" class="mm-tb" id="zoomIn" aria-label="Zoom in" title="Zoom in (+)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <button type="button" class="mm-tb" id="zoomOut" aria-label="Zoom out" title="Zoom out (−)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
     <button type="button" class="mm-tb" id="fitBtn" aria-label="Fit to screen" title="Fit to screen (0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -173,6 +175,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const OPEN_KEY = 'saa_mindmap_open';
 const OVERLAY_KEY = 'saa_mindmap_overlay';
+const LEGEND_KEY = 'saa_mindmap_legend';
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -237,6 +240,7 @@ const open = new Set(load(OPEN_KEY, null) || ['root', 'd1', 'd2', 'd3', 'd4']);
 for (const id of [...open]) if (!byId.has(id)) open.delete(id);
 open.add('root');
 let overlay = !!load(OVERLAY_KEY, false);
+let legendOpen = load(LEGEND_KEY, true) !== false;   // open the first time progress is on, then as last left
 let selected = null;
 const view = { x: 0, y: 0, k: 1 };
 let touched = false;   // the user has panned or zoomed, so a resize keeps their view
@@ -342,9 +346,9 @@ function paintOverlay() {
       sc.title = st.total ? `${st.right} of ${st.tried} right · ${st.tried} of ${st.total} questions tried` : 'No practice questions tagged';
     }
   }
-  const legend = $('legend');
-  legend.hidden = !overlay;
+  showLegend();
   if (overlay) {
+    const legend = $('legend');
     const all = stats(questionsOf(root));
     legend.innerHTML = all.tried
       ? `<b style="color:var(--ink)">${all.tried} of ${all.total} questions tried · ${pctText(all)} right.</b> Latest answer per question; the ring shows how many you've tried.
@@ -352,6 +356,19 @@ function paintOverlay() {
       : `No quiz answers are saved in this browser yet. <a href="../index.html">Practise in the Studio</a>, or sync your Gist there, and the map colours itself.`;
   }
 }
+
+// the i button above the zoom controls shows or hides the legend; both exist only while progress is on
+function showLegend() {
+  const btn = $('legendBtn');
+  btn.hidden = !overlay;
+  btn.setAttribute('aria-expanded', overlay && legendOpen);
+  $('legend').hidden = !overlay || !legendOpen;
+}
+$('legendBtn').addEventListener('click', () => {
+  legendOpen = !legendOpen;
+  save(LEGEND_KEY, legendOpen);
+  showLegend();
+});
 
 // ---------------------------------------------------------------- pan and zoom
 const apply = () => { world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.k})`; };
