@@ -482,13 +482,37 @@ function toggle(n) {
   btn.focus({ preventScroll: true });
 }
 function reveal(n) { for (let p = n.parent; p; p = p.parent) open.add(p.id); save(OPEN_KEY, [...open]); }
+// how: undefined = clicked on the map, 'jump' = a chip in the panel, 'history' = Back, Forward or the address.
+// Every panel opened by a click is a step in the browser history, with the service in the address
+// (#SQS, #SQS/FIFO%20queues), so Back returns to the previous service and then closes the panel.
+// history.state.mmDepth counts the panel steps above the page's own entry.
 function select(n, how) {
+  const same = !panel.hidden && panelFor === n;
   selected = n.id;
-  if (how === 'jump') { reveal(n); render(); }
+  if (how === 'jump' || how === 'history') { reveal(n); render(); }
   for (const v of visible) v.el.classList.toggle('sel', v.id === selected);
   showPanel(n);
-  if (how === 'jump') centreOn(n, true); else ensureVisible(n);
+  if (how === 'jump' || how === 'history') centreOn(n, true); else ensureVisible(n);
+  if (how !== 'history' && !same) history.pushState({ mmDepth: panelDepth() + 1 }, '', hashFor(n));
 }
+const panelDepth = () => (history.state && history.state.mmDepth) || 0;
+const hashFor = n => '#' + encodeURIComponent(n.name) + (n.kind === 'feat' ? '/' + encodeURIComponent(n.feat) : '');
+function nodeFromHash() {
+  const [svc, feat] = location.hash.slice(1).split('/');
+  if (!svc) return null;
+  try { return byId.get(feat ? 'f:' + decodeURIComponent(svc) + '|' + decodeURIComponent(feat) : 's:' + decodeURIComponent(svc)) || null; } catch (e) { return null; }
+}
+// × and Escape unwind the panel steps, so the next Back leaves the map; popstate then closes the panel
+function dismissPanel() {
+  if (panel.hidden) return;
+  if (panelDepth() > 0) { history.go(-panelDepth()); return; }
+  history.replaceState(null, '', location.pathname + location.search);   // opened from the address itself
+  closePanel(true);
+}
+addEventListener('popstate', () => {
+  const n = nodeFromHash();
+  if (n) select(n, 'history'); else closePanel(true);
+});
 nodesEl.addEventListener('click', e => {
   const el = e.target.closest('.mm-node');
   if (!el) return;
@@ -525,7 +549,7 @@ $('zoomOut').addEventListener('click', () => zoomCentre(0.8));
 $('fitBtn').addEventListener('click', () => { touched = false; fit(true); });
 document.addEventListener('keydown', e => {
   if (e.target.closest('input,textarea,select') || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); closePanel(true); }
+  if (e.key === 'Escape' && !panel.hidden) { e.preventDefault(); dismissPanel(); }
   else if (e.key === '+' || e.key === '=') zoomCentre(1.25);
   else if (e.key === '-') zoomCentre(0.8);
   else if (e.key === '0') { touched = false; fit(true); }
@@ -605,7 +629,7 @@ function closePanel(returnFocus) {
   if (returnFocus && n && n.el && n.el.isConnected) n.el.querySelector('.mm-btn').focus({ preventScroll: true });
 }
 panel.addEventListener('click', e => {
-  if (e.target.closest('[data-close]')) { closePanel(true); return; }
+  if (e.target.closest('[data-close]')) { dismissPanel(); return; }
   const j = e.target.closest('[data-jump]');
   if (j) select(byId.get(j.dataset.jump), 'jump');
 });
@@ -616,6 +640,15 @@ setTopbarHeight();
 readAttempts();
 render();
 fit(false, READABLE);
+// an address naming a service (a reload, Back from a cheat sheet, a shared link) reopens its panel
+// (a reload or Back keeps its panel steps; a fresh link gets a plain map entry underneath, so closing works)
+const startNode = nodeFromHash();
+if (startNode && panelDepth() === 0) {
+  history.replaceState(null, '', location.pathname + location.search);
+  history.pushState({ mmDepth: 1 }, '', hashFor(startNode));
+}
+if (startNode) select(startNode, 'history');
+else if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 addEventListener('resize', () => { setTopbarHeight(); if (!touched) fit(false, READABLE); });
 // another tab (the Studio, or a Gist sync) may save new answers
 addEventListener('storage', e => {
