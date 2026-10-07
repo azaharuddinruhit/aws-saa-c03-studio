@@ -53,6 +53,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 
 - **Gist token:** the GitHub Gist token is typed once per browser and kept in `localStorage`. It must never be written into any file. `GIST_ID` in `index.html` is fine.
 - **Tailwind is precompiled** into a `<style>` in `index.html`. A Tailwind class that isn't already used there won't exist. Either write plain CSS for new UI, or regenerate it with the steps in the comment at the top of `index.html`.
+- **Cheat-sheet menu:** every cheat-sheet page has a menu button (`#menuBtn`) in its top bar, and `app.js` builds the menu from it: Studio links, every sheet, the diagrams, the mind map, and the light/dark switch. There is no separate theme button any more. A new page needs that button and must load `app.js`. A new domain sheet goes in `SHEETS` in `app.js`, which the hub reads too.
 - **Theme with tokens:** use the `app.css` variables or the existing Tailwind palette, never one-off colours, and check both themes.
 - **localStorage keys:**
   - `saa_` prefixes app-wide keys;

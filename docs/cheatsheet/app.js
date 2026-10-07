@@ -32,8 +32,123 @@ const ICON_SVG = {
   sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   learn:'<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>',
   practice:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>',
-  revise:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>'
+  revise:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  moon:'<svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>',
+  menu:'<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  close:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  home:'<svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>',
+  grid:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>'
 };
+
+/* the ten domain sheets, in the hub's order: [file, id, name, icon] */
+const SHEETS = [
+  ['01-security','security','Security, Identity & Compliance','iam'],
+  ['02-networking','networking','Networking & Content Delivery','vpc'],
+  ['03-compute','compute','Compute & Serverless','ec2'],
+  ['04-storage','storage','Storage & Backup','s3'],
+  ['05-databases','databases','Databases & Caching','rds'],
+  ['06-integration','integration','Application Integration','sqs'],
+  ['07-cost','cost','Cost Management & Optimization','costexplorer'],
+  ['08-dr','dr','Disaster Recovery & Migration','drs'],
+  ['09-monitoring','monitoring','Monitoring, Management & Governance','cloudwatch'],
+  ['10-analytics','analytics','Analytics & Data Processing','athena']
+];
+
+/* ---------- site menu ----------
+   The menu button sits in every page's top bar (#menuBtn). It opens a panel listing the Studio, every
+   cheat sheet, the diagrams and the mind map, plus the theme switch. The panel is added to <body>,
+   outside the top bar, whose backdrop-filter would break position:fixed. On phones it is a bottom sheet. */
+const isDark = () => (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+function toggleTheme(){
+  const next = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  shared.set('theme', next);
+}
+function menuHTML(){
+  const here = location.pathname.split('/').pop() || 'index.html';
+  const row = (href, icon, label) => `<a class="menu-row" href="${href}"${href === here ? ' aria-current="page"' : ''}>${icon}<span>${label}</span></a>`;
+  const ico = svg => `<span class="menu-ico">${svg}</span>`;
+  return `<div class="menu-backdrop" id="menuBackdrop" hidden></div>
+  <nav class="menu-panel" id="menuPanel" aria-label="Site menu" hidden>
+    <div class="menu-handle" aria-hidden="true"></div>
+    <div class="menu-list">
+      <div class="menu-group">Studio</div>
+      ${row('../index.html', ico(ICON_SVG.home), 'Overview')}
+      ${row('../index.html#/dashboard', ico(ICON_SVG.practice), 'Practice')}
+      <div class="menu-group">Cheat sheets</div>
+      ${row('index.html', ico(ICON_SVG.grid), 'All domains')}
+      ${SHEETS.map(([file,, name, icon]) => row(file + '.html', img(icon, '', ''), name)).join('')}
+      <div class="menu-group">Big picture</div>
+      ${row('architectures.html', img('vpc', '', ''), 'Architecture diagrams')}
+      ${row('mindmap.html', img('orgs', '', ''), 'Mind map')}
+    </div>
+    <div class="menu-foot"><button type="button" class="menu-row" id="menuTheme"><span class="menu-ico"></span><span></span></button></div>
+  </nav>`;
+}
+function mountMenu(){
+  const btn = document.getElementById('menuBtn');
+  if (!btn || document.getElementById('menuPanel')) return;
+  document.body.insertAdjacentHTML('beforeend', menuHTML());
+  const panel = $('#menuPanel'), backdrop = $('#menuBackdrop'), themeRow = $('#menuTheme');
+  const rows = () => $$('#menuPanel .menu-row');
+  const narrow = () => matchMedia('(max-width:640px)').matches;
+  const paintTheme = () => {
+    const dark = isDark();
+    themeRow.firstElementChild.innerHTML = dark ? ICON_SVG.sun : ICON_SVG.moon;
+    themeRow.lastElementChild.textContent = dark ? 'Light mode' : 'Dark mode';
+  };
+  const place = () => {
+    if (narrow()) return;   // the sheet is pinned to the bottom by CSS
+    const r = btn.getBoundingClientRect();
+    panel.style.top = (r.bottom + 8) + 'px';
+    panel.style.right = Math.max(16, innerWidth - r.right) + 'px';
+  };
+  const open = () => {
+    paintTheme();
+    place();
+    panel.hidden = false;
+    backdrop.hidden = !narrow();
+    if (narrow()) document.body.style.overflow = 'hidden';
+    btn.setAttribute('aria-expanded', 'true');
+    btn.innerHTML = ICON_SVG.close;
+    const cur = panel.querySelector('[aria-current="page"]') || rows()[0];
+    cur.scrollIntoView({ block: 'nearest' });
+    cur.focus({ preventScroll: true });
+  };
+  const close = returnFocus => {
+    if (panel.hidden) return;
+    panel.hidden = true;
+    backdrop.hidden = true;
+    document.body.style.overflow = '';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = ICON_SVG.menu;
+    if (returnFocus) btn.focus({ preventScroll: true });
+  };
+  btn.addEventListener('click', () => (panel.hidden ? open() : close(false)));
+  themeRow.addEventListener('click', () => { toggleTheme(); paintTheme(); });
+  backdrop.addEventListener('click', () => close(true));
+  document.addEventListener('pointerdown', e => {
+    if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) close(false);
+  });
+  // keys stay inside the menu, so a page's own shortcuts (quiz answers, topic arrows, Escape) don't fire too
+  panel.addEventListener('keydown', e => {
+    const list = rows(), i = list.indexOf(document.activeElement);
+    const to = k => { e.preventDefault(); list[(k + list.length) % list.length].focus(); };
+    e.stopPropagation();
+    if (e.key === 'ArrowDown') to(i + 1);
+    else if (e.key === 'ArrowUp') to(i - 1);
+    else if (e.key === 'Home') to(0);
+    else if (e.key === 'End') to(list.length - 1);
+    else if (e.key === 'Escape') { e.preventDefault(); close(true); }
+    else if (e.key === 'Tab') close(false);
+  });
+  addEventListener('resize', () => { if (!panel.hidden) { place(); backdrop.hidden = !narrow(); } });
+  // a page restored from the back/forward cache comes back with the menu closed
+  addEventListener('pageshow', () => close(false));
+}
+const MENU_BUTTON = `<button type="button" class="theme-btn menu-btn" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="menuPanel" title="Menu">${ICON_SVG.menu}</button>`;
+// a domain sheet builds its top bar in App.start(), before the page finishes parsing; other pages have it in their HTML
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountMenu); else mountMenu();
 
 /* ---------- generic explainers (for data-driven topics) ---------- */
 const INITS = {};
@@ -227,7 +342,7 @@ function shellHTML(cfg){
     header: `<header class="topbar"><div class="topbar-in">
       <a class="brand" href="index.html" title="All domains"><span class="brand-mark">C03</span><span class="brand-name">${cfg.title}</span></a>
       ${modes('top-modes')}
-      <button class="theme-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme">${ICON_SVG.sun}</button>
+      ${MENU_BUTTON}
       <nav class="subtabs" id="subLearn" aria-label="Topics"></nav>
       <nav class="subtabs" id="subPractice" aria-label="Practice type" hidden></nav>
     </div></header>
@@ -311,14 +426,6 @@ function start(cfg){
   LEARN.forEach(([id,, , m])=>{
     const eb = m && document.querySelector(`[data-view="${id}"] .eyebrow`);
     if (eb) eb.textContent += ` · ~${m} min`;
-  });
-
-  /* theme toggle */
-  $('#themeBtn').addEventListener('click', () => {
-    const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    const next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    shared.set('theme', next);
   });
 
   /* navigation */
@@ -531,5 +638,5 @@ function start(cfg){
   show(location.hash.slice(1) || lastIn.learn || LEARN[0][0], false);
 }
 
-window.App = {start, img, iconURL, $, $$, shuffle};
+window.App = {start, img, iconURL, $, $$, shuffle, SHEETS};
 })();
