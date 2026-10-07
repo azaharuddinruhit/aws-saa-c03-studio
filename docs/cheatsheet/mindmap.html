@@ -62,24 +62,22 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-on .mm-k-svc[data-lv="none"] .mm-btn{opacity:.8}
 
 /* floating controls */
-.mm-tools{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-wrap:wrap;gap:6px;z-index:5;pointer-events:none}
-.mm-tools>*{pointer-events:auto}
 .mm-tb{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13px var(--sans);box-shadow:var(--shadow);white-space:nowrap}
 .mm-tb:hover{border-color:var(--accent)}
 .mm-tb svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.mm-sw{width:30px;height:18px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:background .15s}
-.mm-sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
-.mm-tb[aria-checked="true"] .mm-sw{background:var(--accent)}
-.mm-tb[aria-checked="true"] .mm-sw::after{transform:translateX(12px)}
-.mm-zoom{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:grid;gap:6px;z-index:5}
+/* one column on the right: view controls (expand, collapse, progress, legend) above zoom (+, −, fit) */
+.mm-zoom{position:absolute;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:flex-end;gap:14px;z-index:5}
+.mm-grp{display:grid;gap:6px}
 .mm-zoom .mm-tb{width:38px;height:38px;padding:0;justify-content:center}
-.mm-zoom .mm-tb[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+.mm-zoom .mm-tb[aria-expanded="true"],.mm-zoom .mm-tb[aria-checked="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+/* a short screen (a phone on its side) puts the two groups side by side */
+@media (max-height:460px){.mm-zoom{flex-direction:row;align-items:flex-end;gap:10px}.mm-legend{right:110px}}
 .mm-legend{position:absolute;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));right:64px;max-width:420px;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:9px 12px;font-size:12px;color:var(--muted);line-height:1.45}
 .mm-legend .row{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
 .mm-legend .row span{display:inline-flex;align-items:center;gap:5px}
 .mm-legend i{width:10px;height:10px;border-radius:50%;background:var(--lv,var(--line));display:inline-block}
 .mm-legend a{color:var(--accent);font-weight:600}
-@media (max-width:520px){.mm-tb .lbl-long{display:none}}
 
 /* detail panel: a drawer on the right, a bottom sheet on phones; it sits outside the top bar and the
    transformed map so position:fixed works */
@@ -144,16 +142,18 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
   <div class="mm-viewport" id="viewport" aria-label="Mind map of SAA-C03 services by exam domain. Drag to pan, scroll or pinch to zoom.">
     <div class="mm-world" id="world"><svg class="mm-links" id="links" aria-hidden="true"></svg><div id="nodes"></div></div>
   </div>
-  <div class="mm-tools">
-    <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" title="Colour services by your quiz results"><span class="mm-sw" aria-hidden="true"></span>My progress</button>
-    <button type="button" class="mm-tb" id="expandBtn" title="Open every branch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg><span>Expand<span class="lbl-long"> all</span></span></button>
-    <button type="button" class="mm-tb" id="collapseBtn" title="Fold back to the domains"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg><span>Collapse<span class="lbl-long"> all</span></span></button>
-  </div>
   <div class="mm-zoom">
-    <button type="button" class="mm-tb" id="legendBtn" aria-controls="legend" aria-expanded="false" aria-label="Progress legend" title="Show or hide the progress legend" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
-    <button type="button" class="mm-tb" id="zoomIn" aria-label="Zoom in" title="Zoom in (+)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
-    <button type="button" class="mm-tb" id="zoomOut" aria-label="Zoom out" title="Zoom out (−)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-    <button type="button" class="mm-tb" id="fitBtn" aria-label="Fit to screen" title="Fit to screen (0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <div class="mm-grp">
+      <button type="button" class="mm-tb" id="expandBtn" aria-label="Expand all" title="Expand all: open every branch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
+      <button type="button" class="mm-tb" id="collapseBtn" aria-label="Collapse all" title="Collapse all: fold back to the domains"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button>
+      <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" aria-label="My progress" title="My progress: colour services by your quiz results"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5"/></svg></button>
+      <button type="button" class="mm-tb" id="legendBtn" aria-controls="legend" aria-expanded="false" aria-label="Progress legend" title="Show or hide the progress legend" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+    </div>
+    <div class="mm-grp">
+      <button type="button" class="mm-tb" id="zoomIn" aria-label="Zoom in" title="Zoom in (+)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button type="button" class="mm-tb" id="zoomOut" aria-label="Zoom out" title="Zoom out (−)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <button type="button" class="mm-tb" id="fitBtn" aria-label="Fit to screen" title="Fit to screen (0)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
   </div>
   <div class="mm-legend" id="legend" hidden></div>
 </main>
@@ -383,13 +383,14 @@ function panelCover() {   // the part of the stage the open panel hides: right s
 function glide() { world.classList.add('glide'); clearTimeout(glide.t); glide.t = setTimeout(() => world.classList.remove('glide'), 380); }
 // Fit the open branches on screen. With a minimum scale (the first view, expand all) labels stay readable:
 // whatever doesn't fit then starts from the top left, next to the root, and the rest is a drag away.
+const RAIL = 62;   // the control column on the right: 38px buttons, 12px from the edge, plus a gap
 function fit(animate, minK = 0.3) {
   const b = bounds(), vw = viewport.clientWidth, vh = viewport.clientHeight;
-  const top = 58, pad = 20, bottom = 56;   // leave room for the toolbar and the zoom buttons
-  const k = clampK(Math.max(minK, Math.min((vw - pad * 2) / (b.x1 - b.x0), (vh - top - bottom) / (b.y1 - b.y0), 1)));
+  const top = 20, pad = 20, right = RAIL, bottom = 56;   // leave room for the control column and the legend
+  const k = clampK(Math.max(minK, Math.min((vw - pad - right) / (b.x1 - b.x0), (vh - top - bottom) / (b.y1 - b.y0), 1)));
   const w = (b.x1 - b.x0) * k, h = (b.y1 - b.y0) * k;
   view.k = k;
-  view.x = (w <= vw - pad * 2 ? (vw - w) / 2 : pad) - b.x0 * k;
+  view.x = (w <= vw - pad - right ? pad + (vw - pad - right - w) / 2 : pad) - b.x0 * k;
   view.y = (h <= vh - top - bottom ? top + (vh - top - bottom - h) / 2 : top) - b.y0 * k;
   if (animate) glide();
   apply();
@@ -413,11 +414,11 @@ function centreOn(n, animate) {
   apply();
 }
 function ensureVisible(n) {
-  const p = screenPos(n), c = panelCover(), m = 24;
+  const p = screenPos(n), c = panelCover(), m = 24, mr = c.r ? m : RAIL;   // an open drawer hides the column
   const w = n.w * view.k, h = n.h * view.k, vw = viewport.clientWidth - c.r, vh = viewport.clientHeight - c.b;
   let dx = 0, dy = 0;
-  if (p.x < m) dx = m - p.x; else if (p.x + w > vw - m) dx = vw - m - p.x - w;
-  if (p.y < 60) dy = 60 - p.y; else if (p.y + h > vh - m) dy = vh - m - p.y - h;
+  if (p.x < m) dx = m - p.x; else if (p.x + w > vw - mr) dx = vw - mr - p.x - w;
+  if (p.y < m) dy = m - p.y; else if (p.y + h > vh - m) dy = vh - m - p.y - h;
   if (dx || dy) { view.x += dx; view.y += dy; apply(); }
 }
 
