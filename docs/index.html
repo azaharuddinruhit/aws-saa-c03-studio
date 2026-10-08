@@ -1255,6 +1255,27 @@
             renderSmartPlan();
         }
 
+        // Sections always appear in the cheat sheets' order (01 to 10), whatever order a bank's questions
+        // come in, so every set lists them the same way. Any other name goes last, alphabetically.
+        const DOMAIN_ORDER = [
+            'Security, Identity & Compliance',
+            'Networking & Content Delivery',
+            'Compute & Serverless',
+            'Storage & Backup',
+            'Databases & Caching',
+            'Application Integration',
+            'Cost Management & Optimization',
+            'Disaster Recovery & Migration',
+            'Monitoring, Management & Governance',
+            'Analytics & Data Processing',
+            'Machine Learning'
+        ];
+
+        function compareDomains(a, b) {
+            const rank = d => (DOMAIN_ORDER.includes(d) ? DOMAIN_ORDER.indexOf(d) : DOMAIN_ORDER.length);
+            return rank(a) - rank(b) || a.localeCompare(b);
+        }
+
         function renderDomainList() {
             const container = document.getElementById('domainListContainer');
             container.innerHTML = '';
@@ -1269,7 +1290,7 @@
                 if (log && log.length && log[log.length - 1][0] === 1) domains[d].correct++;
             });
 
-            for (const [domain, { total: count, correct }] of Object.entries(domains)) {
+            for (const [domain, { total: count, correct }] of Object.entries(domains).sort(([a], [b]) => compareDomains(a, b))) {
                 const tally = `<span class="${correct === count ? 'text-emerald-400' : 'text-slate-400'}"><span class="font-semibold">${correct}</span> / ${count} correct</span>`;
                 // the whole card is the control, so there is no separate Practice button to aim at
                 const item = document.createElement('button');
