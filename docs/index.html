@@ -1292,7 +1292,11 @@
             });
 
             for (const [domain, { total: count, correct }] of Object.entries(domains).sort(([a], [b]) => compareDomains(a, b))) {
-                const tally = `<span class="${correct === count ? 'text-emerald-400' : 'text-slate-400'}"><span class="font-semibold">${correct}</span> / ${count} correct</span>`;
+                // the text and, beside it, a bar for the same share, coloured like the overall Correct meter
+                const shown = count ? Math.round(correct / count * 100) : 0;
+                const tone = correctTone(shown);
+                const bar = `<span role="progressbar" aria-label="${escapeHtml(domain)}: share answered correctly" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${shown}" title="${shown}% correct" class="block w-20 h-1.5 shrink-0 rounded-full overflow-hidden ${tone.track}"><span class="block h-1.5 rounded-full" style="width:${count ? correct / count * 100 : 0}%;background-color:${tone.fill}"></span></span>`;
+                const tally = `<span class="inline-flex items-center gap-2"><span class="${correct === count ? 'text-emerald-400' : 'text-slate-400'}"><span class="font-semibold">${correct}</span> / ${count} correct</span>${bar}</span>`;
                 // the whole card is the control, so there is no separate Practice button to aim at
                 const item = document.createElement('button');
                 item.type = 'button';
@@ -1324,6 +1328,16 @@
                 questions.filter(q => attemptLog[q.id] && attemptLog[q.id].length).length;
         }
 
+        // Colour steps for a share answered correctly (a whole percentage): green from the accuracy the
+        // 720 pass mark needs (69%), amber from 50%, red below. Shared by the Correct meter and the section bars.
+        function correctTone(shown) {
+            return shown >= Math.round((PASS_SCORE - 100) / 9)
+                ? { fill: '#10b981', track: 'bg-emerald-500/10', chip: 'bg-emerald-500/10 text-emerald-400', word: 'On track' }
+                : shown >= 50
+                    ? { fill: '#f59e0b', track: 'bg-amber-500/10', chip: 'bg-amber-500/10 text-amber-400', word: 'Getting there' }
+                    : { fill: '#f43f5e', track: 'bg-rose-500/10', chip: 'bg-rose-500/10 text-rose-400', word: 'Needs work' };
+        }
+
         // Share of the whole bank whose latest answer was right, as a meter under the stats
         function renderCorrectStat() {
             const total = questions.length;
@@ -1334,14 +1348,9 @@
             const pct = total ? correct / total * 100 : 0;
             // never show 0% once something is right, or 100% while something is still left
             const label = correct && pct < 1 ? '<1' : correct < total && pct > 99 ? '>99' : Math.round(pct);
-            // Colour steps with the percentage shown: green from the accuracy the 720 pass mark needs
-            // (69%), amber from 50%, red below. The word beside "Correct" says the same, so it never rests on colour alone.
             const shown = Math.round(pct);
-            const tone = shown >= Math.round((PASS_SCORE - 100) / 9)
-                ? { fill: '#10b981', track: 'bg-emerald-500/10', chip: 'bg-emerald-500/10 text-emerald-400', word: 'On track' }
-                : shown >= 50
-                    ? { fill: '#f59e0b', track: 'bg-amber-500/10', chip: 'bg-amber-500/10 text-amber-400', word: 'Getting there' }
-                    : { fill: '#f43f5e', track: 'bg-rose-500/10', chip: 'bg-rose-500/10 text-rose-400', word: 'Needs work' };
+            // the word beside "Correct" says the same as the colour, so it never rests on colour alone
+            const tone = correctTone(shown);
             document.getElementById('correctStatText').innerHTML =
                 '<span class="font-semibold text-slate-800 dark:text-slate-100">' + correct + '</span> of ' + total + ' · ' + label + '%';
             const chip = document.getElementById('correctTone');
