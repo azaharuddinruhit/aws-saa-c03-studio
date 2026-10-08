@@ -70,7 +70,7 @@ function menuHTML(){
   const ico = svg => `<span class="menu-ico">${svg}</span>`;
   return `<div class="menu-backdrop" id="menuBackdrop" hidden></div>
   <nav class="menu-panel" id="menuPanel" aria-label="Site menu" hidden>
-    <div class="menu-handle" aria-hidden="true"></div>
+    <button type="button" class="menu-handle" id="menuHandle" aria-label="Close menu"></button>
     <div class="menu-list">
       <div class="menu-group">Studio</div>
       ${row('../index.html', ico(ICON_SVG.home), 'Overview')}
@@ -127,6 +127,43 @@ function mountMenu(){
   btn.addEventListener('click', () => (panel.hidden ? open() : close(false)));
   themeRow.addEventListener('click', () => { toggleTheme(); paintTheme(); });
   backdrop.addEventListener('click', () => close(true));
+  $('#menuHandle').addEventListener('click', () => close(true));
+  // phones: drag the sheet down to close it, from the handle, or from the list while it is scrolled to the top
+  const list = $('#menuPanel .menu-list');
+  let drag = null;
+  const settle = () => { panel.style.transform = panel.style.transition = backdrop.style.opacity = backdrop.style.transition = ''; };
+  panel.addEventListener('touchstart', e => {
+    if (!narrow() || e.touches.length !== 1 || (list.scrollTop > 0 && !e.target.closest('.menu-handle'))) return;
+    drag = { y: e.touches[0].clientY, dy: 0, trail: [{ dy: 0, t: e.timeStamp }] };
+  }, { passive: true });
+  panel.addEventListener('touchmove', e => {
+    if (!drag) return;
+    const dy = e.touches[0].clientY - drag.y;
+    if (dy < 0 && !drag.dy) { drag = null; return; }   // starting upwards is an ordinary scroll
+    if (e.cancelable) e.preventDefault();
+    drag.dy = Math.max(0, dy);
+    drag.trail = drag.trail.filter(p => e.timeStamp - p.t < 100).concat({ dy: drag.dy, t: e.timeStamp });   // the last 0.1s, for flick speed
+    panel.style.transition = backdrop.style.transition = 'none';
+    panel.style.transform = `translateY(${drag.dy}px)`;
+    backdrop.style.opacity = String(Math.max(0, 1 - drag.dy / panel.offsetHeight));
+  }, { passive: false });
+  const release = e => {
+    if (!drag) return;
+    const { dy, trail } = drag;
+    drag = null;
+    if (!dy) return;
+    const first = trail[0];
+    const flick = dy > 30 && (dy - first.dy) / Math.max(16, e.timeStamp - first.t) > 0.5;
+    panel.style.transition = 'transform .2s ease-out';
+    backdrop.style.transition = 'opacity .2s ease-out';
+    if (e.type === 'touchend' && (flick || dy > Math.min(120, panel.offsetHeight / 3))) {
+      panel.style.transform = 'translateY(100%)';
+      backdrop.style.opacity = '0';
+      setTimeout(() => { close(true); settle(); }, 200);
+    } else settle();
+  };
+  panel.addEventListener('touchend', release);
+  panel.addEventListener('touchcancel', release);
   document.addEventListener('pointerdown', e => {
     if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) close(false);
   });
