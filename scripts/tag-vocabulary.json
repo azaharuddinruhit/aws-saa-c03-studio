@@ -114,15 +114,19 @@
       ]
     },
     {
-      "name": "Cost Management & Optimization",
+      "name": "Analytics & Data Processing",
       "services": [
-        { "name": "Cost Explorer", "features": [] },
-        { "name": "Budgets", "features": [] },
-        { "name": "Cost Anomaly Detection", "features": [] },
-        { "name": "Cost and Usage Reports", "features": [] },
-        { "name": "Cost allocation tags", "features": [] },
-        { "name": "Compute Optimizer", "features": [] },
-        { "name": "Data transfer pricing", "features": [] }
+        { "name": "Kinesis Data Streams", "features": [] },
+        { "name": "Data Firehose", "features": [] },
+        { "name": "Managed Service for Apache Flink", "features": [] },
+        { "name": "MSK", "features": [] },
+        { "name": "Athena", "features": ["Partitioning & formats", "Federated query"] },
+        { "name": "Glue", "features": ["Data Catalog & crawlers", "ETL jobs"] },
+        { "name": "EMR", "features": [] },
+        { "name": "Lake Formation", "features": [] },
+        { "name": "Redshift", "features": ["Redshift Spectrum"] },
+        { "name": "OpenSearch Service", "features": [] },
+        { "name": "QuickSight", "features": [] }
       ]
     },
     {
@@ -141,19 +145,15 @@
       ]
     },
     {
-      "name": "Analytics & Data Processing",
+      "name": "Cost Management & Optimization",
       "services": [
-        { "name": "Kinesis Data Streams", "features": [] },
-        { "name": "Data Firehose", "features": [] },
-        { "name": "Managed Service for Apache Flink", "features": [] },
-        { "name": "MSK", "features": [] },
-        { "name": "Athena", "features": ["Partitioning & formats", "Federated query"] },
-        { "name": "Glue", "features": ["Data Catalog & crawlers", "ETL jobs"] },
-        { "name": "EMR", "features": [] },
-        { "name": "Lake Formation", "features": [] },
-        { "name": "Redshift", "features": ["Redshift Spectrum"] },
-        { "name": "OpenSearch Service", "features": [] },
-        { "name": "QuickSight", "features": [] }
+        { "name": "Cost Explorer", "features": [] },
+        { "name": "Budgets", "features": [] },
+        { "name": "Cost Anomaly Detection", "features": [] },
+        { "name": "Cost and Usage Reports", "features": [] },
+        { "name": "Cost allocation tags", "features": [] },
+        { "name": "Compute Optimizer", "features": [] },
+        { "name": "Data transfer pricing", "features": [] }
       ]
     },
     {

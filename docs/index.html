@@ -1255,8 +1255,9 @@
             renderSmartPlan();
         }
 
-        // Sections always appear in the cheat sheets' order (01 to 10), whatever order a bank's questions
-        // come in, so every set lists them the same way. Any other name goes last, alphabetically.
+        // Sections always appear in order of how much they matter on the exam, the same order as the
+        // cheat sheets (SHEETS in cheatsheet/app.js), whatever order a bank's questions come in.
+        // Any other name goes last, alphabetically.
         const DOMAIN_ORDER = [
             'Security, Identity & Compliance',
             'Networking & Content Delivery',
@@ -1264,10 +1265,10 @@
             'Storage & Backup',
             'Databases & Caching',
             'Application Integration',
-            'Cost Management & Optimization',
             'Disaster Recovery & Migration',
-            'Monitoring, Management & Governance',
             'Analytics & Data Processing',
+            'Monitoring, Management & Governance',
+            'Cost Management & Optimization',
             'Machine Learning'
         ];
 

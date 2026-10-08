@@ -40,7 +40,9 @@ const ICON_SVG = {
   grid:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>'
 };
 
-/* the ten domain sheets, in the hub's order: [file, id, name, icon] */
+/* the ten domain sheets, in the hub's and menu's order: most important on the exam first, the same
+   order as the Studio's sections (DOMAIN_ORDER in ../index.html). The file numbers predate this order
+   and are kept so that links keep working. [file, id, name, icon] */
 const SHEETS = [
   ['01-security','security','Security, Identity & Compliance','iam'],
   ['02-networking','networking','Networking & Content Delivery','vpc'],
@@ -48,10 +50,10 @@ const SHEETS = [
   ['04-storage','storage','Storage & Backup','s3'],
   ['05-databases','databases','Databases & Caching','rds'],
   ['06-integration','integration','Application Integration','sqs'],
-  ['07-cost','cost','Cost Management & Optimization','costexplorer'],
   ['08-dr','dr','Disaster Recovery & Migration','drs'],
+  ['10-analytics','analytics','Analytics & Data Processing','athena'],
   ['09-monitoring','monitoring','Monitoring, Management & Governance','cloudwatch'],
-  ['10-analytics','analytics','Analytics & Data Processing','athena']
+  ['07-cost','cost','Cost Management & Optimization','costexplorer']
 ];
 
 /* ---------- site menu ----------
