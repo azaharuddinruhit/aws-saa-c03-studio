@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const DOCS = path.join(ROOT, 'docs');
+const SETS = path.join(ROOT, 'docs', 'sets');   // <bank>.json, with NotebookLM copies in notebooklm/<bank>.md
 const MIN_TAGS = 1;
 const MAX_TAGS = 4;
 
@@ -22,9 +22,9 @@ for (const category of vocabulary.categories) {
 const problems = [];
 let questionCount = 0;
 
-for (const file of fs.readdirSync(DOCS).filter(f => /^set-[a-z]+-v\d+\.json$/.test(f))) {
-  const bank = /^set-([a-z]+)-/.exec(file)[1];
-  const questions = JSON.parse(fs.readFileSync(path.join(DOCS, file), 'utf8'));
+for (const file of fs.readdirSync(SETS).filter(f => /^[a-z]+\.json$/.test(f))) {
+  const bank = path.basename(file, '.json');
+  const questions = JSON.parse(fs.readFileSync(path.join(SETS, file), 'utf8'));
   const label = id => bank + '#' + id;
 
   for (const q of questions) {
@@ -48,8 +48,11 @@ for (const file of fs.readdirSync(DOCS).filter(f => /^set-[a-z]+-v\d+\.json$/.te
   }
 
   // The Markdown copy lists the same tags on a **Services:** line under each question heading.
-  const mdPath = path.join(DOCS, 'notebooklm', 'set-' + bank + '.md');
-  if (!fs.existsSync(mdPath)) continue;
+  const mdPath = path.join(SETS, 'notebooklm', bank + '.md');
+  if (!fs.existsSync(mdPath)) {
+    problems.push(bank + ': no NotebookLM copy at ' + path.relative(ROOT, mdPath));
+    continue;
+  }
   const mdTags = {};
   let current = null;
   for (const line of fs.readFileSync(mdPath, 'utf8').split(/\r?\n/)) {

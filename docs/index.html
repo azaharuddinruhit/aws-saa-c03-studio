@@ -742,10 +742,10 @@
         // progress under its own prefix (set_alpha_mistakes, set_beta_attempts, ...). The keys and
         // prefixes are storage identifiers: changing one orphans the progress saved under it.
         const BANKS = {
-            alpha: { label: 'Set Alpha', symbol: 'α', slug: 'set-alpha', file: 'set-alpha-v1.json', prefix: 'set_alpha_' },
-            beta: { label: 'Set Beta', symbol: 'β', slug: 'set-beta', file: 'set-beta-v1.json', prefix: 'set_beta_' },
-            gamma: { label: 'Set Gamma', symbol: 'γ', slug: 'set-gamma', file: 'set-gamma-v1.json', prefix: 'set_gamma_' },
-            delta: { label: 'Set Delta', symbol: 'δ', slug: 'set-delta', file: 'set-delta-v1.json', prefix: 'set_delta_' }
+            alpha: { label: 'Set Alpha', symbol: 'α', slug: 'set-alpha', file: 'sets/alpha.json', prefix: 'set_alpha_' },
+            beta: { label: 'Set Beta', symbol: 'β', slug: 'set-beta', file: 'sets/beta.json', prefix: 'set_beta_' },
+            gamma: { label: 'Set Gamma', symbol: 'γ', slug: 'set-gamma', file: 'sets/gamma.json', prefix: 'set_gamma_' },
+            delta: { label: 'Set Delta', symbol: 'δ', slug: 'set-delta', file: 'sets/delta.json', prefix: 'set_delta_' }
         };
         const BANK_DATA = ['mistakes', 'flagged', 'attempts'];   // what each bank stores
         let bankKey = 'alpha';

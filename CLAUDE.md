@@ -15,8 +15,8 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | Path | What it is |
 |---|---|
 | `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, score estimators, Gist sync. |
-| `docs/set-{alpha,beta,gamma,delta}-v1.json` | Question banks: an array of questions. |
-| `docs/notebooklm/set-*.md` | Markdown copies of the banks for NotebookLM. They must carry the same `services` tags as the JSON. |
+| `docs/sets/{alpha,beta,gamma,delta}.json` | Question banks: an array of questions. The file name is the bank key in `BANKS`. |
+| `docs/sets/notebooklm/<bank>.md` | Markdown copies of the banks for NotebookLM. They must carry the same `services` tags as the JSON. |
 | `docs/cheatsheet/index.html` | Cheat sheet hub. |
 | `docs/cheatsheet/01-…10-*.html` | Domain pages. Each one loads `icons.js` and `app.js`, then calls `App.start(config)`. |
 | `docs/cheatsheet/app.css` | Shared styles and colour tokens (`--accent`, `--aws`, `--ink`, `--muted`, `--line`, `--surface`…), with light and dark values. |
@@ -54,6 +54,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **Gist token:** the GitHub Gist token is typed once per browser and kept in `localStorage`. It must never be written into any file. `GIST_ID` in `index.html` is fine.
 - **Tailwind is precompiled** into a `<style>` in `index.html`. A Tailwind class that isn't already used there won't exist. Either write plain CSS for new UI, or regenerate it with the steps in the comment at the top of `index.html`.
 - **Cheat-sheet menu:** every cheat-sheet page has a menu button (`#menuBtn`) in its top bar, and `app.js` builds the menu from it: Studio links, every sheet, the diagrams, the mind map, and the light/dark switch. There is no separate theme button any more. On phones the menu is a bottom sheet that closes like the mind map's panel: tap the backdrop or the handle, or drag the sheet down. A new page needs that button and must load `app.js`. A new domain sheet goes in `SHEETS` in `app.js`, which the hub reads too.
+- **One domain order:** the Studio's sections, the cheat sheets and the mind map's categories all list the ten domains most important on the exam first. The order is kept in three places that must change together: `DOMAIN_ORDER` in `index.html`, `SHEETS` in `app.js`, and the category order in `tag-vocabulary.json` (then rebuild the mind map). The sheet files keep their old numbers so that links keep working.
 - **Theme with tokens:** use the `app.css` variables or the existing Tailwind palette, never one-off colours, and check both themes.
 - **localStorage keys:**
   - `saa_` prefixes app-wide keys;
@@ -68,7 +69,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
   - question text: `question`, `hint`, `keywords`, `options`;
   - answer: `correct_answer`, `explanation`, `tldr`, `wrong_reasons`.
 - **Tags:** `services` holds 1–4 tags from `scripts/tag-vocabulary.json`, either `"Service"` or `"Service › Feature"`, joined by ` › `. Its `rules` say what to tag: what the correct answer depends on, most decisive first.
-- **Keep the copies in sync:** when a question or its tags change, update the matching `docs/notebooklm/set-*.md` entry too, then run `check-tags.js`.
+- **Keep the copies in sync:** when a question or its tags change, update the matching `docs/sets/notebooklm/<bank>.md` entry too, then run `check-tags.js`.
 
 ## Architecture diagrams
 
