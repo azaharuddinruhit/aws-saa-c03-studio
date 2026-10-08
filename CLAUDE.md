@@ -2,7 +2,7 @@
 
 A static study site for the AWS Solutions Architect Associate (SAA-C03) exam. Features:
 
-- **Practice quizzes** from three question banks.
+- **Practice quizzes** from four question banks.
 - **Progress overview** combining all the banks.
 - **Ten cheat sheets.**
 - **Architecture diagrams page.**
@@ -15,7 +15,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | Path | What it is |
 |---|---|
 | `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, score estimators, Gist sync. |
-| `docs/set-{alpha,beta,gamma}-v1.json` | Question banks: an array of questions. |
+| `docs/set-{alpha,beta,gamma,delta}-v1.json` | Question banks: an array of questions. |
 | `docs/notebooklm/set-*.md` | Markdown copies of the banks for NotebookLM. They must carry the same `services` tags as the JSON. |
 | `docs/cheatsheet/index.html` | Cheat sheet hub. |
 | `docs/cheatsheet/01-…10-*.html` | Domain pages. Each one loads `icons.js` and `app.js`, then calls `App.start(config)`. |
@@ -24,7 +24,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `docs/cheatsheet/architectures.html` | 32 architecture diagrams, mostly generated (see below). |
 | `scripts/build-architectures.js` | Generates diagrams 3–32, the contents list and the jump panel into `architectures.html`. |
 | `docs/cheatsheet/mindmap.html` | Interactive mind map: exam domain → category → service → feature. Its data is generated (see below). |
-| `scripts/build-mindmap.js` + `mindmap-cues.json` | Generates the mind map data from the vocabulary, the cues, the three banks and the diagrams page. |
+| `scripts/build-mindmap.js` + `mindmap-cues.json` | Generates the mind map data from the vocabulary, the cues, the four banks and the diagrams page. |
 | `scripts/check-tags.js` + `tag-vocabulary.json` | Validates every question's `services` tags. |
 | `.github/workflows/deploy.yml` | On push to `develop`: checks tags, stamps the version, deploys Pages. |
 
