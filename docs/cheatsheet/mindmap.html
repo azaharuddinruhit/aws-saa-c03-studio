@@ -83,12 +83,21 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
    transformed map so position:fixed works */
 .mm-panel{position:fixed;z-index:30;top:var(--tbh,57px);right:0;bottom:0;width:min(400px,100%);background:var(--surface);border-left:1px solid var(--line);box-shadow:-10px 0 30px rgba(15,23,42,.12);overflow-y:auto;overscroll-behavior:contain;padding:18px 18px calc(28px + env(safe-area-inset-bottom));animation:mmIn .18s ease-out;outline:none}
 .mm-panel>*+*{margin-top:16px}
+/* dims the map while the panel is open, in the menu backdrop's colour; a click on it closes the panel */
+.mm-scrim{position:fixed;z-index:29;top:var(--tbh,57px);left:0;right:0;bottom:0;background:rgba(15,23,42,.45);animation:mmFade .18s ease-out}
+@keyframes mmFade{from{opacity:0}to{opacity:1}}
 @keyframes mmIn{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
 @keyframes mmUp{from{transform:translateY(32px);opacity:.6}to{transform:none;opacity:1}}
 .mm-handle{display:none}
 @media (max-width:640px){
   .mm-panel{top:auto;left:0;width:100%;max-height:72vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -10px 30px rgba(15,23,42,.18);padding-top:8px;animation:mmUp .2s ease-out}
-  .mm-handle{display:block;width:40px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 10px}
+  /* on phones the handle is the close button: tap it, or drag the sheet down */
+  .mm-handle{display:flex;align-items:center;justify-content:center;width:100%;height:24px;margin:-8px 0 -4px;padding:0;border:0;background:none;cursor:grab;touch-action:none}
+  .mm-handle::before{content:"";width:40px;height:4px;border-radius:99px;background:var(--line)}
+  .mm-handle:focus-visible{outline:none}
+  .mm-handle:focus-visible::before{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .mm-p-head .mm-x{display:none}
+  .mm-p-head{padding-right:0}
 }
 .mm-p-head{display:flex;align-items:center;gap:12px;padding-right:36px;position:relative}
 .mm-p-head img,.mm-p-head .mm-ini{width:42px;height:42px;border-radius:9px;font-size:13px}
@@ -158,6 +167,7 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
   <div class="mm-legend" id="legend" hidden></div>
 </main>
 
+<div class="mm-scrim" id="scrim" hidden></div>
 <aside class="mm-panel" id="panel" role="dialog" aria-labelledby="panelTitle" tabindex="-1" hidden></aside>
 
 <!-- GENERATED:DATA START (scripts/build-mindmap.js) -->
@@ -246,7 +256,7 @@ const view = { x: 0, y: 0, k: 1 };
 let touched = false;   // the user has panned or zoomed, so a resize keeps their view
 
 const viewport = $('viewport'), world = $('world'), nodesEl = $('nodes'), linksEl = $('links'), stage = $('stage');
-const panel = $('panel');
+const panel = $('panel'), scrim = $('scrim');
 const isOpen = n => n.children.length && open.has(n.id);
 const iconHTML = (key, name) => key
   ? `<img src="${App.iconURL(key)}" alt="">`
@@ -615,15 +625,19 @@ const questionDomain = qi => DATA.questions[qi][3];
 let panelFor = null;
 function showPanel(n) {
   panelFor = n;
-  panel.innerHTML = '<div class="mm-handle" aria-hidden="true"></div>' + (n.kind === 'svc' ? serviceHTML(n) : featureHTML(n));
+  panel.innerHTML = '<button type="button" class="mm-handle" data-close aria-label="Close"></button>' + (n.kind === 'svc' ? serviceHTML(n) : featureHTML(n));
+  endSheetDrag();
   const wasHidden = panel.hidden;
   panel.hidden = false;
+  scrim.hidden = false;
   panel.scrollTop = 0;
   if (wasHidden) panel.focus({ preventScroll: true });
 }
 function closePanel(returnFocus) {
   if (panel.hidden) return;
   panel.hidden = true;
+  scrim.hidden = true;
+  endSheetDrag();
   const n = panelFor;
   panelFor = null;
   selected = null;
@@ -635,6 +649,50 @@ panel.addEventListener('click', e => {
   const j = e.target.closest('[data-jump]');
   if (j) select(byId.get(j.dataset.jump), 'jump');
 });
+scrim.addEventListener('click', dismissPanel);
+
+// phones: sheetDrag the sheet down to close it, from the handle, or from anywhere while its content is scrolled to the top
+const phoneQuery = matchMedia('(max-width:640px)');
+let sheetDrag = null;
+function endSheetDrag() {
+  sheetDrag = null;
+  panel.style.transform = panel.style.transition = scrim.style.opacity = scrim.style.transition = '';
+}
+panel.addEventListener('touchstart', e => {
+  if (!phoneQuery.matches || e.touches.length !== 1 || (panel.scrollTop > 0 && !e.target.closest('.mm-handle'))) return;
+  sheetDrag = { y: e.touches[0].clientY, dy: 0, trail: [{ dy: 0, t: e.timeStamp }] };
+}, { passive: true });
+panel.addEventListener('touchmove', e => {
+  if (!sheetDrag) return;
+  const dy = e.touches[0].clientY - sheetDrag.y;
+  if (dy < 0 && !sheetDrag.dy) { sheetDrag = null; return; }   // starting upwards is an ordinary scroll
+  if (e.cancelable) e.preventDefault();
+  sheetDrag.dy = Math.max(0, dy);
+  sheetDrag.trail = sheetDrag.trail.filter(p => e.timeStamp - p.t < 100).concat({ dy: sheetDrag.dy, t: e.timeStamp });   // the last 0.1s, for flick speed
+  panel.style.transition = scrim.style.transition = 'none';
+  panel.style.transform = `translateY(${sheetDrag.dy}px)`;
+  scrim.style.opacity = String(Math.max(0, 1 - sheetDrag.dy / panel.offsetHeight));
+}, { passive: false });
+function releaseSheet(e) {
+  if (!sheetDrag) return;
+  const { dy, trail } = sheetDrag;
+  sheetDrag = null;
+  if (!dy) return;
+  const first = trail[0] || { dy, t: e.timeStamp };
+  const flick = dy > 30 && (dy - first.dy) / Math.max(16, e.timeStamp - first.t) > 0.5;
+  panel.style.transition = 'transform .2s ease-out';
+  scrim.style.transition = 'opacity .2s ease-out';
+  if (e.type === 'touchend' && (flick || dy > Math.min(120, panel.offsetHeight / 3))) {
+    panel.style.transform = 'translateY(100%)';
+    scrim.style.opacity = '0';
+    setTimeout(dismissPanel, 200);
+  } else {
+    panel.style.transform = '';
+    scrim.style.opacity = '';
+  }
+}
+panel.addEventListener('touchend', releaseSheet);
+panel.addEventListener('touchcancel', releaseSheet);
 
 // ---------------------------------------------------------------- start
 function setTopbarHeight() { document.documentElement.style.setProperty('--tbh', document.querySelector('.topbar').getBoundingClientRect().bottom + 'px'); }
