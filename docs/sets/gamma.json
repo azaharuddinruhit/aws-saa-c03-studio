@@ -4495,7 +4495,7 @@
     "wrong_reasons": {
       "B": "member accounts cannot control discount sharing; the management account does.",
       "C": "Savings Plans cannot be shared with AWS RAM.",
-      "D": "Tenant accounts created through the sign-up page are standalone accounts outside the organization's consolidated billing, so they cannot receive the Savings Plan discount."
+      "D": "tenant accounts created through the sign-up page are standalone accounts outside the organization's consolidated billing, so they cannot receive the Savings Plan discount."
     },
     "pillars": [
       "Cost Optimization",
