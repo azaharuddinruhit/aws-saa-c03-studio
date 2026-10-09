@@ -5,6 +5,7 @@ A static study site for the AWS Solutions Architect Associate (SAA-C03) exam. Fe
 - **Practice quizzes** from four question banks.
 - **Progress overview** combining all the banks.
 - **Ten cheat sheets.**
+- **Eight infographics:** one-page visual summaries of the most-tested topics.
 - **Architecture diagrams page.**
 - **Mind map** of every service by exam domain, with exam cues and quiz progress.
 
@@ -25,6 +26,9 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `scripts/build-architectures.js` | Generates diagrams 3–32, the contents list and the jump panel into `architectures.html`. |
 | `docs/cheatsheet/mindmap.html` | Interactive mind map: exam domain → category → service → feature. Its data is generated (see below). |
 | `scripts/build-mindmap.js` + `mindmap-cues.json` | Generates the mind map data from the vocabulary, the cues, the four banks and the diagrams page. |
+| `docs/cheatsheet/infographic-*.html` | Eight infographics, generated whole (see below). |
+| `docs/cheatsheet/infographics.css` | Styles shared by the infographics, loaded after `app.css`. |
+| `scripts/build-infographics.js` + `scripts/infographics/<key>.js` | Generates each infographic from its module, with counts and one worked example taken from the banks. |
 | `scripts/check-tags.js` + `tag-vocabulary.json` | Validates every question's `services` tags. |
 | `.github/workflows/deploy.yml` | On push to `develop`: checks tags, stamps the version, deploys Pages. |
 
@@ -34,6 +38,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 node scripts/check-tags.js            # must pass, or the deploy fails
 node scripts/build-architectures.js   # after any change to the diagram specs
 node scripts/build-mindmap.js         # after changing cues, the vocabulary, questions or tags, or diagrams
+node scripts/build-infographics.js    # after changing an infographic module, questions or tags
 cd docs && python -m http.server 8000 # local preview at http://localhost:8000
 ```
 
@@ -53,7 +58,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 
 - **Gist token:** the GitHub Gist token is typed once per browser and kept in `localStorage`. It must never be written into any file. `GIST_ID` in `index.html` is fine.
 - **Tailwind is precompiled** into a `<style>` in `index.html`. A Tailwind class that isn't already used there won't exist. Either write plain CSS for new UI, or regenerate it with the steps in the comment at the top of `index.html`.
-- **Cheat-sheet menu:** every cheat-sheet page has a menu button (`#menuBtn`) in its top bar, and `app.js` builds the menu from it: Studio links, every sheet, the diagrams, the mind map, and the light/dark switch. There is no separate theme button any more. On phones the menu is a bottom sheet that closes like the mind map's panel: tap the backdrop or the handle, or drag the sheet down. A new page needs that button and must load `app.js`. A new domain sheet goes in `SHEETS` in `app.js`, which the hub reads too.
+- **Cheat-sheet menu:** every cheat-sheet page has a menu button (`#menuBtn`) in its top bar, and `app.js` builds the menu from it: Studio links, every sheet, the infographics, the diagrams, the mind map, and the light/dark switch. There is no separate theme button any more. On phones the menu is a bottom sheet that closes like the mind map's panel: tap the backdrop or the handle, or drag the sheet down. A new page needs that button and must load `app.js`. A new domain sheet goes in `SHEETS` in `app.js`, which the hub reads too.
 - **One domain order:** the Studio's sections, the cheat sheets and the mind map's categories all list the ten domains most important on the exam first. The order is kept in three places that must change together: `DOMAIN_ORDER` in `index.html`, `SHEETS` in `app.js`, and the category order in `tag-vocabulary.json` (then rebuild the mind map). The sheet files keep their old numbers so that links keep working.
 - **Theme with tokens:** use the `app.css` variables or the existing Tailwind palette, never one-off colours, and check both themes.
 - **localStorage keys:**
@@ -85,6 +90,19 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
   - ink (`data`) = data;
   - muted dotted (`alt`) = control, failover, DNS or automatic actions.
 - **Exam accuracy matters more than anything else on this page.** Facts must match current AWS behaviour, and prices or limits that change often are better left out.
+
+## Infographics
+
+- **Where to edit:** each page has a module in `scripts/infographics/<key>.js` that returns its title, intro, rule and body. Edit the module and rebuild. Never hand-edit `infographic-*.html`, since the build rewrites the whole file.
+- **The page list:** `INFOGRAPHICS` in `app.js` gives the order, names, icons and hub blurbs. The menu's Infographics group, the hub's Infographics section and each page's "More infographics" row all read it. The build fails if that list and the modules disagree, so a new page needs both.
+- **Order:** the exam phrase decoder first, then the same domain order as the cheat sheets.
+- **The build checks itself:** it fails on an unknown icon key, on a service name that isn't in the vocabulary, or when the worked example (ALPHA-002) no longer has the phrases the decoder marks.
+- **Class names:** every class in `infographics.css` starts with `ig-` (page) or `s-` (SVG drawing), so nothing collides with `app.css`. Keep that for new styles.
+- **Drawing:** the modules draw SVG with the build's helpers: `T` (text), `I` (icon), `L` (edge) and `svg`. Edge colours mean what they mean on the diagrams page.
+- **Phone width:** a wide drawing sits in `ig-scroll` with a `min-width`, so it scrolls inside its panel and the page doesn't. `ig-scroll` has themed scrollbars, using the theme tokens. Any new scroll area must use it or match it.
+- **Quiz me:** a switch under each page's rule hides every element marked `ig-hide` until it is tapped: trap answers (the `traps` helper marks them), exam cues, look-alike answers, and the other answer cells. Mark the answer half of any new prompt-and-answer content with `ig-hide`. The switch's state is a view preference in `saa_infographic_quiz`, not synced.
+- **Practice links:** a module may return `practice`, a list of vocabulary tags (`"Service"` or `"Service › Feature"`). The build adds a "Practise this page" section with one `index.html#/practice/<bank>/<tag>` link per set, like the mind map's. It fails on a tag that isn't in the vocabulary or that no question has.
+- **Same accuracy rule as the diagrams:** facts must match current AWS behaviour, and prices or limits that change often are left out.
 
 ## Mind map
 
