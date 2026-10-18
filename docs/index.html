@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>AWS SAA-C03 Studio</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%2310B981%27/%3E%3Cpath%20d%3D%27M9%2017l5%205%209-11%27%20stroke%3D%27%230F172A%27%20stroke-width%3D%273.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20fill%3D%27none%27/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2310B981%22%2F%3E%3Crect%20x%3D%226.5%22%20y%3D%226.5%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222.5%22%20fill%3D%22%23A7F3D0%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%2213.5%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222.5%22%20fill%3D%22%23A7F3D0%22%2F%3E%3Cpath%20d%3D%22M13.5%2016a2.5%202.5%200%200%201%202.5-2.5h2.5V16a2.5%202.5%200%200%201-2.5%202.5h-2.5Z%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E">
     <!--
       The CSS below is precompiled Tailwind 3.4 (no runtime compiler). To regenerate it after changing classes:
         1. tailwind.config.js : module.exports = { darkMode: 'class', content: ['./index.html'],
@@ -33,10 +33,24 @@
         *::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
         *::-webkit-scrollbar-thumb:hover { background: #10B981; background-clip: content-box; }
         *::-webkit-scrollbar-corner { background: transparent; }
-        /* Dashboard and progress overview, on every screen size: still scroll, just without the visible
-           rail. Scoped to those two so the quiz and summary views keep their scrollbars. */
-        main:has(#dashboardView:not(.hidden)), main:has(#overviewView:not(.hidden)) { scrollbar-width: none; }
-        main:has(#dashboardView:not(.hidden))::-webkit-scrollbar, main:has(#overviewView:not(.hidden))::-webkit-scrollbar { display: none; }
+        /* Dashboard and progress overview below the lg breakpoint: still scroll by touch, just without
+           the visible rail. Scoped to those two so the quiz and summary views keep their scrollbars. */
+        @media (max-width: 1023px) {
+            main:has(#dashboardView:not(.hidden)), main:has(#overviewView:not(.hidden)) { scrollbar-width: none; }
+            main:has(#dashboardView:not(.hidden))::-webkit-scrollbar, main:has(#overviewView:not(.hidden))::-webkit-scrollbar { display: none; }
+        }
+        /* Desktop: main is the page's scroller, so it spans the window and its scrollbar sits at the window's
+           edge rather than beside a centred column. The padding keeps the content in the header's 72rem
+           column: a gutter as wide as the scrollbar (10px, set above) sits on both sides, so each side's
+           padding gives those 10px back and the content lines up with the header. */
+        @media (min-width: 1024px) {
+            main.max-w-6xl {
+                max-width: none;
+                padding-left: max(calc(1.5rem - 10px), calc((100% - 72rem) / 2 + 1.5rem - 10px));
+                padding-right: max(calc(1.5rem - 10px), calc((100% - 72rem) / 2 + 1.5rem - 10px));
+                scrollbar-gutter: stable both-edges;
+            }
+        }
         /* Summary figures: two by two on a phone, one row of four from the sm breakpoint up
            (the prebuilt Tailwind below has no sm:grid-cols-4) */
         @media (min-width: 640px) { #summaryStats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -217,6 +231,7 @@
         html:not(.dark) .opt-reason { border-top-color: rgba(15, 23, 42, .14); }
         html:not(.dark) { scrollbar-color: #cbd5e1 transparent; }
         html:not(.dark) *::-webkit-scrollbar-thumb { background: #cbd5e1; background-clip: content-box; }
+        html:not(.dark) *::-webkit-scrollbar-thumb:hover { background: #059669; background-clip: content-box; }
 
         /* The responsive (lg:/max-lg:) surface variants used by the question card, its mobile
            card styling and the fixed mobile Next bar need the same treatment in both themes --
@@ -260,7 +275,8 @@
         .pace-mark { position: absolute; top: -.1875rem; bottom: -.1875rem; width: 2px; border-radius: 1px; background: var(--ov-ink); }
         .pace-id { width: 3.75rem; flex-shrink: 0; }
         .pace-time { width: 3rem; flex-shrink: 0; text-align: right; }
-        .pace-time, #questionClock { font-variant-numeric: tabular-nums; }
+        .pace-time { font-variant-numeric: tabular-nums; }
+        .timer-chip { padding-left: .625rem; padding-right: .625rem; gap: .375rem; font-variant-numeric: tabular-nums; }
         .ov-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 9999px; flex-shrink: 0; }
         #ovVerdict { align-items: flex-start; }
         #ovVerdict .ov-dot { margin-top: .4rem; }   /* sits on the first line when the verdict wraps */
@@ -328,10 +344,7 @@
             <!-- logo and title act as the home link (the overview). Mid-quiz they open it beside the quiz, which
                  keeps going: the overview offers Resume quiz, and the quiz's back arrow or Practice end it -->
             <button onclick="goHome()" title="Progress overview" class="flex items-center gap-3 min-w-0 text-left">
-                <svg class="w-8 h-8 rounded-lg shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo">
-                    <rect width="32" height="32" rx="7" fill="#10B981"/>
-                    <path d="M9 17l5 5 9-11" stroke="#0F172A" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                </svg>
+                <svg class="w-8 h-8 shrink-0" viewBox="0 0 32 32" role="img" aria-label="AWS SAA-C03 Studio logo"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg>
                 <div class="min-w-0 flex items-center gap-2">
                     <h1 class="font-semibold text-sm sm:text-base tracking-tight truncate leading-tight hover:text-emerald-400 transition">AWS SAA-C03 Studio</h1>
                     <!-- the active question bank, so it is never hidden away in the menu -->
@@ -447,22 +460,10 @@
                     </span>
                 </button>
                 <div id="estimateContent" class="hidden mt-4">
-                <!-- Both scorings read the same answers, so switching is instant and loses nothing -->
-                <div id="scoringSwitch" role="group" aria-label="Scoring method" class="inline-flex rounded-xl border border-slate-800 overflow-hidden">
-                    <button type="button" data-mode="intelligent" onclick="setScoringMode('intelligent')" class="px-3 py-1.5 text-xs font-semibold transition">Intelligent Scoring</button>
-                    <button type="button" data-mode="simple" onclick="setScoringMode('simple')" class="px-3 py-1.5 text-xs font-semibold transition">Simple Scoring</button>
-                </div>
-                <div id="estimateBody" class="mt-4"></div>
+                <div id="estimateBody"></div>
                 <details class="mt-4">
-                    <summary id="howSummary" class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is estimated</summary>
-                    <ul id="howSimple" class="hidden mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
-                        <li>Only your latest answer to each question counts.</li>
-                        <li>Accuracy per exam domain is weighted by the blueprint: 30% Secure, 26% Resilient, 24% High-Performing, 20% Cost-Optimized. Domains you haven't answered are left out.</li>
-                        <li>It maps straight onto 100–1000, so 720 needs 69% correct (35 of 50).</li>
-                        <li>The 80% range is where 80% of 50-question exams would land at that accuracy, allowing for luck on the day and for how many questions you have answered.</li>
-                        <li>Every question counts the same, with no allowance for difficulty, guessing, hints or time, so retrying mistakes inflates it. It appears after 5 answers and swings a lot until you have answered more.</li>
-                    </ul>
-                    <ul id="howIntelligent" class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is estimated</summary>
+                    <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
                         <li>A right answer to a hard question counts for more than one to an easy question, and lucky guesses are allowed for (25% on four options, 10% on a Select TWO).</li>
                         <li>Your level is projected onto the real exam's mix of easy, medium and hard questions, so practising easy ones won't inflate it.</li>
                         <li>Domains are weighted by the blueprint, and a domain with few answers leans on your overall level.</li>
@@ -536,9 +537,8 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3 min-w-0">
-                        <p id="quizTimer" class="hidden text-sm font-semibold text-slate-400 whitespace-nowrap"><i class="fa-regular fa-clock text-xs"></i> <span id="quizTimerText">00:00</span></p>
-                        <!-- this question's own clock against TARGET_SECONDS; filled by renderQuestionClock() -->
-                        <p id="questionClock" class="hidden text-sm font-semibold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-stopwatch text-xs"></i> <span id="questionClockText">00:00</span></p>
+                        <!-- one timer: this question's time or the quiz time left, tap to switch; filled by renderTimerChip() -->
+                        <button id="quizTimer" type="button" onclick="toggleTimerView()" class="timer-chip hidden inline-flex items-center rounded-full bg-slate-800 hover:bg-slate-700 py-1 text-sm font-semibold text-slate-400 whitespace-nowrap transition"><i id="quizTimerIcon" class="fa-solid fa-stopwatch text-xs"></i><span id="quizTimerText">00:00</span></button>
                         <p class="text-sm font-semibold text-emerald-500 whitespace-nowrap"><span id="liveScoreNum">0</span> pts</p>
                         <!-- the exam score estimate; filled by renderQuizEstimate() -->
                         <p id="quizEstimate" class="text-sm whitespace-nowrap"></p>
@@ -749,7 +749,7 @@
         let liveIndex = 0;        // the furthest question reached; the ones before it reopen read-only
         let quizFinished = false;
         let score = 0;
-        let sessionStartScores = {};    // each scoring's score when this session began, or null where it was not unlocked yet
+        let sessionStartScore = null;   // the exam score when this session began, or null while it was not unlocked yet
         let mistakes = [];
         let flaggedIds = new Set();
         let userAnswers = {};
@@ -956,7 +956,7 @@
                 // nothing saved yet means closed; only an explicit '0' opens it
                 const savedCollapse = localStorage.getItem('saa_estimate_collapsed');
                 estimateCollapsed = savedCollapse === null ? true : savedCollapse === '1';
-                scoringMode = SCORING_MODES[localStorage.getItem('saa_scoring')] ? localStorage.getItem('saa_scoring') : 'intelligent';
+                localStorage.removeItem('saa_scoring');   // the choice of the retired Simple Scoring
 
                 const savedLog = localStorage.getItem(storeKey('attempts'));
                 if (savedLog) attemptLog = JSON.parse(savedLog);
@@ -1432,13 +1432,7 @@
         function tickQuizTimer() {
             quizElapsedMs = Date.now() - quizTimerStartedAt;
             const left = quizBudgetMs() - quizElapsedMs;
-            // counting down, round up so a fresh quiz opens on its full time; below zero, show the overrun
-            document.getElementById('quizTimerText').innerText =
-                left >= 0 ? formatDuration(Math.ceil(left / 1000) * 1000) : '\u2212' + formatDuration(-left);
-            const timer = document.getElementById('quizTimer');
-            timer.classList.toggle('text-rose-400', left < 0);
-            timer.classList.toggle('text-slate-400', left >= 0);
-            renderQuestionClock();
+            renderTimerChip();
             // waits a tick if another dialog is open, since there is only one
             if (left <= 0 && !timeWarned && document.getElementById('confirmModal').classList.contains('hidden')) {
                 timeWarned = true;
@@ -1480,14 +1474,14 @@
         function startQuestionClock(q) {
             if (questionClock.id !== q.id) questionClock = { id: q.id, spentMs: 0, since: null };
             if (questionClock.since === null && document.visibilityState === 'visible') questionClock.since = Date.now();
-            renderQuestionClock();
+            renderTimerChip();
         }
 
         function pauseQuestionClock() {
             if (questionClock.since === null) return;
             questionClock.spentMs = questionClockMs();
             questionClock.since = null;
-            renderQuestionClock();
+            renderTimerChip();
         }
 
         // Seconds spent on the question, or null when its clock never ran
@@ -1497,16 +1491,49 @@
             return Math.round(questionClock.spentMs / 1000);
         }
 
-        function renderQuestionClock() {
-            const el = document.getElementById('questionClock');
-            const running = questionClock.since !== null;
-            el.classList.toggle('hidden', !running);
-            if (!running) return;
-            const ms = questionClockMs(), over = ms >= TARGET_SECONDS * 1000;
-            document.getElementById('questionClockText').innerText = formatDuration(ms) + ' / ' + formatDuration(TARGET_SECONDS * 1000);
-            el.title = 'This question. Aim to answer within ' + formatDuration(TARGET_SECONDS * 1000) + '.';
-            el.classList.toggle('text-rose-400', over);
-            el.classList.toggle('text-slate-400', !over);
+        // The time of the question on screen: running while it waits for an answer, then what it took
+        function shownQuestionMs() {
+            const q = currentQuizQuestions[currentIndex];
+            if (!q) return null;
+            if (questionClock.id === q.id) return questionClockMs();
+            return questionTimes[q.id] !== undefined ? questionTimes[q.id] * 1000 : null;
+        }
+
+        // ---- The timer chip ----
+        // One chip in the quiz bar shows either this question's time or the quiz time left; a tap switches.
+        // Which one it shows is a view preference for this browser, not synced.
+        const TIMER_VIEW_KEY = 'saa_timer_view';
+        let timerView = 'question';
+        try { if (localStorage.getItem(TIMER_VIEW_KEY) === 'quiz') timerView = 'quiz'; } catch (e) {}
+
+        function toggleTimerView() {
+            timerView = timerView === 'quiz' ? 'question' : 'quiz';
+            try { localStorage.setItem(TIMER_VIEW_KEY, timerView); } catch (e) {}
+            renderTimerChip();
+        }
+
+        function renderTimerChip() {
+            const chip = document.getElementById('quizTimer');
+            let text, over, label;
+            if (timerView === 'quiz') {
+                const elapsed = quizTimerInterval ? Date.now() - quizTimerStartedAt : quizElapsedMs;
+                const left = quizBudgetMs() - elapsed;
+                over = left < 0;
+                // counting down, round up so a fresh quiz opens on its full time; below zero, show the overrun
+                text = over ? formatDuration(-left) + ' over' : formatDuration(Math.ceil(left / 1000) * 1000) + ' left';
+                label = 'Quiz time ' + (over ? 'over' : 'left') + ". Tap to show this question's time.";
+            } else {
+                const ms = shownQuestionMs();
+                over = ms !== null && ms >= TARGET_SECONDS * 1000;
+                text = ms === null ? '--:--' : formatDuration(ms);
+                label = "This question's time, aiming for " + formatDuration(TARGET_SECONDS * 1000) + '. Tap to show the quiz time left.';
+            }
+            document.getElementById('quizTimerText').innerText = text;
+            document.getElementById('quizTimerIcon').className = (timerView === 'quiz' ? 'fa-regular fa-clock' : 'fa-solid fa-stopwatch') + ' text-xs';
+            chip.title = label;
+            chip.setAttribute('aria-label', text + '. ' + label);
+            chip.classList.toggle('text-rose-400', over);
+            chip.classList.toggle('text-slate-400', !over);
         }
 
         const paceTone = s => s <= TARGET_SECONDS ? 'text-emerald-400' : s <= SECONDS_PER_QUESTION ? 'text-amber-400' : 'text-rose-400';
@@ -1536,7 +1563,7 @@
                     live: liveIndex,
                     finished: quizFinished,
                     score,
-                    estStart: sessionStartScores,
+                    estStart: sessionStartScore,
                     answers: userAnswers,
                     skipped: [...skippedIds],
                     reasons: smartReasons,
@@ -1573,7 +1600,9 @@
             currentIndex = Math.min(liveIndex, list.length - 1);
             quizFinished = !!saved.finished;
             score = saved.score || 0;
-            sessionStartScores = saved.estStart && typeof saved.estStart === 'object' ? saved.estStart : {};
+            // a session saved before Simple Scoring was retired kept one baseline per scoring
+            const estStart = saved.estStart && typeof saved.estStart === 'object' ? saved.estStart.intelligent : saved.estStart;
+            sessionStartScore = typeof estStart === 'number' ? estStart : null;
             userAnswers = saved.answers || {};
             skippedIds = new Set(Array.isArray(saved.skipped) ? saved.skipped : []);
             smartReasons = saved.reasons || {};
@@ -1596,11 +1625,10 @@
             quizFinished = false;
             userAnswers = {};
             skippedIds = new Set();
-            sessionStartScores = {};
+            sessionStartScore = null;
             timeWarned = false;
             questionClock = { id: null, spentMs: 0, since: null };
             questionTimes = {};
-            renderQuestionClock();
             stopAndHideQuizTimer();
         }
 
@@ -1703,6 +1731,7 @@
                 toggleHint();   // the hint was open before a refresh or a step back
             }
             if (liveQuestionOpen()) startQuestionClock(q);
+            else renderTimerChip();
         }
 
         function showDashboardView() {
@@ -1870,12 +1899,9 @@
             timeWarned = false;
             questionClock = { id: null, spentMs: 0, since: null };
             questionTimes = {};
-            // the baseline the quiz bar and the summary measure this session's progress from, for both scorings
-            sessionStartScores = {};
-            for (const mode of Object.keys(SCORING_MODES)) {
-                const s = examScore(mode);
-                sessionStartScores[mode] = s.ready ? s.score : null;
-            }
+            // the baseline the quiz bar and the summary measure this session's progress from
+            const s = examScore();
+            sessionStartScore = s.ready ? s.score : null;
         }
 
         // The order for a quiz on one subject (a section, or a service from the mind map).
@@ -1986,10 +2012,7 @@
 
         let attemptLog = {};           // question id -> [[1|0, timestamp, flags, seconds?], ...]
         let estimateCollapsed = true;   // collapsed until the reader opens it
-        // Which scoring the dashboard card, the quiz bar, the summary and the Smart quiz use. A per-browser
-        // preference like the theme, so it is not synced with the progress.
-        const SCORING_MODES = { intelligent: 'Intelligent Scoring', simple: 'Simple Scoring' };
-        let scoringMode = 'intelligent';
+        const SCORING_NAME = 'Intelligent Scoring';
         const FLAG_HINT = 1, FLAG_DRILL = 2;
         let hintUsedThisQuestion = false;
         let currentQuizMode = 'all';
@@ -2404,66 +2427,7 @@
             };
         }
 
-        // ===== Simple Scoring =====
-        // The plain alternative to Intelligent Scoring: your latest answer to each question, accuracy per exam
-        // domain, the domains weighted by the blueprint, and the result put on the 100-1000 scale with the
-        // same straight line (so 720 is 69% correct). No allowance for difficulty, guessing, hints or recency.
-        const SIMPLE_MIN_ANSWERED = MIN_ANSWERED;              // unlocks at the same point as Intelligent Scoring
-        const SIMPLE_CLOSE = 4 * 900 / SCORED_QUESTIONS;       // within 4 questions of 50 of the pass mark counts as close
-
-        // Where 80% of 50-question sittings would land at this accuracy: a beta-binomial that allows for luck on the
-        // day and for how few answers the accuracy rests on. Exact arithmetic, no simulation, so it never jitters.
-        // The Jeffreys prior (+0.5) keeps 0% and 100% from looking certain after a handful of answers.
-        function simpleRange(accuracy, answered) {
-            const a = accuracy * answered + 0.5, b = (1 - accuracy) * answered + 0.5, N = SCORED_QUESTIONS;
-            const w = [1];   // relative chance of k right, built up with the ratio P(k+1) / P(k)
-            for (let k = 0; k < N; k++) w.push(w[k] * (N - k) / (k + 1) * (k + a) / (N - k - 1 + b));
-            const total = w.reduce((x, y) => x + y, 0);
-            let run = 0, lo = null, hi = null;
-            w.forEach((v, k) => {
-                run += v / total;
-                if (lo === null && run >= 0.1) lo = k;
-                if (hi === null && run >= 0.9) hi = k;
-            });
-            return [100 + 900 * lo / N, 100 + 900 * hi / N];
-        }
-
-        function simpleExamScore(answered = activeAnswered()) {
-            const per = {};
-            for (const id of Object.keys(EXAM_DOMAINS)) per[id] = { right: 0, answered: 0, acc: null };
-            let distinct = 0;
-            for (const { q, log } of answered) {
-                const d = per[examDomainOf(q)];
-                d.answered++; distinct++;
-                if (log[log.length - 1][0]) d.right++;
-            }
-            if (distinct < SIMPLE_MIN_ANSWERED) return { ready: false, distinct, min: SIMPLE_MIN_ANSWERED };
-            // a domain with no answers yet is left out and the other weights are rescaled to 100%
-            let weight = 0, sum = 0;
-            for (const [id, d] of Object.entries(per)) {
-                if (!d.answered) continue;
-                d.acc = d.right / d.answered;
-                weight += EXAM_DOMAINS[id].w;
-                sum += EXAM_DOMAINS[id].w * d.acc;
-            }
-            const accuracy = sum / weight;
-            const [lo, hi] = simpleRange(accuracy, distinct);
-            return { ready: true, per, distinct, accuracy, score: Math.round(100 + 900 * accuracy), lo, hi };
-        }
-
-        // The weighted accuracy behind the score, rounded (a 531 is about 48% correct); 100% only when every answer is right
-        const accuracyPercent = acc => Math.min(Math.round(acc * 100), acc < 1 ? 99 : 100);
-
-        function simpleTone(score) {
-            return score >= PASS_SCORE
-                ? { text: 'text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400', label: 'Passing' }
-                : score >= PASS_SCORE - SIMPLE_CLOSE
-                    ? { text: 'text-amber-400', chip: 'bg-amber-500/10 text-amber-400', label: 'Close' }
-                    : { text: 'text-rose-400', chip: 'bg-rose-500/10 text-rose-400', label: 'Needs work' };
-        }
-
-
-        // ===== The selected scoring =====
+        // ===== The exam score =====
         // Shared by the dashboard card, the quiz bar, the summary and the Smart quiz, so they all show the
         // same number the same way.
         function estimateTone(passProb) {
@@ -2474,17 +2438,10 @@
                     : { text: 'text-rose-400', chip: 'bg-rose-500/10 text-rose-400', label: 'Needs work' };
         }
 
-        // One shape for either scoring: ready/distinct/min, the score and how it is shown, its colour, a pass
+        // One shape for every reader: ready/distinct/min, the score and how it is shown, its colour, a pass
         // line for tooltips, and each exam domain's level (null while a domain has nothing to go on).
         // With no answers given it scores the active bank; the overview passes every bank's, under scope 'all'.
-        function examScore(mode = scoringMode, answered = activeAnswered(), scope = bankKey) {
-            if (mode === 'simple') {
-                const s = simpleExamScore(answered);
-                if (!s.ready) return s;
-                const levels = {};
-                for (const [id, d] of Object.entries(s.per)) levels[id] = d.acc;
-                return { ...s, shown: s.score, tone: simpleTone(s.score), passLine: accuracyPercent(s.accuracy) + '% correct, ' + simpleTone(s.score).label.toLowerCase(), levels };
-            }
+        function examScore(answered = activeAnswered(), scope = bankKey) {
             const e = estimateExamScore(answered, scope);
             if (!e.ready) return { ...e, min: MIN_ANSWERED };
             const levels = {};
@@ -2496,26 +2453,6 @@
         function weakestDomain(levels) {
             const ids = Object.keys(levels || {}).filter(id => levels[id] !== null);
             return ids.length ? ids.reduce((a, b) => (levels[a] <= levels[b] ? a : b)) : null;
-        }
-
-        function setScoringMode(mode) {
-            if (!SCORING_MODES[mode] || mode === scoringMode) return;
-            scoringMode = mode;
-            try { localStorage.setItem('saa_scoring', mode); } catch (e) {}
-            renderEstimate();
-            renderSmartPlan();
-            if (parseRoute().name === 'overview') renderOverview();
-        }
-
-        function renderScoringSwitch() {
-            for (const btn of document.getElementById('scoringSwitch').children) {
-                const on = btn.getAttribute('data-mode') === scoringMode;
-                btn.setAttribute('aria-pressed', String(on));
-                btn.className = 'px-3 py-1.5 text-xs font-semibold transition ' + (on ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:text-slate-300');
-            }
-            document.getElementById('howSimple').classList.toggle('hidden', scoringMode !== 'simple');
-            document.getElementById('howIntelligent').classList.toggle('hidden', scoringMode !== 'intelligent');
-            document.getElementById('howSummary').innerText = scoringMode === 'simple' ? 'How this is calculated' : 'How this is estimated';
         }
 
         // "▲8" / "▼3"; empty when the score has not moved
@@ -2550,7 +2487,7 @@
         function renderQuizEstimate() {
             const el = document.getElementById('quizEstimate');
             const s = examScore();
-            const name = SCORING_MODES[scoringMode];
+            const name = SCORING_NAME;
             const icon = '<i class="fa-solid fa-chart-line text-xs text-slate-500"></i> ';
             if (!s.ready) {
                 const left = s.min - s.distinct;
@@ -2558,7 +2495,7 @@
                 el.innerHTML = icon + '<span class="text-slate-400">' + s.distinct + '/' + s.min + '</span>';
                 return;
             }
-            const start = sessionStartScores[scoringMode] ?? null;
+            const start = sessionStartScore;
             const change = start === null ? 0 : s.shown - start;
             el.title = name + ' (100–1000, pass ' + PASS_SCORE + '): ' + s.passLine
                 + (start === null ? '' : '. ' + start + ' when this session started'
@@ -2570,71 +2507,17 @@
             const el = document.getElementById('summaryEstimateLine');
             const s = examScore();
             if (!s.ready) { el.classList.add('hidden'); return; }
-            const start = sessionStartScores[scoringMode] ?? null;
+            const start = sessionStartScore;
             const now = '<span class="font-semibold ' + s.tone.text + '">' + s.shown + '</span>';
             const delta = start === null ? '' : estimateDelta(start, s.score);
-            el.innerHTML = '<i class="fa-solid fa-chart-line"></i> ' + SCORING_MODES[scoringMode] + ' '
+            el.innerHTML = '<i class="fa-solid fa-chart-line"></i> ' + SCORING_NAME + ' '
                 + (start === null ? 'unlocked: ' + now
                     : delta ? '<span class="font-semibold text-slate-300">' + start + '</span> → ' + now + ' ' + delta
                     : 'unchanged at ' + now);
             el.classList.remove('hidden');
         }
 
-        function renderSimpleEstimate() {
-            const body = document.getElementById('estimateBody');
-            const s = simpleExamScore();
-
-            if (!s.ready) {
-                document.getElementById('estimateSummary').innerText = s.distinct + '/' + s.min + ' answered';
-                applyEstimateState();
-                const left = s.min - s.distinct;
-                body.innerHTML = `
-                    <p class="text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} to unlock Simple Scoring: your accuracy in each exam domain, weighted by the real exam blueprint.</p>
-                    <div class="h-1.5 rounded-full bg-slate-800 mt-3"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${Math.round(s.distinct / s.min * 100)}%"></div></div>`;
-                return;
-            }
-
-            const tone = simpleTone(s.score);
-            const need = Math.ceil((PASS_SCORE - 100) / 900 * SCORED_QUESTIONS);
-            document.getElementById('estimateSummary').innerHTML =
-                '<span class="font-semibold ' + tone.text + '">' + s.score + '</span> <span class="text-slate-500">·</span> ' + accuracyPercent(s.accuracy) + '% correct';
-            applyEstimateState();
-
-            const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
-                const d = s.per[id];
-                const acc = d.answered ? Math.round(d.acc * 100) : 0;
-                return `
-                    <div>
-                        <div class="flex items-center justify-between text-xs gap-2">
-                            <span class="text-slate-300 truncate">${dom.name} <span class="text-slate-500">${Math.round(dom.w * 100)}%</span></span>
-                            <span class="font-semibold text-slate-200">${d.answered ? acc + '%' : '–'}</span>
-                        </div>
-                        <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${acc}%"></div></div>
-                        <p class="text-[10px] text-slate-500 mt-1">${d.answered ? d.right + ' of ' + d.answered + ' right' : 'No answers yet, so not counted'}</p>
-                    </div>`;
-            }).join('');
-
-            body.innerHTML = `
-                <div class="grid grid-cols-2 gap-4 items-end">
-                    <div>
-                        <p class="text-xs text-slate-400">Simple score</p>
-                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.score}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
-                        <p class="text-xs text-slate-400 mt-1" title="Where 80% of 50-question sittings would land at your current accuracy, including luck on the day">80% range ${s.lo}–${s.hi}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-slate-400" title="Your accuracy per exam domain, weighted by the blueprint. 720 needs 69%.">Weighted accuracy</p>
-                        <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${accuracyPercent(s.accuracy)}%</p>
-                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
-                    </div>
-                </div>
-                ${scoreBar(s.score, s.lo, s.hi)}
-                <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
-                <p class="mt-4 text-[11px] text-slate-500">About ${(s.accuracy * SCORED_QUESTIONS).toFixed(1)} of ${SCORED_QUESTIONS} right on a sitting, ${need} needed to pass · your latest answer to each of ${s.distinct} questions</p>`;
-        }
-
         function renderEstimate() {
-            renderScoringSwitch();
-            if (scoringMode === 'simple') { renderSimpleEstimate(); return; }
             const body = document.getElementById('estimateBody');
             const est = estimateExamScore();
 
@@ -2912,14 +2795,12 @@
 
         function renderOverviewScore(banks, answered) {
             const box = document.getElementById('ovScore');
-            const s = examScore(scoringMode, answered, 'all');
-            const modeSwitch = '<div role="group" aria-label="Scoring method" class="inline-flex rounded-xl border border-slate-800 overflow-hidden">'
-                + Object.entries(SCORING_MODES).map(([m, name]) => `<button type="button" onclick="setScoringMode('${m}')" aria-pressed="${m === scoringMode}" class="px-3 py-1.5 text-xs font-semibold transition ${m === scoringMode ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-400 hover:text-slate-300'}">${name}</button>`).join('')
-                + '</div>';
+            const s = examScore(answered, 'all');
+            const method = `<p class="text-xs text-slate-400"><i class="fa-solid fa-chart-line"></i> ${SCORING_NAME}</p>`;
             // each bank's own score beside it; a bank keeps its own cached estimate, shared with the dashboard
             const bankRows = banks.map(b => {
                 const own = answeredIn(b.questions, b.log);
-                const bs = examScore(scoringMode, own, b.key);
+                const bs = examScore(own, b.key);
                 return `
                     <div class="flex items-center justify-between gap-2 text-xs">
                         <span class="text-slate-300 truncate">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
@@ -2930,14 +2811,10 @@
 
             if (!s.ready) {
                 const left = s.min - s.distinct;
-                box.innerHTML = modeSwitch + `
+                box.innerHTML = method + `
                     <p class="mt-4 text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} in any bank to unlock the combined score.</p>` + bankBlock;
                 return;
             }
-            const simple = scoringMode === 'simple';
-            const right = simple
-                ? { label: 'Correct', value: accuracyPercent(s.accuracy) + '%' }
-                : { label: 'Chance of reaching ' + PASS_SCORE, value: Math.round(s.passProb * 100) + '%' };
             const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
                 const level = s.levels[id];
                 const pct = level === null || level === undefined ? null : Math.round(level * 100);
@@ -2950,16 +2827,16 @@
                         <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${pct || 0}%"></div></div>
                     </div>`;
             }).join('');
-            box.innerHTML = modeSwitch + `
+            box.innerHTML = method + `
                 <div class="grid grid-cols-2 gap-4 items-end mt-4">
                     <div>
-                        <p class="text-xs text-slate-400">${simple ? 'Score' : 'Readiness score'}</p>
+                        <p class="text-xs text-slate-400">Readiness score</p>
                         <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.shown}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
                         <p class="text-xs text-slate-400 mt-1">80% range ${Math.round(s.lo)}–${Math.round(s.hi)}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs text-slate-400">${right.label}</p>
-                        <p class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${right.value}</p>
+                        <p class="text-xs text-slate-400">Chance of reaching ${PASS_SCORE}</p>
+                        <p class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${Math.round(s.passProb * 100)}%</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.tone.chip}">${s.tone.label}</span>
                     </div>
                 </div>
@@ -3567,7 +3444,7 @@
 
         function selectSmartQuestions(size) {
             const now = Date.now();
-            // the selected scoring's level per domain; a domain with nothing to go on counts as middling
+            // the estimate's level per domain; a domain with nothing to go on counts as middling
             const levels = examScore().levels || {};
             const mean = id => levels[id] ?? 0.6;
             const weakest = weakestDomain(levels);
