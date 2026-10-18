@@ -52,7 +52,7 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-tog:hover{border-color:var(--accent);color:var(--accent)}
 .mm-tog[aria-expanded="true"]{font-size:13px}
 
-/* progress overlay: latest answer per tagged question */
+/* progress overlay: the share of tagged questions done (latest answer right) */
 .mm-score{display:none;align-items:center;gap:5px;font:700 11px var(--mono);border-radius:999px;padding:1px 7px 1px 3px;background:var(--surface-2);color:var(--muted)}
 .mm-score svg{width:14px;height:14px;flex:none;transform:rotate(-90deg)}
 .mm-score circle{fill:none;stroke-width:3}
@@ -167,7 +167,7 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
   <div class="mm-zoom">
     <div class="mm-grp">
       <button type="button" class="mm-tb" id="legendBtn" aria-controls="legend" aria-expanded="false" aria-label="Progress legend" title="Show or hide the progress legend" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
-      <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" aria-label="My progress" title="My progress: colour services by your quiz results"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5"/></svg></button>
+      <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" aria-label="My progress" title="My progress: how much of each service you've completed"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5"/></svg></button>
       <button type="button" class="mm-tb" id="expandBtn" aria-label="Expand all" title="Expand all: open every branch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
       <button type="button" class="mm-tb" id="collapseBtn" aria-label="Collapse all" title="Collapse all: fold back to the categories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button>
     </div>
@@ -246,16 +246,19 @@ function latest(qi) {
   const log = attempts[bi] && attempts[bi][id];
   return log && log.length ? (log[log.length - 1][0] ? 1 : 0) : null;
 }
+// A question is done when its latest answer is right, as on the Studio's Progress page. pct is the share
+// of the tagged questions done, and the level follows it: 80%+ good, 50-79% mid, under 50% bad, and
+// none while not one of them has been answered.
 function stats(list) {
-  let tried = 0, right = 0;
-  for (const qi of list) { const r = latest(qi); if (r !== null) { tried++; right += r; } }
-  const pct = tried ? right / tried : null;
+  let tried = 0, done = 0;
+  for (const qi of list) { const r = latest(qi); if (r !== null) { tried++; done += r; } }
+  const pct = list.length ? done / list.length : null;
   const lv = !tried ? 'none' : pct >= 0.8 ? 'good' : pct >= 0.5 ? 'mid' : 'bad';
-  return { total: list.length, tried, right, pct, lv };
+  return { total: list.length, tried, done, pct, lv };
 }
 const pctText = st => st.pct == null ? '–' : Math.round(st.pct * 100) + '%';
 function ring(st) {
-  const c = 2 * Math.PI * 5.5, cov = st.total ? st.tried / st.total : 0;
+  const c = 2 * Math.PI * 5.5, cov = st.total ? st.done / st.total : 0;
   return `<svg viewBox="0 0 14 14" aria-hidden="true"><circle class="bg" cx="7" cy="7" r="5.5"/><circle class="fg" cx="7" cy="7" r="5.5" stroke-dasharray="${(cov * c).toFixed(2)} ${c.toFixed(2)}"/></svg>`;
 }
 
@@ -387,7 +390,7 @@ function paintOverlay() {
       n.el.dataset.lv = st.lv;
       const sc = n.el.querySelector('.mm-score');
       sc.innerHTML = ring(st) + pctText(st);
-      sc.title = st.total ? `${st.right} of ${st.tried} right · ${st.tried} of ${st.total} questions tried` : 'No practice questions tagged';
+      sc.title = st.total ? `${st.done} of ${st.total} questions done · ${st.tried} answered` : 'No practice questions tagged';
     }
   }
   showLegend();
@@ -395,8 +398,8 @@ function paintOverlay() {
     const legend = $('legend');
     const all = stats(questionsOf(root));
     legend.innerHTML = all.tried
-      ? `<b style="color:var(--ink)">${all.tried} of ${all.total} questions tried · ${pctText(all)} right.</b> Latest answer per question; the ring shows how many you've tried.
-        <div class="row"><span data-lv="good"><i></i>80%+</span><span data-lv="mid"><i></i>50–79%</span><span data-lv="bad"><i></i>under 50%</span><span><i></i>not tried</span></div>`
+      ? `<b style="color:var(--ink)">${all.done} of ${all.total} questions done · ${pctText(all)}.</b> A question is done when your latest answer to it is right, as in the Studio.
+        <div class="row"><span data-lv="good"><i></i>80%+ done</span><span data-lv="mid"><i></i>50–79%</span><span data-lv="bad"><i></i>under 50%</span><span><i></i>not started</span></div>`
       : `No quiz answers are saved in this browser yet. <a href="../index.html">Practise in the Studio</a>, or sync your Gist there, and the map colours itself.`;
   }
 }
@@ -659,11 +662,11 @@ function progressHTML(list, what) {
     return `<li>${mk}<span><small>${esc(DATA.banks[bi].symbol)}${id}</small>${esc(stem)}</span></li>`;
   }).join('');
   const summary = st.tried
-    ? `<span><b>${pctText(st)}</b> right</span><span class="meter" data-lv="${st.lv}"><i style="width:${Math.round(st.pct * 100)}%"></i></span><span class="mm-note">${st.tried} of ${st.total} tried</span>`
+    ? `<span><b>${pctText(st)}</b> done</span><span class="meter" data-lv="${st.lv}"><i style="width:${Math.round(st.pct * 100)}%"></i></span><span class="mm-note">${st.done} of ${st.total} done · ${st.tried} answered</span>`
     : `<span class="mm-note">None of these ${st.total} questions tried yet.</span>`;
   return `<div><h3>Your answers</h3><div class="mm-prog">${summary}</div>
     <ol class="mm-qs">${rows}</ol>
-    <p class="mm-note" style="margin-top:10px">Latest answer to each question in the <a href="../index.html">Studio's practice quizzes</a>, saved in this browser. α β γ are the three question sets.</p></div>`;
+    <p class="mm-note" style="margin-top:10px">Latest answer to each question in the <a href="../index.html">Studio's practice quizzes</a>, saved in this browser. α β γ δ are the four question sets.</p></div>`;
 }
 // one practice link per question set that has questions for the service; the Studio works one set at a time
 function practiceHTML(name) {
