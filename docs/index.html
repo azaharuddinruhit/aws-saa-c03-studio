@@ -254,12 +254,19 @@
             --ov-heat0: #212739; --ov-heat1: #065f46; --ov-heat2: #047857; --ov-heat3: #10b981; --ov-heat4: #6ee7b7;
         }
         .dark #ovExamDate { color-scheme: dark; }
+        /* a section's typical time; the tick marks the target time a question */
+        .pace-track { position: relative; height: .375rem; border-radius: 9999px; background: var(--ov-grid); margin-top: .375rem; }
+        .pace-fill { height: 100%; border-radius: 9999px; }
+        .pace-mark { position: absolute; top: -.1875rem; bottom: -.1875rem; width: 2px; border-radius: 1px; background: var(--ov-ink); }
+        .pace-id { width: 3.75rem; flex-shrink: 0; }
+        .pace-time { width: 3rem; flex-shrink: 0; text-align: right; }
+        .pace-time, #questionClock { font-variant-numeric: tabular-nums; }
         .ov-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 9999px; flex-shrink: 0; }
         #ovVerdict { align-items: flex-start; }
         #ovVerdict .ov-dot { margin-top: .4rem; }   /* sits on the first line when the verdict wraps */
-        .ov-dot[data-tone="good"] { background: #10b981; }
-        .ov-dot[data-tone="warn"] { background: #f59e0b; }
-        .ov-dot[data-tone="bad"] { background: #f43f5e; }
+        .ov-dot[data-tone="good"], .pace-fill[data-tone="good"] { background: #10b981; }
+        .ov-dot[data-tone="warn"], .pace-fill[data-tone="warn"] { background: #f59e0b; }
+        .ov-dot[data-tone="bad"], .pace-fill[data-tone="bad"] { background: #f43f5e; }
         .ov-dot[data-tone="none"] { background: #64748b; }
         /* right / missed / unseen: one bar, segments separated by a 2px gap of the card surface */
         .ov-stack { display: flex; gap: 2px; height: .625rem; border-radius: 9999px; overflow: hidden; }
@@ -530,6 +537,8 @@
                     </div>
                     <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3 min-w-0">
                         <p id="quizTimer" class="hidden text-sm font-semibold text-slate-400 whitespace-nowrap"><i class="fa-regular fa-clock text-xs"></i> <span id="quizTimerText">00:00</span></p>
+                        <!-- this question's own clock against TARGET_SECONDS; filled by renderQuestionClock() -->
+                        <p id="questionClock" class="hidden text-sm font-semibold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-stopwatch text-xs"></i> <span id="questionClockText">00:00</span></p>
                         <p class="text-sm font-semibold text-emerald-500 whitespace-nowrap"><span id="liveScoreNum">0</span> pts</p>
                         <!-- the exam score estimate; filled by renderQuizEstimate() -->
                         <p id="quizEstimate" class="text-sm whitespace-nowrap"></p>
@@ -630,6 +639,7 @@
                     <p id="summaryTimeLine" class="hidden text-xs text-slate-400">
                         <i class="fa-regular fa-clock"></i> Completed in <span id="summaryTimeValue" class="font-semibold text-slate-300">00:00</span>
                     </p>
+                    <p id="summaryPaceLine" class="hidden text-xs text-slate-400"></p>
                     <p id="summaryEstimateLine" class="hidden text-xs text-slate-400"></p>
                 </div>
 
@@ -669,6 +679,10 @@
                     <button id="ovWeakToggle" onclick="toggleWeakAll()" class="hidden text-xs text-slate-400 hover:text-slate-300 transition"></button>
                 </div>
                 <div id="ovWeak" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold">Answer pace</h3>
+                <div id="ovPace" class="mt-4"></div>
             </section>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Activity</h3>
@@ -1424,6 +1438,7 @@
             const timer = document.getElementById('quizTimer');
             timer.classList.toggle('text-rose-400', left < 0);
             timer.classList.toggle('text-slate-400', left >= 0);
+            renderQuestionClock();
             // waits a tick if another dialog is open, since there is only one
             if (left <= 0 && !timeWarned && document.getElementById('confirmModal').classList.contains('hidden')) {
                 timeWarned = true;
@@ -1439,7 +1454,71 @@
             clearQuizTimerInterval();
             document.getElementById('quizTimer').classList.add('hidden');
             document.getElementById('summaryTimeLine').classList.add('hidden');
+            document.getElementById('summaryPaceLine').classList.add('hidden');
         }
+
+        // ===== Question pace =====
+        // The target is the exam's own pace of 2 minutes a question; a lower one would leave time at the end to
+        // revisit flagged questions. The live question has its own clock, which pauses while the tab is hidden
+        // or another page is open, and its seconds are kept with the attempt as a fourth field.
+        const TARGET_SECONDS = 120;
+        const AWAY_SECONDS = 20 * 60;   // longer than this was a break, not reading, so the pace figures leave it out
+        let questionClock = { id: null, spentMs: 0, since: null };
+        let questionTimes = {};         // this quiz: question id -> seconds taken
+
+        function questionClockMs() {
+            const c = questionClock;
+            return c.spentMs + (c.since === null ? 0 : Date.now() - c.since);
+        }
+
+        // The question on screen is the live one and still waits for an answer
+        function liveQuestionOpen() {
+            return !quizFinished && !answered && currentIndex === liveIndex && currentQuizQuestions[currentIndex] !== undefined
+                && !document.getElementById('quizView').classList.contains('hidden');
+        }
+
+        function startQuestionClock(q) {
+            if (questionClock.id !== q.id) questionClock = { id: q.id, spentMs: 0, since: null };
+            if (questionClock.since === null && document.visibilityState === 'visible') questionClock.since = Date.now();
+            renderQuestionClock();
+        }
+
+        function pauseQuestionClock() {
+            if (questionClock.since === null) return;
+            questionClock.spentMs = questionClockMs();
+            questionClock.since = null;
+            renderQuestionClock();
+        }
+
+        // Seconds spent on the question, or null when its clock never ran
+        function takeQuestionSeconds(q) {
+            if (questionClock.id !== q.id) return null;
+            pauseQuestionClock();
+            return Math.round(questionClock.spentMs / 1000);
+        }
+
+        function renderQuestionClock() {
+            const el = document.getElementById('questionClock');
+            const running = questionClock.since !== null;
+            el.classList.toggle('hidden', !running);
+            if (!running) return;
+            const ms = questionClockMs(), over = ms >= TARGET_SECONDS * 1000;
+            document.getElementById('questionClockText').innerText = formatDuration(ms) + ' / ' + formatDuration(TARGET_SECONDS * 1000);
+            el.title = 'This question. Aim to answer within ' + formatDuration(TARGET_SECONDS * 1000) + '.';
+            el.classList.toggle('text-rose-400', over);
+            el.classList.toggle('text-slate-400', !over);
+        }
+
+        const paceTone = s => s <= TARGET_SECONDS ? 'text-emerald-400' : s <= SECONDS_PER_QUESTION ? 'text-amber-400' : 'text-rose-400';
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                pauseQuestionClock();
+                if (questionClock.id !== null) saveSession();
+            } else if (liveQuestionOpen()) {
+                startQuestionClock(currentQuizQuestions[currentIndex]);
+            }
+        });
 
         // ===== Session survives a refresh =====
         // The quiz in progress is kept in sessionStorage: per tab, so a refresh resumes it, but closing
@@ -1464,7 +1543,9 @@
                     hint: hintUsedThisQuestion,
                     startedAt: quizTimerStartedAt,
                     elapsedMs: quizElapsedMs,
-                    warned: timeWarned
+                    warned: timeWarned,
+                    clock: { id: questionClock.id, ms: questionClockMs() },
+                    times: questionTimes
                 }));
             } catch (e) {}
         }
@@ -1499,6 +1580,10 @@
             hintUsedThisQuestion = !!saved.hint;
             quizElapsedMs = saved.elapsedMs || 0;
             timeWarned = !!saved.warned;
+            // the question clock comes back paused; showQuestionAt() starts it again on the live question
+            const clock = saved.clock && typeof saved.clock === 'object' ? saved.clock : {};
+            questionClock = { id: clock.id ?? null, spentMs: clock.ms || 0, since: null };
+            questionTimes = saved.times && typeof saved.times === 'object' ? saved.times : {};
             if (!quizFinished && saved.startedAt) startQuizTimer(saved.startedAt);
             else stopAndHideQuizTimer();
         }
@@ -1513,6 +1598,9 @@
             skippedIds = new Set();
             sessionStartScores = {};
             timeWarned = false;
+            questionClock = { id: null, spentMs: 0, since: null };
+            questionTimes = {};
+            renderQuestionClock();
             stopAndHideQuizTimer();
         }
 
@@ -1564,6 +1652,7 @@
         async function renderRoute() {
             const route = parseRoute();
             const active = currentQuizQuestions.length > 0;
+            pauseQuestionClock();   // showQuestionAt() starts it again if the live question comes back
 
             // The overview sits beside a quiz rather than ending it: Back returns to the question.
             if (route.name === 'overview') {
@@ -1613,6 +1702,7 @@
             } else if (hintUsedThisQuestion) {
                 toggleHint();   // the hint was open before a refresh or a step back
             }
+            if (liveQuestionOpen()) startQuestionClock(q);
         }
 
         function showDashboardView() {
@@ -1778,6 +1868,8 @@
             skippedIds = new Set();
             hintUsedThisQuestion = false;
             timeWarned = false;
+            questionClock = { id: null, spentMs: 0, since: null };
+            questionTimes = {};
             // the baseline the quiz bar and the summary measure this session's progress from, for both scorings
             sessionStartScores = {};
             for (const mode of Object.keys(SCORING_MODES)) {
@@ -1892,7 +1984,7 @@
             { b: ITEM_B.hard,   c: GUESS_MULTI,  p: 0.05 }
         ];
 
-        let attemptLog = {};           // question id -> [[1|0, timestamp, flags], ...]
+        let attemptLog = {};           // question id -> [[1|0, timestamp, flags, seconds?], ...]
         let estimateCollapsed = true;   // collapsed until the reader opens it
         // Which scoring the dashboard card, the quiz bar, the summary and the Smart quiz use. A per-browser
         // preference like the theme, so it is not synced with the progress.
@@ -2078,12 +2170,15 @@
             line.classList.remove('hidden');
         }
 
-        function recordAttempt(q, isCorrect) {
+        // `seconds` is the time the question took, or null when it is not known
+        function recordAttempt(q, isCorrect, seconds) {
             const list = attemptLog[q.id] || (attemptLog[q.id] = []);
             let flags = 0;
             if (hintUsedThisQuestion) flags |= FLAG_HINT;
             if (currentQuizMode === 'mistakes') flags |= FLAG_DRILL;
-            list.push([isCorrect ? 1 : 0, Date.now(), flags]);
+            const entry = [isCorrect ? 1 : 0, Date.now(), flags];
+            if (seconds !== null) entry.push(seconds);
+            list.push(entry);
             if (list.length > 20) list.splice(1, 1); // always keep the first attempt
         }
 
@@ -2698,6 +2793,7 @@
             document.getElementById('ovScore').innerHTML = block(24);
             document.getElementById('ovTimeline').innerHTML = block(28);
             document.getElementById('ovWeak').innerHTML = block(16);
+            document.getElementById('ovPace').innerHTML = block(12);
             document.getElementById('ovActivity').innerHTML = block(28);
         }
 
@@ -2719,6 +2815,7 @@
             renderOverviewScore(banks, answered);
             renderTimeline(banks, tl);
             renderWeakAreas(banks, answered);
+            renderPace(banks);
             renderActivity(tl);
             overviewPainted = true;
         }
@@ -3072,6 +3169,94 @@
                         <li>A missed question counts against every service it is tagged with. The counts under each bar are your latest answer to each question.</li>
                     </ul>
                 </details>`;
+        }
+
+        // ---- Answer pace ----
+        // From the seconds kept with each attempt. Medians, so one slow question does not drag the figure;
+        // first sightings and repeats are told apart, since a question you have seen before reads faster.
+        const PACE_RECENT = 50;          // the headline figures use this many of the latest timed answers
+        const PACE_MIN_ANSWERS = 3;      // a section needs this many timed answers to be listed
+        const PACE_SLOWEST_SHOWN = 5;
+        const PACE_SCALE = 180;          // seconds at the end of a section's bar
+
+        const median = list => {
+            const s = list.slice().sort((a, b) => a - b), mid = s.length >> 1;
+            return s.length % 2 ? s[mid] : Math.round((s[mid - 1] + s[mid]) / 2);
+        };
+
+        function renderPace(banks) {
+            const box = document.getElementById('ovPace');
+            const timed = [];   // { bank, q, seconds, right, first, ts }
+            for (const b of banks) for (const q of b.questions) {
+                (b.log[q.id] || []).forEach((entry, i) => {
+                    const seconds = entry[3];
+                    if (typeof seconds === 'number' && seconds <= AWAY_SECONDS) {
+                        timed.push({ bank: b.key, q, seconds, right: !!entry[0], first: i === 0, ts: entry[1] });
+                    }
+                });
+            }
+            const target = formatDuration(TARGET_SECONDS * 1000);
+            const spare = Math.round(EXAM_SIZE * (SECONDS_PER_QUESTION - TARGET_SECONDS) / 60);
+            const footnote = `<p class="mt-4 text-[11px] text-slate-500">The exam allows ${formatDuration(SECONDS_PER_QUESTION * 1000)} a question${spare > 0
+                ? `. Answering in ${target} leaves about ${spare} minutes to review flagged questions.` : ', so the target is exam pace.'} A question's clock runs from when it opens until you answer, and stops while the tab is hidden. Answers from before pace tracking have no time.</p>`;
+            if (!timed.length) {
+                box.innerHTML = `<p class="text-sm text-slate-400">Each answer now records how long it took. Answer a few questions to see your pace against the ${target} target.</p>` + footnote;
+                return;
+            }
+            timed.sort((a, b) => b.ts - a.ts);
+            const recent = timed.slice(0, PACE_RECENT).map(t => t.seconds);
+            const typical = median(recent);
+            const withinPct = Math.round(recent.filter(s => s <= TARGET_SECONDS).length / recent.length * 100);
+            const fmt = s => formatDuration(s * 1000);
+
+            const firsts = timed.filter(t => t.first).map(t => t.seconds), repeats = timed.filter(t => !t.first).map(t => t.seconds);
+            const split = [];
+            if (firsts.length >= PACE_MIN_ANSWERS) split.push(`First time seen <span class="font-semibold ${paceTone(median(firsts))}">${fmt(median(firsts))}</span>`);
+            if (repeats.length >= PACE_MIN_ANSWERS) split.push(`Seen before <span class="font-semibold ${paceTone(median(repeats))}">${fmt(median(repeats))}</span>`);
+
+            const bySection = {};
+            for (const t of timed) (bySection[t.q.domain || 'General AWS'] = bySection[t.q.domain || 'General AWS'] || []).push(t.seconds);
+            const sections = Object.entries(bySection).filter(([, list]) => list.length >= PACE_MIN_ANSWERS)
+                .map(([name, list]) => ({ name, typical: median(list), n: list.length }))
+                .sort((a, b) => b.typical - a.typical);
+            const fill = s => s <= TARGET_SECONDS ? 'good' : s <= SECONDS_PER_QUESTION ? 'warn' : 'bad';
+            const sectionRows = sections.map(s => `
+                    <div>
+                        <div class="flex items-center justify-between text-xs gap-2">
+                            <span class="text-slate-300 truncate">${escapeHtml(s.name)}</span>
+                            <span class="shrink-0 text-slate-500">${plural(s.n, 'answer')} · <span class="font-semibold ${paceTone(s.typical)}">${fmt(s.typical)}</span></span>
+                        </div>
+                        <div class="pace-track"><div class="pace-fill" data-tone="${fill(s.typical)}" style="width:${Math.min(100, s.typical / PACE_SCALE * 100)}%"></div><span class="pace-mark" style="left:${TARGET_SECONDS / PACE_SCALE * 100}%"></span></div>
+                    </div>`).join('');
+
+            // each question's latest timed answer, slowest first
+            const latestPer = new Map();
+            for (const t of timed) { const k = t.bank + ':' + t.q.id; if (!latestPer.has(k)) latestPer.set(k, t); }
+            const slowest = [...latestPer.values()].filter(t => t.seconds > TARGET_SECONDS)
+                .sort((a, b) => b.seconds - a.seconds).slice(0, PACE_SLOWEST_SHOWN);
+            const slowRows = slowest.map(t => `
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="pace-id text-slate-300">${BANKS[t.bank].symbol} #${escapeHtml(String(t.q.id))}</span>
+                        <span class="flex-1 min-w-0 truncate text-slate-400" title="${escapeHtml(t.q.domain || '')}">${escapeHtml(t.q.domain || 'General AWS')}</span>
+                        <span class="shrink-0 ${t.right ? 'text-emerald-400' : 'text-rose-400'}">${t.right ? 'right' : 'missed'}</span>
+                        <span class="pace-time font-semibold ${paceTone(t.seconds)}">${fmt(t.seconds)}</span>
+                    </div>`).join('');
+
+            box.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 items-end">
+                    <div>
+                        <p class="text-xs text-slate-400">Typical time a question</p>
+                        <p class="text-4xl font-semibold tracking-tight ${paceTone(typical)}">${fmt(typical)}<span class="text-base text-slate-500 font-normal"> / ${target}</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400">Within ${target}</p>
+                        <p class="text-3xl font-semibold ${levelTone(withinPct)}">${withinPct}%</p>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-slate-400">${recent.length < PACE_RECENT ? 'All ' + plural(recent.length, 'timed answer') : 'Your latest ' + PACE_RECENT + ' timed answers'}${split.length ? ' · ' + split.join(' · ') : ''}</p>
+                ${sectionRows ? `<div class="ov-rule"><p class="text-xs text-slate-400">By section, slowest first. The tick marks ${target}.</p><div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${sectionRows}</div></div>` : ''}
+                ${slowRows ? `<div class="ov-rule"><p class="text-xs text-slate-400">Slowest questions, by your latest time</p><div class="mt-3 space-y-2">${slowRows}</div></div>` : ''}
+                ${footnote}`;
         }
 
         // ---- Activity ----
@@ -3636,7 +3821,9 @@
 
             const isCorrect = picked.length === correctKeys.length && picked.every(k => correctKeys.includes(k));
             if (!restoring) {
-                recordAttempt(q, isCorrect);
+                const seconds = takeQuestionSeconds(q);
+                if (seconds !== null) questionTimes[q.id] = seconds;
+                recordAttempt(q, isCorrect, seconds);
                 if (isCorrect) {
                     score++;
                     document.getElementById('liveScoreNum').innerText = score;
@@ -3658,6 +3845,11 @@
             } else {
                 const which = correctKeys.length > 1 ? 'answers are ' + correctKeys.join(' and ') : 'answer is ' + correctKeys[0];
                 badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i><span class="text-rose-600 dark:text-rose-400">Incorrect. The correct ${which}.</span>`;
+            }
+            const took = questionTimes[q.id];
+            if (took !== undefined) {
+                badge.insertAdjacentHTML('beforeend', `<span class="font-normal text-slate-400 whitespace-nowrap" title="Time on this question; the aim is ${formatDuration(TARGET_SECONDS * 1000)}">`
+                    + `<i class="fa-solid fa-stopwatch text-xs"></i> <span class="${paceTone(took)}">${formatDuration(took * 1000)}</span></span>`);
             }
 
             renderHistoryLine(q);
@@ -3685,6 +3877,7 @@
         function skipQuestion() {
             const q = currentQuizQuestions[currentIndex];
             if (answered || currentIndex !== liveIndex) return;
+            pauseQuestionClock();
             skippedIds.add(q.id);
             handleNextQuestion();
         }
@@ -3774,6 +3967,7 @@
                 + (over >= 1000 ? ' <span class="text-rose-400">\u00b7 ' + formatDuration(over) + ' over</span>' : '');
             document.getElementById('summaryTimeLine').classList.remove('hidden');
             document.getElementById('quizTimer').classList.add('hidden');
+            renderSummaryPace();
 
             // the score is out of the questions answered; skipped ones are counted on their own
             const answeredCount = currentQuizQuestions.length - skippedIds.size;
@@ -3785,6 +3979,18 @@
             renderSummaryEstimate();
 
             initApp();
+        }
+
+        // The quiz's average time a question and how many were answered within the target
+        function renderSummaryPace() {
+            const line = document.getElementById('summaryPaceLine');
+            const times = currentQuizQuestions.map(q => questionTimes[q.id]).filter(s => s !== undefined);
+            line.classList.toggle('hidden', !times.length);
+            if (!times.length) return;
+            const avg = Math.round(times.reduce((a, s) => a + s, 0) / times.length);
+            const within = times.filter(s => s <= TARGET_SECONDS).length;
+            line.innerHTML = `<i class="fa-solid fa-stopwatch"></i> Average <span class="font-semibold ${paceTone(avg)}">${formatDuration(avg * 1000)}</span> a question`
+                + ` · ${within} of ${times.length} within ${formatDuration(TARGET_SECONDS * 1000)}`;
         }
 
         function toggleFlagCurrentQuestion() {
