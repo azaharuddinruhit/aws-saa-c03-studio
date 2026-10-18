@@ -322,10 +322,17 @@
     </style>
     <script>
         // Runs before first paint so the page never flashes the wrong theme. The saved choice
-        // wins; with nothing saved we follow the operating system.
+        // wins; with nothing saved we follow the operating system. The cheat sheets share the
+        // key; a choice made there before they did is still under their old key, saa-theme.
         (function () {
             var saved = null;
-            try { saved = localStorage.getItem('saa_theme'); } catch (e) {}
+            try {
+                saved = localStorage.getItem('saa_theme');
+                if (saved !== 'dark' && saved !== 'light') {
+                    var old = JSON.parse(localStorage.getItem('saa-theme'));
+                    saved = old === 'dark' || old === 'light' ? old : null;
+                }
+            } catch (e) {}
             var dark = saved ? saved === 'dark'
                 : !window.matchMedia('(prefers-color-scheme: light)').matches;
             document.documentElement.classList.toggle('dark', dark);
@@ -1243,6 +1250,16 @@
             syncThemeToggle();
             closeHeaderMenu();
         }
+
+        // Another tab, a cheat sheet included, switched the theme: follow it
+        window.addEventListener('storage', e => {
+            if (e.key !== 'saa_theme' && e.key !== null) return;
+            let saved = null;
+            try { saved = localStorage.getItem('saa_theme'); } catch (err) {}
+            document.documentElement.classList.toggle('dark', saved === 'dark' || saved === 'light'
+                ? saved === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches);
+            syncThemeToggle();
+        });
 
         function initApp() {
             syncThemeToggle();

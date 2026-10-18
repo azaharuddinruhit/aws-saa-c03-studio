@@ -16,17 +16,29 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem(prefix+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem(prefix+k, JSON.stringify(v)); }catch(e){} }
 };
-const shared = {
-  get(k, d){ try{ const v = localStorage.getItem('saa-'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem('saa-'+k, JSON.stringify(v)); }catch(e){} }
-};
 
-/* theme: applied before first paint; shared by all pages */
-(function(){
-  let t = shared.get('theme', null);
-  if (t==null){ try{ t = JSON.parse(localStorage.getItem('saa-compute-theme')); }catch(e){} }
+/* theme: applied before first paint. One key for the Studio and every sheet: 'dark' or 'light', and
+   nothing saved means follow the system. A choice saved under the sheets' older keys moves to it once. */
+const THEME_KEY = 'saa_theme', OLD_THEME_KEYS = ['saa-theme', 'saa-compute-theme'];
+function savedTheme(){
+  try{
+    let t = localStorage.getItem(THEME_KEY);
+    if (t !== 'dark' && t !== 'light'){
+      t = OLD_THEME_KEYS.map(k => { try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } })
+        .find(v => v === 'dark' || v === 'light') || null;
+      if (t) localStorage.setItem(THEME_KEY, t);
+    }
+    OLD_THEME_KEYS.forEach(k => localStorage.removeItem(k));
+    return t;
+  }catch(e){ return null; }
+}
+function applyTheme(t){
   if (t) document.documentElement.dataset.theme = t;
-})();
+  else delete document.documentElement.dataset.theme;
+}
+applyTheme(savedTheme());
+// another tab, the Studio included, switched the theme: follow it (the menu repaints its switch on opening)
+addEventListener('storage', e => { if (e.key === THEME_KEY || e.key === null) applyTheme(savedTheme()); });
 
 const ICON_SVG = {
   sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
@@ -78,7 +90,7 @@ const isDark = () => (document.documentElement.dataset.theme || (matchMedia('(pr
 function toggleTheme(){
   const next = isDark() ? 'light' : 'dark';
   document.documentElement.dataset.theme = next;
-  shared.set('theme', next);
+  try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
 }
 function menuHTML(){
   const here = location.pathname.split('/').pop() || 'index.html';

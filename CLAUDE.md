@@ -7,7 +7,7 @@ A static study site for the AWS Solutions Architect Associate (SAA-C03) exam. Fe
 - **Ten cheat sheets.**
 - **Eight infographics:** one-page visual summaries of the most-tested topics.
 - **Architecture diagrams page.**
-- **Mind map** of every service by exam domain, with exam cues and quiz progress.
+- **Mind map** of every service by category, with each service's exam domain, exam cues and quiz progress.
 
 Everything lives in `docs/`, which GitHub Pages serves as is. There is no framework, bundler or package.json.
 
@@ -24,7 +24,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `docs/cheatsheet/icons.js` | AWS service icons as SVG strings (`window.AWS_ICONS`). Use them through `App.iconURL(key)`. |
 | `docs/cheatsheet/architectures.html` | 32 architecture diagrams, mostly generated (see below). |
 | `scripts/build-architectures.js` | Generates diagrams 3–32, the contents list and the jump panel into `architectures.html`. |
-| `docs/cheatsheet/mindmap.html` | Interactive mind map: exam domain → category → service → feature. Its data is generated (see below). |
+| `docs/cheatsheet/mindmap.html` | Interactive mind map: category → service → feature, with each service's exam domain as a badge. Its data is generated (see below). |
 | `scripts/build-mindmap.js` + `mindmap-cues.json` | Generates the mind map data from the vocabulary, the cues, the four banks and the diagrams page. |
 | `docs/cheatsheet/infographic-*.html` | Eight infographics, generated whole (see below). |
 | `docs/cheatsheet/infographics.css` | Styles shared by the infographics, loaded after `app.css`. |
@@ -108,7 +108,8 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 
 - **Where to edit:** service content lives in `scripts/mindmap-cues.json`, with one entry per vocabulary service (`cue`, `traps`, `twins`, `sheet`, `icon`, `icons`, `domain`). Rebuild after editing; never hand-edit between the `GENERATED:DATA` markers in `mindmap.html`.
 - **The build checks itself:** it fails if a vocabulary service has no cue, or if a cue names an unknown service, icon, cheat-sheet topic or diagram. A new vocabulary service therefore needs a cue before the map will rebuild.
-- **Placement:** each service sits under the exam domain where most of its tagged questions are. The cue's `domain` is used only for a tie, or when there are no questions.
+- **Structure:** the first level is the vocabulary's categories, each listed once, in the same order as the cheat sheets. Only one category is open at a time: opening one folds the others, and Expand all is the exception.
+- **Domain badge:** each service's badge is the exam domain where most of its tagged questions are. The cue's `domain` is used only for a tie, or when there are no questions. The chips across the top highlight one domain's services; that choice is not saved.
 - **Practice links:** a service panel links to `index.html#/practice/<bank>/<service>`, once per set that has questions for that service, and opens it in a new tab. The Studio selects that set, as its menu would, and starts a `service` quiz using the same outstanding-first order as the section quizzes (`outstandingFirst`). The Studio runs one set at a time, which is why there is one link per set.
 - **Back and the address:** every panel opening is a browser history step, with the service in the hash (`#SQS`, `#SQS/FIFO%20queues`). Back returns to the previous service, then closes the panel, then leaves the map. × and Escape unwind those steps with `history.go(-depth)`, and so do the other ways of closing: a click on the dimmed map behind the panel, and on phones the handle (tap it or drag the sheet down; it replaces × there). When changing how the panel opens or closes, keep this working.
 - **Progress overlay:** it reads each bank's `<prefix>attempts` from localStorage (latest answer per question). It never writes quiz data. Its own keys are `saa_mindmap_overlay`, `saa_mindmap_open` and `saa_mindmap_legend` (the i button's legend toggle). All three are view preferences and are not synced.
