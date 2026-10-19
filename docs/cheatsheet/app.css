@@ -486,6 +486,12 @@ td:first-child{font-weight:600}
 .menu-row:hover,.menu-row:focus-visible{background:var(--surface-2);outline:none}
 .menu-row[aria-current="page"]{background:var(--accent-soft);font-weight:700}
 .menu-row[aria-current="page"] .menu-ico{color:var(--accent)}
+/* a folding row for the sheets or the infographics: a count, and a chevron that turns when it opens */
+.menu-fold .menu-n{margin-left:auto;font:600 11px var(--mono);color:var(--muted)}
+.menu-chev{display:grid;place-items:center;width:18px;height:18px;flex:none;color:var(--muted);transition:transform .15s}
+.menu-chev svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.menu-fold[aria-expanded="true"] .menu-chev{transform:rotate(180deg)}
+.menu-sub{margin-left:21px;padding-left:6px;border-left:1px solid var(--line)}
 .menu-foot{flex:none;border-top:1px solid var(--line);padding:6px}
 .menu-handle{display:none}
 .menu-backdrop{position:fixed;inset:0;z-index:44;background:rgba(15,23,42,.45)}

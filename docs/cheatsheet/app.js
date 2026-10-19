@@ -48,6 +48,7 @@ const ICON_SVG = {
   moon:'<svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>',
   menu:'<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
   close:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  chev:'<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
   home:'<svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>',
   grid:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>'
 };
@@ -84,8 +85,9 @@ const INFOGRAPHICS = [
 
 /* ---------- site menu ----------
    The menu button sits in every page's top bar (#menuBtn). It opens a panel listing the Studio, every
-   cheat sheet, the infographics, the diagrams and the mind map, plus the theme switch. The panel is added to <body>,
-   outside the top bar, whose backdrop-filter would break position:fixed. On phones it is a bottom sheet. */
+   cheat sheet, the infographics, the diagrams and the mind map, plus the theme switch. The sheets and the
+   infographics each fold into one row, which starts open only on a page of that group. The panel is added to
+   <body>, outside the top bar, whose backdrop-filter would break position:fixed. On phones it is a bottom sheet. */
 const isDark = () => (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
 function toggleTheme(){
   const next = isDark() ? 'light' : 'dark';
@@ -96,6 +98,11 @@ function menuHTML(){
   const here = location.pathname.split('/').pop() || 'index.html';
   const row = (href, icon, label) => `<a class="menu-row" href="${href}"${href === here ? ' aria-current="page"' : ''}>${icon}<span>${label}</span></a>`;
   const ico = svg => `<span class="menu-ico">${svg}</span>`;
+  const fold = (id, icon, label, links) => {
+    const on = links.some(([file]) => file + '.html' === here);
+    return `<button type="button" class="menu-row menu-fold" aria-expanded="${on}" aria-controls="${id}">${icon}<span>${label}</span><span class="menu-n">${links.length}</span><span class="menu-chev">${ICON_SVG.chev}</span></button>
+      <div class="menu-sub" id="${id}"${on ? '' : ' hidden'}>${links.map(([file, name, icon]) => row(file + '.html', img(icon, '', ''), name)).join('')}</div>`;
+  };
   return `<div class="menu-backdrop" id="menuBackdrop" hidden></div>
   <nav class="menu-panel" id="menuPanel" aria-label="Site menu" hidden>
     <button type="button" class="menu-handle" id="menuHandle" aria-label="Close menu"></button>
@@ -105,9 +112,9 @@ function menuHTML(){
       ${row('../index.html#/dashboard', ico(ICON_SVG.practice), 'Practice')}
       <div class="menu-group">Cheat sheets</div>
       ${row('index.html', ico(ICON_SVG.grid), 'All domains')}
-      ${SHEETS.map(([file,, name, icon]) => row(file + '.html', img(icon, '', ''), name)).join('')}
+      ${fold('menuSheets', ico(ICON_SVG.learn), 'Domain sheets', SHEETS.map(([file,, name, icon]) => [file, name, icon]))}
       <div class="menu-group">Infographics</div>
-      ${INFOGRAPHICS.map(([file, name, icon]) => row(file + '.html', img(icon, '', ''), name)).join('')}
+      ${fold('menuInfographics', ico(ICON_SVG.revise), 'One-page summaries', INFOGRAPHICS)}
       <div class="menu-group">Big picture</div>
       ${row('architectures.html', img('vpc', '', ''), 'Architecture diagrams')}
       ${row('mindmap.html', img('orgs', '', ''), 'Mind map')}
@@ -120,7 +127,15 @@ function mountMenu(){
   if (!btn || document.getElementById('menuPanel')) return;
   document.body.insertAdjacentHTML('beforeend', menuHTML());
   const panel = $('#menuPanel'), backdrop = $('#menuBackdrop'), themeRow = $('#menuTheme');
-  const rows = () => $$('#menuPanel .menu-row');
+  const rows = () => $$('#menuPanel .menu-row').filter(r => !r.closest('.menu-sub[hidden]'));   // the keys skip folded rows
+  panel.addEventListener('click', e => {
+    const f = e.target.closest('.menu-fold');
+    if (!f) return;
+    const sub = document.getElementById(f.getAttribute('aria-controls')), show = sub.hidden;
+    sub.hidden = !show;
+    f.setAttribute('aria-expanded', show);
+    if (show) sub.lastElementChild.scrollIntoView({ block: 'nearest' });
+  });
   const narrow = () => matchMedia('(max-width:640px)').matches;
   const paintTheme = () => {
     const dark = isDark();
