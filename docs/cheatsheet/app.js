@@ -232,6 +232,59 @@ const MENU_BUTTON = `<button type="button" class="theme-btn menu-btn" id="menuBt
 // a domain sheet builds its top bar in App.start(), before the page finishes parsing; other pages have it in their HTML
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountMenu); else mountMenu();
 
+/* Themed tooltips: anything with a title shows it in one tooltip drawn in the page's colours (.tip in
+   app.css) instead of the browser's own, after a short hover with a mouse or at once on keyboard focus.
+   The title is lifted off the element while its tooltip shows, so the browser's doesn't appear as well,
+   and put back after, unless the page set a new one meanwhile. Touch screens never showed titles. */
+function mountTips(){
+  const tip = document.createElement('div');
+  tip.className = 'tip';
+  tip.setAttribute('role', 'tooltip');
+  tip.hidden = true;
+  document.body.append(tip);
+  let on = null, text = '', timer = 0;
+  const place = () => {
+    const r = on.getBoundingClientRect(), t = tip.getBoundingClientRect(), gap = 8;
+    const left = Math.min(Math.max(8, r.left + r.width / 2 - t.width / 2), innerWidth - t.width - 8);
+    const top = r.top - t.height - gap >= 8 ? r.top - t.height - gap : r.bottom + gap;   // above, or below when there's no room
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  };
+  const show = el => {
+    hide();
+    text = el.getAttribute('title');
+    if (!text || !text.trim()) return;
+    on = el;
+    el.removeAttribute('title');
+    tip.textContent = text;
+    tip.hidden = false;
+    place();
+  };
+  function hide(){
+    clearTimeout(timer);
+    if (!on) return;
+    if (!on.hasAttribute('title')) on.setAttribute('title', text);
+    on = null;
+    tip.hidden = true;
+  }
+  document.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
+    const el = e.target.closest('[title]');
+    if (!el || el === on) return;
+    hide();
+    timer = setTimeout(() => { if (el.isConnected && el.matches(':hover')) show(el); }, 350);
+  });
+  document.addEventListener('pointerout', e => {
+    const to = e.relatedTarget;
+    if (on ? !(to && on.contains(to)) : true) hide();
+  });
+  document.addEventListener('focusin', e => { const el = e.target.closest('[title]'); if (el && el.matches(':focus-visible')) show(el); });
+  document.addEventListener('focusout', hide);
+  for (const ev of ['scroll', 'wheel', 'pointerdown', 'resize']) addEventListener(ev, hide, { capture: true, passive: true });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountTips); else mountTips();
+
 /* ---------- generic explainers (for data-driven topics) ---------- */
 const INITS = {};
 let initSeq = 0;

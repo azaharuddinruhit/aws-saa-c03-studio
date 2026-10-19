@@ -31,9 +31,9 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-btn img,.mm-ini{width:22px;height:22px;border-radius:5px;flex:none}
 .mm-ini{display:grid;place-items:center;background:var(--surface-2);color:var(--muted);font:700 9.5px var(--mono);letter-spacing:.02em}
 .mm-n{font:600 11px var(--mono);color:var(--muted)}   /* the practice questions tagged with a service or feature */
-.mm-k-root .mm-btn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);padding:10px 16px;border-radius:12px;flex-direction:column;align-items:flex-start;gap:1px}
+.mm-k-root .mm-btn{background:var(--accent-soft);color:var(--ink);border-color:var(--accent);padding:10px 16px;border-radius:12px;flex-direction:column;align-items:flex-start;gap:1px}
 .mm-k-root .mm-btn b{font-size:18px;font-weight:800;letter-spacing:-.01em}
-.mm-k-root .mm-btn small{font:500 11.5px var(--sans);opacity:.75}
+.mm-k-root .mm-btn small{font:500 11.5px var(--sans);color:var(--muted)}
 .mm-k-cat .mm-btn{background:var(--surface-2);padding:7px 14px 7px 10px;gap:10px}
 .mm-k-cat .mm-btn :is(img,.mm-ini){width:28px;height:28px;border-radius:6px}
 .mm-k-cat .mm-btn b{display:block;font-size:14.5px;font-weight:800}
@@ -52,7 +52,8 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-tog:hover{border-color:var(--accent);color:var(--accent)}
 .mm-node:has(> .mm-tog) > .mm-btn{padding-right:24px}   /* room between the count and the bubble over the edge */
 
-/* progress overlay: the share of tagged questions done (latest answer right) */
+/* progress overlay: the share of tagged questions done (latest answer right). Only the % chip takes the
+   level's colour, so a column of nodes stays calm; the node itself keeps its normal card. */
 .mm-score{display:none;align-items:center;gap:5px;font:700 11px var(--mono);border-radius:999px;padding:1px 7px 1px 3px;background:var(--surface-2);color:var(--muted)}
 .mm-score svg{width:14px;height:14px;flex:none;transform:rotate(-90deg)}
 .mm-score circle{fill:none;stroke-width:3}
@@ -64,7 +65,6 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 [data-lv="mid"]{--lv:var(--warn);--lv-soft:var(--warn-soft)}
 [data-lv="bad"]{--lv:var(--bad);--lv-soft:var(--bad-soft)}
 .mm-on .mm-node[data-lv]:not([data-lv="none"]) .mm-score,.mm-panel [data-lv]:not([data-lv="none"]).mm-score{background:var(--lv-soft);color:var(--lv)}
-.mm-on :is(.mm-k-cat,.mm-k-svc,.mm-k-feat)[data-lv]:not([data-lv="none"]) .mm-btn{border-color:var(--lv);box-shadow:inset 3px 0 0 var(--lv),var(--shadow)}
 .mm-on .mm-k-svc[data-lv="none"] .mm-btn{opacity:.8}
 
 /* floating controls */
@@ -315,9 +315,8 @@ function nodeHTML(n) {
   }
   else if (n.kind === 'svc') {
     const nq = S[n.name].q.length;
-    const tip = `${nq} practice question${nq === 1 ? '' : 's'} tagged with it` + (S[n.name].features.length ? ': ' + splitText(n.name) : '');
     inner = iconHTML(S[n.name].icon, n.name) + `<span>${esc(n.name)}</span>`
-      + `<span class="mm-n" title="${esc(tip)}" aria-label="${nq} question${nq === 1 ? '' : 's'}">${nq}</span>`;
+      + `<span class="mm-n" aria-label="${nq} question${nq === 1 ? '' : 's'}">${nq}</span>`;
   }
   else inner = `<span>${esc(n.feat)}</span><span class="mm-n">${(S[n.name].fq[n.feat] || []).length}</span>`;
   if (n.kind !== 'root') inner += '<span class="mm-score"></span>';
@@ -400,7 +399,8 @@ function paintOverlay() {
       n.el.dataset.lv = st.lv;
       const sc = n.el.querySelector('.mm-score');
       sc.innerHTML = ring(st) + pctText(st);
-      sc.title = st.total ? `${st.done} of ${st.total} questions done · ${st.tried} answered` : 'No practice questions tagged';
+      // no tooltip on a node: its panel gives these counts; screen readers still get them here
+      sc.setAttribute('aria-label', st.total ? `${st.done} of ${st.total} questions done, ${st.tried} answered` : 'No practice questions tagged');
     }
   }
 }

@@ -476,6 +476,8 @@ td:first-child{font-weight:600}
 
 /* ---------- site menu (app.js mountMenu): a panel under the menu button, a bottom sheet on phones ---------- */
 .menu-btn:hover,.menu-btn[aria-expanded="true"]{border-color:var(--accent)}
+/* the themed tooltip app.js draws for anything with a title, in place of the browser's */
+.tip{position:fixed;z-index:60;max-width:min(280px,calc(100vw - 16px));padding:6px 10px;border-radius:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 24px rgba(15,23,42,.16);font:500 12px/1.45 var(--sans);pointer-events:none;white-space:pre-line;overflow-wrap:anywhere}
 .menu-panel{position:fixed;z-index:45;width:min(330px,calc(100vw - 32px));max-height:min(80vh,640px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 36px rgba(15,23,42,.22);overflow:hidden;animation:menuIn .14s ease-out}
 .menu-list{overflow-y:auto;padding:2px 6px 8px;overscroll-behavior:contain}
 .menu-group{font:700 10.5px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding:12px 10px 5px}
