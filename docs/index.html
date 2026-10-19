@@ -588,11 +588,8 @@
                         <p id="hintText" class="hidden mt-2 text-[13px] leading-relaxed text-slate-300 bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-3 py-2"></p>
                     </div>
                     <div id="explanationBox" class="hidden order-4 max-lg:p-4 max-lg:rounded-2xl max-lg:border max-lg:border-slate-800 max-lg:bg-slate-900 max-lg:scroll-mb-28 lg:pt-4 lg:border-t border-slate-800 space-y-2 animate-fade-in">
-                        <div class="flex items-center justify-between">
-                            <div id="answerResultBadge" class="flex items-center space-x-2 font-semibold text-sm">
-                                <!-- Correct / Incorrect -->
-                            </div>
-                            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">Explanation</span>
+                        <div id="answerResultBadge" class="flex items-center space-x-2 font-semibold text-sm">
+                            <!-- Correct / Incorrect -->
                         </div>
                         <p id="tldrLine" class="hidden text-sm font-medium text-white"></p>
                         <p id="historyLine" class="hidden text-xs text-slate-400"></p>
@@ -1510,11 +1507,12 @@
             renderTimerChip();
         }
 
-        // Seconds spent on the question, or null when its clock never ran
+        // Seconds spent on the question, or null when its clock never ran. Whole seconds rounded down, as
+        // the timer chip shows them, so the time it stopped on is the time recorded.
         function takeQuestionSeconds(q) {
             if (questionClock.id !== q.id) return null;
             pauseQuestionClock();
-            return Math.round(questionClock.spentMs / 1000);
+            return Math.floor(questionClock.spentMs / 1000);
         }
 
         // The time of the question on screen: running while it waits for an answer, then what it took
@@ -2026,7 +2024,7 @@
         const PRIOR_SD = 1.5;                                     // weak prior on overall ability
         const TAU_GRID = [0.4, 0.7, 1.0];                         // how far a domain may drift from your overall ability: flat profile, typical, spiky
         const TAU_PRIOR = [0.3, 0.4, 0.3];
-        const TASK_SD = 0.5;                                      // how far a task statement may drift from its domain
+        const TASK_SD = 1.0;                                      // how far a task statement may drift from its domain: loose enough that a task's own answers show
         // Assumed composition of the real exam, independent of this bank's composition.
         const EXAM_MIX = [
             { b: ITEM_B.easy,   c: GUESS_SINGLE, p: 0.22 },
@@ -2095,21 +2093,34 @@
         }
 
         function fitHierarchy(domainObs) {
-            const ids = Object.keys(domainObs);
             const ll = {};
-            for (const id of ids) ll[id] = gridLogLik(domainObs[id]);
+            for (const id of Object.keys(domainObs)) ll[id] = gridLogLik(domainObs[id]);
+            return fitFromLogLik(ll);
+        }
+
+        // Every (spread, overall level) pair of the shared hyperparameters, with its prior and each grid
+        // point's log-density under it, worked out once rather than on every fit
+        const FIT_COMBOS = [];
+        TAU_GRID.forEach((tau, k) => {
+            for (const mu of MU_GRID) FIT_COMBOS.push({ prior: logNormal(mu, 0, PRIOR_SD) + Math.log(TAU_PRIOR[k]), grid: GRID.map(t => logNormal(t, mu, tau)) });
+        });
+
+        // The same fit from each domain's log-likelihood on the grid, which the score history keeps as
+        // running sums rather than rebuilding from every answer. Plain loops: the history runs it once per answer.
+        function fitFromLogLik(ll) {
+            const ids = Object.keys(ll), G = GRID.length;
             const muLog = [], cond = [];
-            const combos = [];   // every (spread, overall level) pair: the shared hyperparameters
-            TAU_GRID.forEach((tau, k) => { for (const mu of MU_GRID) combos.push({ tau, mu, prior: Math.log(TAU_PRIOR[k]) }); });
-            for (const { tau, mu, prior } of combos) {
-                let lp = logNormal(mu, 0, PRIOR_SD) + prior;
+            for (const { prior, grid } of FIT_COMBOS) {
+                let lp = prior;
                 const row = {};
                 for (const id of ids) {
-                    const lw = GRID.map((t, g) => ll[id][g] + logNormal(t, mu, tau));
-                    const mx = Math.max(...lw);
-                    const w = lw.map(v => Math.exp(v - mx));
-                    lp += mx + Math.log(w.reduce((a, b) => a + b, 0));   // marginal likelihood of this domain given mu
-                    row[id] = normalise(w);
+                    const l = ll[id], w = new Array(G);
+                    let mx = -Infinity, total = 0;
+                    for (let g = 0; g < G; g++) { w[g] = l[g] + grid[g]; if (w[g] > mx) mx = w[g]; }
+                    for (let g = 0; g < G; g++) { w[g] = Math.exp(w[g] - mx); total += w[g]; }
+                    lp += mx + Math.log(total);   // marginal likelihood of this domain given mu
+                    for (let g = 0; g < G; g++) w[g] /= total;
+                    row[id] = w;
                 }
                 muLog.push(lp);
                 cond.push(row);
@@ -2118,7 +2129,9 @@
             const muPost = normalise(muLog.map(v => Math.exp(v - top)));
             const marginal = {};
             for (const id of ids) {
-                marginal[id] = GRID.map((_, g) => muPost.reduce((a, pm, m) => a + pm * cond[m][id][g], 0));
+                const mg = new Array(G).fill(0);
+                for (let m = 0; m < cond.length; m++) { const pm = muPost[m], c = cond[m][id]; for (let g = 0; g < G; g++) mg[g] += pm * c[g]; }
+                marginal[id] = mg;
             }
             return { muPost, cond, marginal };
         }
@@ -2323,8 +2336,9 @@
         // memory, so each is weighted by the gap since the attempt before it, and all repeats of a question
         // share one small evidence budget. The budget is spent newest first: when it runs out, it is the
         // oldest repeats that stop counting, never your latest answer.
-        function answerObservations(q, log, now) {
-            const { b, c } = itemParams(q);
+        // How much each attempt at one question counts as evidence: the first in full, each repeat less the
+        // sooner it follows the one before, and all the repeats together at most REPEAT_CAP
+        function repeatWeights(log) {
             const repeatW = log.map(() => 1);
             let repeatBudget = REPEAT_CAP;
             for (let i = log.length - 1; i > 0; i--) {
@@ -2332,6 +2346,12 @@
                 repeatW[i] = Math.min(repeatBudget, REPEAT_MIN + (1 - REPEAT_MIN) * (1 - Math.exp(-gapDays / REPEAT_GAP_DAYS)));
                 repeatBudget -= repeatW[i];
             }
+            return repeatW;
+        }
+
+        function answerObservations(q, log, now) {
+            const { b, c } = itemParams(q);
+            const repeatW = repeatWeights(log);
             return log.map((entry, i) => {
                 const correct = entry[0], ts = entry[1], flags = entry[2] || 0;
                 const w = Math.pow(0.5, Math.max(0, now - ts) / DAY_MS / HALF_LIFE_DAYS) * repeatW[i];
@@ -2348,6 +2368,15 @@
             let now = 0;
             for (const { log } of answered) for (const entry of log) now = Math.max(now, entry[1]);
             return now;
+        }
+
+        // The expected number right of the 50 scored items, given the fit: what the readiness score shows
+        function expectedCorrectOf(fit) {
+            let expectedCorrect = 0;
+            for (const item of EXAM_ITEMS) {
+                expectedCorrect += fit.marginal[item.dom].reduce((a, w, g) => a + w * itemP(GRID[g], item.b, item.c), 0);
+            }
+            return expectedCorrect;
         }
 
         function computeExamEstimate(answered) {
@@ -2408,10 +2437,7 @@
             // The headline is the expected score of a sitting: the exact posterior mean of the number
             // of the 50 scored items you would get right. It is the average of the simulated scores
             // without their sampling noise, so it moves smoothly with every answer.
-            let expectedCorrect = 0;
-            for (const item of EXAM_ITEMS) {
-                expectedCorrect += fit.marginal[item.dom].reduce((a, w, g) => a + w * itemP(GRID[g], item.b, item.c), 0);
-            }
+            const expectedCorrect = expectedCorrectOf(fit);
 
             // Time away from practice adds shared uncertainty about your level (it may have slipped or
             // grown) without moving the estimate. Anchoring recency on your latest answer keeps the
@@ -2589,7 +2615,7 @@
                         <span class="text-slate-300 truncate flex-1" title="${escapeHtml(x.id + ' ' + x.name)}">${escapeHtml(x.name)}</span>
                         <span class="hidden sm:inline text-slate-500 shrink-0">${x.t.questions}q</span>
                         <span class="w-20 h-1.5 rounded-full bg-slate-800 shrink-0"><span class="block h-1.5 rounded-full bg-aws-orange" style="width:${x.acc}%"></span></span>
-                        <span class="font-semibold w-9 text-right shrink-0 ${x.acc >= 70 ? 'text-emerald-400' : x.acc >= 50 ? 'text-amber-400' : 'text-rose-400'}">${x.acc}%</span>
+                        <span class="font-semibold w-9 text-right shrink-0 ${correctTone(x.acc).text}">${x.acc}%</span>
                     </div>`).join('');
 
             body.innerHTML = `
@@ -2840,6 +2866,8 @@
                     <p class="text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} in any bank to unlock the combined score.</p>` + bankBlock;
                 return;
             }
+            const history = scoreHistory(banks);
+            scoreChartPoints = history;
             const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
                 const level = s.levels[id];
                 const pct = level === null || level === undefined ? null : Math.round(level * 100);
@@ -2867,8 +2895,165 @@
                 </div>
                 ${scoreBar(s.shown, s.lo, s.hi)}
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
+                <div class="ov-rule">
+                    <p class="text-xs text-slate-400">Score over time <span class="text-slate-500">· after each of your ${plural(history.length, 'answer')}</span></p>
+                    <div id="ovScoreChart" class="ov-chart mt-2"></div>
+                    <details class="mt-2">
+                        <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
+                        <div class="mt-2">${scoreTable(history)}</div>
+                    </details>
+                </div>
                 ${bankBlock}
                 <p class="mt-3 text-[11px] text-slate-500">All ${plural(s.distinct, 'answered question')} from every bank count toward one estimate, using the same rules as the dashboard. A bank with fewer than ${MIN_ANSWERED} answers has no score of its own yet.</p>`;
+            drawScoreChart();
+        }
+
+        // ---- Score over time ----
+        // The readiness score after every answer, replayed from the answers themselves, so nothing extra is
+        // stored and the line covers the whole history, synced with the answers. Point k is the score as it
+        // stood right after answer k: the same fit on every answer up to it, with recency measured from it.
+        // Recency halves every HALF_LIFE_DAYS for every answer alike, so each domain's log-likelihood is a
+        // running sum times one shared factor, and an answer only redoes its own question's terms (its
+        // repeats reweight each other). That keeps a replay of hundreds of answers quick. The result is kept
+        // for this page and extended as answers arrive; anything else, such as a sync bringing in older
+        // answers or a reset, replays from the start.
+        let scoreHistoryCache = null;
+
+        function scoreHistory(banks) {
+            const events = [];
+            for (const b of banks) for (const q of b.questions) {
+                for (const entry of b.log[q.id] || []) events.push({ key: b.key + ':' + q.id, bank: b.key, q, entry });
+            }
+            events.sort((a, b) => a.entry[1] - b.entry[1]);
+            let h = scoreHistoryCache;
+            const canExtend = h && events.length >= h.count && (!h.count || events[h.count - 1].entry[1] === h.lastTs)
+                && (h.count === events.length || events[h.count].entry[1] > h.lastTs);
+            if (!canExtend || !events.length || (h && h.t0 !== events[0].entry[1])) {
+                h = { count: 0, lastTs: null, t0: events.length ? events[0].entry[1] : 0, perQ: new Map(), distinct: 0, points: [], sums: {} };
+                for (const id of Object.keys(EXAM_DOMAINS)) h.sums[id] = new Float64Array(GRID.length);
+            }
+            const U = DAY_MS * HALF_LIFE_DAYS;
+            for (let k = h.count; k < events.length; k++) {
+                const { key, bank, q, entry } = events[k];
+                let st = h.perQ.get(key);
+                if (!st) {
+                    st = { log: [], rows: [], contrib: null, dom: String(examDomainOf(q)), params: itemParams(q) };
+                    h.perQ.set(key, st);
+                    h.distinct++;
+                }
+                // this attempt's log-likelihood on the grid, as gridLogLik would add it
+                const b = (entry[2] || 0) & FLAG_HINT ? st.params.b - HINT_EASE : st.params.b;
+                st.log.push(entry);
+                st.rows.push(GRID.map(t => { const p = itemP(t, b, st.params.c); return entry[0] ? Math.log(p) : Math.log(1 - p); }));
+                // the question's terms, reweighted now that it has one more attempt
+                const rw = repeatWeights(st.log), sum = h.sums[st.dom];
+                const contrib = new Float64Array(GRID.length);
+                st.log.forEach((e, i) => {
+                    const w = rw[i] * Math.pow(2, (e[1] - h.t0) / U);
+                    for (let g = 0; g < GRID.length; g++) contrib[g] += w * st.rows[i][g];
+                });
+                for (let g = 0; g < GRID.length; g++) sum[g] += contrib[g] - (st.contrib ? st.contrib[g] : 0);
+                st.contrib = contrib;
+                h.count = k + 1;
+                h.lastTs = entry[1];
+                if (h.distinct < MIN_ANSWERED) continue;
+                const scale = Math.pow(2, -(entry[1] - h.t0) / U), ll = {};
+                for (const id of Object.keys(EXAM_DOMAINS)) ll[id] = Array.from(h.sums[id], v => v * scale);
+                const score = Math.round(100 + 900 * expectedCorrectOf(fitFromLogLik(ll)) / SCORED_QUESTIONS);
+                h.points.push({ ts: entry[1], score, n: k + 1, bank, id: q.id, right: !!entry[0] });
+            }
+            scoreHistoryCache = h;
+            return h.points;
+        }
+
+        // The chart's points, kept so a resize can redraw it
+        let scoreChartPoints = null;
+
+        // A table of the score at the end of each practice day, for screen readers and anyone who wants the numbers
+        function scoreTable(points) {
+            const days = [];
+            for (const p of points) {
+                const day = dayStart(p.ts);
+                if (days.length && days[days.length - 1].day === day) { days[days.length - 1].score = p.score; days[days.length - 1].answers++; }
+                else days.push({ day, score: p.score, answers: 1 });
+            }
+            return `<table class="ov-table"><thead><tr><th>Day</th><th>Answers</th><th>Score at the end</th></tr></thead><tbody>${days.slice().reverse().map(d =>
+                `<tr><td>${escapeHtml(fmtDate(d.day, DATE_LONG))}</td><td>${d.answers}</td><td>${d.score}</td></tr>`).join('')}</tbody></table>`;
+        }
+
+        // One point per answer, evenly spaced, so a busy day spreads out rather than stacking up. The pass
+        // mark is drawn across; hovering, or the arrow keys, read off the score after any answer.
+        function drawScoreChart() {
+            const holder = document.getElementById('ovScoreChart');
+            const pts = scoreChartPoints;
+            if (!holder || !pts || !pts.length) return;
+            const W = Math.max(260, holder.clientWidth), H = 170;
+            const m = { top: 14, right: 12, bottom: 22, left: 34 };
+            const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+            const scores = pts.map(p => p.score);
+            const lo = Math.max(100, Math.floor((Math.min(...scores, PASS_SCORE) - 40) / 100) * 100);
+            const hi = Math.min(1000, Math.ceil((Math.max(...scores, PASS_SCORE) + 40) / 100) * 100);
+            const x = i => m.left + (pts.length === 1 ? iw : i / (pts.length - 1) * iw);
+            const y = v => m.top + ih - (v - lo) / (hi - lo) * ih;
+            const parts = [];
+            for (let v = lo; v <= hi; v += 100) {
+                parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${m.left - 6}" y="${y(v) + 3}" text-anchor="end">${v}</text>`);
+            }
+            parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(PASS_SCORE)}" y2="${y(PASS_SCORE)}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
+            parts.push(`<text x="${W - m.right}" y="${y(PASS_SCORE) - 5}" text-anchor="end">${PASS_SCORE} pass</text>`);
+            // dates under the line: a few, spaced out, each at the first answer of its day
+            let lastX = -Infinity, lastDay = null;
+            pts.forEach((p, i) => {
+                const day = dayStart(p.ts);
+                if (day === lastDay) return;
+                lastDay = day;
+                const tx = x(i);
+                if (tx - lastX < 56 || tx > W - m.right - 20) return;
+                lastX = tx;
+                parts.push(`<text x="${tx}" y="${H - 6}" text-anchor="middle">${escapeHtml(fmtDate(day, DATE_SHORT, false))}</text>`);
+            });
+            const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.score).toFixed(1)}`).join(' ');
+            parts.push(`<polyline points="${line}" fill="none" stroke="var(--ov-line)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`);
+            const end = pts.length - 1;
+            parts.push(`<circle cx="${x(end)}" cy="${y(pts[end].score)}" r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/>`);
+            parts.push(`<g id="ovScoreCross" visibility="hidden"><line y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-ink)" stroke-width="1" opacity=".5"/><circle r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/></g>`);
+            const summary = `Readiness score after each of your ${pts.length} answers, from ${pts[0].score} to ${pts[end].score}; the pass mark is ${PASS_SCORE}`;
+            holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
+
+            const svg = holder.querySelector('svg'), cross = svg.querySelector('#ovScoreCross');
+            let at = end;
+            const show = (i, clientX, clientY) => {
+                at = Math.max(0, Math.min(end, i));
+                const p = pts[at], cx = x(at), cy = y(p.score);
+                cross.setAttribute('visibility', 'visible');
+                cross.querySelector('line').setAttribute('x1', cx);
+                cross.querySelector('line').setAttribute('x2', cx);
+                cross.querySelector('circle').setAttribute('cx', cx);
+                cross.querySelector('circle').setAttribute('cy', cy);
+                const prev = at ? p.score - pts[at - 1].score : 0;
+                const r = svg.getBoundingClientRect();
+                showTip([
+                    [String(p.score), prev ? (prev > 0 ? '▲' : '▼') + Math.abs(prev) : 'readiness score'],
+                    [null, `After answer ${p.n} · ${fmtDate(p.ts, DATE_LONG)} ${new Date(p.ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`],
+                    [null, `${BANKS[p.bank].symbol} #${p.id} · ${p.right ? 'right' : 'missed'}`]
+                ], clientX ?? r.left + cx * r.width / W, clientY ?? r.top + cy * r.height / H);
+            };
+            const hide = () => { cross.setAttribute('visibility', 'hidden'); hideTip(); };
+            const indexAt = clientX => {
+                const r = svg.getBoundingClientRect();
+                const px = (clientX - r.left) * W / r.width;
+                return pts.length === 1 ? 0 : Math.round((px - m.left) / iw * (pts.length - 1));
+            };
+            svg.addEventListener('pointermove', e => show(indexAt(e.clientX), e.clientX, e.clientY));
+            svg.addEventListener('pointerleave', hide);
+            svg.addEventListener('blur', hide);
+            svg.addEventListener('keydown', e => {
+                const step = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity }[e.key];
+                if (step === undefined) { if (e.key === 'Escape') hide(); return; }
+                e.preventDefault();
+                show(step === -Infinity ? 0 : step === Infinity ? end : at + step);
+            });
         }
 
         function renderTimeline(banks, tl) {
@@ -3472,7 +3657,7 @@
         window.addEventListener('resize', () => {
             clearTimeout(overviewResizeTimer);
             overviewResizeTimer = setTimeout(() => {
-                if (!document.getElementById('overviewView').classList.contains('hidden')) drawProgressChart();
+                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(); }
             }, 150);
         });
 
@@ -3777,11 +3962,6 @@
             } else {
                 const which = correctKeys.length > 1 ? 'answers are ' + correctKeys.join(' and ') : 'answer is ' + correctKeys[0];
                 badge.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i><span class="text-rose-600 dark:text-rose-400">Incorrect. The correct ${which}.</span>`;
-            }
-            const took = questionTimes[q.id];
-            if (took !== undefined) {
-                badge.insertAdjacentHTML('beforeend', `<span class="font-normal text-slate-400 whitespace-nowrap" title="Time on this question; the aim is ${formatDuration(TARGET_SECONDS * 1000)}">`
-                    + `<i class="fa-solid fa-stopwatch text-xs"></i> <span class="${paceTone(took)}">${formatDuration(took * 1000)}</span></span>`);
             }
 
             renderHistoryLine(q);
