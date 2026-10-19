@@ -26,7 +26,7 @@
    (a bottom sheet on phones) with every diagram grouped, iconed and numbered */
 .jump{margin-left:auto;flex:1 1 auto;width:100%;max-width:320px;min-width:0}
 /* on a phone the button needs the room more than the page title does */
-@media (max-width:640px){.topbar.nosub .brand-name{display:none}}
+@media (max-width:640px){body[data-view="diagram"] .topbar.nosub .brand-name{display:none}}
 .jump-btn{position:relative;width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 32px 7px 14px;font:600 13px var(--sans);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .jump-btn:hover,.jump-btn[aria-expanded="true"]{border-color:var(--accent)}
 .jump-btn::after{content:"";position:absolute;right:14px;top:50%;width:7px;height:7px;margin-top:-6px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s}
@@ -97,15 +97,53 @@
 .d-z-onprem,.d-z-account{fill:none;stroke:var(--muted);stroke-width:1.4}
 .d-z-asg{fill:none;stroke:var(--aws);stroke-width:1.4;stroke-dasharray:5 4}
 
-/* contents and group headings */
-.toc{display:grid;gap:16px 28px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
-.toc ol{margin:6px 0 0;padding-left:1.7em}
-.toc li{font-size:13px;margin-top:2px}
-.toc a{color:var(--ink);text-decoration:none}
-.toc a:hover{color:var(--accent)}
-.toc a.toc-group{font:700 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
-.arch-group{font:700 12px/1.3 var(--mono)!important;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);padding-top:22px;border-top:1px solid var(--line)}
-.arch-sec,.arch-group{scroll-margin-top:70px}
+/* One diagram at a time. The page opens on the contents (the intro and a card per diagram); a diagram's
+   address (#hybrid-dns) shows only that diagram, with the pager above and below it. body[data-view] says
+   which, and only the open diagram's section carries .on. */
+body:not([data-view="diagram"]) .arch-sec,.arch-sec:not(.on),body[data-view="diagram"] :is(.arch-intro,.toc),body:not([data-view="diagram"]) .arch-pager{display:none}
+/* contents: a card per diagram, grouped */
+.toc{display:grid;gap:10px}
+.toc-h{font:700 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:14px;scroll-margin-top:76px}
+.toc-h:first-child{margin-top:0}
+.toc-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.toc-card{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);color:var(--ink);text-decoration:none;min-width:0}
+.toc-card:hover,.toc-card:focus-visible{border-color:var(--accent);outline:none}
+.toc-card img{width:30px;height:30px;border-radius:7px;flex:none;margin-top:1px}
+.toc-card > span{display:grid;gap:3px;min-width:0}
+.toc-card b{font-size:14.5px;font-weight:700;line-height:1.3}
+.toc-n{font:700 12px var(--mono);color:var(--muted);margin-right:7px}
+.toc-card small{font-size:12.5px;line-height:1.45;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* the pager: where you are above a diagram, its neighbours below it */
+.arch-pager{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.arch-pager .where{font:700 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-right:auto;min-width:0}
+.arch-pager .where span{color:var(--muted)}
+.pg-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 13px;font:600 13px var(--sans);text-decoration:none;white-space:nowrap}
+.pg-btn:hover,.pg-btn:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+.pg-btn[aria-disabled="true"]{opacity:.4;pointer-events:none}
+.arch-pager.foot{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pg-card{display:grid;gap:2px;text-align:left;padding:12px 16px;border:1px solid var(--line);background:var(--surface);border-radius:12px;box-shadow:var(--shadow);color:var(--ink);text-decoration:none;min-width:0}
+.pg-card:hover,.pg-card:focus-visible{border-color:var(--accent);outline:none}
+.pg-card small{font:700 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pg-card b{font-size:14.5px;line-height:1.35;overflow-wrap:anywhere}
+.pg-card.next{text-align:right;grid-column:2}
+@media (max-width:560px){.arch-pager.foot{grid-template-columns:1fr}.pg-card.next{grid-column:auto}}
+/* desktop: a sticky list of every diagram down the left, which the top bar's jump button stands in for
+   on narrower screens. Both are for finding your way between diagrams, so the contents, which already
+   lists them all, has neither. */
+.arch-side{display:none}
+body:not([data-view="diagram"]) .jump{display:none}
+@media (min-width:1100px){
+  .arch-shell{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;max-width:1340px;margin:0 auto;padding-inline:16px}
+  body[data-view="diagram"] .arch-shell{grid-template-columns:250px minmax(0,1fr)}
+  .arch-shell > .arch{max-width:none;margin:0;padding-inline:0}
+  body[data-view="diagram"] .arch-side{display:block;position:sticky;top:calc(var(--tbh,57px) + 16px);align-self:start;max-height:calc(100vh - var(--tbh,57px) - 32px);overflow-y:auto;overscroll-behavior:contain;margin-top:28px;padding:4px 6px 10px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .arch-side .jump-row{font-size:13px;padding:6px 8px}
+  .arch-side .jump-row img{width:20px;height:20px}
+  .side-home{font-weight:700!important}
+  .topbar.nosub .topbar-in{max-width:1340px}
+  .jump{display:none}
+  #menuBtn{margin-left:auto}
+}
 /* the rule to remember, under each heading, and the self-test closing each diagram */
 .rule{display:flex;gap:12px;align-items:baseline;background:var(--accent-soft);border-radius:12px;padding:11px 16px;font-size:15px;font-weight:600;line-height:1.45}
 .rule::before{content:"Rule";flex:none;font:700 10px/1.9 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--good)}
@@ -117,12 +155,14 @@
 .check details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 .check summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);width:max-content}
 .check details p{margin-top:8px}
+/* the script focuses a diagram's heading when it opens, for screen readers; no ring for that */
+.arch-sec h2:focus{outline:none}
 </style>
 </head>
 <body>
 <header class="topbar nosub">
   <div class="topbar-in">
-    <span class="brand"><a class="back-link" href="index.html" aria-label="Back to the cheat sheets" title="Back to the cheat sheets"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></span><span class="brand-name">Architecture Diagrams</span></span>
+    <span class="brand"><a class="back-link" href="../index.html" aria-label="Back to the progress overview" title="Back to the progress overview"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></span><span class="brand-name">Architecture Diagrams</span></span>
     <div class="jump">
       <button type="button" class="jump-btn" id="jumpBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="jumpPanel"><span id="jumpLabel">Jump to a diagram…</span></button>
     </div>
@@ -148,29 +188,42 @@
   </div>
 </div>
 
+<div class="arch-shell">
+<nav class="arch-side" id="archSide" aria-label="Diagrams"></nav>
 <main class="wrap arch">
-  <div>
+  <div class="arch-intro">
     <div class="eyebrow">AWS Solutions Architect – Associate</div>
     <h1 style="margin-top:6px">Architecture diagrams</h1>
+    <p class="oneliner" style="margin-top:14px">The patterns the exam keeps coming back to, drawn as traffic paths. For each one, know where the single points of failure are, what the cheaper option is, and which look-alike service is the trap.</p>
   </div>
-  <p class="oneliner" style="margin-top:-12px">The patterns the exam keeps coming back to, drawn as traffic paths. For each one, know where the single points of failure are, what the cheaper option is, and which look-alike service is the trap.</p>
 
   <!-- GENERATED:CONTENTS START (scripts/build-architectures.js) -->
-    <nav class="toc card" aria-label="Contents">
-      <div><a class="toc-group" href="#g-network">Networking foundations</a><ol><li value="1"><a href="#vpc-layout">Classic multi-AZ VPC</a></li><li value="2"><a href="#vpc-endpoints">Private access to AWS services</a></li><li value="3"><a href="#hybrid">Hybrid connectivity</a></li><li value="4"><a href="#tgw">Transit Gateway hub and spoke</a></li><li value="5"><a href="#privatelink">PrivateLink for a SaaS service</a></li><li value="6"><a href="#hybrid-dns">Hybrid DNS with Route 53 Resolver</a></li></ol></div>
-      <div><a class="toc-group" href="#g-ha">Highly available web applications</a><ol><li value="7"><a href="#three-tier">Three-tier web application</a></li><li value="8"><a href="#serverless">Serverless web application</a></li><li value="9"><a href="#edge">CloudFront or Global Accelerator</a></li><li value="10"><a href="#containers">Containers on ECS with Fargate</a></li></ol></div>
-      <div><a class="toc-group" href="#g-decouple">Decoupling and event-driven design</a><ol><li value="11"><a href="#queue">Queue-based load leveling</a></li><li value="12"><a href="#fanout">Fan-out with SNS and SQS</a></li><li value="13"><a href="#eventbridge">Event routing with EventBridge</a></li><li value="14"><a href="#stepfunctions">Workflow orchestration with Step Functions</a></li></ol></div>
-      <div><a class="toc-group" href="#g-data">Data and analytics</a><ol><li value="15"><a href="#streaming">Streaming pipeline</a></li><li value="16"><a href="#datalake">Data lake on S3</a></li><li value="17"><a href="#s3events">Event-driven S3 processing</a></li></ol></div>
-      <div><a class="toc-group" href="#g-db">Databases</a><ol><li value="18"><a href="#readscale">Read scaling and caching</a></li><li value="19"><a href="#multiregion">Multi-Region data</a></li></ol></div>
-      <div><a class="toc-group" href="#g-dr">Disaster recovery and migration</a><ol><li value="20"><a href="#dr">Disaster recovery strategies</a></li><li value="21"><a href="#migration">Migrating to AWS</a></li></ol></div>
-      <div><a class="toc-group" href="#g-storage">Storage</a><ol><li value="22"><a href="#hybridstorage">Hybrid storage and data transfer</a></li><li value="23"><a href="#filesystems">Shared file systems</a></li><li value="24"><a href="#s3protect">S3 lifecycle and protection</a></li></ol></div>
-      <div><a class="toc-group" href="#g-security">Security and multiple accounts</a><ol><li value="25"><a href="#landingzone">Multi-account landing zone</a></li><li value="26"><a href="#crossaccount">Cross-account access</a></li><li value="27"><a href="#edgesecurity">Edge security and threat detection</a></li><li value="28"><a href="#encryption">Encryption and secrets</a></li></ol></div>
-      <div><a class="toc-group" href="#g-ops">Monitoring and operations</a><ol><li value="29"><a href="#operations">Operations and auto-remediation</a></li></ol></div>
-      <div><a class="toc-group" href="#g-cost">Cost optimization</a><ol><li value="30"><a href="#costcompute">Cost-optimized compute</a></li><li value="31"><a href="#datatransfer">Data transfer costs</a></li><li value="32"><a href="#costgovernance">Cost governance</a></li></ol></div>
+    <nav class="toc" aria-label="Contents">
+      <h2 class="toc-h" id="g-network">Networking foundations</h2>
+      <div class="toc-grid"><a class="toc-card" href="#vpc-layout"><img data-ico="vpc" alt=""><span><b><span class="toc-n">1</span>Classic multi-AZ VPC</b><small>Only the load balancer faces the internet; every tier spans two AZs, and each AZ has its own NAT gateway.</small></span></a><a class="toc-card" href="#vpc-endpoints"><img data-ico="vpce" alt=""><span><b><span class="toc-n">2</span>Private access to AWS services</b><small>S3 or DynamoDB from a private subnet → a gateway endpoint (a free route); other services, or access from on-premises → an interface endpoint.</small></span></a><a class="toc-card" href="#hybrid"><img data-ico="dx" alt=""><span><b><span class="toc-n">3</span>Hybrid connectivity</b><small>Consistent private bandwidth → Direct Connect; quick or cheap → Site-to-Site VPN; maximum resiliency → Direct Connect at two locations.</small></span></a><a class="toc-card" href="#tgw"><img data-ico="tgw" alt=""><span><b><span class="toc-n">4</span>Transit Gateway hub and spoke</b><small>Peering joins two VPCs and is never transitive; many VPCs plus on-premises → one Transit Gateway.</small></span></a><a class="toc-card" href="#privatelink"><img data-ico="privatelink" alt=""><span><b><span class="toc-n">5</span>PrivateLink for a SaaS service</b><small>Expose one service, not a whole network: an NLB behind a VPC endpoint service, reached through interface endpoints. Overlapping CIDRs don't matter.</small></span></a><a class="toc-card" href="#hybrid-dns"><img data-ico="route53" alt=""><span><b><span class="toc-n">6</span>Hybrid DNS with Route 53 Resolver</b><small>Queries coming into AWS → a Resolver inbound endpoint; queries going out to on-premises → an outbound endpoint plus a forwarding rule.</small></span></a></div>
+      <h2 class="toc-h" id="g-ha">Highly available web applications</h2>
+      <div class="toc-grid"><a class="toc-card" href="#three-tier"><img data-ico="alb" alt=""><span><b><span class="toc-n">7</span>Three-tier web application</b><small>Spread every tier over two or more AZs, keep the web tier stateless, cache hot reads, and send reports to a read replica.</small></span></a><a class="toc-card" href="#serverless"><img data-ico="lambda" alt=""><span><b><span class="toc-n">8</span>Serverless web application</b><small>Least operations for spiky traffic → S3 and CloudFront for the front end, API Gateway, Lambda and DynamoDB behind it, Cognito for sign-in.</small></span></a><a class="toc-card" href="#edge"><img data-ico="cloudfront" alt=""><span><b><span class="toc-n">9</span>CloudFront or Global Accelerator</b><small>Cache HTTP content → CloudFront; static IPs, UDP or other non-HTTP traffic, or fast Regional failover → Global Accelerator.</small></span></a><a class="toc-card" href="#containers"><img data-ico="fargate" alt=""><span><b><span class="toc-n">10</span>Containers on ECS with Fargate</b><small>Containers with the least operations → ECS or EKS on Fargate; the task role gives the app its AWS permissions.</small></span></a></div>
+      <h2 class="toc-h" id="g-decouple">Decoupling and event-driven design</h2>
+      <div class="toc-grid"><a class="toc-card" href="#queue"><img data-ico="sqs" alt=""><span><b><span class="toc-n">11</span>Queue-based load leveling</b><small>A queue between tiers absorbs bursts; scale the workers on backlog per instance, and add a dead-letter queue for poison messages.</small></span></a><a class="toc-card" href="#fanout"><img data-ico="sns" alt=""><span><b><span class="toc-n">12</span>Fan-out with SNS and SQS</b><small>One event, many independent consumers → an SNS topic that fans out to one SQS queue per consumer.</small></span></a><a class="toc-card" href="#eventbridge"><img data-ico="eventbridge" alt=""><span><b><span class="toc-n">13</span>Event routing with EventBridge</b><small>Route events by their content, from AWS services, SaaS apps or your own code → EventBridge rules; replay after a fix → archive.</small></span></a><a class="toc-card" href="#stepfunctions"><img data-ico="stepfn" alt=""><span><b><span class="toc-n">14</span>Workflow orchestration with Step Functions</b><small>Multi-step workflows with retries, branches and human approval → Step Functions, not Lambdas calling each other.</small></span></a></div>
+      <h2 class="toc-h" id="g-data">Data and analytics</h2>
+      <div class="toc-grid"><a class="toc-card" href="#streaming"><img data-ico="kinesis" alt=""><span><b><span class="toc-n">15</span>Streaming pipeline</b><small>Real time, replay or several consumers → Kinesis Data Streams; load into S3, Redshift or OpenSearch with no code → Firehose.</small></span></a><a class="toc-card" href="#datalake"><img data-ico="glue" alt=""><span><b><span class="toc-n">16</span>Data lake on S3</b><small>S3 stores the data, Glue catalogs it, and Athena queries it in place; Parquet plus partitions cut the bytes scanned.</small></span></a><a class="toc-card" href="#s3events"><img data-ico="s3" alt=""><span><b><span class="toc-n">17</span>Event-driven S3 processing</b><small>React to each upload → an S3 event notification to Lambda (or to SQS for heavy jobs); clients upload directly with presigned URLs.</small></span></a></div>
+      <h2 class="toc-h" id="g-db">Databases</h2>
+      <div class="toc-grid"><a class="toc-card" href="#readscale"><img data-ico="elasticache" alt=""><span><b><span class="toc-n">18</span>Read scaling and caching</b><small>Repeated reads → a cache; heavy reports → read replicas; too many connections from Lambda → RDS Proxy.</small></span></a><a class="toc-card" href="#multiregion"><img data-ico="aurora" alt=""><span><b><span class="toc-n">19</span>Multi-Region data</b><small>Relational data with a recovery point of seconds across Regions → Aurora Global Database; writes in every Region → DynamoDB global tables.</small></span></a></div>
+      <h2 class="toc-h" id="g-dr">Disaster recovery and migration</h2>
+      <div class="toc-grid"><a class="toc-card" href="#dr"><img data-ico="drs" alt=""><span><b><span class="toc-n">20</span>Disaster recovery strategies</b><small>Read the RPO and RTO, then pick the cheapest strategy that meets both: backup and restore → pilot light → warm standby → active-active.</small></span></a><a class="toc-card" href="#migration"><img data-ico="mgn" alt=""><span><b><span class="toc-n">21</span>Migrating to AWS</b><small>Servers → Application Migration Service; databases → DMS (with SCT for a new engine); files → DataSync; more than the link can carry → Snowball.</small></span></a></div>
+      <h2 class="toc-h" id="g-storage">Storage</h2>
+      <div class="toc-grid"><a class="toc-card" href="#hybridstorage"><img data-ico="storagegw" alt=""><span><b><span class="toc-n">22</span>Hybrid storage and data transfer</b><small>Keep the on-premises protocol and store the data in AWS → Storage Gateway (File, Volume, Tape); move data → DataSync.</small></span></a><a class="toc-card" href="#filesystems"><img data-ico="efs" alt=""><span><b><span class="toc-n">23</span>Shared file systems</b><small>Linux and NFS → EFS; Windows, SMB and Active Directory → FSx for Windows; HPC on data in S3 → FSx for Lustre.</small></span></a><a class="toc-card" href="#s3protect"><img data-ico="glacier" alt=""><span><b><span class="toc-n">24</span>S3 lifecycle and protection</b><small>Lifecycle rules move data to cheaper classes as it ages; versioning and Object Lock stop deletion; replication keeps a copy elsewhere.</small></span></a></div>
+      <h2 class="toc-h" id="g-security">Security and multiple accounts</h2>
+      <div class="toc-grid"><a class="toc-card" href="#landingzone"><img data-ico="orgs" alt=""><span><b><span class="toc-n">25</span>Multi-account landing zone</b><small>Many accounts with guardrails → Organizations and Control Tower; SCPs cap permissions but grant none; people sign in through IAM Identity Center.</small></span></a><a class="toc-card" href="#crossaccount"><img data-ico="iamrole" alt=""><span><b><span class="toc-n">26</span>Cross-account access</b><small>Cross-account access is either a role to assume (its trust policy decides who) or a resource policy; with SSE-KMS the key policy must allow it too.</small></span></a><a class="toc-card" href="#edgesecurity"><img data-ico="waf" alt=""><span><b><span class="toc-n">27</span>Edge security and threat detection</b><small>Block at the edge (WAF and Shield on CloudFront), detect with GuardDuty, gather findings in Security Hub, and respond through EventBridge.</small></span></a><a class="toc-card" href="#encryption"><img data-ico="kms" alt=""><span><b><span class="toc-n">28</span>Encryption and secrets</b><small>Audit key use → SSE-KMS; rotate database passwords → Secrets Manager; TLS certificates → ACM (in us-east-1 for CloudFront).</small></span></a></div>
+      <h2 class="toc-h" id="g-ops">Monitoring and operations</h2>
+      <div class="toc-grid"><a class="toc-card" href="#operations"><img data-ico="ssm" alt=""><span><b><span class="toc-n">29</span>Operations and auto-remediation</b><small>Memory and disk metrics need the CloudWatch agent; Config with SSM Automation fixes drift; Session Manager replaces SSH and bastions.</small></span></a></div>
+      <h2 class="toc-h" id="g-cost">Cost optimization</h2>
+      <div class="toc-grid"><a class="toc-card" href="#costcompute"><img data-ico="savings" alt=""><span><b><span class="toc-n">30</span>Cost-optimized compute</b><small>Commit for the steady baseline (Savings Plans or RIs), put interruptible work on Spot, and scale the rest On-Demand.</small></span></a><a class="toc-card" href="#datatransfer"><img data-ico="nat" alt=""><span><b><span class="toc-n">31</span>Data transfer costs</b><small>Inbound, same-AZ private and origin-to-CloudFront traffic is free; NAT, cross-AZ, inter-Region and internet egress are billed per GB.</small></span></a><a class="toc-card" href="#costgovernance"><img data-ico="budgets" alt=""><span><b><span class="toc-n">32</span>Cost governance</b><small>See spend → Cost Explorer; alert or act at a threshold → Budgets; unexpected spikes → Anomaly Detection; every line item → CUR and Athena.</small></span></a></div>
     </nav>
   <!-- GENERATED:CONTENTS END -->
 
-  <h2 class="arch-group" id="g-network">Networking foundations</h2>
+  <!-- the pager over the open diagram: its group and place, the contents, and Previous / Next; filled by the script -->
+  <nav class="arch-pager" id="pagerTop" aria-label="Diagram navigation"></nav>
 
   <!-- ============ 1. Classic VPC layout ============ -->
   <section class="arch-sec" id="vpc-layout">
@@ -642,7 +695,6 @@
     <div class="card check"><h3>Check yourself</h3><p>EC2 instances must resolve names in corp.example.com, which only the on-premises DNS servers can answer over Direct Connect. What should be configured?</p><ol class="opts"><li>A Route 53 Resolver outbound endpoint with a forwarding rule for corp.example.com.</li><li>A Route 53 Resolver inbound endpoint.</li><li>A private hosted zone named corp.example.com associated with the VPC.</li><li>A public hosted zone for corp.example.com.</li></ol><details><summary>Show answer</summary><p><b>A.</b> The queries leave the VPC, so they need an outbound endpoint and a rule that forwards the domain. An inbound endpoint serves the opposite direction, and a hosted zone would answer itself instead of asking on-premises DNS.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-ha">Highly available web applications</h2>
   <section class="arch-sec" id="three-tier">
     <h2>7. Three-tier web application</h2>
     <p class="rule">Spread every tier over two or more AZs, keep the web tier stateless, cache hot reads, and send reports to a read replica.</p>
@@ -817,7 +869,6 @@
     <div class="card check"><h3>Check yourself</h3><p>An ECS task running on Fargate must write to a DynamoDB table. How should it get permissions?</p><ol class="opts"><li>Add the DynamoDB permissions to the task execution role.</li><li>Pass access keys to the container in environment variables.</li><li>Attach a policy for the table to the task's IAM task role.</li><li>Attach an instance profile to the container instances.</li></ol><details><summary>Show answer</summary><p><b>C.</b> The task role is what the application's code uses. The execution role is only for ECS itself (pulling images, writing logs), Fargate has no instances to profile, and stored keys are never the answer.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-decouple">Decoupling and event-driven design</h2>
   <section class="arch-sec" id="queue">
     <h2>11. Queue-based load leveling</h2>
     <p class="rule">A queue between tiers absorbs bursts; scale the workers on backlog per instance, and add a dead-letter queue for poison messages.</p>
@@ -973,7 +1024,6 @@
     <div class="card check"><h3>Check yourself</h3><p>An order process has five steps, needs retries with backoff, includes a human approval that can take days, and must keep a visual history of each run. What is the most operationally efficient choice?</p><ol class="opts"><li>A Step Functions Express workflow.</li><li>A Step Functions Standard workflow, using a task token for the approval step.</li><li>Lambda functions that invoke each other in sequence.</li><li>SQS queues between EC2 worker fleets.</li></ol><details><summary>Show answer</summary><p><b>B.</b> Standard workflows run up to a year and pause on a task token at no cost. Express workflows stop after 5 minutes, and chained Lambdas hit the 15-minute limit with no built-in state or history.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-data">Data and analytics</h2>
   <section class="arch-sec" id="streaming">
     <h2>15. Streaming pipeline</h2>
     <p class="rule">Real time, replay or several consumers → Kinesis Data Streams; load into S3, Redshift or OpenSearch with no code → Firehose.</p>
@@ -1092,7 +1142,6 @@
     <div class="card check"><h3>Check yourself</h3><p>Each image uploaded to S3 needs a thumbnail within seconds. Upload volume is unpredictable, and operations must be minimal. What design fits?</p><ol class="opts"><li>A cron job on EC2 that lists the bucket every minute.</li><li>An AWS Batch job scheduled every hour.</li><li>S3 replication to a thumbnails bucket.</li><li>An S3 event notification that invokes Lambda, which writes the thumbnail to a different bucket.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Event notifications react to each object with no polling, and Lambda scales with the uploads. Writing to a different bucket stops the function from triggering itself; replication only copies objects.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-db">Databases</h2>
   <section class="arch-sec" id="readscale">
     <h2>18. Read scaling and caching</h2>
     <p class="rule">Repeated reads → a cache; heavy reports → read replicas; too many connections from Lambda → RDS Proxy.</p>
@@ -1173,7 +1222,6 @@
     <div class="card check"><h3>Check yourself</h3><p>Users in three Regions must write to the same data locally with single-digit millisecond latency. Which database fits?</p><ol class="opts"><li>Aurora Global Database.</li><li>RDS with cross-Region read replicas.</li><li>A single DynamoDB table with DAX in each Region.</li><li>DynamoDB global tables.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Global tables accept writes in every replica Region. Aurora Global Database and RDS read replicas have one writer Region, so remote writes travel there, and DAX caches reads only.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-dr">Disaster recovery and migration</h2>
   <section class="arch-sec" id="dr">
     <h2>20. Disaster recovery strategies</h2>
     <p class="rule">Read the RPO and RTO, then pick the cheapest strategy that meets both: backup and restore → pilot light → warm standby → active-active.</p>
@@ -1281,7 +1329,6 @@
     <div class="card check"><h3>Check yourself</h3><p>An on-premises Oracle database must move to Aurora PostgreSQL with minimal downtime. What should be used?</p><ol class="opts"><li>AWS DataSync to copy the database files.</li><li>An export dump shipped on a Snowball Edge device.</li><li>AWS SCT to convert the schema, then AWS DMS with a full load and ongoing change data capture.</li><li>AWS Application Migration Service.</li></ol><details><summary>Show answer</summary><p><b>C.</b> A different engine needs SCT for the schema and code, and DMS with CDC keeps the target in sync until a short cutover. DataSync moves files, and a dump means downtime for the whole transfer.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-storage">Storage</h2>
   <section class="arch-sec" id="hybridstorage">
     <h2>22. Hybrid storage and data transfer</h2>
     <p class="rule">Keep the on-premises protocol and store the data in AWS → Storage Gateway (File, Volume, Tape); move data → DataSync.</p>
@@ -1430,7 +1477,6 @@
     <div class="card check"><h3>Check yourself</h3><p>Audit records in S3 must not be deleted or overwritten by anyone, including the root user, for 7 years. What should be used?</p><ol class="opts"><li>S3 Object Lock in governance mode.</li><li>Versioning with MFA Delete.</li><li>A bucket policy that denies s3:DeleteObject.</li><li>S3 Object Lock in compliance mode with a 7-year retention period.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Compliance mode cannot be shortened or removed by any user, root included. Governance mode can be bypassed with a permission, the root user can still delete with MFA Delete, and a bucket policy can be edited.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-security">Security and multiple accounts</h2>
   <section class="arch-sec" id="landingzone">
     <h2>25. Multi-account landing zone</h2>
     <p class="rule">Many accounts with guardrails → Organizations and Control Tower; SCPs cap permissions but grant none; people sign in through IAM Identity Center.</p>
@@ -1607,7 +1653,6 @@
     <div class="card check"><h3>Check yourself</h3><p>The password of an RDS database must rotate automatically every 30 days with no change to the application's code path. What should be used?</p><ol class="opts"><li>A Systems Manager Parameter Store SecureString.</li><li>Automatic rotation of the KMS key.</li><li>An encrypted object in S3, updated by a cron job.</li><li>Secrets Manager with automatic rotation.</li></ol><details><summary>Show answer</summary><p><b>D.</b> Secrets Manager rotates RDS credentials with a managed rotation function. Parameter Store has no built-in RDS rotation, and KMS key rotation changes key material, not passwords.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-ops">Monitoring and operations</h2>
   <section class="arch-sec" id="operations">
     <h2>29. Operations and auto-remediation</h2>
     <p class="rule">Memory and disk metrics need the CloudWatch agent; Config with SSM Automation fixes drift; Session Manager replaces SSH and bastions.</p>
@@ -1656,7 +1701,6 @@
     <div class="card check"><h3>Check yourself</h3><p>A company needs an alarm when memory use on its EC2 instances goes above 80%. What must it do first?</p><ol class="opts"><li>Install the CloudWatch agent so the instances publish memory metrics.</li><li>Turn on detailed monitoring for the instances.</li><li>Turn on VPC Flow Logs.</li><li>Create an AWS Config rule.</li></ol><details><summary>Show answer</summary><p><b>A.</b> EC2 reports CPU, network and disk I/O from the hypervisor, but not memory. Detailed monitoring only makes the default metrics more frequent.</p></details></div>
   </section>
 
-  <h2 class="arch-group" id="g-cost">Cost optimization</h2>
   <section class="arch-sec" id="costcompute">
     <h2>30. Cost-optimized compute</h2>
     <p class="rule">Commit for the steady baseline (Savings Plans or RIs), put interruptible work on Spot, and scale the rest On-Demand.</p>
@@ -1791,7 +1835,11 @@
     <div class="card check"><h3>Check yourself</h3><p>Finance wants costs by department across all accounts. Resources already carry a Department tag. What else must be done?</p><ol class="opts"><li>Turn on Cost Explorer in each member account.</li><li>Activate Department as a cost allocation tag in the management account.</li><li>Create one budget per department.</li><li>Turn on AWS Config in every account.</li></ol><details><summary>Show answer</summary><p><b>B.</b> Tags appear in billing data only after they are activated as cost allocation tags, and only from then on. Budgets and Config do not break costs down by tag.</p></details></div>
   </section>
   <!-- GENERATED:DIAGRAMS END -->
+
+  <!-- the neighbouring diagrams, under the open one; filled by the script -->
+  <nav class="arch-pager foot" id="pagerFoot" aria-label="Previous and next diagram"></nav>
 </main>
+</div>
 
 <script src="icons.js"></script>
 <script src="app.js"></script>
@@ -1799,17 +1847,33 @@
 // the diagrams name their AWS icons; the shared icon set supplies them, so the page works offline
 document.querySelectorAll('svg image[data-ico]').forEach(el => el.setAttribute('href', App.iconURL(el.dataset.ico)));
 document.querySelectorAll('img[data-ico]').forEach(el => { el.src = App.iconURL(el.dataset.ico); });
-// The jump button names the diagram on screen (the last one whose heading has passed under the top bar)
-// and opens a panel listing every diagram; picking one scrolls straight to it. On phones the panel is a
-// bottom sheet over a dimmed page. Escape, a click outside, or the dimmed area close it.
+// One diagram at a time. The address names the open diagram (#hybrid-dns); no address, or a group's
+// (#g-network), shows the contents, scrolled to that group. Every change is a hashchange, so Back,
+// bookmarks and links from the mind map and the infographics all land on the right view. The jump panel
+// (top bar, narrower screens) and the side list (wide screens) list every diagram, and ← → step through.
 const jumpBtn = document.getElementById('jumpBtn');
 const jumpLabel = document.getElementById('jumpLabel');
 const panel = document.getElementById('jumpPanel');
 const backdrop = document.getElementById('jumpBackdrop');
+const side = document.getElementById('archSide');
+const pagerTop = document.getElementById('pagerTop');
+const pagerFoot = document.getElementById('pagerFoot');
 const rows = [...panel.querySelectorAll('.jump-row')];
-const sections = [...document.querySelectorAll('.arch-sec')];
 const narrow = () => matchMedia('(max-width:640px)').matches;
-let currentId = '';
+const PAGE_TITLE = document.title;
+// each diagram in page order, with its number, title and group, from the jump list
+const diagrams = [];
+let groupName = '';
+for (const el of panel.querySelectorAll('.jump-group, .jump-row')) {
+  if (el.classList.contains('jump-group')) { groupName = el.textContent; continue; }
+  diagrams.push({ id: el.dataset.id, n: el.dataset.n, title: el.dataset.title, group: groupName, sec: document.getElementById(el.dataset.id) });
+}
+let currentId = '', contentsY = 0;
+
+// the side list: the jump list's rows under an "All diagrams" row
+side.innerHTML = `<button type="button" class="jump-row side-home" data-id=""><span class="n">≡</span><span>All diagrams</span></button>`
+  + panel.querySelector('.jump-list').innerHTML.replace(/<!--[\s\S]*?-->/g, '');
+const sideRows = [...side.querySelectorAll('.jump-row')];
 
 function placePanel() {
   if (narrow()) return;   // the sheet is pinned to the bottom by CSS
@@ -1835,11 +1899,10 @@ function closeJump(returnFocus) {
   jumpBtn.setAttribute('aria-expanded', 'false');
   if (returnFocus) jumpBtn.focus({ preventScroll: true });
 }
+const goTo = id => { location.hash = id ? '#' + id : ''; };
 jumpBtn.addEventListener('click', () => (panel.hidden ? openJump() : closeJump(false)));
-rows.forEach(row => row.addEventListener('click', () => {
-  closeJump(true);
-  document.getElementById(row.dataset.id).scrollIntoView({ block: 'start' });
-}));
+rows.forEach(row => row.addEventListener('click', () => { closeJump(true); goTo(row.dataset.id); }));
+sideRows.forEach(row => row.addEventListener('click', () => goTo(row.dataset.id)));
 backdrop.addEventListener('click', () => closeJump(true));
 document.addEventListener('pointerdown', e => {
   if (!panel.hidden && !panel.contains(e.target) && !jumpBtn.contains(e.target)) closeJump(false);
@@ -1856,23 +1919,66 @@ panel.addEventListener('keydown', e => {
 });
 addEventListener('resize', () => { if (!panel.hidden) { placePanel(); backdrop.hidden = !narrow(); } });
 
-let tracking = false;
-function trackCurrent() {
-  tracking = false;
-  const atBottom = innerHeight + scrollY >= document.documentElement.scrollHeight - 2;
-  let current = '';
-  for (const sec of sections) {
-    if (sec.getBoundingClientRect().top <= 90) current = sec.id; else break;
-  }
-  if (atBottom) current = sections[sections.length - 1].id;   // the last diagram can't scroll up to the line
-  if (current === currentId) return;
-  currentId = current;
-  const row = rows.find(x => x.dataset.id === current);
-  jumpLabel.textContent = row ? row.dataset.n + ' · ' + row.dataset.title : 'Jump to a diagram…';
-  rows.forEach(x => (x === row ? x.setAttribute('aria-current', 'true') : x.removeAttribute('aria-current')));
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const link = (d, cls, label) => d
+  ? `<a class="${cls}" href="#${d.id}">${label(d)}</a>`
+  : `<span class="${cls}" aria-disabled="true">${label(null)}</span>`;
+
+function mark(list, id) {
+  for (const x of list) (x.dataset.id === id ? x.setAttribute('aria-current', 'true') : x.removeAttribute('aria-current'));
 }
-addEventListener('scroll', () => { if (!tracking) { tracking = true; requestAnimationFrame(trackCurrent); } }, { passive: true });
-trackCurrent();
+// focusFirst: move focus to the new view after a click or key, not on the first load
+function route(focusFirst) {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const i = diagrams.findIndex(d => d.id === id);
+  const leaving = currentId;
+  if (i < 0) {
+    // the contents, at the top, at a group, or where you left it
+    document.body.dataset.view = 'contents';
+    for (const d of diagrams) d.sec.classList.remove('on');
+    currentId = '';
+    document.title = PAGE_TITLE;
+    jumpLabel.textContent = 'Jump to a diagram…';
+    mark(rows, ''); mark(sideRows, '');
+    const group = id && document.getElementById(id);
+    if (group && group.classList.contains('toc-h')) group.scrollIntoView({ block: 'start' });
+    else scrollTo(0, leaving ? contentsY : 0);
+    return;
+  }
+  if (!leaving) contentsY = scrollY;
+  const d = diagrams[i], prev = diagrams[i - 1], next = diagrams[i + 1];
+  document.body.dataset.view = 'diagram';
+  for (const x of diagrams) x.sec.classList.toggle('on', x === d);
+  currentId = d.id;
+  document.title = d.n + '. ' + d.title + ' · ' + PAGE_TITLE.replace(/^AWS SAA-C03 /, '');
+  jumpLabel.textContent = d.n + ' · ' + d.title;
+  mark(rows, d.id); mark(sideRows, d.id);
+  const sideRow = sideRows.find(x => x.dataset.id === d.id);
+  if (sideRow && side.offsetParent) sideRow.scrollIntoView({ block: 'nearest' });
+  pagerTop.innerHTML = `<p class="where">${esc(d.group)} <span>· ${d.n} of ${diagrams.length}</span></p>`
+    + `<a class="pg-btn" href="#">All diagrams</a>`
+    + link(prev, 'pg-btn', () => '‹ Previous')
+    + link(next, 'pg-btn', () => 'Next ›');
+  pagerFoot.innerHTML = (prev ? link(prev, 'pg-card prev', p => `<small>‹ Previous</small><b>${p.n}. ${esc(p.title)}</b>`) : '')
+    + (next ? link(next, 'pg-card next', p => `<small>Next ›</small><b>${p.n}. ${esc(p.title)}</b>`) : '');
+  scrollTo(0, 0);
+  if (focusFirst) {
+    const h = d.sec.querySelector('h2');
+    h.tabIndex = -1;
+    h.focus({ preventScroll: true });
+  }
+}
+addEventListener('hashchange', () => route(true));
+// ← and → step through the diagrams, unless a key is held or the jump panel is open
+document.addEventListener('keydown', e => {
+  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !panel.hidden || !currentId) return;
+  if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+  const i = diagrams.findIndex(d => d.id === currentId) + (e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0);
+  if (diagrams[i] && i !== diagrams.findIndex(d => d.id === currentId)) { e.preventDefault(); goTo(diagrams[i].id); }
+});
+route(false);
+// a link straight to a diagram: the browser scrolls to its anchor once the page loads, which the view has no use for
+addEventListener('load', () => { if (currentId) scrollTo(0, 0); });
 
 </script>
 </body>

@@ -1785,16 +1785,21 @@ function build() {
   for (const g of GROUPS) for (const item of g.items) item.n = ++n;
   let page = fs.readFileSync(PAGE, 'utf8');
   const eol = page.includes('\r\n') ? '\r\n' : '\n';
-  const toc = `<nav class="toc card" aria-label="Contents">${GROUPS.filter(g => g.items.length).map(g => `
-      <div><a class="toc-group" href="#${g.id}">${g.title}</a><ol>${g.items.map(i => `<li value="${i.n}"><a href="#${i.id}">${esc(i.title)}</a></li>`).join('')}</ol></div>`).join('')}
+  // The contents: a card per diagram, grouped, with its icon, number, title and rule. A group's heading
+  // carries the group's id, so an address like #g-network opens the contents there. Diagrams 1 and 2 are
+  // hand-drawn in the page, so their rules are read from it.
+  const ruleOf = item => {
+    if (item.takeaway) return item.takeaway;
+    const m = page.match(new RegExp(`<section class="arch-sec" id="${item.id}">[\\s\\S]*?<p class="rule">([\\s\\S]*?)</p>`));
+    if (!m) throw new Error('no rule found for the hand-drawn diagram ' + item.id);
+    return m[1];
+  };
+  const toc = `<nav class="toc" aria-label="Contents">${GROUPS.filter(g => g.items.length).map(g => `
+      <h2 class="toc-h" id="${g.id}">${g.title}</h2>
+      <div class="toc-grid">${g.items.map(i => `<a class="toc-card" href="#${i.id}"><img data-ico="${JUMP_ICONS[i.id]}" alt=""><span><b><span class="toc-n">${i.n}</span>${esc(i.title)}</b><small>${ruleOf(i)}</small></span></a>`).join('')}</div>`).join('')}
     </nav>`;
-  // diagrams 1 and 2 already open the networking group, so it continues straight after them
-  const body = GROUPS.map(g => {
-    const own = DIAGRAMS.filter(dg => dg.groupId === g.id);
-    if (!own.length) return '';
-    const heading = g.id === 'g-network' ? '' : `\n  <h2 class="arch-group" id="${g.id}">${g.title}</h2>`;
-    return heading + own.map(section).join('\n');
-  }).join('\n');
+  // the diagrams in order; the page shows one at a time, so the groups are named by the contents and the pager
+  const body = GROUPS.map(g => DIAGRAMS.filter(dg => dg.groupId === g.id).map(section).join('\n')).filter(Boolean).join('\n');
   const swap = (name, html) => {
     const re = new RegExp(`(<!-- GENERATED:${name} START[^>]*-->)[\\s\\S]*?(<!-- GENERATED:${name} END -->)`);
     if (!re.test(page)) throw new Error('missing GENERATED:' + name + ' markers in ' + PAGE);

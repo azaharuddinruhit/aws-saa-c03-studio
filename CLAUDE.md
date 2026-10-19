@@ -22,7 +22,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `docs/cheatsheet/01-…10-*.html` | Domain pages. Each one loads `icons.js` and `app.js`, then calls `App.start(config)`. |
 | `docs/cheatsheet/app.css` | Shared styles and colour tokens (`--accent`, `--aws`, `--ink`, `--muted`, `--line`, `--surface`…), with light and dark values. |
 | `docs/cheatsheet/icons.js` | AWS service icons as SVG strings (`window.AWS_ICONS`). Use them through `App.iconURL(key)`. |
-| `docs/cheatsheet/architectures.html` | 32 architecture diagrams, mostly generated (see below). |
+| `docs/cheatsheet/architectures.html` | 32 architecture diagrams, mostly generated (see below), shown one at a time from a contents of cards. |
 | `scripts/build-architectures.js` | Generates diagrams 3–32, the contents list and the jump panel into `architectures.html`. |
 | `docs/cheatsheet/mindmap.html` | Interactive mind map: category → service → feature, with each service's question count. Its data is generated (see below). |
 | `scripts/build-mindmap.js` + `mindmap-cues.json` | Generates the mind map data from the vocabulary, the cues, the four banks and the diagrams page. |
@@ -84,7 +84,8 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **Required spec fields:**
   - a one-line `takeaway`;
   - a `check: { q, opts[4], answer, why }` self-test, written so the explanation never refers to option letters.
-- **Jump panel icon:** each new diagram needs an entry in `JUMP_ICONS`.
+- **Jump panel icon:** each new diagram needs an entry in `JUMP_ICONS`. The contents cards use the same icon.
+- **One diagram at a time:** the page opens on the contents, a card per diagram with its icon, number, title and `takeaway` (for diagrams 1 and 2, the build reads the rule from the page). A diagram's address (`#hybrid-dns`) shows only that diagram, with its group, "6 of 32", All diagrams and Previous / Next above it, and its neighbours below; ← → step through. A group's address (`#g-network`) opens the contents at that group. Every view change is a hash change, so Back and links from the mind map work. Wide screens get a sticky side list of every diagram in place of the top bar's jump button.
 - **Edge colours keep one meaning everywhere:**
   - green solid (`in`) = request or private path;
   - orange dashed (`out`) = through NAT or the internet, or billed;
@@ -109,7 +110,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 
 - **Where to edit:** service content lives in `scripts/mindmap-cues.json`, with one entry per vocabulary service (`cue`, `traps`, `twins`, `sheet`, `icon`, `icons`, `domain`). Rebuild after editing; never hand-edit between the `GENERATED:DATA` markers in `mindmap.html`.
 - **The build checks itself:** it fails if a vocabulary service has no cue, or if a cue names an unknown service, icon, cheat-sheet topic or diagram. A new vocabulary service therefore needs a cue before the map will rebuild.
-- **Structure:** the first level is the vocabulary's categories, each listed once, in the same order as the cheat sheets. Only one category is open at a time: opening one folds the others, and Expand all is the exception.
+- **Structure:** the first level is the vocabulary's categories, each listed once, in the same order as the cheat sheets. Only one category is open at a time: opening one folds the others, and Expand all is the exception. Expand all and Collapse all share one button: it folds back to the categories while any category is open, and opens everything otherwise.
 - **Question counts:** each service and feature shows, in plain grey, the number of practice questions tagged with it across the four sets, and each category card gives its total (a question tagged with two of its services counts once). A service's count includes questions tagged with the service alone, so its features' counts add up to less; the panel's Features section says how the total splits. With the progress overlay on, the % done takes the count's place.
 - **Exam domain:** each service belongs to the exam domain where most of its tagged questions are. The cue's `domain` is used only for a tie, or when there are no questions. The service panel names it, and the chips across the top highlight one domain's services; that choice is not saved.
 - **Practice links:** a service panel links to `index.html#/practice/<bank>/<service>`, once per set that has questions for that service, and opens it in a new tab. The Studio selects that set, as its menu would, and starts a `service` quiz using the same outstanding-first order as the section quizzes (`outstandingFirst`). The Studio runs one set at a time, which is why there is one link per set.

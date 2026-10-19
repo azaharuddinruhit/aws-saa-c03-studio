@@ -153,7 +153,7 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
 <body class="mm-page">
 <header class="topbar nosub">
   <div class="topbar-in">
-    <span class="brand"><a class="back-link" href="index.html" aria-label="Back to the cheat sheets" title="Back to the cheat sheets"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></span><span class="brand-name">Mind Map</span></span>
+    <span class="brand"><a class="back-link" href="../index.html" aria-label="Back to the progress overview" title="Back to the progress overview"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></span><span class="brand-name">Mind Map</span></span>
     <span style="margin-left:auto"></span>
     <button type="button" class="theme-btn menu-btn" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="menuPanel" title="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
@@ -167,8 +167,7 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
   <div class="mm-zoom">
     <div class="mm-grp">
       <button type="button" class="mm-tb" id="overlayBtn" role="switch" aria-checked="false" aria-label="My progress" title="My progress: how much of each service you've completed"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" opacity=".35"/><path d="M12 4a8 8 0 0 1 7.6 10.5"/></svg></button>
-      <button type="button" class="mm-tb" id="expandBtn" aria-label="Expand all" title="Expand all: open every branch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
-      <button type="button" class="mm-tb" id="collapseBtn" aria-label="Collapse all" title="Collapse all: fold back to the categories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l5 5 5-5M7 20l5-5 5 5"/></svg></button>
+      <button type="button" class="mm-tb" id="foldBtn" aria-label="Expand all" title="Expand all: open every branch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></button>
     </div>
     <div class="mm-grp">
       <button type="button" class="mm-tb" id="zoomIn" aria-label="Zoom in" title="Zoom in (+)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -338,6 +337,7 @@ function render(anchor) {
   for (const el of nodesEl.children) byId.get(el.dataset.id).el = el;
   paintOverlay();   // before measuring: the score badges change each node's width
   layout(anchor, before);
+  syncFoldBtn();
 }
 // measure the nodes as drawn and place them; run again whenever their size can change (fonts, scores)
 function layout(anchor, before) {
@@ -594,15 +594,23 @@ nodesEl.addEventListener('focusin', e => {
   if (el && !drag) ensureVisible(byId.get(el.dataset.id));
 });
 
-$('expandBtn').addEventListener('click', () => {
-  for (const n of byId.values()) if (n.children.length) open.add(n.id);
-  save(OPEN_KEY, [...open]);
-  render();
-  fit(true, READABLE);
-});
-$('collapseBtn').addEventListener('click', () => {
-  open.clear();
-  open.add('root');
+// One button for Expand all and Collapse all: while any branch below the root is open it folds the map
+// back to the categories, otherwise it opens every branch. render() keeps its icon and label in step.
+const FOLD = {
+  expand: { label: 'Expand all', title: 'Expand all: open every branch', path: 'M7 9l5-5 5 5M7 15l5 5 5-5' },
+  collapse: { label: 'Collapse all', title: 'Collapse all: fold back to the categories', path: 'M7 4l5 5 5-5M7 20l5-5 5 5' }
+};
+const anyOpen = () => [...open].some(id => id !== 'root');
+function syncFoldBtn() {
+  const f = FOLD[anyOpen() ? 'collapse' : 'expand'], b = $('foldBtn');
+  if (b.getAttribute('aria-label') === f.label) return;
+  b.setAttribute('aria-label', f.label);
+  b.title = f.title;
+  b.querySelector('path').setAttribute('d', f.path);
+}
+$('foldBtn').addEventListener('click', () => {
+  if (anyOpen()) { open.clear(); open.add('root'); }
+  else for (const n of byId.values()) if (n.children.length) open.add(n.id);
   save(OPEN_KEY, [...open]);
   render();
   fit(true, READABLE);
