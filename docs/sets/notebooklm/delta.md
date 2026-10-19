@@ -596,7 +596,7 @@ A solutions architect creates a VPC that includes two public subnets and two pri
 
 ## DELTA-022: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
-**Services:** Glue › ETL jobs, Redshift
+**Services:** Glue, Redshift
 
 ### Question
 A company has an Amazon S3 data lake. The company needs a solution that transforms the data from the data lake and loads the data into a data warehouse every day. The data warehouse must have massively parallel processing (MPP) capabilities. Data analysts then need to create and train machine learning (ML) models by using SQL commands on the data. The solution must use serverless AWS services wherever possible. Which solution will meet these requirements?
@@ -2200,7 +2200,7 @@ A company runs a fleet of Amazon EC2 On-Demand Instances to support a document p
 
 ## DELTA-079: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Reliability
-**Services:** Shield › Shield Advanced, CloudFront
+**Services:** Shield, CloudFront
 
 ### Question
 A retail company runs its application on AWS. The application uses Amazon EC2 for web servers, Amazon RDS for database services, and Amazon CloudFront for global content distribution. The company needs a solution to mitigate DDoS attacks. Which solution will meet this requirement?
@@ -2256,7 +2256,7 @@ A company runs containerized applications on Amazon ECS tasks in private subnets
 
 ## DELTA-081: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency
-**Services:** Redshift, Glue › ETL jobs
+**Services:** Redshift, Glue
 
 ### Question
 A company has an application that scans millions of connected devices for security threats and pushes the scan logs to an Amazon S3 bucket. A total of 70 GB of data is generated each week, and the company needs to store 3 years of data for historical reporting. The company must process, aggregate, and enrich the data from Amazon S3 by performing complex analytical queries and joins in the least amount of time. The aggregated dataset is visualized on an Amazon QuickSight dashboard. What should a solutions architect recommend to meet these requirements?

@@ -18,13 +18,13 @@
         { "name": "Control Tower", "features": [] },
         { "name": "Resource Access Manager", "features": [] },
         { "name": "Cognito", "features": ["User pools", "Identity pools"] },
-        { "name": "Directory Service", "features": ["Managed Microsoft AD", "AD Connector"] },
+        { "name": "Directory Service", "features": [] },
         { "name": "KMS", "features": ["Key policies & grants", "Key rotation", "Multi-Region keys", "Imported key material"] },
         { "name": "CloudHSM", "features": [] },
         { "name": "Secrets Manager", "features": ["Rotation"] },
         { "name": "Certificate Manager", "features": [] },
         { "name": "WAF", "features": ["Rate-based rules"] },
-        { "name": "Shield", "features": ["Shield Advanced"] },
+        { "name": "Shield", "features": [] },
         { "name": "Firewall Manager", "features": [] },
         { "name": "GuardDuty", "features": [] },
         { "name": "Inspector", "features": [] },
@@ -107,7 +107,7 @@
         { "name": "Elastic Disaster Recovery", "features": [] },
         { "name": "Application Recovery Controller", "features": [] },
         { "name": "Application Migration Service", "features": [] },
-        { "name": "DMS", "features": ["Schema conversion", "Ongoing replication"] },
+        { "name": "DMS", "features": [] },
         { "name": "DataSync", "features": [] },
         { "name": "Transfer Family", "features": [] },
         { "name": "Snow Family", "features": [] }
@@ -121,12 +121,15 @@
         { "name": "Managed Service for Apache Flink", "features": [] },
         { "name": "MSK", "features": [] },
         { "name": "Athena", "features": ["Partitioning & formats", "Federated query"] },
-        { "name": "Glue", "features": ["Data Catalog & crawlers", "ETL jobs"] },
+        { "name": "Glue", "features": [] },
         { "name": "EMR", "features": [] },
         { "name": "Lake Formation", "features": [] },
         { "name": "Redshift", "features": ["Redshift Spectrum"] },
         { "name": "OpenSearch Service", "features": [] },
-        { "name": "QuickSight", "features": [] }
+        { "name": "QuickSight", "features": [] },
+        { "name": "SageMaker", "features": [] },
+        { "name": "Textract", "features": [] },
+        { "name": "Comprehend", "features": [] }
       ]
     },
     {
@@ -154,14 +157,6 @@
         { "name": "Cost allocation tags", "features": [] },
         { "name": "Compute Optimizer", "features": [] },
         { "name": "Data transfer pricing", "features": [] }
-      ]
-    },
-    {
-      "name": "Machine Learning",
-      "services": [
-        { "name": "SageMaker", "features": [] },
-        { "name": "Textract", "features": [] },
-        { "name": "Comprehend", "features": [] }
       ]
     }
   ]

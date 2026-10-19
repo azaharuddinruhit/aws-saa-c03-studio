@@ -332,7 +332,7 @@
     "difficulty": "medium",
     "services": [
       "Aurora › Babelfish",
-      "DMS › Schema conversion"
+      "DMS"
     ],
     "question": "A company uses a Microsoft SQL Server database. The company's applications are connected to the database. The company wants to migrate to an Amazon Aurora PostgreSQL database with minimal changes to the application code. Which combination of steps will meet these requirements? (Select TWO.)",
     "hint": "One feature lets Aurora PostgreSQL understand SQL Server queries; another pair of tools moves the schema and data.",
@@ -866,7 +866,7 @@
     "difficulty": "easy",
     "services": [
       "Redshift",
-      "Glue › ETL jobs"
+      "Glue"
     ],
     "question": "A company wants to store and perform analytics on structured data in a data warehouse on AWS. The solution must ingest unstructured data from Amazon S3. Which solution will meet these requirements?",
     "hint": "Which service is the data warehouse, and which service extracts, transforms and loads data from S3 into it?",
@@ -2593,7 +2593,7 @@
     "task": "1.2",
     "difficulty": "easy",
     "services": [
-      "Shield › Shield Advanced",
+      "Shield",
       "WAF"
     ],
     "question": "A media company hosts a video streaming platform on AWS. The company uses Amazon EC2, Amazon S3, and Amazon CloudFront. The company wants to protect its AWS workloads from DDoS attacks and filter malicious web traffic. The solution must provide detailed insights about threats and automatically mitigate threats in real time. Which solution will meet these requirements?",

@@ -849,8 +849,7 @@
     "task": "3.3",
     "difficulty": "easy",
     "services": [
-      "DMS › Schema conversion",
-      "DMS › Ongoing replication"
+      "DMS"
     ],
     "question": "A company is migrating a 5 TB on-premises Oracle database to Amazon Aurora PostgreSQL. The schema includes PL/SQL stored procedures and Oracle-specific data types. The business can tolerate at most 5 minutes of downtime during cutover, and the on-premises database stays online during the migration. Which approach should the solutions architect recommend?",
     "hint": "Different engines means schema and code must be converted first. Which two AWS tools work together, and how do you keep the source online?",
@@ -1260,7 +1259,7 @@
     "difficulty": "easy",
     "services": [
       "WAF › Rate-based rules",
-      "Shield › Shield Advanced"
+      "Shield"
     ],
     "question": "A public web application runs on Amazon EC2 instances behind an Application Load Balancer. The company is seeing SQL injection attempts and bursts of HTTP floods from rotating IP addresses, and its own security staff is not available around the clock. The company wants managed protection at the application layer and access to AWS experts during an attack. Which solution meets these requirements?",
     "hint": "One service filters and rate-limits HTTP requests using rules AWS maintains; a second subscription adds expert support and billing protection during a large attack.",
@@ -3140,8 +3139,7 @@
     "task": "1.1",
     "difficulty": "medium",
     "services": [
-      "Directory Service › Managed Microsoft AD",
-      "Directory Service › AD Connector"
+      "Directory Service"
     ],
     "question": "A company is migrating a .NET application to Amazon EC2 Windows instances. The instances must be domain-joined so that employees sign in with their existing corporate Active Directory accounts, and the application relies on integrated Windows authentication. The company wants a managed directory in AWS that trusts its on-premises Active Directory, and it wants minimal ongoing administration. Which solution meets these requirements?",
     "hint": "Domain join, Group Policy and Kerberos inside AWS, while the user accounts stay on premises.",
@@ -4461,8 +4459,7 @@
     "task": "3.5",
     "difficulty": "hard",
     "services": [
-      "Glue › Data Catalog & crawlers",
-      "Glue › ETL jobs"
+      "Glue"
     ],
     "question": "A company receives daily CSV files from 30 suppliers in Amazon S3. Column names differ between suppliers, new suppliers are added without notice, and analysts query the data with Amazon Athena. The company wants a serverless pipeline that catalogs every supplier's files, including new ones, automatically, and each night converts only the files that arrived since the last run into partitioned Parquet with consistent column names. Which TWO actions meet these requirements? (Select TWO.)",
     "hint": "One component discovers schemas into the catalog; the other transforms the data and remembers what it already processed.",

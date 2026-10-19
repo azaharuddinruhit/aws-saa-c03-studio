@@ -564,7 +564,7 @@ A company runs its customer-facing application on Amazon Aurora PostgreSQL in us
 
 ## ALPHA-021: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
-**Services:** DMS › Schema conversion, DMS › Ongoing replication
+**Services:** DMS
 
 ### Question
 A company is migrating a 5 TB on-premises Oracle database to Amazon Aurora PostgreSQL. The schema includes PL/SQL stored procedures and Oracle-specific data types. The business can tolerate at most 5 minutes of downtime during cutover, and the on-premises database stays online during the migration. Which approach should the solutions architect recommend?
@@ -826,7 +826,7 @@ Account A stores reports in an Amazon S3 bucket. The objects are encrypted with 
 
 ## ALPHA-030: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
-**Services:** WAF › Rate-based rules, Shield › Shield Advanced
+**Services:** WAF › Rate-based rules, Shield
 
 ### Question
 A public web application runs on Amazon EC2 instances behind an Application Load Balancer. The company is seeing SQL injection attempts and bursts of HTTP floods from rotating IP addresses, and its own security staff is not available around the clock. The company wants managed protection at the application layer and access to AWS experts during an attack. Which solution meets these requirements?
@@ -2078,7 +2078,7 @@ After a security incident, a company must be able to answer which source IP addr
 
 ## ALPHA-074: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
-**Services:** Directory Service › Managed Microsoft AD, Directory Service › AD Connector
+**Services:** Directory Service
 
 ### Question
 A company is migrating a .NET application to Amazon EC2 Windows instances. The instances must be domain-joined so that employees sign in with their existing corporate Active Directory accounts, and the application relies on integrated Windows authentication. The company wants a managed directory in AWS that trusts its on-premises Active Directory, and it wants minimal ongoing administration. Which solution meets these requirements?
@@ -2964,7 +2964,7 @@ A research team submits thousands of independent containerized jobs each night. 
 
 ## ALPHA-105: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Operational Excellence
-**Services:** Glue › Data Catalog & crawlers, Glue › ETL jobs
+**Services:** Glue
 
 ### Question
 A company receives daily CSV files from 30 suppliers in Amazon S3. Column names differ between suppliers, new suppliers are added without notice, and analysts query the data with Amazon Athena. The company wants a serverless pipeline that catalogs every supplier's files, including new ones, automatically, and each night converts only the files that arrived since the last run into partitioned Parquet with consistent column names. Which TWO actions meet these requirements? (Select TWO.)

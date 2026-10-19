@@ -1481,7 +1481,7 @@
     "task": "3.5",
     "difficulty": "easy",
     "services": [
-      "Glue › ETL jobs",
+      "Glue",
       "Step Functions",
       "QuickSight"
     ],
@@ -2042,7 +2042,7 @@
     "task": "3.5",
     "difficulty": "easy",
     "services": [
-      "Glue › ETL jobs"
+      "Glue"
     ],
     "question": "A company needs to process data from multiple users. The company stores the data in a relational database. A solutions architect needs to extract the data, use business rules to transform the data, and store the data in Amazon S3. The solutions architect must ensure that the data is encrypted during processing. Which solution will meet these requirements with the LEAST operational effort?",
     "hint": "Which managed ETL service can transform data with encryption built in?",
@@ -3836,7 +3836,7 @@
     "task": "1.2",
     "difficulty": "easy",
     "services": [
-      "Shield › Shield Advanced"
+      "Shield"
     ],
     "question": "A company wants to protect resources that the company hosts on AWS, including Application Load Balancers and Amazon CloudFront distributions. The company wants an AWS service that can provide near real-time visibility into attacks on the company's resources. The service must also have a dedicated AWS team to assist with (DDoS) attacks. Which AWS service will meet these requirements?",
     "hint": "Which tier of DDoS protection includes the Shield Response Team?",
@@ -7517,7 +7517,7 @@
     "difficulty": "medium",
     "services": [
       "Data Firehose",
-      "Glue › ETL jobs",
+      "Glue",
       "Athena"
     ],
     "question": "A company is launching a new product and needs to collect data about the product's usage frequency. The company will review the data in an existing Amazon QuickSight dashboard. The data is in multiple formats, including Parquet, JSON, and CSV. The company wants to unify the data format and review the data by using ready-made SQL queries without using external tools. Which combination of steps will meet these requirements? (Select TWO.)",

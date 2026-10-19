@@ -228,7 +228,7 @@ A company is building a gaming application that needs to send unique events to m
 
 ## BETA-009: Disaster Recovery & Migration
 **Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Operational Excellence
-**Services:** Aurora › Babelfish, DMS › Schema conversion
+**Services:** Aurora › Babelfish, DMS
 
 ### Question
 A company uses a Microsoft SQL Server database. The company's applications are connected to the database. The company wants to migrate to an Amazon Aurora PostgreSQL database with minimal changes to the application code. Which combination of steps will meet these requirements? (Select TWO.)
@@ -598,7 +598,7 @@ A company must ensure that all Amazon EBS volumes are encrypted. A recent securi
 
 ## BETA-022: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Performance Efficiency
-**Services:** Redshift, Glue › ETL jobs
+**Services:** Redshift, Glue
 
 ### Question
 A company wants to store and perform analytics on structured data in a data warehouse on AWS. The solution must ingest unstructured data from Amazon S3. Which solution will meet these requirements?
@@ -1806,7 +1806,7 @@ A logistics company uses Amazon DocumentDB global clusters to run a package trac
 
 ## BETA-065: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
-**Services:** Shield › Shield Advanced, WAF
+**Services:** Shield, WAF
 
 ### Question
 A media company hosts a video streaming platform on AWS. The company uses Amazon EC2, Amazon S3, and Amazon CloudFront. The company wants to protect its AWS workloads from DDoS attacks and filter malicious web traffic. The solution must provide detailed insights about threats and automatically mitigate threats in real time. Which solution will meet these requirements?

@@ -1028,7 +1028,7 @@ A company uses an Amazon Aurora PostgreSQL DB cluster to store structured sensit
 
 ## GAMMA-037: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Operational Excellence
-**Services:** Glue › ETL jobs, Step Functions, QuickSight
+**Services:** Glue, Step Functions, QuickSight
 
 ### Question
 A company receives data from several sources and stores the data in an Amazon S3 data lake. The company transforms the data and ingests it into multiple downstream data stores, including databases and data warehouses. A solutions architect wants to design an extract, transform, and load (ETL) pipeline to orchestrate a process to prepare and load the data for analytics activities. The processed data must also be available for stakeholders through dashboards and visualizations. Which solution will meet these requirements with the LEAST development effort?
@@ -1424,7 +1424,7 @@ A digital image processing company wants to migrate its on-premises monolithic a
 
 ## GAMMA-051: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
-**Services:** Glue › ETL jobs
+**Services:** Glue
 
 ### Question
 A company needs to process data from multiple users. The company stores the data in a relational database. A solutions architect needs to extract the data, use business rules to transform the data, and store the data in Amazon S3. The solutions architect must ensure that the data is encrypted during processing. Which solution will meet these requirements with the LEAST operational effort?
@@ -2692,7 +2692,7 @@ A company is migrating an on-premises data center to the AWS Cloud. The company 
 
 ## GAMMA-096: Security, Identity & Compliance
 **Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security
-**Services:** Shield › Shield Advanced
+**Services:** Shield
 
 ### Question
 A company wants to protect resources that the company hosts on AWS, including Application Load Balancers and Amazon CloudFront distributions. The company wants an AWS service that can provide near real-time visibility into attacks on the company's resources. The service must also have a dedicated AWS team to assist with (DDoS) attacks. Which AWS service will meet these requirements?
@@ -5272,7 +5272,7 @@ A company stores data in Amazon S3. According to regulations, the data must not 
 
 ## GAMMA-187: Analytics & Data Processing
 **Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Operational Excellence
-**Services:** Data Firehose, Glue › ETL jobs, Athena
+**Services:** Data Firehose, Glue, Athena
 
 ### Question
 A company is launching a new product and needs to collect data about the product's usage frequency. The company will review the data in an existing Amazon QuickSight dashboard. The data is in multiple formats, including Parquet, JSON, and CSV. The company wants to unify the data format and review the data by using ready-made SQL queries without using external tools. Which combination of steps will meet these requirements? (Select TWO.)
