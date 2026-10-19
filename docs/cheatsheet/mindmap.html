@@ -24,19 +24,21 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-links path{fill:none;stroke:color-mix(in srgb,var(--muted) 50%,transparent);stroke-width:1.6}
 .mm-node{position:absolute;display:flex;align-items:center}
 
-/* nodes, by level */
+/* nodes, by level. Emerald is kept for the root, hover and selection, and green, amber and red for
+   progress, so categories are told apart by size and weight on a neutral card, not by colour. */
 .mm-btn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 11px 6px 7px;font:600 13.5px/1.25 var(--sans);text-align:left;white-space:nowrap;box-shadow:var(--shadow);cursor:pointer}
 .mm-btn:hover{border-color:var(--accent)}
 .mm-btn img,.mm-ini{width:22px;height:22px;border-radius:5px;flex:none}
 .mm-ini{display:grid;place-items:center;background:var(--surface-2);color:var(--muted);font:700 9.5px var(--mono);letter-spacing:.02em}
 .mm-n{font:600 11px var(--mono);color:var(--muted)}   /* the practice questions tagged with a service or feature */
-.mm-k-root .mm-btn{background:var(--ink);color:var(--bg);border-color:var(--ink);padding:10px 16px;border-radius:12px;flex-direction:column;align-items:flex-start;gap:1px}
+.mm-k-root .mm-btn{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);padding:10px 16px;border-radius:12px;flex-direction:column;align-items:flex-start;gap:1px}
 .mm-k-root .mm-btn b{font-size:18px;font-weight:800;letter-spacing:-.01em}
 .mm-k-root .mm-btn small{font:500 11.5px var(--sans);opacity:.75}
-.mm-k-cat .mm-btn{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);padding:7px 14px 7px 12px}
+.mm-k-cat .mm-btn{background:var(--surface-2);padding:7px 14px 7px 10px;gap:10px}
+.mm-k-cat .mm-btn :is(img,.mm-ini){width:28px;height:28px;border-radius:6px}
 .mm-k-cat .mm-btn b{display:block;font-size:14.5px;font-weight:800}
 .mm-k-cat .mm-btn small{display:block;font:500 11.5px var(--sans);color:var(--muted)}
-.mm-k-feat .mm-btn{box-shadow:none;background:color-mix(in srgb,var(--surface) 70%,transparent);border-style:dashed;font-weight:500;font-size:12.5px;padding:4px 10px;border-radius:8px}
+.mm-k-feat .mm-btn{box-shadow:none;background:color-mix(in srgb,var(--surface) 70%,transparent);font-weight:500;font-size:12.5px;padding:4px 10px;border-radius:8px}
 .mm-node.sel .mm-btn{outline:2px solid var(--accent);outline-offset:2px}
 /* highlighting one exam domain dims every node without a service in it */
 .mm-btn,.mm-tog{transition:opacity .2s}
@@ -62,7 +64,7 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 [data-lv="mid"]{--lv:var(--warn);--lv-soft:var(--warn-soft)}
 [data-lv="bad"]{--lv:var(--bad);--lv-soft:var(--bad-soft)}
 .mm-on .mm-node[data-lv]:not([data-lv="none"]) .mm-score,.mm-panel [data-lv]:not([data-lv="none"]).mm-score{background:var(--lv-soft);color:var(--lv)}
-.mm-on .mm-k-svc[data-lv]:not([data-lv="none"]) .mm-btn,.mm-on .mm-k-feat[data-lv]:not([data-lv="none"]) .mm-btn{border-color:var(--lv);box-shadow:inset 3px 0 0 var(--lv),var(--shadow)}
+.mm-on :is(.mm-k-cat,.mm-k-svc,.mm-k-feat)[data-lv]:not([data-lv="none"]) .mm-btn{border-color:var(--lv);box-shadow:inset 3px 0 0 var(--lv),var(--shadow)}
 .mm-on .mm-k-svc[data-lv="none"] .mm-btn{opacity:.8}
 
 /* floating controls */
@@ -75,9 +77,13 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-zoom .mm-tb{width:38px;height:38px;padding:0;justify-content:center}
 
 .mm-zoom .mm-tb[aria-expanded="true"],.mm-zoom .mm-tb[aria-checked="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
-/* the exam-domain chips across the top; on a narrow screen they scroll sideways inside their row */
+/* the exam-domain chips across the top, centred; on a narrow screen they scroll sideways inside their
+   row. The auto margins centre them without clipping the first chips when they overflow, as
+   justify-content:center would. */
 .mm-doms{position:absolute;left:12px;right:12px;top:12px;z-index:5;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0;pointer-events:none}
 .mm-doms::-webkit-scrollbar{display:none}
+.mm-doms > :first-child{margin-left:auto}
+.mm-doms > :last-child{margin-right:auto}
 .mm-doms .mm-tb{pointer-events:auto;padding:5px 12px;font-size:12.5px}
 .mm-doms .mm-tb b{font:700 11px var(--mono);color:var(--accent)}
 .mm-doms .mm-tb[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
@@ -141,6 +147,7 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
 .mm-qs small{font:600 11px var(--mono);color:var(--muted);margin-right:4px}
 .mm-note{font-size:12.5px;color:var(--muted)}
 .mm-note a{color:var(--accent);font-weight:600}
+.mm-split{margin-bottom:8px}   /* how a service's total splits between itself and its features */
 </style>
 </head>
 <body class="mm-page">
@@ -238,13 +245,15 @@ function latest(qi) {
   return log && log.length ? (log[log.length - 1][0] ? 1 : 0) : null;
 }
 // A question is done when its latest answer is right, as on the Studio's Progress page. pct is the share
-// of the tagged questions done, and the level follows it: 80%+ good, 50-79% mid, under 50% bad, and
-// none while not one of them has been answered.
+// of the tagged questions done, and the level follows it with the Studio's own steps (correctTone): good
+// from the 69% the 720 pass mark needs, mid from 50%, bad below, and none while not one has been answered.
+const GOOD_PCT = 69, MID_PCT = 50;
 function stats(list) {
   let tried = 0, done = 0;
   for (const qi of list) { const r = latest(qi); if (r !== null) { tried++; done += r; } }
   const pct = list.length ? done / list.length : null;
-  const lv = !tried ? 'none' : pct >= 0.8 ? 'good' : pct >= 0.5 ? 'mid' : 'bad';
+  const shown = Math.round(pct * 100);   // judged on the whole % the bubble shows, so 68.6% reads 69% and is good
+  const lv = !tried ? 'none' : shown >= GOOD_PCT ? 'good' : shown >= MID_PCT ? 'mid' : 'bad';
   return { total: list.length, tried, done, pct, lv };
 }
 const pctText = st => st.pct == null ? '–' : Math.round(st.pct * 100) + '%';
@@ -278,6 +287,15 @@ const isOpen = n => n.children.length && open.has(n.id);
 const iconHTML = (key, name) => key
   ? `<img src="${App.iconURL(key)}" alt="">`
   : `<span class="mm-ini" aria-hidden="true">${esc(name.split(/[\s&]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase())}</span>`;
+// A service's count takes in questions tagged with the service alone (about choosing it) and ones tagged
+// with a feature, so its features' counts add up to less. This says how the total splits; a question
+// tagged with two of its features counts once.
+function splitText(name) {
+  const s = S[name], onFeat = new Set(Object.values(s.fq).flat()).size;
+  return `${s.q.length - onFeat} on ${name} itself, ${onFeat} on its features`;
+}
+// a category's icon is its cheat sheet's (SHEETS in app.js), so it looks the same in the menu, on the hub and here
+const CAT_ICON = Object.fromEntries(App.SHEETS.map(([, , name, icon]) => [name, icon]));
 
 // ---------------------------------------------------------------- render and lay out
 const GAP_X = 50;
@@ -293,12 +311,13 @@ function nodeHTML(n) {
     const dom = highlight && DATA.domains.find(d => d.n === highlight);
     const inDom = dom ? n.children.filter(c => S[c.name].domain === dom.n).length : 0;
     const nq = questionsOf(n).length;
-    inner = `<span><b>${esc(n.label)}</b><small>${n.children.length} service${n.children.length === 1 ? '' : 's'} · ${nq} question${nq === 1 ? '' : 's'}${dom ? ` · ${inDom} in ${esc(dom.short)}` : ''}</small></span>`;
+    inner = iconHTML(CAT_ICON[n.label], n.label) + `<span><b>${esc(n.label)}</b><small>${n.children.length} service${n.children.length === 1 ? '' : 's'} · ${nq} question${nq === 1 ? '' : 's'}${dom ? ` · ${inDom} in ${esc(dom.short)}` : ''}</small></span>`;
   }
   else if (n.kind === 'svc') {
     const nq = S[n.name].q.length;
+    const tip = `${nq} practice question${nq === 1 ? '' : 's'} tagged with it` + (S[n.name].features.length ? ': ' + splitText(n.name) : '');
     inner = iconHTML(S[n.name].icon, n.name) + `<span>${esc(n.name)}</span>`
-      + `<span class="mm-n" title="${nq} practice question${nq === 1 ? '' : 's'} tagged with it" aria-label="${nq} question${nq === 1 ? '' : 's'}">${nq}</span>`;
+      + `<span class="mm-n" title="${esc(tip)}" aria-label="${nq} question${nq === 1 ? '' : 's'}">${nq}</span>`;
   }
   else inner = `<span>${esc(n.feat)}</span><span class="mm-n">${(S[n.name].fq[n.feat] || []).length}</span>`;
   if (n.kind !== 'root') inner += '<span class="mm-score"></span>';
@@ -659,7 +678,7 @@ function serviceHTML(n) {
     ${practiceHTML(n.name)}
     ${counts.length ? `<div><h3>Tested in</h3><div class="mm-chips">${counts.map(({ d, c }) => `<span class="mm-chip noico${d.n === s.domain ? ' primary' : ''}"><b>${d.n}</b> ${esc(d.short)} <span class="n">${c}</span></span>`).join('')}</div></div>` : ''}
     ${s.twins.length ? `<div><h3>Don't confuse with</h3><div class="mm-chips">${s.twins.map(t => chip('s:' + t)).join('')}</div></div>` : ''}
-    ${s.features.length ? `<div><h3>Features</h3><div class="mm-chips">${s.features.map(f => chip('f:' + n.name + '|' + f)).join('')}</div></div>` : ''}
+    ${s.features.length ? `<div><h3>Features</h3><p class="mm-note mm-split">${s.q.length} question${s.q.length === 1 ? '' : 's'} in all: ${esc(splitText(n.name))}.</p><div class="mm-chips">${s.features.map(f => chip('f:' + n.name + '|' + f)).join('')}</div></div>` : ''}
     ${s.sheet || s.diagrams.length ? `<div><h3>Study</h3><div class="mm-links-list">
       ${s.sheet ? `<a href="${esc(s.sheet.href)}"><span>Cheat sheet</span>${esc(s.sheet.label)}</a>` : ''}
       ${s.diagrams.map(([id, num, title]) => `<a href="architectures.html#${esc(id)}"><span>Diagram ${num}</span>${esc(title)}</a>`).join('')}
@@ -669,7 +688,7 @@ function serviceHTML(n) {
 function featureHTML(n) {
   const s = S[n.name];
   return `<div class="mm-p-head">${iconHTML(s.icon, n.name)}<div><h2 id="panelTitle">${esc(n.feat)}</h2><p>A feature of ${esc(n.name)}</p></div>${CLOSE}</div>
-    <div class="mm-chips"><button type="button" class="mm-chip" data-jump="${esc('s:' + n.name)}">${iconHTML(s.icon, n.name)}Open ${esc(n.name)}</button>${s.sheet ? `<a class="mm-chip noico" href="${esc(s.sheet.href)}">Cheat sheet: ${esc(s.sheet.label)}</a>` : ''}</div>
+    <div class="mm-chips"><button type="button" class="mm-chip" data-jump="${esc('s:' + n.name)}">${iconHTML(s.icon, n.name)}Go to ${esc(n.name)}</button>${s.sheet ? `<a class="mm-chip noico" href="${esc(s.sheet.href)}">Cheat sheet: ${esc(s.sheet.label)}</a>` : ''}</div>
     ${progressHTML(s.fq[n.feat] || [], 'this feature')}`;
 }
 const questionDomain = qi => DATA.questions[qi][3];
