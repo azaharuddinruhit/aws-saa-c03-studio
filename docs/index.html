@@ -2370,11 +2370,22 @@
             return now;
         }
 
-        // The expected number right of the 50 scored items, given the fit: what the readiness score shows
+        // The expected number right of the 50 scored items, given the fit: what the readiness score shows.
+        // Each domain's items are summed per grid point once (EXAM_DOMAIN_P), since the score history and
+        // its forecast ask for this hundreds of times.
+        let EXAM_DOMAIN_P = null;
         function expectedCorrectOf(fit) {
+            if (!EXAM_DOMAIN_P) {
+                EXAM_DOMAIN_P = {};
+                for (const item of EXAM_ITEMS) {
+                    const t = EXAM_DOMAIN_P[item.dom] || (EXAM_DOMAIN_P[item.dom] = new Float64Array(GRID.length));
+                    for (let g = 0; g < GRID.length; g++) t[g] += itemP(GRID[g], item.b, item.c);
+                }
+            }
             let expectedCorrect = 0;
-            for (const item of EXAM_ITEMS) {
-                expectedCorrect += fit.marginal[item.dom].reduce((a, w, g) => a + w * itemP(GRID[g], item.b, item.c), 0);
+            for (const [dom, t] of Object.entries(EXAM_DOMAIN_P)) {
+                const mg = fit.marginal[dom];
+                for (let g = 0; g < GRID.length; g++) expectedCorrect += mg[g] * t[g];
             }
             return expectedCorrect;
         }
@@ -2868,6 +2879,7 @@
             }
             const history = scoreHistory(banks);
             scoreChartPoints = history;
+            startForecast(banks, scoreHistoryCache);
             const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
                 const level = s.levels[id];
                 const pct = level === null || level === undefined ? null : Math.round(level * 100);
@@ -2896,8 +2908,9 @@
                 ${scoreBar(s.shown, s.lo, s.hi)}
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
                 <div class="ov-rule">
-                    <p class="text-xs text-slate-400">Score over time <span class="text-slate-500">· after each of your ${plural(history.length, 'answer')}</span></p>
+                    <p class="text-xs text-slate-400">Score over time <span class="text-slate-500">· from your ${MIN_ANSWERED}th question, when the score starts · ${plural(scoreHistoryCache.count, 'answer')} so far · a forecast for the next ${FORECAST_ANSWERS}</span></p>
                     <div id="ovScoreChart" class="ov-chart mt-2"></div>
+                    <div id="ovScoreKey" class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400"></div>
                     <details class="mt-2">
                         <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
                         <div class="mt-2">${scoreTable(history)}</div>
@@ -2918,6 +2931,47 @@
         // for this page and extended as answers arrive; anything else, such as a sync bringing in older
         // answers or a reset, replays from the start.
         let scoreHistoryCache = null;
+        const RECENCY_MS = DAY_MS * HALF_LIFE_DAYS;   // an answer's weight halves over this long
+
+        function newReplay(t0) {
+            const sums = {};
+            for (const id of Object.keys(EXAM_DOMAINS)) sums[id] = new Float64Array(GRID.length);
+            return { count: 0, lastTs: null, t0, perQ: new Map(), distinct: 0, points: [], sums };
+        }
+        const replayEntry = q => ({ log: [], rows: [], contrib: null, dom: String(examDomainOf(q)), params: itemParams(q) });
+        // the real history's own entries, made as each question first comes up
+        const ownEntries = h => (key, q) => {
+            let st = h.perQ.get(key);
+            if (!st) { st = replayEntry(q); h.perQ.set(key, st); h.distinct++; }
+            return st;
+        };
+
+        // Adds one answer to a replay. `own(key, q)` hands over the question's entry to change, so the
+        // forecast can work on copies of the history's entries rather than the entries themselves.
+        function replayAnswer(h, own, key, q, entry) {
+            const st = own(key, q);
+            // this attempt's log-likelihood on the grid, as gridLogLik would add it
+            const b = (entry[2] || 0) & FLAG_HINT ? st.params.b - HINT_EASE : st.params.b;
+            st.log.push(entry);
+            st.rows.push(GRID.map(t => { const p = itemP(t, b, st.params.c); return entry[0] ? Math.log(p) : Math.log(1 - p); }));
+            // the question's terms, reweighted now that it has one more attempt
+            const rw = repeatWeights(st.log), sum = h.sums[st.dom];
+            const contrib = new Float64Array(GRID.length);
+            st.log.forEach((e, i) => {
+                const w = rw[i] * Math.pow(2, (e[1] - h.t0) / RECENCY_MS);
+                for (let g = 0; g < GRID.length; g++) contrib[g] += w * st.rows[i][g];
+            });
+            for (let g = 0; g < GRID.length; g++) sum[g] += contrib[g] - (st.contrib ? st.contrib[g] : 0);
+            st.contrib = contrib;
+        }
+
+        // The fit of a replay as it stands at `now`, the time of its latest answer
+        function replayFit(h, now) {
+            const scale = Math.pow(2, -(now - h.t0) / RECENCY_MS), ll = {};
+            for (const id of Object.keys(EXAM_DOMAINS)) ll[id] = Array.from(h.sums[id], v => v * scale);
+            return fitFromLogLik(ll);
+        }
+        const replayScore = (h, now) => Math.round(100 + 900 * expectedCorrectOf(replayFit(h, now)) / SCORED_QUESTIONS);
 
         function scoreHistory(banks) {
             const events = [];
@@ -2928,42 +2982,139 @@
             let h = scoreHistoryCache;
             const canExtend = h && events.length >= h.count && (!h.count || events[h.count - 1].entry[1] === h.lastTs)
                 && (h.count === events.length || events[h.count].entry[1] > h.lastTs);
-            if (!canExtend || !events.length || (h && h.t0 !== events[0].entry[1])) {
-                h = { count: 0, lastTs: null, t0: events.length ? events[0].entry[1] : 0, perQ: new Map(), distinct: 0, points: [], sums: {} };
-                for (const id of Object.keys(EXAM_DOMAINS)) h.sums[id] = new Float64Array(GRID.length);
-            }
-            const U = DAY_MS * HALF_LIFE_DAYS;
+            if (!canExtend || !events.length || (h && h.t0 !== events[0].entry[1])) h = newReplay(events.length ? events[0].entry[1] : 0);
+            const own = ownEntries(h);
             for (let k = h.count; k < events.length; k++) {
                 const { key, bank, q, entry } = events[k];
-                let st = h.perQ.get(key);
-                if (!st) {
-                    st = { log: [], rows: [], contrib: null, dom: String(examDomainOf(q)), params: itemParams(q) };
-                    h.perQ.set(key, st);
-                    h.distinct++;
-                }
-                // this attempt's log-likelihood on the grid, as gridLogLik would add it
-                const b = (entry[2] || 0) & FLAG_HINT ? st.params.b - HINT_EASE : st.params.b;
-                st.log.push(entry);
-                st.rows.push(GRID.map(t => { const p = itemP(t, b, st.params.c); return entry[0] ? Math.log(p) : Math.log(1 - p); }));
-                // the question's terms, reweighted now that it has one more attempt
-                const rw = repeatWeights(st.log), sum = h.sums[st.dom];
-                const contrib = new Float64Array(GRID.length);
-                st.log.forEach((e, i) => {
-                    const w = rw[i] * Math.pow(2, (e[1] - h.t0) / U);
-                    for (let g = 0; g < GRID.length; g++) contrib[g] += w * st.rows[i][g];
-                });
-                for (let g = 0; g < GRID.length; g++) sum[g] += contrib[g] - (st.contrib ? st.contrib[g] : 0);
-                st.contrib = contrib;
+                replayAnswer(h, own, key, q, entry);
                 h.count = k + 1;
                 h.lastTs = entry[1];
-                if (h.distinct < MIN_ANSWERED) continue;
-                const scale = Math.pow(2, -(entry[1] - h.t0) / U), ll = {};
-                for (const id of Object.keys(EXAM_DOMAINS)) ll[id] = Array.from(h.sums[id], v => v * scale);
-                const score = Math.round(100 + 900 * expectedCorrectOf(fitFromLogLik(ll)) / SCORED_QUESTIONS);
-                h.points.push({ ts: entry[1], score, n: k + 1, bank, id: q.id, right: !!entry[0] });
+                if (h.distinct >= MIN_ANSWERED) h.points.push({ ts: entry[1], score: replayScore(h, entry[1]), n: k + 1, bank, id: q.id, right: !!entry[0] });
             }
             scoreHistoryCache = h;
             return h.points;
+        }
+
+        // ---- Forecast ----
+        // The next FORECAST_ANSWERS answers, played out FORECAST_RUNS times with the score's own model. Each
+        // run draws your level in every domain from the score's estimate, answers the questions you would
+        // get next (unseen, then missed, then the rest, each group shuffled, across every set), each right
+        // with the model's chance for that question, and recomputes the score after every answer. Two
+        // assumptions share the same draws: "no change" keeps your level, so the score holds roughly where it
+        // is while its range widens; "keep improving" lifts your level at the rate your last FORECAST_TREND
+        // answers show it rising (learningRate), the rise halving every FORECAST_TAPER answers. A fixed seed
+        // replays the same runs, so the forecast moves only when your answers do. It takes a few seconds, so it is
+        // worked out in slices after the chart draws, then drawn in.
+        const FORECAST_ANSWERS = 100, FORECAST_RUNS = 10, FORECAST_TREND = 100, FORECAST_TAPER = 50, FORECAST_MIN_TREND = 30;
+        let forecastCache = null;   // { key, result } once worked out for the current history
+        let forecastRun = 0;        // a newer forecast supersedes one still running
+
+        // How fast your level has been rising, in ability per answer, read from your last FORECAST_TREND
+        // answers themselves: each right with the model's chance at a level that starts somewhere and rises
+        // by a steady amount per answer. The score itself trails your level (it remembers weeks of answers),
+        // so its slope would understate the rise; the simulation adds that lag back on its own. The rise has
+        // a Normal(0, RISE_SD) prior, so a lucky or unlucky run doesn't read as a trend. Never negative;
+        // null with too few answers to judge.
+        const RISE_SD = 0.01;                                              // ability per answer
+        const RISE_GRID = Array.from({ length: 31 }, (_, i) => -0.03 + i * 0.002);
+        const RISE_LEVELS = GRID.filter((_, g) => g % 2 === 0);              // every other grid level is fine enough for a trend
+        function learningRate(h) {
+            const recent = [...h.perQ.values()].flatMap(st => st.log.map(e => ({ e, st })))
+                .sort((x, y) => x.e[1] - y.e[1]).slice(-FORECAST_TREND);
+            if (recent.length < FORECAST_MIN_TREND) return null;
+            const centre = (recent.length - 1) / 2;   // the level is measured at the middle of the window
+            const items = recent.map(({ e, st }, i) => ({ y: e[0], x: i - centre, b: (e[2] || 0) & FLAG_HINT ? st.params.b - HINT_EASE : st.params.b, c: st.params.c }));
+            const lw = [];
+            for (const rise of RISE_GRID) for (const theta of RISE_LEVELS) {
+                let l = logNormal(rise, 0, RISE_SD);
+                for (const it of items) { const p = itemP(theta + rise * it.x, it.b, it.c); l += it.y ? Math.log(p) : Math.log(1 - p); }
+                lw.push(l);
+            }
+            const top = Math.max(...lw), w = normalise(lw.map(v => Math.exp(v - top)));
+            let mean = 0;
+            w.forEach((wt, i) => { mean += wt * RISE_GRID[Math.floor(i / RISE_LEVELS.length)]; });
+            return Math.max(0, mean);
+        }
+
+        function startForecast(banks, h) {
+            const key = h.count + ':' + h.lastTs;
+            if (forecastCache && forecastCache.key === key) return;
+            const run = ++forecastRun;
+            const fit = replayFit(h, h.lastTs);
+            const rate = learningRate(h);
+            const muCdf = cumulative(fit.muPost);
+            const condCdf = fit.cond.map(row => Object.fromEntries(Object.keys(row).map(id => [id, cumulative(row[id])])));
+            // the questions in the order the runs take them: unseen, then missed, then right, by set
+            const tiers = [[], [], []];
+            for (const b of banks) for (const q of b.questions) {
+                const log = b.log[q.id];
+                tiers[!log || !log.length ? 0 : log[log.length - 1][0] ? 2 : 1].push({ key: b.key + ':' + q.id, q });
+            }
+            // future answers come at your usual spacing, so recency treats them as it treated the last ones
+            const times = [...h.perQ.values()].flatMap(st => st.log.map(e => e[1])).sort((a, b) => a - b).slice(-FORECAST_TREND - 1);
+            const gaps = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
+            const gap = Math.min(DAY_MS, Math.max(30000, gaps.length ? gaps[gaps.length >> 1] : 60000));
+            const scenarios = rate ? ['improve', 'steady'] : ['steady'];
+            const steps = Object.fromEntries(scenarios.map(s => [s, Array.from({ length: FORECAST_ANSWERS }, () => [])]));
+            // every run, assumption and answer, as steps that can pause between any two answers
+            function* work() {
+                for (let r = 0; r < FORECAST_RUNS; r++) {
+                    const rng = mulberry32(0xF0CA57 + r);
+                    const m = pickIndex(muCdf, rng() * muCdf[muCdf.length - 1]);
+                    const theta = {};
+                    for (const id of Object.keys(EXAM_DOMAINS)) theta[id] = GRID[pickIndex(condCdf[m][id], rng() * condCdf[m][id][GRID.length - 1])];
+                    const order = tiers.flatMap(t => { const a = t.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }).slice(0, FORECAST_ANSWERS);
+                    const draws = order.map(() => rng());
+                    for (const s of scenarios) {
+                        const sim = { t0: h.t0, distinct: h.distinct, sums: {} };
+                        for (const id of Object.keys(EXAM_DOMAINS)) sim.sums[id] = Float64Array.from(h.sums[id]);
+                        const mine = new Map();
+                        const own = (key, q) => {
+                            let st = mine.get(key);
+                            if (!st) {
+                                const base = h.perQ.get(key);
+                                st = base ? { ...base, log: base.log.slice(), rows: base.rows.slice() } : replayEntry(q);
+                                if (!base) sim.distinct++;
+                                mine.set(key, st);
+                            }
+                            return st;
+                        };
+                        let lift = 0;
+                        for (let k = 0; k < order.length; k++) {
+                            const { key, q } = order[k];
+                            const { b, c } = itemParams(q), d = String(examDomainOf(q));
+                            const right = draws[k] < itemP(theta[d] + lift, b, c) ? 1 : 0;
+                            const ts = h.lastTs + (k + 1) * gap;
+                            replayAnswer(sim, own, key, q, [right, ts, 0]);
+                            steps[s][k].push(replayScore(sim, ts));
+                            if (s === 'improve') lift += rate * Math.pow(0.5, k / FORECAST_TAPER);
+                            yield;
+                        }
+                    }
+                }
+            }
+            const job = work();
+            // a message yields to the page like setTimeout(0), without the browser's minimum delay between timers
+            const channel = new MessageChannel();
+            const nextSlice = () => channel.port2.postMessage(0);
+            channel.port1.onmessage = () => slice();
+            const slice = () => {
+                if (run !== forecastRun) return;
+                const until = performance.now() + 30;
+                while (performance.now() < until) {
+                    if (job.next().done) return finish();
+                }
+                nextSlice();
+            };
+            const finish = () => {
+                // each step's path is the middle of the runs and its range spans all of them: too few runs for a percentile range
+                const median = list => { const s = list.slice().sort((a, b) => a - b), h = s.length >> 1; return s.length % 2 ? s[h] : Math.round((s[h - 1] + s[h]) / 2); };
+                const result = { rate, scenarios: {} };
+                for (const s of scenarios) result.scenarios[s] = steps[s].map(list => ({ mid: median(list), lo: Math.min(...list), hi: Math.max(...list) }));
+                forecastCache = { key, result };
+                if (scoreHistoryCache === h) drawScoreChart();
+            };
+            nextSlice();
         }
 
         // The chart's points, kept so a resize can redraw it
@@ -2981,19 +3132,31 @@
                 `<tr><td>${escapeHtml(fmtDate(d.day, DATE_LONG))}</td><td>${d.answers}</td><td>${d.score}</td></tr>`).join('')}</tbody></table>`;
         }
 
-        // One point per answer, evenly spaced, so a busy day spreads out rather than stacking up. The pass
-        // mark is drawn across; hovering, or the arrow keys, read off the score after any answer.
+        const FORECAST_LOOK = {
+            improve: { label: 'Keep improving', stroke: 'var(--ov-line)', fill: 'var(--ov-wash)', dash: '5 4' },
+            steady: { label: 'No change', stroke: 'var(--ov-muted)', fill: 'color-mix(in srgb, var(--ov-muted) 16%, transparent)', dash: '2 3' }
+        };
+
+        // One point per answer, evenly spaced, so a busy day spreads out rather than stacking up, then a
+        // quarter of the width for the next FORECAST_ANSWERS. The pass mark is drawn across; hovering, or the arrow keys, read
+        // off the score after any answer, and the forecast's paths and ranges after any future one.
         function drawScoreChart() {
             const holder = document.getElementById('ovScoreChart');
             const pts = scoreChartPoints;
             if (!holder || !pts || !pts.length) return;
+            const fc = forecastCache && scoreHistoryCache && forecastCache.key === scoreHistoryCache.count + ':' + scoreHistoryCache.lastTs ? forecastCache.result : null;
             const W = Math.max(260, holder.clientWidth), H = 170;
             const m = { top: 14, right: 12, bottom: 22, left: 34 };
             const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
-            const scores = pts.map(p => p.score);
-            const lo = Math.max(100, Math.floor((Math.min(...scores, PASS_SCORE) - 40) / 100) * 100);
-            const hi = Math.min(1000, Math.ceil((Math.max(...scores, PASS_SCORE) + 40) / 100) * 100);
-            const x = i => m.left + (pts.length === 1 ? iw : i / (pts.length - 1) * iw);
+            const end = pts.length - 1, slots = end + FORECAST_ANSWERS;
+            const values = pts.map(p => p.score);
+            if (fc) for (const s of Object.values(fc.scenarios)) for (const v of s) values.push(v.lo, v.hi);
+            const lo = Math.max(100, Math.floor((Math.min(...values, PASS_SCORE) - 40) / 100) * 100);
+            const hi = Math.min(1000, Math.ceil((Math.max(...values, PASS_SCORE) + 40) / 100) * 100);
+            // the forecast gets a quarter of the width whatever the history's length, so 50 answers stay readable
+            // beside hundreds; the divider and "next 50" mark where the scale changes
+            const hw = iw * 0.75, fw = iw - hw;
+            const x = i => i <= end ? m.left + (end ? i / end * hw : hw) : m.left + hw + (i - end) / FORECAST_ANSWERS * fw;
             const y = v => m.top + ih - (v - lo) / (hi - lo) * ih;
             const parts = [];
             for (let v = lo; v <= hi; v += 100) {
@@ -3001,7 +3164,7 @@
                 parts.push(`<text x="${m.left - 6}" y="${y(v) + 3}" text-anchor="end">${v}</text>`);
             }
             parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(PASS_SCORE)}" y2="${y(PASS_SCORE)}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
-            parts.push(`<text x="${W - m.right}" y="${y(PASS_SCORE) - 5}" text-anchor="end">${PASS_SCORE} pass</text>`);
+            parts.push(`<text x="${m.left + 4}" y="${y(PASS_SCORE) - 5}">${PASS_SCORE} pass</text>`);
             // dates under the line: a few, spaced out, each at the first answer of its day
             let lastX = -Infinity, lastDay = null;
             pts.forEach((p, i) => {
@@ -3009,41 +3172,85 @@
                 if (day === lastDay) return;
                 lastDay = day;
                 const tx = x(i);
-                if (tx - lastX < 56 || tx > W - m.right - 20) return;
+                if (tx - lastX < 56 || tx > x(end) - 24) return;
                 lastX = tx;
                 parts.push(`<text x="${tx}" y="${H - 6}" text-anchor="middle">${escapeHtml(fmtDate(day, DATE_SHORT, false))}</text>`);
             });
+            // the forecast's side: a divider at your latest answer, then each assumption's range and path
+            parts.push(`<line x1="${x(end)}" x2="${x(end)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+            parts.push(`<text x="${(x(end) + x(slots)) / 2}" y="${H - 6}" text-anchor="middle">${fc ? 'next ' + FORECAST_ANSWERS : 'forecasting…'}</text>`);
+            const last = pts[end].score;
+            if (fc) for (const s of ['steady', 'improve']) {
+                const f = fc.scenarios[s];
+                if (!f) continue;
+                const look = FORECAST_LOOK[s];
+                const top = [`${x(end)},${y(last)}`, ...f.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.hi).toFixed(1)}`)];
+                const bottom = f.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.lo).toFixed(1)}`).reverse();
+                parts.push(`<polygon points="${top.concat(bottom).join(' ')}" fill="${look.fill}"/>`);
+                const path = [`${x(end)},${y(last)}`, ...f.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.mid).toFixed(1)}`)].join(' ');
+                parts.push(`<polyline points="${path}" fill="none" stroke="${look.stroke}" stroke-width="2" stroke-dasharray="${look.dash}" stroke-linejoin="round" stroke-linecap="round"/>`);
+            }
             const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.score).toFixed(1)}`).join(' ');
             parts.push(`<polyline points="${line}" fill="none" stroke="var(--ov-line)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`);
-            const end = pts.length - 1;
-            parts.push(`<circle cx="${x(end)}" cy="${y(pts[end].score)}" r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/>`);
+            parts.push(`<circle cx="${x(end)}" cy="${y(last)}" r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/>`);
             parts.push(`<g id="ovScoreCross" visibility="hidden"><line y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-ink)" stroke-width="1" opacity=".5"/><circle r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/></g>`);
-            const summary = `Readiness score after each of your ${pts.length} answers, from ${pts[0].score} to ${pts[end].score}; the pass mark is ${PASS_SCORE}`;
+            const fcText = fc ? '; forecast after ' + FORECAST_ANSWERS + ' more answers: ' + Object.entries(fc.scenarios).map(([s, f]) =>
+                `${FORECAST_LOOK[s].label.toLowerCase()} ${f[f.length - 1].mid} (${FORECAST_RUNS} runs ranging ${f[f.length - 1].lo} to ${f[f.length - 1].hi})`).join(', ') : '';
+            const summary = `Readiness score after each of your ${pts.length} answers, from ${pts[0].score} to ${last}; the pass mark is ${PASS_SCORE}${fcText}`;
             holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
 
+            // the key under the chart: what each line is, and where each assumption ends up
+            const key = document.getElementById('ovScoreKey');
+            if (key) {
+                const swatch = (stroke, dash) => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="${stroke}" stroke-width="2" stroke-linecap="round"${dash ? ` stroke-dasharray="${dash}"` : ''}/></svg>`;
+                const items = [`<span class="flex items-center gap-1.5">${swatch('var(--ov-line)')}Your score</span>`];
+                if (fc) for (const s of ['improve', 'steady']) {
+                    const f = fc.scenarios[s];
+                    if (!f) continue;
+                    const e = f[f.length - 1];
+                    items.push(`<span class="flex items-center gap-1.5">${swatch(FORECAST_LOOK[s].stroke, FORECAST_LOOK[s].dash)}${FORECAST_LOOK[s].label} → <b class="text-slate-300">${e.mid}</b> <span class="text-slate-500">(${e.lo}–${e.hi})</span></span>`);
+                }
+                key.innerHTML = items.join('')
+                    + (fc ? `<span class="text-slate-500">Shaded: lowest to highest of ${FORECAST_RUNS} simulated runs.</span>` : '')
+                    + (fc && !fc.scenarios.improve
+                        ? `<span class="text-slate-500">${fc.rate === null ? 'Too few answers yet to measure a trend, so only no change is shown.' : "Your answers haven't been getting better lately, so keep improving would match no change."}</span>` : '');
+            }
+
             const svg = holder.querySelector('svg'), cross = svg.querySelector('#ovScoreCross');
+            const lastSlot = fc ? slots : end;
             let at = end;
             const show = (i, clientX, clientY) => {
-                at = Math.max(0, Math.min(end, i));
-                const p = pts[at], cx = x(at), cy = y(p.score);
+                at = Math.max(0, Math.min(lastSlot, i));
+                const r = svg.getBoundingClientRect();
+                let lines, cy;
+                if (at <= end) {
+                    const p = pts[at], prev = at ? p.score - pts[at - 1].score : 0;
+                    cy = y(p.score);
+                    lines = [
+                        [String(p.score), prev ? (prev > 0 ? '▲' : '▼') + Math.abs(prev) : 'readiness score'],
+                        [null, `After answer ${p.n} · ${fmtDate(p.ts, DATE_LONG)} ${new Date(p.ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`],
+                        [null, `${BANKS[p.bank].symbol} #${p.id} · ${p.right ? 'right' : 'missed'}`]
+                    ];
+                } else {
+                    const k = at - end - 1, lead = fc.scenarios.improve || fc.scenarios.steady;
+                    cy = y(lead[k].mid);
+                    lines = [[`${k + 1} more answer${k ? 's' : ''}`, 'forecast']].concat(['improve', 'steady'].filter(s => fc.scenarios[s]).map(s => {
+                        const v = fc.scenarios[s][k];
+                        return [String(v.mid), `${FORECAST_LOOK[s].label.toLowerCase()} · ${FORECAST_RUNS} runs ${v.lo}–${v.hi}`];
+                    }));
+                }
+                const cx = x(at);
                 cross.setAttribute('visibility', 'visible');
                 cross.querySelector('line').setAttribute('x1', cx);
                 cross.querySelector('line').setAttribute('x2', cx);
                 cross.querySelector('circle').setAttribute('cx', cx);
                 cross.querySelector('circle').setAttribute('cy', cy);
-                const prev = at ? p.score - pts[at - 1].score : 0;
-                const r = svg.getBoundingClientRect();
-                showTip([
-                    [String(p.score), prev ? (prev > 0 ? '▲' : '▼') + Math.abs(prev) : 'readiness score'],
-                    [null, `After answer ${p.n} · ${fmtDate(p.ts, DATE_LONG)} ${new Date(p.ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`],
-                    [null, `${BANKS[p.bank].symbol} #${p.id} · ${p.right ? 'right' : 'missed'}`]
-                ], clientX ?? r.left + cx * r.width / W, clientY ?? r.top + cy * r.height / H);
+                showTip(lines, clientX ?? r.left + cx * r.width / W, clientY ?? r.top + cy * r.height / H);
             };
             const hide = () => { cross.setAttribute('visibility', 'hidden'); hideTip(); };
             const indexAt = clientX => {
-                const r = svg.getBoundingClientRect();
-                const px = (clientX - r.left) * W / r.width;
-                return pts.length === 1 ? 0 : Math.round((px - m.left) / iw * (pts.length - 1));
+                const r = svg.getBoundingClientRect(), px = (clientX - r.left) * W / r.width - m.left;
+                return px <= hw ? Math.round(end ? px / hw * end : 0) : end + Math.round((px - hw) / fw * FORECAST_ANSWERS);
             };
             svg.addEventListener('pointermove', e => show(indexAt(e.clientX), e.clientX, e.clientY));
             svg.addEventListener('pointerleave', hide);
@@ -3052,7 +3259,7 @@
                 const step = { ArrowLeft: -1, ArrowRight: 1, Home: -Infinity, End: Infinity }[e.key];
                 if (step === undefined) { if (e.key === 'Escape') hide(); return; }
                 e.preventDefault();
-                show(step === -Infinity ? 0 : step === Infinity ? end : at + step);
+                show(step === -Infinity ? 0 : step === Infinity ? lastSlot : at + step);
             });
         }
 
