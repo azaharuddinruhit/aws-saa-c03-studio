@@ -267,26 +267,22 @@
         .ov-practise:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
         @media (min-width: 1024px) { .ov-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
         /* Practice sections: the title line starts the section quiz, and the question map under it has one
-           square per question (18px with a 6px gap, so each tap target is 24px from the next) */
-        .db-sec:has(> .db-sec-head:hover) { border-color: #34d399; background-color: var(--db-sec-hover); }
+           dot per question: a 14px dot drawn in a 24px button, so each tap target is 24px wide. The strip's
+           negative margins line the dots up with the text above, since each button pads its dot by 5px. */
+        .db-sec:has(.db-sec-head:hover) { border-color: #34d399; background-color: var(--db-sec-hover); }
         .db-sec-head { border-radius: .75rem; }
         .db-sec-head:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 4px; }
-        .qmap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .75rem; }
-        .qmap-sq { flex: none; width: 18px; height: 18px; border-radius: 4px; background: var(--ov-right); }
-        .qmap-sq[data-s="missed"] { background: var(--ov-missed); }
-        .qmap-sq[data-s="new"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--qmap-edge); }
-        .qmap > .qmap-sq:hover { outline: 2px solid var(--ov-ink); outline-offset: 1px; }
-        .qmap > .qmap-sq:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        .qmap-sq.qmap-key { width: 12px; height: 12px; border-radius: 3px; }
-        .qmap-switch { display: inline-flex; align-items: center; gap: .5rem; padding: .25rem 0 .25rem .5rem; border-radius: .5rem; font-size: .75rem; color: var(--ov-muted); }
-        .qmap-switch:hover { color: var(--ov-ink); }
-        .qmap-switch:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        .qmap-track { position: relative; flex: none; width: 32px; height: 18px; border-radius: 9999px; background: var(--qmap-edge); transition: background-color .15s; }
-        .qmap-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #ffffff;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: transform .15s; }
-        .qmap-switch[aria-checked="true"] .qmap-track { background: var(--ov-line); }
-        .qmap-switch[aria-checked="true"] .qmap-track::after { transform: translateX(14px); }
-        @media (prefers-reduced-motion: reduce) { .qmap-track, .qmap-track::after { transition: none; } }
+        .qmap { display: flex; flex-wrap: wrap; margin: calc(.75rem - 5px) -5px -5px; }
+        .qmap-sq { position: relative; flex: none; width: 24px; height: 24px; border-radius: 50%; }
+        .qmap-sq::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--ov-right); }
+        .qmap-sq[data-s="missed"]::before { background: var(--ov-missed); }
+        .qmap-sq[data-s="new"]::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--qmap-edge); }
+        .qmap > .qmap-sq:hover { outline: 2px solid var(--ov-ink); outline-offset: -3px; }
+        .qmap > .qmap-sq:focus-visible { outline: 2px solid var(--ov-line); outline-offset: -3px; }
+        .db-dots-btn { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
+            color: var(--ov-muted); font-size: 12px; transition: background-color .15s, border-color .15s, color .15s; }
+        .db-dots-btn:hover { color: var(--ov-ink); border-color: var(--ov-muted); }
+        .db-dots-btn:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
         html:not(.dark) #dashboardView { --qmap-edge: #94a3b8; --db-sec-hover: #e2e8f0; }
         .dark #dashboardView { --qmap-edge: #64748b; --db-sec-hover: #1e293b; }
         html:not(.dark) #overviewView, html:not(.dark) #dashboardView {
@@ -551,12 +547,6 @@
 
             <!-- Domains -->
             <div class="bank-only bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <!-- the question map under each section is a view preference on this device, off until switched on -->
-                <div class="flex justify-end mb-3">
-                    <button type="button" id="qmapSwitch" role="switch" aria-checked="false" onclick="toggleQuestionMap()" title="Show a square for each question under every section" class="qmap-switch">
-                        <span>Show squares</span><span class="qmap-track" aria-hidden="true"></span>
-                    </button>
-                </div>
                 <div id="domainListContainer" class="space-y-3">
                     <!-- Populated via JS -->
                 </div>
@@ -1005,6 +995,7 @@
                 const savedCollapse = localStorage.getItem('saa_estimate_collapsed');
                 estimateCollapsed = savedCollapse === null ? true : savedCollapse === '1';
                 localStorage.removeItem('saa_scoring');   // the choice of the retired Simple Scoring
+                localStorage.removeItem('saa_question_map');   // the retired Show dots switch
 
                 const savedLog = localStorage.getItem(storeKey('attempts'));
                 if (savedLog) attemptLog = JSON.parse(savedLog);
@@ -1380,8 +1371,11 @@
                     `<button type="button" class="qmap-sq" data-s="${state}" data-qid="${q.id}" tabindex="${i ? -1 : 0}" aria-label="Question ${q.id}, ${QMAP_STATES[state].toLowerCase()}"></button>`).join('');
                 const item = document.createElement('div');
                 item.className = "db-sec p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 transition";
+                const open = openSection === domain;
+                const mapId = 'qmap-' + Object.keys(domains).sort(compareDomains).indexOf(domain);
                 item.innerHTML = `
-                    <button type="button" class="db-sec-head w-full text-left flex items-center justify-between" title="Practice ${escapeHtml(domain)}">
+                    <div class="flex items-center gap-2">
+                    <button type="button" class="db-sec-head flex-1 min-w-0 text-left flex items-center justify-between" title="Practice ${escapeHtml(domain)}">
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="w-8 h-8 rounded-xl bg-aws-orange/10 text-aws-orange flex items-center justify-center font-bold text-xs shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
@@ -1396,19 +1390,16 @@
                         <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
                     </div>
                     </button>
-                    ${showSquares ? `<div class="qmap" role="group" aria-label="${escapeHtml(domain)} questions">${map}</div>` : ''}
+                    <button type="button" class="db-dots-btn" aria-expanded="${open}" aria-controls="${mapId}" title="${open ? 'Hide' : 'Show'} a dot for each question: green right last time, red wrong, an outline not answered yet. Tap a dot to open that question." aria-label="${open ? 'Hide' : 'Show'} the ${escapeHtml(domain)} questions as dots"><i class="fa-solid fa-grip" aria-hidden="true"></i></button>
+                    </div>
+                    ${open ? `<div class="qmap" id="${mapId}" role="group" aria-label="${escapeHtml(domain)} questions">${map}</div>` : ''}
                 `;
                 item.querySelector('.db-sec-head').addEventListener('click', () => startQuizByDomain(domain));
+                item.querySelector('.db-dots-btn').addEventListener('click', () => toggleSectionDots(domain));
                 container.appendChild(item);
             }
-            const sw = document.getElementById('qmapSwitch');
-            sw.setAttribute('aria-checked', String(showSquares));
-            if (showSquares && questions.length) {
-                const key = (state, label) => `<span class="inline-flex items-center gap-1.5"><span class="qmap-sq qmap-key" data-s="${state}" aria-hidden="true"></span>${label}</span>`;
-                container.insertAdjacentHTML('beforeend', `<p class="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-slate-400">${key('right', 'Right last time')}${key('missed', 'Wrong last time')}${key('new', 'Not answered yet')}<span>Tap a square to open that question.</span></p>`);
-            }
 
-            // back from a question opened from its square: focus returns to that square
+            // back from a question opened from its square: focus returns to that square, and the page to where it was scrolled
             const back = squareToFocus === null ? null : container.querySelector(`.qmap-sq[data-qid="${squareToFocus}"]`);
             if (back && !document.getElementById('dashboardView').classList.contains('hidden')) {
                 squareToFocus = null;
@@ -1416,24 +1407,34 @@
                 quietFocus = true;
                 back.focus({ preventScroll: true });
                 quietFocus = false;
-                back.scrollIntoView({ block: 'center' });
+                if (squareScroll !== null) document.querySelector('main').scrollTop = squareScroll;
+                squareScroll = null;
             }
         }
 
         // ---- Question map ----
-        // One square per question under each section: right or wrong last time, or not answered yet.
+        // One dot per question under each section (the code calls them squares): right or wrong last time, or not answered yet.
         // Each strip is a single Tab stop (roving tabindex), and the arrow keys move between its squares.
         const QMAP_STATES = { right: 'Right last time', missed: 'Wrong last time', new: 'Not answered yet' };
-        const QMAP_KEY = 'saa_question_map';   // '1' while the squares are shown; a view preference, not synced
-        let showSquares = false;
-        try { showSquares = localStorage.getItem(QMAP_KEY) === '1'; } catch (e) {}
+        let openSection = null;     // the one section whose dots are showing; all are hidden when the page loads
         let squareToFocus = null;   // the question opened from its square, focused again back on Practice
+        let squareScroll = null;    // how far Practice was scrolled when it was opened
 
-        function toggleQuestionMap() {
-            showSquares = !showSquares;
-            try { localStorage.setItem(QMAP_KEY, showSquares ? '1' : '0'); } catch (e) {}
+        // A section's dots button shows its dots and hides any other section's. The section stays where it
+        // is on screen, even when the one closing above it shrinks, and focus stays on its button.
+        function toggleSectionDots(domain) {
+            const container = document.getElementById('domainListContainer');
+            const main = document.querySelector('main');
+            const card = btn => btn.closest('.db-sec');
+            const before = [...container.querySelectorAll('.db-dots-btn')].find(b => card(b).querySelector('.db-sec-head').title === 'Practice ' + domain);
+            const top = before ? card(before).getBoundingClientRect().top : null;
+            openSection = openSection === domain ? null : domain;
             hideTip();
             renderDomainList();
+            const after = [...container.querySelectorAll('.db-dots-btn')].find(b => card(b).querySelector('.db-sec-head').title === 'Practice ' + domain);
+            if (!after) return;
+            if (top !== null) main.scrollTop += card(after).getBoundingClientRect().top - top;
+            after.focus({ preventScroll: true });
         }
         let quietFocus = false;     // a focus the page moved itself shows no tooltip
 
@@ -2094,7 +2095,7 @@
             go({ name: 'quiz', n: 1 });
         }
 
-        // A square in a section's question map opens that one question on its own. There is no time's-up
+        // A dot in a section's question map opens that one question on its own. There is no time's-up
         // dialog, and Next, or leaving once it is answered, goes straight back to Practice without a summary.
         function startQuizByQuestion(id) {
             const q = questions.find(item => item.id === id);
@@ -2107,6 +2108,7 @@
             beginSession();
             timeWarned = true;
             squareToFocus = id;
+            squareScroll = document.querySelector('main').scrollTop;
             startQuizTimer();
             go({ name: 'quiz', n: 1 });
         }
