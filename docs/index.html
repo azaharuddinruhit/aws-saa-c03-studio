@@ -263,13 +263,13 @@
         .ov-practise:hover { background: var(--ov-wash); border-color: var(--ov-line); }
         .ov-practise:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
         @media (min-width: 1024px) { .ov-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
-        html:not(.dark) #overviewView {
+        html:not(.dark) #overviewView, html:not(.dark) #dashboardView {
             --ov-surface: #ffffff; --ov-line: #059669; --ov-wash: rgba(5, 150, 105, .10);
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
             --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0;
             --ov-heat0: #e2e8f0; --ov-heat1: #29bf88; --ov-heat2: #0b9a6c; --ov-heat3: #06775a; --ov-heat4: #064e3b;
         }
-        .dark #overviewView {
+        .dark #overviewView, .dark #dashboardView {
             --ov-surface: #101522; --ov-line: #14a874; --ov-wash: rgba(20, 168, 116, .12);
             --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
             --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447;
@@ -311,6 +311,8 @@
         .ov-chart { position: relative; touch-action: pan-y; }
         .ov-chart svg { display: block; width: 100%; overflow: visible; }
         .ov-chart svg:focus-visible { outline: 2px solid #10B981; outline-offset: 4px; border-radius: 4px; }
+        /* a click or tap focuses the chart (for its arrow keys) but should not draw the browser's outline around it */
+        .ov-chart svg:focus:not(:focus-visible) { outline: none; }
         .ov-chart text { font-family: 'Inter', sans-serif; font-size: 10px; fill: var(--ov-muted); font-variant-numeric: tabular-nums; }
         /* the tooltip keeps a dark surface in both themes, like the toast */
         .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
@@ -1764,6 +1766,7 @@
             document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('dashboardView').classList.remove('hidden');
             renderPageTabs('dashboard');
+            if (BANKS[bankKey]) drawScoreChart(scoreChartOf(bankKey));   // drawn while hidden, it had no width to measure
         }
 
         // Named after what was started, matching the dashboard buttons; a section quiz is named after its section
@@ -2192,6 +2195,7 @@
             estimateCollapsed = !estimateCollapsed;
             try { localStorage.setItem('saa_estimate_collapsed', estimateCollapsed ? '1' : '0'); } catch (e) {}
             applyEstimateState();
+            if (!estimateCollapsed) renderEstimate();   // the set's score chart is built on opening
         }
 
         // ===== Prior-attempt history =====
@@ -2370,6 +2374,34 @@
             return now;
         }
 
+        // Monte Carlo of a 50-question sitting. Draw mu, then each domain's ability given mu (so domains stay
+        // correlated exactly as far as the model says), then answer every item individually with its own
+        // probability. A fixed seed replays the same draws, so the range and pass chance move only when your
+        // answers (or the calendar gap) do. Returns the sittings' scaled scores, lowest first.
+        function sittingScores(fit, staleSd, seed = 0x5AA0C03, runs = MC_RUNS) {
+            const muCdf = cumulative(fit.muPost);
+            const condCdf = fit.cond.map(row => {
+                const out = {};
+                for (const id of Object.keys(row)) out[id] = cumulative(row[id]);
+                return out;
+            });
+            const rng = mulberry32(seed);
+            const scores = [];
+            for (let r = 0; r < runs; r++) {
+                const m = pickIndex(muCdf, rng() * muCdf[muCdf.length - 1]);
+                const theta = {};
+                for (const id of Object.keys(EXAM_DOMAINS)) {
+                    const cdf = condCdf[m][id];
+                    theta[id] = GRID[pickIndex(cdf, rng() * cdf[cdf.length - 1])] + (rng() - 0.5) * GRID_STEP;
+                }
+                const drift = staleSd ? staleSd * normalSample(rng) : 0;
+                let k = 0;
+                for (const item of EXAM_ITEMS) if (rng() < itemP(theta[item.dom] + drift, item.b, item.c)) k++;
+                scores.push(Math.round(100 + 900 * k / SCORED_QUESTIONS));
+            }
+            return scores.sort((x, y) => x - y);
+        }
+
         // The expected number right of the 50 scored items, given the fit: what the readiness score shows.
         // Each domain's items are summed per grid point once (EXAM_DOMAIN_P), since the score history and
         // its forecast ask for this hundreds of times.
@@ -2456,31 +2488,7 @@
             const staleDays = latest ? Math.max(0, Date.now() - latest) / DAY_MS : 0;
             const staleSd = Math.min(STALE_MAX_SD, STALE_SD_PER_SQRT_DAY * Math.sqrt(Math.max(0, staleDays - STALE_GRACE_DAYS)));
 
-            // Monte Carlo of a 50-question sitting. Draw mu, then each domain's ability given mu (so
-            // domains stay correlated exactly as far as the model says), then answer every item
-            // individually with its own probability. A fixed seed replays the same draws, so the range
-            // and pass chance move only when your answers (or the calendar gap) do.
-            const muCdf = cumulative(fit.muPost);
-            const condCdf = fit.cond.map(row => {
-                const out = {};
-                for (const id of Object.keys(row)) out[id] = cumulative(row[id]);
-                return out;
-            });
-            const rng = mulberry32(0x5AA0C03);
-            const scores = [];
-            for (let r = 0; r < MC_RUNS; r++) {
-                const m = pickIndex(muCdf, rng() * muCdf[muCdf.length - 1]);
-                const theta = {};
-                for (const id of Object.keys(EXAM_DOMAINS)) {
-                    const cdf = condCdf[m][id];
-                    theta[id] = GRID[pickIndex(cdf, rng() * cdf[cdf.length - 1])] + (rng() - 0.5) * GRID_STEP;
-                }
-                const drift = staleSd ? staleSd * normalSample(rng) : 0;
-                let k = 0;
-                for (const item of EXAM_ITEMS) if (rng() < itemP(theta[item.dom] + drift, item.b, item.c)) k++;
-                scores.push(Math.round(100 + 900 * k / SCORED_QUESTIONS));
-            }
-            scores.sort((x, y) => x - y);
+            const scores = sittingScores(fit, staleSd);
             const at = f => scores[Math.min(scores.length - 1, Math.floor(f * scores.length))];
             return {
                 ready: true, per, post, perTask, distinct, totalAttempts, effectiveN: N, staleDays,
@@ -2600,6 +2608,15 @@
                 '<span class="font-semibold ' + tone.text + '">' + est.score + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
             applyEstimateState();
             const confidence = est.effectiveN < 15 ? 'Low' : est.effectiveN < 40 ? 'Medium' : 'High';
+            // this set's score over time and its forecast, worked out only while the card is open
+            let bankChart = null, bankPlan = null;
+            if (!estimateCollapsed) {
+                const own = loadedBanks().filter(b => b.key === bankKey);
+                bankChart = scoreChartOf(bankKey);
+                scoreHistory(own, bankChart);
+                bankPlan = forecastHorizon(own);
+                startForecast(bankChart, own, bankChart.history, bankPlan);
+            }
 
             const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
                 const acc = Math.round(est.post[id].mean * 100);
@@ -2640,10 +2657,12 @@
                         <p class="text-xs text-slate-400" title="AWS's published pass mark is 720. How correct answers convert to the scaled score is not published; this model assumes a straight line, so 720 needs 35 of 50 correct.">Chance of reaching ${PASS_SCORE}</p>
                         <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${pp}%</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
+                        ${bankChart ? '<p id="dbExamDay" class="mt-1.5 text-[11px] text-slate-400"></p>' : ''}
                     </div>
                 </div>
                 ${scoreBar(est.score, est.lo, est.hi)}
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
+                ${bankChart ? scoreChartHtml(bankChart, bankPlan) : ''}
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">By exam guide task statement</summary>
                     <div class="mt-3 space-y-2">${taskRows || '<p class="text-xs text-slate-500">Answer a few more questions to see this breakdown.</p>'}</div>
@@ -2651,6 +2670,7 @@
                 </details>
                 ${est.repeatShare >= REPEAT_WARN ? '<p class="mt-3 text-[11px] text-amber-400">' + Math.round(est.repeatShare * 100) + '% of your attempts are repeats of questions you have already seen. They mostly measure memory, so they carry little weight; fresh questions give a more trustworthy estimate.</p>' : ''}
                 <p class="mt-4 text-[11px] text-slate-500">${est.staleDays >= STALE_GRACE_DAYS ? 'Last practised ' + Math.floor(est.staleDays) + ' days ago, so the range is wider · ' : ''}Confidence: ${confidence} \u00b7 based on ${est.distinct} question${est.distinct === 1 ? '' : 's'} and ${est.totalAttempts} attempt${est.totalAttempts === 1 ? '' : 's'}</p>`;
+            if (bankChart) drawScoreChart(bankChart);
         }
 
         // ===== Progress overview =====
@@ -2877,9 +2897,10 @@
                     <p class="text-sm text-slate-400 leading-relaxed">Answer <span class="font-semibold text-slate-200">${left}</span> more question${left === 1 ? '' : 's'} in any bank to unlock the combined score.</p>` + bankBlock;
                 return;
             }
-            const history = scoreHistory(banks);
-            scoreChartPoints = history;
-            startForecast(banks, scoreHistoryCache);
+            const chart = scoreChartOf('all');
+            scoreHistory(banks, chart);
+            const plan = forecastHorizon(banks);
+            startForecast(chart, banks, chart.history, plan);
             const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
                 const level = s.levels[id];
                 const pct = level === null || level === undefined ? null : Math.round(level * 100);
@@ -2903,22 +2924,15 @@
                         <p class="text-xs text-slate-400">Chance of reaching ${PASS_SCORE}</p>
                         <p class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${Math.round(s.passProb * 100)}%</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.tone.chip}">${s.tone.label}</span>
+                        <p id="ovExamDay" class="mt-1.5 text-[11px] text-slate-400"></p>
                     </div>
                 </div>
                 ${scoreBar(s.shown, s.lo, s.hi)}
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
-                <div class="ov-rule">
-                    <p class="text-xs text-slate-400">Score over time <span class="text-slate-500">· from your ${MIN_ANSWERED}th question, when the score starts · ${plural(scoreHistoryCache.count, 'answer')} so far · a forecast for the next ${FORECAST_ANSWERS}</span></p>
-                    <div id="ovScoreChart" class="ov-chart mt-2"></div>
-                    <div id="ovScoreKey" class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400"></div>
-                    <details class="mt-2">
-                        <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
-                        <div class="mt-2">${scoreTable(history)}</div>
-                    </details>
-                </div>
+                ${scoreChartHtml(chart, plan)}
                 ${bankBlock}
                 <p class="mt-3 text-[11px] text-slate-500">All ${plural(s.distinct, 'answered question')} from every bank count toward one estimate, using the same rules as the dashboard. A bank with fewer than ${MIN_ANSWERED} answers has no score of its own yet.</p>`;
-            drawScoreChart();
+            drawScoreChart(chart);
         }
 
         // ---- Score over time ----
@@ -2930,7 +2944,16 @@
         // repeats reweight each other). That keeps a replay of hundreds of answers quick. The result is kept
         // for this page and extended as answers arrive; anything else, such as a sync bringing in older
         // answers or a reset, replays from the start.
-        let scoreHistoryCache = null;
+        // Each chart keeps its own state: the overview's ('all', every set together) and the Practice page's,
+        // one per set (keyed by the set), with the replay, the forecast and where to draw them
+        const scoreCharts = {};
+        function scoreChartOf(scope) {
+            if (!scoreCharts[scope]) {
+                const ids = scope === 'all' ? ['ovScoreChart', 'ovScoreKey', 'ovExamDay'] : ['dbScoreChart', 'dbScoreKey', 'dbExamDay'];
+                scoreCharts[scope] = { scope, chartId: ids[0], keyId: ids[1], examId: ids[2], history: null, points: null, forecast: null, plan: null, run: 0 };
+            }
+            return scoreCharts[scope];
+        }
         const RECENCY_MS = DAY_MS * HALF_LIFE_DAYS;   // an answer's weight halves over this long
 
         function newReplay(t0) {
@@ -2973,13 +2996,9 @@
         }
         const replayScore = (h, now) => Math.round(100 + 900 * expectedCorrectOf(replayFit(h, now)) / SCORED_QUESTIONS);
 
-        function scoreHistory(banks) {
-            const events = [];
-            for (const b of banks) for (const q of b.questions) {
-                for (const entry of b.log[q.id] || []) events.push({ key: b.key + ':' + q.id, bank: b.key, q, entry });
-            }
-            events.sort((a, b) => a.entry[1] - b.entry[1]);
-            let h = scoreHistoryCache;
+        function scoreHistory(banks, chart) {
+            const events = answerEvents(banks);
+            let h = chart.history;
             const canExtend = h && events.length >= h.count && (!h.count || events[h.count - 1].entry[1] === h.lastTs)
                 && (h.count === events.length || events[h.count].entry[1] > h.lastTs);
             if (!canExtend || !events.length || (h && h.t0 !== events[0].entry[1])) h = newReplay(events.length ? events[0].entry[1] : 0);
@@ -2991,30 +3010,57 @@
                 h.lastTs = entry[1];
                 if (h.distinct >= MIN_ANSWERED) h.points.push({ ts: entry[1], score: replayScore(h, entry[1]), n: k + 1, bank, id: q.id, right: !!entry[0] });
             }
-            scoreHistoryCache = h;
+            chart.history = h;
+            chart.points = h.points;
             return h.points;
         }
 
         // ---- Forecast ----
-        // The next FORECAST_ANSWERS answers, played out FORECAST_RUNS times with the score's own model. Each
-        // run draws your level in every domain from the score's estimate, answers the questions you would
-        // get next (unseen, then missed, then the rest, each group shuffled, across every set), each right
-        // with the model's chance for that question, and recomputes the score after every answer. Two
-        // assumptions share the same draws: "no change" keeps your level, so the score holds roughly where it
-        // is while its range widens; "keep improving" lifts your level at the rate your last FORECAST_TREND
-        // answers show it rising (learningRate), the rise halving every FORECAST_TAPER answers. A fixed seed
-        // replays the same runs, so the forecast moves only when your answers do. It takes a few seconds, so it is
-        // worked out in slices after the chart draws, then drawn in.
-        const FORECAST_ANSWERS = 100, FORECAST_RUNS = 10, FORECAST_TREND = 100, FORECAST_TAPER = 50, FORECAST_MIN_TREND = 30;
-        let forecastCache = null;   // { key, result } once worked out for the current history
-        let forecastRun = 0;        // a newer forecast supersedes one still running
+        // Every question you haven't answered yet, or as many as you would answer before your exam (see
+        // forecastHorizon), played out FORECAST_RUNS times with the score's own model. Each run draws your
+        // level in every domain from the score's estimate, answers your unseen questions in a shuffled order,
+        // each right with the model's chance for that question, and recomputes the score after every answer.
+        // Your level rises by a steady amount per answer, each run drawing that amount from what your last
+        // FORECAST_TREND answers say about it (learningRate), never below zero, so a clear trend gives a clear
+        // rise, a noisy one a wide range, and no trend a level path. Each run also starts from your level now as
+        // the same fit sees it (drawTrend). With too few answers to judge a trend the run keeps the score's own
+        // level and no rise, which the key says. Future answers come at your pace of new
+        // questions, so recency treats them as real days would. Fixed seeds replay the same runs, so the
+        // forecast moves only when your answers do (and, with an exam date, as the exam draws nearer). It takes
+        // a few seconds, so it is worked out in slices after the chart draws, then drawn in.
+        const FORECAST_RUNS = 10, FORECAST_TREND = 100, FORECAST_MIN_TREND = 30;
+        // each chart's forecast is { key, result } once worked out, its horizon is chart.plan, and chart.run lets
+        // a newer forecast supersede one still running
 
-        // How fast your level has been rising, in ability per answer, read from your last FORECAST_TREND
-        // answers themselves: each right with the model's chance at a level that starts somewhere and rises
-        // by a steady amount per answer. The score itself trails your level (it remembers weeks of answers),
-        // so its slope would understate the rise; the simulation adds that lag back on its own. The rise has
-        // a Normal(0, RISE_SD) prior, so a lucky or unlucky run doesn't read as a trend. Never negative;
-        // null with too few answers to judge.
+        // How far the forecast looks: every question you haven't answered yet, or, with an exam date set, as
+        // many new questions as your PACE_LONG_DAYS-day pace fits in before the exam, whichever is fewer. The
+        // pace counts first answers in the last PACE_LONG_DAYS days, the Timeline card's window, so a break
+        // or a stretch of retakes only gives a pace of zero: no new questions before the exam.
+        function forecastHorizon(banks) {
+            let unseen = 0;
+            const firsts = [];
+            for (const b of banks) for (const q of b.questions) {
+                const log = b.log[q.id];
+                if (!log || !log.length) { unseen++; continue; }
+                firsts.push(log[0][1]);
+            }
+            const pace = firsts.filter(t => t > Date.now() - PACE_LONG_DAYS * DAY_MS).length / PACE_LONG_DAYS;   // new questions a day
+            let n = unseen, limit = 'unseen';
+            const exam = examDate();
+            if (exam) {
+                const days = daysBetween(Date.now(), dateOf(exam));
+                if (days > 0 && Math.round(pace * days) < n) { n = Math.round(pace * days); limit = 'exam'; }
+            }
+            return { n, limit, unseen, pace };
+        }
+
+        // What your last FORECAST_TREND answers say about how fast your level is rising, in ability per
+        // answer: each right with the model's chance at a level that starts somewhere and rises by a steady
+        // amount per answer. The score itself trails your level (it remembers weeks of answers), so its slope
+        // would understate the rise; the simulation adds that lag back on its own. The rise has a
+        // Normal(0, RISE_SD) prior, so a lucky or unlucky run doesn't read as a trend. Returns the joint
+        // posterior of the level and the rise (for drawTrend) and the rise's mean, or null with too few
+        // answers to judge.
         const RISE_SD = 0.01;                                              // ability per answer
         const RISE_GRID = Array.from({ length: 31 }, (_, i) => -0.03 + i * 0.002);
         const RISE_LEVELS = GRID.filter((_, g) => g % 2 === 0);              // every other grid level is fine enough for a trend
@@ -3031,65 +3077,151 @@
                 lw.push(l);
             }
             const top = Math.max(...lw), w = normalise(lw.map(v => Math.exp(v - top)));
-            let mean = 0;
-            w.forEach((wt, i) => { mean += wt * RISE_GRID[Math.floor(i / RISE_LEVELS.length)]; });
-            return Math.max(0, mean);
+            const mean = w.reduce((a, wt, i) => a + wt * RISE_GRID[Math.floor(i / RISE_LEVELS.length)], 0);
+            return { mean, joint: cumulative(w), half: centre };
         }
 
-        function startForecast(banks, h) {
-            const key = h.count + ':' + h.lastTs;
-            if (forecastCache && forecastCache.key === key) return;
-            const run = ++forecastRun;
-            const fit = replayFit(h, h.lastTs);
-            const rate = learningRate(h);
-            const muCdf = cumulative(fit.muPost);
-            const condCdf = fit.cond.map(row => Object.fromEntries(Object.keys(row).map(id => [id, cumulative(row[id])])));
-            // the questions in the order the runs take them: unseen, then missed, then right, by set
-            const tiers = [[], [], []];
-            for (const b of banks) for (const q of b.questions) {
-                const log = b.log[q.id];
-                tiers[!log || !log.length ? 0 : log[log.length - 1][0] ? 2 : 1].push({ key: b.key + ':' + q.id, q });
+        // which history, horizon and exam date a forecast belongs to, so the chart only draws one that matches
+        const forecastKey = (h, plan) => h.count + ':' + h.lastTs + ':' + plan.n + ':' + plan.limit + ':' + (examDate() || '');
+
+        // One simulated run from replay state `h`: your level in each domain drawn from `cdfs` (the score's
+        // estimate), moved to `trend.level` overall while keeping each domain's offset, then each answer in
+        // `sequence` ({ key, q, ts, flags }) right with the model's chance at that level plus `trend.rate` per
+        // answer so far, the score recomputed after every one. A question already in
+        // `h` keeps its earlier attempts (a retake reweights them); a new one counts toward the questions
+        // answered. Yields after each answer with its score; returns the run's final replay state.
+        function* simulateRun(h, cdfs, rng, trend, sequence) {
+            const m = pickIndex(cdfs.mu, rng() * cdfs.mu[cdfs.mu.length - 1]);
+            const mu = MU_GRID[m % MU_GRID.length];   // FIT_COMBOS run through every level for each spread
+            const theta = {};
+            for (const id of Object.keys(EXAM_DOMAINS)) {
+                theta[id] = GRID[pickIndex(cdfs.cond[m][id], rng() * cdfs.cond[m][id][GRID.length - 1])];
+                if (trend) theta[id] += trend.level - mu;
             }
-            // future answers come at your usual spacing, so recency treats them as it treated the last ones
+            const rate = trend ? trend.rate : 0;
+            const sim = { t0: h.t0, distinct: h.distinct, lastTs: h.lastTs, sums: {} };
+            for (const id of Object.keys(EXAM_DOMAINS)) sim.sums[id] = Float64Array.from(h.sums[id]);
+            const mine = new Map();
+            const own = (key, q) => {
+                let st = mine.get(key);
+                if (!st) {
+                    const base = h.perQ.get(key);
+                    st = base ? { ...base, log: base.log.slice(), rows: base.rows.slice() } : replayEntry(q);
+                    if (!base) sim.distinct++;
+                    mine.set(key, st);
+                }
+                return st;
+            };
+            for (let k = 0; k < sequence.length; k++) {
+                const { key, q, ts, flags = 0 } = sequence[k];
+                const { b, c } = itemParams(q), d = String(examDomainOf(q));
+                const right = rng() < itemP(theta[d] + rate * k, flags & FLAG_HINT ? b - HINT_EASE : b, c) ? 1 : 0;
+                replayAnswer(sim, own, key, q, [right, ts, flags]);
+                sim.lastTs = ts;
+                yield replayScore(sim, ts);
+            }
+            return sim;
+        }
+        const fitCdfs = fit => ({ mu: cumulative(fit.muPost), cond: fit.cond.map(row => Object.fromEntries(Object.keys(row).map(id => [id, cumulative(row[id])]))) });
+        // A run's trend: your level now and its rise per answer, drawn together from the trend fit. The score's
+        // own estimate weighs weeks of answers, so for someone improving it sits below where they are now; the
+        // trend fit's level at your latest answer doesn't. Going forward the rise is never below zero. Null
+        // with too few answers to judge, when a run keeps the score's own level.
+        const drawTrend = (rise, rng) => {
+            if (!rise) return null;
+            const i = pickIndex(rise.joint, rng() * rise.joint[rise.joint.length - 1]);
+            const r = RISE_GRID[Math.floor(i / RISE_LEVELS.length)];
+            return { rate: Math.max(0, r), level: RISE_LEVELS[i % RISE_LEVELS.length] + r * rise.half };
+        };
+
+        // The answers of a scope in the order given, as the replay reads them
+        function answerEvents(banks) {
+            const events = [];
+            for (const b of banks) for (const q of b.questions) {
+                for (const entry of b.log[q.id] || []) events.push({ key: b.key + ':' + q.id, bank: b.key, q, entry });
+            }
+            return events.sort((a, b) => a.entry[1] - b.entry[1]);
+        }
+
+        // The test on your own history: your last BACKTEST_ANSWERS answers forecast from everything before
+        // them, given the same questions at the same times, so only right and wrong are simulated. Returns
+        // the forecast path for that stretch, or null without enough history before it.
+        const BACKTEST_ANSWERS = 100, BACKTEST_MIN_BEFORE = 50;
+        function backtestPlan(banks, h) {
+            if (h.count < BACKTEST_ANSWERS + BACKTEST_MIN_BEFORE) return null;
+            const events = answerEvents(banks), cut = events.length - BACKTEST_ANSWERS;
+            const before = newReplay(events[0].entry[1]), own = ownEntries(before);
+            for (let k = 0; k < cut; k++) {
+                const { key, q, entry } = events[k];
+                replayAnswer(before, own, key, q, entry);
+                before.count = k + 1;
+                before.lastTs = entry[1];
+            }
+            if (before.distinct < MIN_ANSWERED) return null;
+            return { before, sequence: events.slice(cut).map(({ key, q, entry }) => ({ key, q, ts: entry[1], flags: entry[2] || 0 })) };
+        }
+
+        // Your chance of reaching the pass mark in a sitting from replay state `sim`, on a day `staleDays`
+        // after its latest answer: the estimate's own sitting simulation, with its widening for time away
+        function sittingChance(sim, staleDays, seed, runs) {
+            const staleSd = Math.min(STALE_MAX_SD, STALE_SD_PER_SQRT_DAY * Math.sqrt(Math.max(0, staleDays - STALE_GRACE_DAYS)));
+            const scores = sittingScores(replayFit(sim, sim.lastTs), staleSd, seed, runs);
+            return scores.filter(s => s >= PASS_SCORE).length / scores.length;
+        }
+
+        function startForecast(chart, banks, h, plan) {
+            chart.plan = plan;
+            const key = forecastKey(h, plan);
+            if (chart.forecast && chart.forecast.key === key) return;
+            const run = ++chart.run;
+            const N = plan.n;
+            const fit = replayFit(h, h.lastTs), cdfs = fitCdfs(fit);
+            const rise = learningRate(h);
+            const unseen = [];
+            for (const b of banks) for (const q of b.questions) if (!(b.log[q.id] || []).length) unseen.push({ key: b.key + ':' + q.id, q });
+            // future answers come at your pace of new questions, or your usual spacing when that's unknown
             const times = [...h.perQ.values()].flatMap(st => st.log.map(e => e[1])).sort((a, b) => a - b).slice(-FORECAST_TREND - 1);
             const gaps = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
-            const gap = Math.min(DAY_MS, Math.max(30000, gaps.length ? gaps[gaps.length >> 1] : 60000));
-            const scenarios = rate ? ['improve', 'steady'] : ['steady'];
-            const steps = Object.fromEntries(scenarios.map(s => [s, Array.from({ length: FORECAST_ANSWERS }, () => [])]));
-            // every run, assumption and answer, as steps that can pause between any two answers
+            const gap = plan.pace > 0 ? Math.min(7 * DAY_MS, DAY_MS / plan.pace) : Math.max(30000, gaps.length ? gaps[gaps.length >> 1] : 60000);
+            // the exam day, when one is set and still ahead
+            const exam = examDate(), examAt = exam ? dateOf(exam) : null;
+            const examAhead = examAt !== null && daysBetween(Date.now(), examAt) > 0;
+            const steps = Array.from({ length: N }, () => []);   // per future answer, the score in every run
+            const crossAt = [];   // per run: the answer that first reaches the pass mark, or null
+            const examChances = [];   // per run: the chance of passing on the exam day from where it ends
+            const test = backtestPlan(banks, h);
+            const testSteps = test ? Array.from({ length: BACKTEST_ANSWERS }, () => []) : null;
+            // every run and answer, as steps that can pause between any two answers
             function* work() {
                 for (let r = 0; r < FORECAST_RUNS; r++) {
                     const rng = mulberry32(0xF0CA57 + r);
-                    const m = pickIndex(muCdf, rng() * muCdf[muCdf.length - 1]);
-                    const theta = {};
-                    for (const id of Object.keys(EXAM_DOMAINS)) theta[id] = GRID[pickIndex(condCdf[m][id], rng() * condCdf[m][id][GRID.length - 1])];
-                    const order = tiers.flatMap(t => { const a = t.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }).slice(0, FORECAST_ANSWERS);
-                    const draws = order.map(() => rng());
-                    for (const s of scenarios) {
-                        const sim = { t0: h.t0, distinct: h.distinct, sums: {} };
-                        for (const id of Object.keys(EXAM_DOMAINS)) sim.sums[id] = Float64Array.from(h.sums[id]);
-                        const mine = new Map();
-                        const own = (key, q) => {
-                            let st = mine.get(key);
-                            if (!st) {
-                                const base = h.perQ.get(key);
-                                st = base ? { ...base, log: base.log.slice(), rows: base.rows.slice() } : replayEntry(q);
-                                if (!base) sim.distinct++;
-                                mine.set(key, st);
-                            }
-                            return st;
-                        };
-                        let lift = 0;
-                        for (let k = 0; k < order.length; k++) {
-                            const { key, q } = order[k];
-                            const { b, c } = itemParams(q), d = String(examDomainOf(q));
-                            const right = draws[k] < itemP(theta[d] + lift, b, c) ? 1 : 0;
-                            const ts = h.lastTs + (k + 1) * gap;
-                            replayAnswer(sim, own, key, q, [right, ts, 0]);
-                            steps[s][k].push(replayScore(sim, ts));
-                            if (s === 'improve') lift += rate * Math.pow(0.5, k / FORECAST_TAPER);
-                            yield;
-                        }
+                    const order = unseen.slice();
+                    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+                    const sequence = order.slice(0, N).map((o, k) => ({ ...o, ts: h.lastTs + (k + 1) * gap }));
+                    const runner = simulateRun(h, cdfs, rng, drawTrend(rise, rng), sequence);
+                    let crossed = null, k = 0, step;
+                    while (!(step = runner.next()).done) {
+                        steps[k].push(step.value);
+                        if (crossed === null && step.value >= PASS_SCORE) crossed = k + 1;
+                        k++;
+                        yield;
+                    }
+                    crossAt.push(crossed);
+                    // the exam day: a sitting from this run's state, after any days without new questions before it
+                    if (examAhead) {
+                        const sim = step.value;   // the run's state when its answers end
+                        examChances.push(sittingChance(sim, Math.max(0, (examAt - sim.lastTs) / DAY_MS), 0x5AA0C03 + r, 600));
+                        yield;
+                    }
+                }
+                // the test on your history, the same way from the state before your last answers
+                if (test) {
+                    const tFit = replayFit(test.before, test.before.lastTs), tCdfs = fitCdfs(tFit), tRise = learningRate(test.before);
+                    for (let r = 0; r < FORECAST_RUNS; r++) {
+                        const rng = mulberry32(0xBAC7E57 + r);
+                        const runner = simulateRun(test.before, tCdfs, rng, drawTrend(tRise, rng), test.sequence);
+                        let k = 0, step;
+                        while (!(step = runner.next()).done) { testSteps[k++].push(step.value); yield; }
                     }
                 }
             }
@@ -3099,7 +3231,7 @@
             const nextSlice = () => channel.port2.postMessage(0);
             channel.port1.onmessage = () => slice();
             const slice = () => {
-                if (run !== forecastRun) return;
+                if (run !== chart.run) return;
                 const until = performance.now() + 30;
                 while (performance.now() < until) {
                     if (job.next().done) return finish();
@@ -3109,16 +3241,60 @@
             const finish = () => {
                 // each step's path is the middle of the runs and its range spans all of them: too few runs for a percentile range
                 const median = list => { const s = list.slice().sort((a, b) => a - b), h = s.length >> 1; return s.length % 2 ? s[h] : Math.round((s[h - 1] + s[h]) / 2); };
-                const result = { rate, scenarios: {} };
-                for (const s of scenarios) result.scenarios[s] = steps[s].map(list => ({ mid: median(list), lo: Math.min(...list), hi: Math.max(...list) }));
-                forecastCache = { key, result };
-                if (scoreHistoryCache === h) drawScoreChart();
+                const band = list => ({ mid: median(list), lo: Math.min(...list), hi: Math.max(...list) });
+                // trend: 'rising', 'flat' (no rise in your answers lately) or 'unknown' (too few answers to judge)
+                const trend = !rise ? 'unknown' : rise.mean > 0 ? 'rising' : 'flat';
+                const result = { trend, plan, crossAt, path: steps.map(band),
+                    exam: examAhead ? { at: examAt, chance: examChances.reduce((a, b) => a + b, 0) / examChances.length } : null,
+                    backtest: null };
+                if (test) {
+                    // against what really happened: how often your real score sat inside the range, and how far off the middle was
+                    const real = h.points.slice(-BACKTEST_ANSWERS).map(p => p.score);
+                    const path = testSteps.map(band);
+                    const inside = path.filter((v, k) => real[k] >= v.lo && real[k] <= v.hi).length;
+                    const miss = path.reduce((a, v, k) => a + Math.abs(v.mid - real[k]), 0) / path.length;
+                    result.backtest = { path, inside: inside / path.length, miss: Math.round(miss) };
+                }
+                chart.forecast = { key, result };
+                if (chart.history === h) drawScoreChart(chart);
             };
             nextSlice();
         }
 
-        // The chart's points, kept so a resize can redraw it
-        let scoreChartPoints = null;
+        // The sentence under the chart: when the forecast reaches the pass mark, if it does
+        function passSentence(fc, last) {
+            const n = fc.plan.n, runs = fc.crossAt.length;
+            const basis = fc.trend === 'unknown' ? 'At your current level' : 'At your recent rate';
+            const end = fc.plan.limit === 'exam'
+                ? `before your exam (${plural(n, 'new question')} at your ${PACE_LONG_DAYS}-day pace)`
+                : `by the end of your ${plural(n, 'unseen question')}`;
+            if (last >= PASS_SCORE) return `You're already at or above ${PASS_SCORE}.`;
+            const got = fc.crossAt.filter(k => k !== null).sort((a, b) => a - b);
+            if (got.length * 2 >= runs) {
+                const mid = got[got.length >> 1];
+                return `${basis} you'd reach ${PASS_SCORE} after about ${plural(mid, 'more answer')}`
+                    + (got.length > 1 ? ` (${got[0]}–${got[got.length - 1]} across the runs that got there${got.length < runs ? `, ${got.length} of ${runs}` : ''})` : '') + '.';
+            }
+            return `${basis} you'd likely not reach ${PASS_SCORE} ${end}` + (got.length ? ` (${got.length} of ${runs} runs did)` : '') + '.';
+        }
+
+
+        // The "Score over time" block: heading, chart, key and table, for the overview's card or a set's
+        function scoreChartHtml(chart, plan) {
+            const ahead = !plan.n ? '' : plan.limit === 'exam'
+                ? ` · a forecast to your exam, ${plural(plan.n, 'new question')} at your ${PACE_LONG_DAYS}-day pace`
+                : ` · a forecast through your ${plural(plan.n, 'unseen question')}`;
+            return `
+                <div class="ov-rule">
+                    <p class="text-xs text-slate-400">Score over time <span class="text-slate-500">· from your ${MIN_ANSWERED}th question, when the score starts · ${plural(chart.history.count, 'answer')} so far${ahead}</span></p>
+                    <div id="${chart.chartId}" class="ov-chart mt-2"></div>
+                    <div id="${chart.keyId}" class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400"></div>
+                    <details class="mt-2">
+                        <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
+                        <div class="mt-2">${scoreTable(chart.points)}</div>
+                    </details>
+                </div>`;
+        }
 
         // A table of the score at the end of each practice day, for screen readers and anyone who wants the numbers
         function scoreTable(points) {
@@ -3132,31 +3308,31 @@
                 `<tr><td>${escapeHtml(fmtDate(d.day, DATE_LONG))}</td><td>${d.answers}</td><td>${d.score}</td></tr>`).join('')}</tbody></table>`;
         }
 
-        const FORECAST_LOOK = {
-            improve: { label: 'Keep improving', stroke: 'var(--ov-line)', fill: 'var(--ov-wash)', dash: '5 4' },
-            steady: { label: 'No change', stroke: 'var(--ov-muted)', fill: 'color-mix(in srgb, var(--ov-muted) 16%, transparent)', dash: '2 3' }
-        };
 
-        // One point per answer, evenly spaced, so a busy day spreads out rather than stacking up, then a
-        // quarter of the width for the next FORECAST_ANSWERS. The pass mark is drawn across; hovering, or the arrow keys, read
+        // One point per answer, evenly spaced, so a busy day spreads out rather than stacking up, then the
+        // forecast through your unseen questions (or to your exam). The pass mark is drawn across; hovering, or the arrow keys, read
         // off the score after any answer, and the forecast's paths and ranges after any future one.
-        function drawScoreChart() {
-            const holder = document.getElementById('ovScoreChart');
-            const pts = scoreChartPoints;
+        function drawScoreChart(chart) {
+            if (!chart || (chart.scope !== 'all' && chart.scope !== bankKey)) return;   // a set's chart draws only while that set is open
+            const holder = document.getElementById(chart.chartId);
+            const pts = chart.points;
             if (!holder || !pts || !pts.length) return;
-            const fc = forecastCache && scoreHistoryCache && forecastCache.key === scoreHistoryCache.count + ':' + scoreHistoryCache.lastTs ? forecastCache.result : null;
+            const fc = chart.forecast && chart.history && chart.plan && chart.forecast.key === forecastKey(chart.history, chart.plan) ? chart.forecast.result : null;
             const W = Math.max(260, holder.clientWidth), H = 170;
             const m = { top: 14, right: 12, bottom: 22, left: 34 };
             const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
-            const end = pts.length - 1, slots = end + FORECAST_ANSWERS;
+            const N = chart.plan ? chart.plan.n : 0;
+            const end = pts.length - 1, slots = end + N;
             const values = pts.map(p => p.score);
-            if (fc) for (const s of Object.values(fc.scenarios)) for (const v of s) values.push(v.lo, v.hi);
+            if (fc) for (const v of fc.path) values.push(v.lo, v.hi);
+            if (fc && fc.backtest) for (const v of fc.backtest.path) values.push(v.mid);
             const lo = Math.max(100, Math.floor((Math.min(...values, PASS_SCORE) - 40) / 100) * 100);
             const hi = Math.min(1000, Math.ceil((Math.max(...values, PASS_SCORE) + 40) / 100) * 100);
-            // the forecast gets a quarter of the width whatever the history's length, so 50 answers stay readable
-            // beside hundreds; the divider and "next 50" mark where the scale changes
-            const hw = iw * 0.75, fw = iw - hw;
-            const x = i => i <= end ? m.left + (end ? i / end * hw : hw) : m.left + hw + (i - end) / FORECAST_ANSWERS * fw;
+            // the forecast takes its true share of the width, kept between a quarter and a half so neither side
+            // is squeezed; when the share is held, the divider marks where the scale changes
+            const share = N ? Math.min(0.5, Math.max(0.25, N / (end + N))) : 0;
+            const hw = iw * (1 - share), fw = iw - hw;
+            const x = i => i <= end ? m.left + (end ? i / end * hw : hw) : m.left + hw + (i - end) / N * fw;
             const y = v => m.top + ih - (v - lo) / (hi - lo) * ih;
             const parts = [];
             for (let v = lo; v <= hi; v += 100) {
@@ -3177,47 +3353,69 @@
                 parts.push(`<text x="${tx}" y="${H - 6}" text-anchor="middle">${escapeHtml(fmtDate(day, DATE_SHORT, false))}</text>`);
             });
             // the forecast's side: a divider at your latest answer, then each assumption's range and path
-            parts.push(`<line x1="${x(end)}" x2="${x(end)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
-            parts.push(`<text x="${(x(end) + x(slots)) / 2}" y="${H - 6}" text-anchor="middle">${fc ? 'next ' + FORECAST_ANSWERS : 'forecasting…'}</text>`);
+            if (N) {
+                parts.push(`<line x1="${x(end)}" x2="${x(end)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${(x(end) + x(slots)) / 2}" y="${H - 6}" text-anchor="middle">${fc ? 'next ' + N : 'forecasting…'}</text>`);
+            }
             const last = pts[end].score;
-            if (fc) for (const s of ['steady', 'improve']) {
-                const f = fc.scenarios[s];
-                if (!f) continue;
-                const look = FORECAST_LOOK[s];
-                const top = [`${x(end)},${y(last)}`, ...f.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.hi).toFixed(1)}`)];
-                const bottom = f.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.lo).toFixed(1)}`).reverse();
-                parts.push(`<polygon points="${top.concat(bottom).join(' ')}" fill="${look.fill}"/>`);
-                const path = [`${x(end)},${y(last)}`, ...f.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.mid).toFixed(1)}`)].join(' ');
-                parts.push(`<polyline points="${path}" fill="none" stroke="${look.stroke}" stroke-width="2" stroke-dasharray="${look.dash}" stroke-linejoin="round" stroke-linecap="round"/>`);
+            if (fc && N) {
+                // the range the runs span, then their middle path, both starting from your latest point
+                const top = [`${x(end)},${y(last)}`, ...fc.path.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.hi).toFixed(1)}`)];
+                const bottom = fc.path.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.lo).toFixed(1)}`).reverse();
+                parts.push(`<polygon points="${top.concat(bottom).join(' ')}" fill="var(--ov-wash)"/>`);
+                const path = [`${x(end)},${y(last)}`, ...fc.path.map((v, k) => `${x(end + k + 1).toFixed(1)},${y(v.mid).toFixed(1)}`)].join(' ');
+                parts.push(`<polyline points="${path}" fill="none" stroke="var(--ov-line)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>`);
+            }
+            // the test on your history: what the forecast would have said before your last answers, under the real line
+            const bt = fc && fc.backtest, btFrom = bt ? end - bt.path.length : null;
+            if (bt) {
+                const back = [`${x(btFrom)},${y(pts[btFrom].score)}`, ...bt.path.map((v, k) => `${x(btFrom + k + 1).toFixed(1)},${y(v.mid).toFixed(1)}`)].join(' ');
+                parts.push(`<polyline points="${back}" fill="none" stroke="var(--ov-muted)" stroke-width="1.5" stroke-dasharray="3 3" stroke-linejoin="round" stroke-linecap="round"/>`);
             }
             const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.score).toFixed(1)}`).join(' ');
             parts.push(`<polyline points="${line}" fill="none" stroke="var(--ov-line)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`);
             parts.push(`<circle cx="${x(end)}" cy="${y(last)}" r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/>`);
-            parts.push(`<g id="ovScoreCross" visibility="hidden"><line y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-ink)" stroke-width="1" opacity=".5"/><circle r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/></g>`);
-            const fcText = fc ? '; forecast after ' + FORECAST_ANSWERS + ' more answers: ' + Object.entries(fc.scenarios).map(([s, f]) =>
-                `${FORECAST_LOOK[s].label.toLowerCase()} ${f[f.length - 1].mid} (${FORECAST_RUNS} runs ranging ${f[f.length - 1].lo} to ${f[f.length - 1].hi})`).join(', ') : '';
+            parts.push(`<g class="score-cross" visibility="hidden"><line y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-ink)" stroke-width="1" opacity=".5"/><circle r="4" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/></g>`);
+            const fcEnd = fc && N ? fc.path[fc.path.length - 1] : null;
+            const fcText = fcEnd ? `; forecast after ${N} more answers: ${fcEnd.mid}, ${FORECAST_RUNS} runs ranging ${fcEnd.lo} to ${fcEnd.hi}` : '';
             const summary = `Readiness score after each of your ${pts.length} answers, from ${pts[0].score} to ${last}; the pass mark is ${PASS_SCORE}${fcText}`;
             holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
 
             // the key under the chart: what each line is, and where each assumption ends up
-            const key = document.getElementById('ovScoreKey');
+            const key = document.getElementById(chart.keyId);
             if (key) {
                 const swatch = (stroke, dash) => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="${stroke}" stroke-width="2" stroke-linecap="round"${dash ? ` stroke-dasharray="${dash}"` : ''}/></svg>`;
                 const items = [`<span class="flex items-center gap-1.5">${swatch('var(--ov-line)')}Your score</span>`];
-                if (fc) for (const s of ['improve', 'steady']) {
-                    const f = fc.scenarios[s];
-                    if (!f) continue;
-                    const e = f[f.length - 1];
-                    items.push(`<span class="flex items-center gap-1.5">${swatch(FORECAST_LOOK[s].stroke, FORECAST_LOOK[s].dash)}${FORECAST_LOOK[s].label} → <b class="text-slate-300">${e.mid}</b> <span class="text-slate-500">(${e.lo}–${e.hi})</span></span>`);
-                }
+                if (fcEnd) items.push(`<span class="flex items-center gap-1.5">${swatch('var(--ov-line)', '5 4')}Forecast → <b class="text-slate-300">${fcEnd.mid}</b> <span class="text-slate-500">(${fcEnd.lo}–${fcEnd.hi})</span></span>`);
+                if (bt) items.push(`<span class="flex items-center gap-1.5">${swatch('var(--ov-muted)', '3 3')}Forecast back then</span>`);
+                const trendNote = !fcEnd ? '' : fc.trend === 'unknown'
+                    ? `Too few answers yet to measure a trend, so this assumes your level stays as it is.`
+                    : fc.trend === 'flat' ? "Your answers haven't been getting better lately, so the forecast stays about level." : '';
                 key.innerHTML = items.join('')
-                    + (fc ? `<span class="text-slate-500">Shaded: lowest to highest of ${FORECAST_RUNS} simulated runs.</span>` : '')
-                    + (fc && !fc.scenarios.improve
-                        ? `<span class="text-slate-500">${fc.rate === null ? 'Too few answers yet to measure a trend, so only no change is shown.' : "Your answers haven't been getting better lately, so keep improving would match no change."}</span>` : '');
+                    + (fcEnd ? `<span class="text-slate-500">Shaded: lowest to highest of ${FORECAST_RUNS} simulated runs.</span>` : '')
+                    + (fcEnd ? `<span class="text-slate-300" style="flex-basis:100%">${escapeHtml(passSentence(fc, last))}${trendNote ? ' <span class="text-slate-500">' + escapeHtml(trendNote) + '</span>' : ''}</span>` : '')
+                    + (bt ? `<span class="text-slate-500" style="flex-basis:100%">Tested on your history: your real score stayed inside the forecast's range for ${Math.round(bt.inside * 100)}% of your last ${bt.path.length} answers, off by ${plural(bt.miss, 'point')} on average.</span>` : '')
+                    + (chart.plan && !N ? `<span class="text-slate-500">${!chart.plan.unseen ? "You've answered every question, so there's nothing left to forecast."
+                        : chart.plan.pace ? "At your pace there's no time for new questions before your exam, so there's no forecast."
+                        : `You haven't started a new question in the last ${PACE_LONG_DAYS} days, so there's no forecast to your exam.`}</span>` : '');
             }
 
-            const svg = holder.querySelector('svg'), cross = svg.querySelector('#ovScoreCross');
-            const lastSlot = fc ? slots : end;
+            const examLine = document.getElementById(chart.examId);
+            if (examLine) {
+                const exam = examDate(), examAt = exam ? dateOf(exam) : null;
+                const when = examAt !== null ? escapeHtml(fmtDate(examAt, DATE_SHORT)) : '';
+                if (examAt === null) examLine.innerHTML = '<button type="button" onclick="focusExamDate()" class="text-emerald-400 hover:text-emerald-300 font-semibold">Set your exam date</button> to see your chance on the day';
+                else if (daysBetween(Date.now(), examAt) <= 0) examLine.innerHTML = '';
+                else if (!fc || !fc.exam) examLine.innerHTML = `On exam day (${when}): working it out…`;
+                else {
+                    const pct = Math.round(fc.exam.chance * 100);
+                    examLine.innerHTML = `On exam day (${when}): <b class="${estimateTone(fc.exam.chance).text}">${pct}%</b>`;
+                    examLine.title = `Your chance of reaching ${PASS_SCORE} in a sitting on ${fmtDate(examAt, DATE_LONG)}, ${!chart.plan.pace ? 'with no new questions before it, as in the last ' + PACE_LONG_DAYS + ' days' : 'if you keep answering new questions at your ' + PACE_LONG_DAYS + '-day pace' + (fc.trend === 'unknown' ? '' : ' and improving at your recent rate')}: the forecast's ${FORECAST_RUNS} runs up to the exam, each followed by the same sitting simulation as today's chance, with its allowance for any days without practice before it.`;
+                }
+            }
+
+            const svg = holder.querySelector('svg'), cross = svg.querySelector('.score-cross');
+            const lastSlot = fc && N ? slots : end;
             let at = end;
             const show = (i, clientX, clientY) => {
                 at = Math.max(0, Math.min(lastSlot, i));
@@ -3231,13 +3429,11 @@
                         [null, `After answer ${p.n} · ${fmtDate(p.ts, DATE_LONG)} ${new Date(p.ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`],
                         [null, `${BANKS[p.bank].symbol} #${p.id} · ${p.right ? 'right' : 'missed'}`]
                     ];
+                    if (bt && at > btFrom) { const v = bt.path[at - btFrom - 1]; lines.push([String(v.mid), `forecast back then · ${v.lo}–${v.hi}`]); }
                 } else {
-                    const k = at - end - 1, lead = fc.scenarios.improve || fc.scenarios.steady;
-                    cy = y(lead[k].mid);
-                    lines = [[`${k + 1} more answer${k ? 's' : ''}`, 'forecast']].concat(['improve', 'steady'].filter(s => fc.scenarios[s]).map(s => {
-                        const v = fc.scenarios[s][k];
-                        return [String(v.mid), `${FORECAST_LOOK[s].label.toLowerCase()} · ${FORECAST_RUNS} runs ${v.lo}–${v.hi}`];
-                    }));
+                    const k = at - end - 1, v = fc.path[k];
+                    cy = y(v.mid);
+                    lines = [[`${k + 1} more answer${k ? 's' : ''}`, 'forecast'], [String(v.mid), `${FORECAST_RUNS} runs ${v.lo}–${v.hi}`]];
                 }
                 const cx = x(at);
                 cross.setAttribute('visibility', 'visible');
@@ -3250,7 +3446,7 @@
             const hide = () => { cross.setAttribute('visibility', 'hidden'); hideTip(); };
             const indexAt = clientX => {
                 const r = svg.getBoundingClientRect(), px = (clientX - r.left) * W / r.width - m.left;
-                return px <= hw ? Math.round(end ? px / hw * end : 0) : end + Math.round((px - hw) / fw * FORECAST_ANSWERS);
+                return px <= hw || !N ? Math.round(end ? Math.min(px, hw) / hw * end : 0) : end + Math.round((px - hw) / fw * N);
             };
             svg.addEventListener('pointermove', e => show(indexAt(e.clientX), e.clientX, e.clientY));
             svg.addEventListener('pointerleave', hide);
@@ -3333,6 +3529,19 @@
             renderOverview();
         }
 
+        // From a score card's "Set your exam date": the Timeline card's date field, on the overview, focused.
+        // The overview fills in after the bank files load, so this waits a little for the field to appear.
+        function focusExamDate() {
+            if (parseRoute().name !== 'overview') go({ name: 'overview' });
+            let tries = 0;
+            const reach = () => {
+                const field = document.getElementById('ovExamDate');
+                if (field) { field.scrollIntoView({ block: 'center', behavior: 'smooth' }); field.focus({ preventScroll: true }); }
+                else if (++tries < 40) setTimeout(reach, 50);
+            };
+            reach();
+        }
+
         // ---- Weak areas ----
         // A question's tags, plus the service behind each feature tag, so "S3 > Lifecycle rules" also counts toward S3.
         function tagsOf(q) {
@@ -3349,6 +3558,8 @@
         // your overall level, so a tag with two answers stays near that level instead of jumping to 0% or
         // 100%. The overall level includes the tag's own answers too, a small double count next to the
         // prior's width that slightly softens the gaps rather than inventing them.
+        // Each answered tag also counts its questions right on the first try (first), which Weak areas judges
+        // by: a question retaken until it is right would otherwise always count as right.
         // Alongside the levels, for each tag: how many questions carry it (asked), the same count weighted
         // by each question's exam domain (weight, a quarter per question in an average domain), and per
         // bank how many it has and how many are still to get right (byBank), which the Practise buttons use.
@@ -3370,12 +3581,12 @@
                 if (!log || !log.length) continue;
                 const obs = answerObservations(q, log, now);
                 all.push(...obs);
-                const right = !!log[log.length - 1][0];
+                const first = !!log[0][0];
                 for (const t of qTags) {
-                    const e = tags[t] || (tags[t] = { obs: [], answered: 0, right: 0 });
+                    const e = tags[t] || (tags[t] = { obs: [], answered: 0, first: 0 });
                     e.obs.push(...obs);
                     e.answered++;
-                    if (right) e.right++;
+                    if (first) e.first++;
                 }
             }
             if (!all.length) return null;
@@ -3427,9 +3638,10 @@
             const passPct = Math.round(PASS_SHARE * 100);
             const services = Object.keys(lv.asked).filter(t => !t.includes(TAG_SEP));
             const answeredFor = t => (lv.tags[t] ? lv.tags[t].answered : 0);
-            const share = e => e.right / e.answered;
-            // Weak means below the pass level both on your answers and on the estimate, so the counts shown
-            // never contradict the listing and two unlucky answers alone don't list a service.
+            const share = e => e.first / e.answered;
+            // Weak means below the pass level both on your first tries and on the estimate, so the counts shown
+            // never contradict the listing and two unlucky answers alone don't list a service. First tries,
+            // because retaking a question until it is right would make every service look done.
             const isWeak = t => lv.tags[t].level < PASS_SHARE && share(lv.tags[t]) < PASS_SHARE;
             const rated = services.filter(s => answeredFor(s) >= WEAK_MIN_ANSWERED);
             // what a service costs you on the exam: its estimated gap below the pass level, times how much
@@ -3447,7 +3659,7 @@
             };
             const block = s => {
                 const e = lv.tags[s];
-                const pct = Math.round(share(e) * 100), missed = e.answered - e.right;
+                const pct = Math.round(share(e) * 100), missed = e.answered - e.first;
                 const features = Object.keys(lv.tags)
                     .filter(t => t.startsWith(s + TAG_SEP) && lv.tags[t].answered >= WEAK_MIN_ANSWERED && isWeak(t))
                     .sort((a, b) => lv.tags[a].level - lv.tags[b].level)
@@ -3457,7 +3669,7 @@
                         return `
                             <div class="flex items-center gap-2 text-[11px] mt-1.5 pl-4">
                                 <span class="flex-1 min-w-0 truncate text-slate-400" title="${escapeHtml(t)}">› ${escapeHtml(t.slice(s.length + TAG_SEP.length))}</span>
-                                <span class="shrink-0 ${correctTone(Math.round(share(f) * 100)).text}">${f.right} of ${f.answered} right</span>
+                                <span class="shrink-0 ${correctTone(Math.round(share(f) * 100)).text}">${f.first} of ${f.answered} first time</span>
                             </div>`;
                     }).join('');
                 const tone = correctTone(pct);
@@ -3467,10 +3679,10 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between text-xs gap-2">
                                 <span class="text-slate-200 font-semibold truncate">${escapeHtml(s)}</span>
-                                <span class="font-semibold shrink-0 ${tone.text}">${missed} missed</span>
+                                <span class="font-semibold shrink-0 ${tone.text}">${missed} missed first time</span>
                             </div>
                             <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full" style="width:${pct}%;background:${tone.fill}"></div></div>
-                            <p class="text-[10px] text-slate-500 mt-1.5">${e.right} of ${e.answered} right · in ${plural(lv.asked[s], 'question')}</p>
+                            <p class="text-[10px] text-slate-500 mt-1.5">${e.first} of ${e.answered} right first time · in ${plural(lv.asked[s], 'question')}</p>
                             ${features}
                         </div>
                         ${practise(s)}
@@ -3490,8 +3702,8 @@
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
                         <li>Every question is tagged with the services and concepts it tests, such as S3 › Lifecycle rules. A feature's answers also count toward its service, and a missed question counts against every service it is tagged with.</li>
-                        <li>The counts are your latest answer to each question. ${passPct}% is the share of a 50-question exam that reaches the ${PASS_SCORE} pass mark.</li>
-                        <li>A service can be listed once it has ${WEAK_MIN_ANSWERED} answered questions, when both its share right and its estimated level are below ${passPct}%; the ${WEAK_LIST_SIZE} costliest are shown. The estimate uses the same rules as the readiness score (hard questions, recent answers and first attempts count more; a hint makes a question easier) and leans toward your overall level while a service has few answers.</li>
+                        <li>The counts are your first try at each question, so getting it right on a retake doesn't hide a gap. ${passPct}% is the share of a 50-question exam that reaches the ${PASS_SCORE} pass mark.</li>
+                        <li>A service can be listed once it has ${WEAK_MIN_ANSWERED} answered questions, when both its share right first time and its estimated level are below ${passPct}%; the ${WEAK_LIST_SIZE} costliest are shown. The estimate uses the same rules as the readiness score (hard questions, recent answers and first attempts count more; a hint makes a question easier) and leans toward your overall level while a service has few answers.</li>
                         <li>The order is how much each one costs you: how far its estimate is below the pass level, and how often it comes up, with questions from the heavier exam domains counting more.</li>
                         <li>Practise starts a quiz of that service in the set with the most of its questions still to get right, those first.</li>
                     </ul>
@@ -3864,7 +4076,8 @@
         window.addEventListener('resize', () => {
             clearTimeout(overviewResizeTimer);
             overviewResizeTimer = setTimeout(() => {
-                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(); }
+                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); }
+                if (!document.getElementById('dashboardView').classList.contains('hidden') && BANKS[bankKey]) drawScoreChart(scoreChartOf(bankKey));
             }, 150);
         });
 
