@@ -2657,7 +2657,6 @@
                         <p class="text-xs text-slate-400" title="AWS's published pass mark is 720. How correct answers convert to the scaled score is not published; this model assumes a straight line, so 720 needs 35 of 50 correct.">Chance of reaching ${PASS_SCORE}</p>
                         <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${pp}%</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
-                        ${bankChart ? '<p id="dbExamDay" class="mt-1.5 text-[11px] text-slate-400"></p>' : ''}
                     </div>
                 </div>
                 ${scoreBar(est.score, est.lo, est.hi)}
@@ -2924,7 +2923,6 @@
                         <p class="text-xs text-slate-400">Chance of reaching ${PASS_SCORE}</p>
                         <p class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${Math.round(s.passProb * 100)}%</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.tone.chip}">${s.tone.label}</span>
-                        <p id="ovExamDay" class="mt-1.5 text-[11px] text-slate-400"></p>
                     </div>
                 </div>
                 ${scoreBar(s.shown, s.lo, s.hi)}
@@ -3028,7 +3026,7 @@
         // questions, so recency treats them as real days would. Fixed seeds replay the same runs, so the
         // forecast moves only when your answers do (and, with an exam date, as the exam draws nearer). It takes
         // a few seconds, so it is worked out in slices after the chart draws, then drawn in.
-        const FORECAST_RUNS = 10, FORECAST_TREND = 100, FORECAST_MIN_TREND = 30;
+        const FORECAST_RUNS = 5, FORECAST_TREND = 100, FORECAST_MIN_TREND = 30;
         // each chart's forecast is { key, result } once worked out, its horizon is chart.plan, and chart.run lets
         // a newer forecast supersede one still running
 
@@ -3381,6 +3379,17 @@
             const summary = `Readiness score after each of your ${pts.length} answers, from ${pts[0].score} to ${last}; the pass mark is ${PASS_SCORE}${fcText}`;
             holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
 
+            // the chance of passing on exam day, or a prompt to set the date; nothing once the exam day has come
+            let examLine = '';
+            const exam = examDate(), examAt = exam ? dateOf(exam) : null;
+            const when = examAt !== null ? escapeHtml(fmtDate(examAt, DATE_SHORT)) : '';
+            const examSpan = (inner, title = '') => `<span id="${chart.examId}" class="text-slate-300" style="flex-basis:100%"${title ? ` title="${escapeHtml(title)}"` : ''}>${inner}</span>`;
+            if (examAt === null) examLine = examSpan('<button type="button" onclick="focusExamDate()" class="text-emerald-400 hover:text-emerald-300 font-semibold">Set your exam date</button> to see your chance on the day');
+            else if (daysBetween(Date.now(), examAt) <= 0) examLine = '';
+            else if (!fc || !fc.exam) examLine = examSpan(`On exam day (${when}): working it out…`);
+            else examLine = examSpan(`On exam day (${when}): <b class="${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</b>`,
+                `Your chance of reaching ${PASS_SCORE} in a sitting on ${fmtDate(examAt, DATE_LONG)}, ${!chart.plan.pace ? 'with no new questions before it, as in the last ' + PACE_LONG_DAYS + ' days' : 'if you keep answering new questions at your ' + PACE_LONG_DAYS + '-day pace' + (fc.trend === 'unknown' ? '' : ' and improving at your recent rate')}: the forecast's ${FORECAST_RUNS} runs up to the exam, each followed by the same sitting simulation as today's chance, with its allowance for any days without practice before it.`);
+
             // the key under the chart: what each line is, and where each assumption ends up
             const key = document.getElementById(chart.keyId);
             if (key) {
@@ -3394,24 +3403,11 @@
                 key.innerHTML = items.join('')
                     + (fcEnd ? `<span class="text-slate-500">Shaded: lowest to highest of ${FORECAST_RUNS} simulated runs.</span>` : '')
                     + (fcEnd ? `<span class="text-slate-300" style="flex-basis:100%">${escapeHtml(passSentence(fc, last))}${trendNote ? ' <span class="text-slate-500">' + escapeHtml(trendNote) + '</span>' : ''}</span>` : '')
+                    + examLine
                     + (bt ? `<span class="text-slate-500" style="flex-basis:100%">Tested on your history: your real score stayed inside the forecast's range for ${Math.round(bt.inside * 100)}% of your last ${bt.path.length} answers, off by ${plural(bt.miss, 'point')} on average.</span>` : '')
                     + (chart.plan && !N ? `<span class="text-slate-500">${!chart.plan.unseen ? "You've answered every question, so there's nothing left to forecast."
                         : chart.plan.pace ? "At your pace there's no time for new questions before your exam, so there's no forecast."
                         : `You haven't started a new question in the last ${PACE_LONG_DAYS} days, so there's no forecast to your exam.`}</span>` : '');
-            }
-
-            const examLine = document.getElementById(chart.examId);
-            if (examLine) {
-                const exam = examDate(), examAt = exam ? dateOf(exam) : null;
-                const when = examAt !== null ? escapeHtml(fmtDate(examAt, DATE_SHORT)) : '';
-                if (examAt === null) examLine.innerHTML = '<button type="button" onclick="focusExamDate()" class="text-emerald-400 hover:text-emerald-300 font-semibold">Set your exam date</button> to see your chance on the day';
-                else if (daysBetween(Date.now(), examAt) <= 0) examLine.innerHTML = '';
-                else if (!fc || !fc.exam) examLine.innerHTML = `On exam day (${when}): working it out…`;
-                else {
-                    const pct = Math.round(fc.exam.chance * 100);
-                    examLine.innerHTML = `On exam day (${when}): <b class="${estimateTone(fc.exam.chance).text}">${pct}%</b>`;
-                    examLine.title = `Your chance of reaching ${PASS_SCORE} in a sitting on ${fmtDate(examAt, DATE_LONG)}, ${!chart.plan.pace ? 'with no new questions before it, as in the last ' + PACE_LONG_DAYS + ' days' : 'if you keep answering new questions at your ' + PACE_LONG_DAYS + '-day pace' + (fc.trend === 'unknown' ? '' : ' and improving at your recent rate')}: the forecast's ${FORECAST_RUNS} runs up to the exam, each followed by the same sitting simulation as today's chance, with its allowance for any days without practice before it.`;
-                }
             }
 
             const svg = holder.querySelector('svg'), cross = svg.querySelector('.score-cross');
