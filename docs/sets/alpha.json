@@ -8195,5 +8195,520 @@
     "pillars": [
       "Cost Optimization"
     ]
+  },
+  {
+    "id": 193,
+    "domain": "Security, Identity & Compliance",
+    "exam_domain": 1,
+    "task": "1.1",
+    "difficulty": "hard",
+    "services": [
+      "IAM › ABAC",
+      "IAM Identity Center"
+    ],
+    "question": "A company uses AWS IAM Identity Center with its external identity provider (IdP) to give 600 engineers access to a shared AWS account. Each engineer belongs to one of about 120 projects, recorded as a project attribute in the IdP, and new projects start every week. Engineers must be able to read and write only the objects under their own project's prefix in a shared Amazon S3 bucket (for example, s3://eng-data/<project>/). The security team wants to stop editing policies whenever a project is created. Which TWO actions should a solutions architect take? (Select TWO.)",
+    "hint": "The project is already known to the IdP. How can that value reach each sign-in session, and how can one policy read it?",
+    "keywords": [
+      "about 120 projects",
+      "new projects start every week",
+      "only the objects under their own project's prefix",
+      "stop editing policies",
+      "TWO"
+    ],
+    "options": {
+      "A": "Enable attributes for access control in IAM Identity Center and map the IdP's project attribute so that it is passed into each session as a session tag named project.",
+      "B": "Create one permission set per project, each with a policy that names that project's prefix, and assign it to the project's group.",
+      "C": "Create an IAM group for each project in the account and add each engineer's IAM user to the group that matches their project.",
+      "D": "Use a single permission set whose policy allows s3:GetObject and s3:PutObject on arn:aws:s3:::eng-data/${aws:PrincipalTag/project}/* and allows s3:ListBucket only when the s3:prefix condition key matches ${aws:PrincipalTag/project}/*.",
+      "E": "Attach a service control policy to the account for each project that denies access to every other project's prefix."
+    },
+    "correct_answer": [
+      "A",
+      "D"
+    ],
+    "explanation": [
+      "A is correct: attributes for access control pass IdP attributes into the role session as session tags, so every engineer's session carries their own project value without any per-project setup.",
+      "B is wrong: it works, but every new project then needs a new permission set and assignment each week, which is exactly the policy editing the team wants to stop.",
+      "C is wrong: Identity Center users sign in through roles, not IAM users, and a group per project still needs a new policy for every new project.",
+      "D is correct: the ${aws:PrincipalTag/project} policy variable is filled in from each session's tag, so one policy limits every engineer to their own prefix, including projects that do not exist yet.",
+      "E is wrong: service control policies apply to every principal in the account, so they cannot tell one engineer from another, and one per project would still need editing."
+    ],
+    "tldr": "ABAC: pass the IdP attribute as a session tag (Identity Center attributes for access control) and write one policy with ${aws:PrincipalTag/...}, so new projects need no policy changes.",
+    "wrong_reasons": {
+      "B": "it works, but every new project then needs a new permission set and assignment each week, which is exactly the policy editing the team wants to stop.",
+      "C": "Identity Center users sign in through roles, not IAM users, and a group per project still needs a new policy for every new project.",
+      "E": "service control policies apply to every principal in the account, so they cannot tell one engineer from another, and one per project would still need editing."
+    },
+    "pillars": [
+      "Security",
+      "Operational Excellence"
+    ]
+  },
+  {
+    "id": 194,
+    "domain": "Storage & Backup",
+    "exam_domain": 1,
+    "task": "1.1",
+    "difficulty": "hard",
+    "services": [
+      "S3 › Access control"
+    ],
+    "question": "A company receives daily files from 40 partner companies. Each partner uploads to the company's Amazon S3 bucket from the partner's own AWS account, through a bucket policy that allows s3:PutObject for the partner accounts. The bucket was created years ago and still uses the Object writer setting for S3 Object Ownership. Analysts in the company's account get AccessDenied errors when they read many of the partner files, including millions of files uploaded in past years, although their IAM policies allow s3:GetObject on the bucket. Which solution gives the company's account access to all existing and future partner files with the LEAST operational effort?",
+    "hint": "The analysts' policies are fine. Who owns those objects, and is there a setting that changes ownership even for objects already in the bucket?",
+    "keywords": [
+      "from the partner's own AWS account",
+      "Object writer",
+      "AccessDenied",
+      "including millions of files uploaded in past years",
+      "LEAST operational effort"
+    ],
+    "options": {
+      "A": "Add a statement to the bucket policy that denies s3:PutObject unless the request includes the bucket-owner-full-control canned ACL.",
+      "B": "Ask each partner to copy its existing objects over themselves with the bucket-owner-full-control canned ACL, and to add that ACL to all future uploads.",
+      "C": "Change the bucket's S3 Object Ownership setting to Bucket owner enforced.",
+      "D": "Use S3 Batch Operations to replace the access control list on every existing object with one that grants the analysts' IAM role read access."
+    },
+    "correct_answer": "C",
+    "explanation": [
+      "A is wrong: it fixes only future uploads, and the millions of existing objects that the partners own stay unreadable.",
+      "B is wrong: it would work, but it needs all 40 partners to rewrite their past objects and change their upload code, which is the most effort of all.",
+      "C is correct: Bucket owner enforced disables ACLs and makes the bucket owner the owner of every object in the bucket, existing objects included, so the company's own IAM policies decide who can read them.",
+      "D is wrong: by default only an object's owner, here the partner account, can change its ACL, and ACLs grant access to accounts and predefined groups, not to IAM roles."
+    ],
+    "tldr": "With Object writer, objects uploaded by other accounts belong to them; Bucket owner enforced disables ACLs and gives the bucket owner every object, old and new.",
+    "wrong_reasons": {
+      "A": "it fixes only future uploads, and the millions of existing objects that the partners own stay unreadable.",
+      "B": "it would work, but it needs all 40 partners to rewrite their past objects and change their upload code, which is the most effort of all.",
+      "D": "by default only an object's owner, here the partner account, can change its ACL, and ACLs grant access to accounts and predefined groups, not to IAM roles."
+    },
+    "pillars": [
+      "Security"
+    ]
+  },
+  {
+    "id": 195,
+    "domain": "Storage & Backup",
+    "exam_domain": 1,
+    "task": "1.3",
+    "difficulty": "hard",
+    "services": [
+      "S3 › Object Lock"
+    ],
+    "question": "A brokerage keeps trade confirmations in an existing Amazon S3 bucket that has versioning enabled and holds 900 million objects. A new regulation requires that every confirmation, existing and future, stay unchangeable for at least 7 years from when it was written, and that no user, including the root user, can delete or overwrite a protected version before then. The company wants to keep the same bucket name and minimize effort. Which TWO actions should a solutions architect take? (Select TWO.)",
+    "hint": "There are two groups of objects: those arriving from now on and the 900 million already there. Which retention mode can even the root user not override?",
+    "keywords": [
+      "existing Amazon S3 bucket that has versioning enabled",
+      "900 million objects",
+      "existing and future",
+      "including the root user",
+      "same bucket name",
+      "TWO"
+    ],
+    "options": {
+      "A": "Create a new bucket with S3 Object Lock enabled, copy every object into it with S3 Batch Operations, then delete the original bucket and recreate it with Object Lock enabled under the same name.",
+      "B": "Enable S3 Object Lock on the existing bucket and set a default retention period of 7 years in compliance mode.",
+      "C": "Set a default retention period of 7 years in governance mode and remove the s3:BypassGovernanceRetention permission from every IAM policy.",
+      "D": "Add a bucket policy that denies s3:DeleteObject and s3:PutObject to all principals, and add an S3 Lifecycle rule that expires objects after 7 years.",
+      "E": "Run an S3 Batch Operations job, with an S3 Inventory report as its manifest, that applies compliance-mode Object Lock retention with a retain-until date 7 years from today to the existing objects."
+    },
+    "correct_answer": [
+      "B",
+      "E"
+    ],
+    "explanation": [
+      "A is wrong: Object Lock can be enabled on an existing versioned bucket, so copying 900 million objects twice is needless effort, and a deleted bucket name is not guaranteed to be available again.",
+      "B is correct: Object Lock can be turned on for an existing bucket that has versioning, and a compliance-mode default retention protects every new version so that no one, the root user included, can delete it or shorten its retention.",
+      "C is wrong: governance mode can be bypassed by any principal allowed s3:BypassGovernanceRetention, removing that permission from IAM policies does not restrict the root user, and any administrator could grant it back.",
+      "D is wrong: anyone allowed to change the bucket policy, including the root user, can remove the deny, and denying s3:PutObject to everyone would also block new confirmations.",
+      "E is correct: a default retention applies only to objects written after it is set, so existing objects need retention applied to them; Batch Operations does that in place across the inventory without copying, and 7 years from today keeps every existing object at least 7 years from when it was written."
+    ],
+    "tldr": "WORM on an existing bucket: enable Object Lock with a compliance-mode default retention for new objects, and apply retention to existing objects in place with S3 Batch Operations.",
+    "wrong_reasons": {
+      "A": "Object Lock can be enabled on an existing versioned bucket, so copying 900 million objects twice is needless effort, and a deleted bucket name is not guaranteed to be available again.",
+      "C": "governance mode can be bypassed by any principal allowed s3:BypassGovernanceRetention, removing that permission from IAM policies does not restrict the root user, and any administrator could grant it back.",
+      "D": "anyone allowed to change the bucket policy, including the root user, can remove the deny, and denying s3:PutObject to everyone would also block new confirmations."
+    },
+    "pillars": [
+      "Security",
+      "Operational Excellence"
+    ]
+  },
+  {
+    "id": 196,
+    "domain": "Analytics & Data Processing",
+    "exam_domain": 1,
+    "task": "1.3",
+    "difficulty": "hard",
+    "services": [
+      "Lake Formation"
+    ],
+    "question": "A company runs a central data lake account that uses Amazon S3, the AWS Glue Data Catalog and AWS Lake Formation. Analysts in 25 consumer accounts query the data lake with Amazon Athena. Tables are added every day. Columns that hold personal data must be visible only to the compliance team's account, and each consumer account must see only the data domains it is approved for, such as sales or logistics. The data platform team wants new tables to be shared correctly without writing new grants for each table. Which solution meets these requirements with the LEAST operational overhead?",
+    "hint": "Grants that name each table must be written again for every new table. What else can a grant name, so that new tables match it automatically?",
+    "keywords": [
+      "25 consumer accounts",
+      "Tables are added every day",
+      "Columns that hold personal data",
+      "without writing new grants for each table",
+      "LEAST operational overhead"
+    ],
+    "options": {
+      "A": "Write S3 bucket policies in the data lake account that grant each consumer account access to the prefixes of its approved tables, and add a prefix to the policies for each new table.",
+      "B": "Define LF-Tags such as domain and sensitivity, assign them to databases, tables and personal-data columns, and grant each consumer account permissions on LF-Tag expressions such as domain=sales AND sensitivity=general.",
+      "C": "Grant each consumer account Lake Formation permissions on named tables and columns, and run an AWS Lambda function for each new table that adds the grants.",
+      "D": "Copy the approved tables into each consumer account's own S3 bucket every night, and create Athena views in each account that leave out the personal-data columns."
+    },
+    "correct_answer": "B",
+    "explanation": [
+      "A is wrong: bucket policies work on object prefixes, so they cannot hide individual columns, and every new table means another policy change.",
+      "B is correct: Lake Formation tag-based access control grants permissions on tag expressions, so a new table that is tagged, or inherits its database's tags, is shared with the right accounts automatically, and tagging personal-data columns as sensitive keeps them from accounts without that tag value.",
+      "C is wrong: named-resource grants work, but a grant for every table and column, kept current by custom code, is the overhead the team wants to avoid.",
+      "D is wrong: nightly copies into 25 accounts multiply storage and are up to a day out of date, and views in every account must be maintained by hand."
+    ],
+    "tldr": "Lake Formation LF-Tags: tag databases, tables and columns, grant accounts on tag expressions, and new tables that carry or inherit the tags are shared without new grants.",
+    "wrong_reasons": {
+      "A": "bucket policies work on object prefixes, so they cannot hide individual columns, and every new table means another policy change.",
+      "C": "named-resource grants work, but a grant for every table and column, kept current by custom code, is the overhead the team wants to avoid.",
+      "D": "nightly copies into 25 accounts multiply storage and are up to a day out of date, and views in every account must be maintained by hand."
+    },
+    "pillars": [
+      "Security",
+      "Operational Excellence"
+    ]
+  },
+  {
+    "id": 197,
+    "domain": "Storage & Backup",
+    "exam_domain": 2,
+    "task": "2.2",
+    "difficulty": "hard",
+    "services": [
+      "Backup › Cross-account & cross-Region copy",
+      "Backup › Vault Lock"
+    ],
+    "question": "A company runs production workloads in one AWS account in an organization in AWS Organizations, using Amazon RDS databases, Amazon EBS volumes and Amazon DynamoDB tables in us-east-1. After a ransomware attack on a competitor, the company requires that its backups survive even if an attacker gains full administrator access to the production account, and that it can restore in us-west-2 if us-east-1 is unavailable. Backups must be kept for 35 days. Which solution meets these requirements?",
+    "hint": "For each option, ask who could delete the backup copy. An administrator of the production account controls everything inside that account.",
+    "keywords": [
+      "full administrator access to the production account",
+      "restore in us-west-2",
+      "kept for 35 days"
+    ],
+    "options": {
+      "A": "Create AWS Backup plans in the production account that copy recovery points to a backup vault in us-west-2 in the same account, and turn on AWS Backup Vault Lock in governance mode on that vault.",
+      "B": "Turn on DynamoDB point-in-time recovery, set the RDS automated backup retention period to 35 days, and use Amazon Data Lifecycle Manager to copy EBS snapshots to us-west-2.",
+      "C": "Export the backups to an Amazon S3 bucket in a separate account, replicate the bucket to us-west-2 with S3 Cross-Region Replication, and add a bucket policy that denies deletion.",
+      "D": "Create AWS Backup plans that copy each recovery point to a backup vault in us-west-2 in a dedicated backup account in the organization, and lock that vault with AWS Backup Vault Lock in compliance mode."
+    },
+    "correct_answer": "D",
+    "explanation": [
+      "A is wrong: an administrator of the production account controls a vault in that same account, and a governance-mode lock can be removed by anyone with the right IAM permissions, so an attacker could delete the backups.",
+      "B is wrong: all of these backups stay in the production account, where an attacker with administrator access can delete them, and it means running three backup mechanisms instead of one.",
+      "C is wrong: EBS volumes and RDS databases cannot be restored from files in an ordinary S3 bucket (an RDS snapshot export to S3 is for analytics), and the separate account's administrators can still change or remove the bucket policy.",
+      "D is correct: a copy in another account means taking over production is not enough to delete it, the us-west-2 vault allows a restore there, and once a compliance-mode Vault Lock is in force no one, the backup account's root user included, can delete recovery points or shorten their retention."
+    ],
+    "tldr": "Ransomware-proof backups: AWS Backup copies to a vault in a separate backup account and another Region, locked with Vault Lock in compliance mode.",
+    "wrong_reasons": {
+      "A": "an administrator of the production account controls a vault in that same account, and a governance-mode lock can be removed by anyone with the right IAM permissions, so an attacker could delete the backups.",
+      "B": "all of these backups stay in the production account, where an attacker with administrator access can delete them, and it means running three backup mechanisms instead of one.",
+      "C": "EBS volumes and RDS databases cannot be restored from files in an ordinary S3 bucket (an RDS snapshot export to S3 is for analytics), and the separate account's administrators can still change or remove the bucket policy."
+    },
+    "pillars": [
+      "Reliability",
+      "Security"
+    ]
+  },
+  {
+    "id": 198,
+    "domain": "Disaster Recovery & Migration",
+    "exam_domain": 2,
+    "task": "2.2",
+    "difficulty": "hard",
+    "services": [
+      "Transfer Family"
+    ],
+    "question": "A logistics company runs an SFTP server on a single Amazon EC2 instance. About 300 trading partners upload shipment files with SSH keys, and a cron job then copies the files to Amazon S3. The server is a single point of failure and patching it is a burden. Many partners allow outbound connections only to IP addresses that they have listed in their firewalls, so the server's addresses must not change. Partners must keep using their existing SSH keys and must not have to change anything else. Which solution meets these requirements with the LEAST operational overhead?",
+    "hint": "Three needs: managed and highly available, the same SSH keys, and addresses that never change. Which endpoint type gives you IP addresses that you own?",
+    "keywords": [
+      "single Amazon EC2 instance",
+      "only to IP addresses that they have listed in their firewalls",
+      "must not change",
+      "existing SSH keys",
+      "LEAST operational overhead"
+    ],
+    "options": {
+      "A": "Create an AWS Transfer Family SFTP server with an internet-facing VPC endpoint, attach Elastic IP addresses in several Availability Zones, store the files directly in Amazon S3, and import each partner's existing SSH public key for a service-managed user.",
+      "B": "Create an AWS Transfer Family SFTP server with a publicly accessible endpoint, give the partners the endpoint's current IP addresses for their allowlists, and import each partner's existing SSH public key for a service-managed user.",
+      "C": "Run two EC2 SFTP servers in an Auto Scaling group behind a Network Load Balancer with Elastic IP addresses, and mount the S3 bucket on the instances with Mountpoint for Amazon S3.",
+      "D": "Install AWS DataSync agents at the partners' sites and schedule tasks that transfer the files to Amazon S3."
+    },
+    "correct_answer": "A",
+    "explanation": [
+      "A is correct: Transfer Family is a managed SFTP service that runs across Availability Zones and writes straight to S3; an internet-facing VPC endpoint uses Elastic IP addresses that you own, so the addresses never change, and importing the partners' public keys means they connect exactly as before.",
+      "B is wrong: the IP addresses of a publicly accessible endpoint are managed by AWS and can change, which would break the partners' allowlists; fixed addresses need the VPC endpoint type with Elastic IP addresses.",
+      "C is wrong: it still leaves instances to patch and run, and Mountpoint for Amazon S3 does not support all the file operations an SFTP server performs on a general purpose bucket, such as renaming files or appending to them.",
+      "D is wrong: DataSync would need an agent installed at each of 300 partners, a change on their side, and it does not give them an SFTP endpoint."
+    ],
+    "tldr": "Managed SFTP into S3 = Transfer Family; for IP addresses that never change, use an internet-facing VPC endpoint with Elastic IPs, not the public endpoint.",
+    "wrong_reasons": {
+      "B": "the IP addresses of a publicly accessible endpoint are managed by AWS and can change, which would break the partners' allowlists; fixed addresses need the VPC endpoint type with Elastic IP addresses.",
+      "C": "it still leaves instances to patch and run, and Mountpoint for Amazon S3 does not support all the file operations an SFTP server performs on a general purpose bucket, such as renaming files or appending to them.",
+      "D": "DataSync would need an agent installed at each of 300 partners, a change on their side, and it does not give them an SFTP endpoint."
+    },
+    "pillars": [
+      "Reliability",
+      "Operational Excellence"
+    ]
+  },
+  {
+    "id": 199,
+    "domain": "Networking & Content Delivery",
+    "exam_domain": 2,
+    "task": "2.2",
+    "difficulty": "hard",
+    "services": [
+      "CloudFront › Origin failover",
+      "S3 › Replication"
+    ],
+    "question": "A company serves product images and downloadable manuals to customers worldwide through an Amazon CloudFront distribution whose origin is an Amazon S3 bucket in us-east-1, reached through origin access control (OAC). Customers only download content; nothing is uploaded through CloudFront. The company must keep serving content if the bucket in us-east-1 becomes unavailable, without waiting for DNS changes and with the least operational overhead. Which solution meets these requirements?",
+    "hint": "Failover that does not wait for DNS has to happen inside CloudFront. What can CloudFront do when an origin returns errors, and where should the second copy live?",
+    "keywords": [
+      "Customers only download content",
+      "becomes unavailable",
+      "without waiting for DNS changes",
+      "least operational overhead"
+    ],
+    "options": {
+      "A": "Create a second CloudFront distribution with an S3 bucket in eu-west-1 as its origin, and use Amazon Route 53 failover records with health checks to switch between the two distributions.",
+      "B": "Enable S3 Versioning and use S3 Same-Region Replication to copy the objects to a second bucket in us-east-1, then add that bucket as a second origin.",
+      "C": "Use S3 Cross-Region Replication to copy the objects to a bucket in eu-west-1, add both buckets as origins with OAC, and create a CloudFront origin group that fails over to the eu-west-1 bucket on 500, 502, 503 and 504 responses.",
+      "D": "Raise the default TTL to one year so that objects stay in the CloudFront edge caches during an outage."
+    },
+    "correct_answer": "C",
+    "explanation": [
+      "A is wrong: it can work, but it means running a second distribution, and clients move only after Route 53 health checks fail and their cached DNS answers expire, which is the delay the company wants to avoid.",
+      "B is wrong: a second bucket in the same Region shares the Region's fate, so it does not keep content available when us-east-1 has a problem.",
+      "C is correct: replication keeps a copy in another Region, and an origin group makes CloudFront send the request to the secondary origin when the primary returns one of the chosen status codes or cannot be reached, with no DNS change; origin failover covers GET, HEAD and OPTIONS requests, which is all this site uses.",
+      "D is wrong: only objects already cached at an edge location would be served, and CloudFront can evict less popular objects before their TTL ends, so many requests would still reach the failed origin."
+    ],
+    "tldr": "CloudFront origin groups fail over to a secondary origin (here a Cross-Region Replication copy) on chosen errors, for GET, HEAD and OPTIONS, with no DNS change.",
+    "wrong_reasons": {
+      "A": "it can work, but it means running a second distribution, and clients move only after Route 53 health checks fail and their cached DNS answers expire, which is the delay the company wants to avoid.",
+      "B": "a second bucket in the same Region shares the Region's fate, so it does not keep content available when us-east-1 has a problem.",
+      "D": "only objects already cached at an edge location would be served, and CloudFront can evict less popular objects before their TTL ends, so many requests would still reach the failed origin."
+    },
+    "pillars": [
+      "Reliability"
+    ]
+  },
+  {
+    "id": 200,
+    "domain": "Databases & Caching",
+    "exam_domain": 3,
+    "task": "3.3",
+    "difficulty": "hard",
+    "services": [
+      "DynamoDB › Partition design",
+      "DynamoDB › Indexes"
+    ],
+    "question": "An order service writes about 4,000 items per second to an Amazon DynamoDB table in on-demand capacity mode. The table's partition key is order_id. To list orders by state, the team added a global secondary index (GSI) with order_status as its partition key and no sort key. The attribute has five possible values, and almost all new orders are written with the value PENDING. Since the GSI was added, writes to the base table are throttled at peak, although the table is far below its account quotas. Which change will stop the throttling?",
+    "hint": "The table has plenty of capacity overall. Look at where the index's writes land: how many different partition key values do they use?",
+    "keywords": [
+      "on-demand capacity mode",
+      "five possible values",
+      "almost all new orders are written with the value PENDING",
+      "writes to the base table are throttled",
+      "far below its account quotas"
+    ],
+    "options": {
+      "A": "Switch the table to provisioned capacity mode with 10,000 write capacity units, and turn on auto scaling for the GSI.",
+      "B": "Write the GSI partition key as order_status plus a random suffix from 0 to 19 (for example, PENDING#7), and query all 20 suffixes in parallel when listing orders by state.",
+      "C": "Add a DynamoDB Accelerator (DAX) cluster in front of the table so that the writes are buffered.",
+      "D": "Change the GSI's projection from ALL to KEYS_ONLY so that each index write is smaller."
+    },
+    "correct_answer": "B",
+    "explanation": [
+      "A is wrong: more table capacity does not help, because the limit being hit is per partition: a single partition key value can take about 1,000 write units a second in either capacity mode.",
+      "B is correct: a random suffix spreads the PENDING writes across 20 key values and so across many partitions, which removes the hot spot; reading by state then means querying the 20 suffixes in parallel and merging the results.",
+      "C is wrong: DAX caches reads, and writes pass straight through to DynamoDB, so it does nothing to spread them.",
+      "D is wrong: every write consumes at least one write unit however small it is, so 4,000 writes a second to one key value still exceed what one partition can take."
+    ],
+    "tldr": "A low-cardinality GSI key makes one hot index partition (about 1,000 writes a second each), and a throttled GSI throttles the base table: shard the key with a suffix.",
+    "wrong_reasons": {
+      "A": "more table capacity does not help, because the limit being hit is per partition: a single partition key value can take about 1,000 write units a second in either capacity mode.",
+      "C": "DAX caches reads, and writes pass straight through to DynamoDB, so it does nothing to spread them.",
+      "D": "every write consumes at least one write unit however small it is, so 4,000 writes a second to one key value still exceed what one partition can take."
+    },
+    "pillars": [
+      "Performance Efficiency"
+    ]
+  },
+  {
+    "id": 201,
+    "domain": "Networking & Content Delivery",
+    "exam_domain": 3,
+    "task": "3.4",
+    "difficulty": "hard",
+    "services": [
+      "Global Accelerator",
+      "Elastic Load Balancing › NLB"
+    ],
+    "question": "A company runs a real-time voice chat service on Amazon EC2 instances behind Network Load Balancers in us-east-1 and ap-northeast-1. Clients use UDP for audio and TCP for signaling. Enterprise customers must add the service's IP addresses to their firewalls and will accept only a small, fixed set of addresses that never changes. If one Region fails, clients must be moved to the other Region automatically, without waiting for DNS records to expire. Which solution meets these requirements?",
+    "hint": "Three needs: UDP, a short list of addresses that never changes, and failover that does not wait for DNS. Which service gives you its own static addresses in front of several Regions?",
+    "keywords": [
+      "UDP for audio",
+      "small, fixed set of addresses that never changes",
+      "without waiting for DNS records to expire"
+    ],
+    "options": {
+      "A": "Create an Amazon CloudFront distribution with both Network Load Balancers as origins in an origin group.",
+      "B": "Use Amazon Route 53 latency-based routing with health checks across the two Network Load Balancers, and give customers each load balancer's static IP addresses.",
+      "C": "Create an AWS Global Accelerator standard accelerator with Application Load Balancers in both Regions as endpoints, listening on the UDP and TCP ports.",
+      "D": "Create an AWS Global Accelerator standard accelerator with listeners for the UDP and TCP ports and an endpoint group in each Region that contains that Region's Network Load Balancer."
+    },
+    "correct_answer": "D",
+    "explanation": [
+      "A is wrong: CloudFront delivers HTTP and HTTPS (including WebSocket) traffic only, so it cannot carry the UDP audio.",
+      "B is wrong: customers would have to allow every load balancer address in both Regions, one per Availability Zone, and failover still waits for clients' cached DNS answers to expire.",
+      "C is wrong: Application Load Balancers work at layer 7 with HTTP and HTTPS, so they cannot receive the UDP traffic.",
+      "D is correct: Global Accelerator gives two static anycast IP addresses in front of both Regions, carries TCP and UDP, and moves traffic to the healthy Region's endpoint group as soon as its health checks mark the failed one unhealthy, with no DNS change."
+    ],
+    "tldr": "UDP + a few static IP addresses + fast cross-Region failover without DNS = Global Accelerator with Network Load Balancer endpoint groups.",
+    "wrong_reasons": {
+      "A": "CloudFront delivers HTTP and HTTPS (including WebSocket) traffic only, so it cannot carry the UDP audio.",
+      "B": "customers would have to allow every load balancer address in both Regions, one per Availability Zone, and failover still waits for clients' cached DNS answers to expire.",
+      "C": "Application Load Balancers work at layer 7 with HTTP and HTTPS, so they cannot receive the UDP traffic."
+    },
+    "pillars": [
+      "Performance Efficiency",
+      "Reliability"
+    ]
+  },
+  {
+    "id": 202,
+    "domain": "Networking & Content Delivery",
+    "exam_domain": 3,
+    "task": "3.4",
+    "difficulty": "hard",
+    "services": [
+      "CloudFront › Caching"
+    ],
+    "question": "A news website uses an Amazon CloudFront distribution in front of Application Load Balancers, and the cache hit ratio is under 10%. The distribution's single cache behavior puts all query strings, all cookies and the User-Agent header in the cache key. Article pages vary only by the lang query string, and tracking links add other query strings such as utm_source. Signed-in readers carry a session cookie, pages under /account/ are personal to each reader, and the origin needs the session cookie on those requests. Which TWO changes will raise the cache hit ratio without ever serving one reader's account pages to another? (Select TWO.)",
+    "hint": "There are two kinds of page: articles that every reader shares and account pages that nobody shares. What belongs in the cache key for each?",
+    "keywords": [
+      "cache hit ratio is under 10%",
+      "all query strings, all cookies and the User-Agent header",
+      "vary only by the lang query string",
+      "personal to each reader",
+      "TWO"
+    ],
+    "options": {
+      "A": "Increase the minimum TTL of the existing cache behavior to 24 hours.",
+      "B": "Turn on Origin Shield in the Region closest to the load balancers.",
+      "C": "Give the default cache behavior a cache policy whose cache key includes only the lang query string, with no cookies and no headers.",
+      "D": "Use a Lambda@Edge function on viewer requests to remove the session cookie from every request.",
+      "E": "Add a cache behavior for /account/* that uses the CachingDisabled managed cache policy and an origin request policy that forwards the session cookie to the origin."
+    },
+    "correct_answer": [
+      "C",
+      "E"
+    ],
+    "explanation": [
+      "A is wrong: a longer TTL does not help when almost every request has a different cache key, and keeping pages that vary by cookie for a day risks serving stale personal content.",
+      "B is wrong: Origin Shield adds a central caching layer, but it caches by the same cache key, so the same nearly unique keys miss there too.",
+      "C is correct: with only lang in the cache key, every reader and every tracking link for an article share one cached copy, because cookies, other query strings and User-Agent no longer split the cache.",
+      "D is wrong: removing the session cookie from every request breaks the account pages, since the origin needs it there.",
+      "E is correct: account pages are never cached, so one reader's page cannot be served to another, and the origin request policy still sends the session cookie that the origin needs without adding it to any cache key."
+    ],
+    "tldr": "Put only what changes the response in the cache key (cache policy), forward other values with an origin request policy, and do not cache personal paths.",
+    "wrong_reasons": {
+      "A": "a longer TTL does not help when almost every request has a different cache key, and keeping pages that vary by cookie for a day risks serving stale personal content.",
+      "B": "Origin Shield adds a central caching layer, but it caches by the same cache key, so the same nearly unique keys miss there too.",
+      "D": "removing the session cookie from every request breaks the account pages, since the origin needs it there."
+    },
+    "pillars": [
+      "Performance Efficiency",
+      "Cost Optimization"
+    ]
+  },
+  {
+    "id": 203,
+    "domain": "Databases & Caching",
+    "exam_domain": 4,
+    "task": "4.3",
+    "difficulty": "hard",
+    "services": [
+      "DynamoDB › Table classes"
+    ],
+    "question": "A company has two Amazon DynamoDB tables in provisioned capacity mode. The orders_archive table holds 30 TB of completed orders that are read only when a customer opens an old order, and storage is about 85% of its monthly cost. The sessions table holds 40 GB and serves tens of thousands of reads and writes per second, and throughput is about 95% of its monthly cost. Both tables must stay in DynamoDB with the same performance. Which change lowers the total DynamoDB bill the most?",
+    "hint": "Look at what dominates each table's bill. What does the Infrequent Access table class make cheaper, and what does it make more expensive?",
+    "keywords": [
+      "storage is about 85% of its monthly cost",
+      "throughput is about 95% of its monthly cost",
+      "same performance",
+      "lowers the total DynamoDB bill the most"
+    ],
+    "options": {
+      "A": "Change the orders_archive table to the DynamoDB Standard-Infrequent Access table class, and keep the sessions table in the Standard table class.",
+      "B": "Change both tables to the DynamoDB Standard-Infrequent Access table class.",
+      "C": "Change the sessions table to the DynamoDB Standard-Infrequent Access table class, and keep the orders_archive table in the Standard table class.",
+      "D": "Switch both tables to on-demand capacity mode."
+    },
+    "correct_answer": "A",
+    "explanation": [
+      "A is correct: Standard-IA cuts the storage price by about 60% but raises the price of reads and writes, with the same performance, so it pays off for a table where storage dominates, like orders_archive, and not for one where throughput does.",
+      "B is wrong: on the sessions table the higher read and write prices far outweigh the small storage saving, so its cost rises.",
+      "C is wrong: it is the wrong way round: the busy table pays more for throughput, and the large table keeps paying the full storage price.",
+      "D is wrong: on-demand charges per request and usually costs more than well-used provisioned capacity for steady heavy traffic like the sessions table, and it does nothing about the archive's storage cost."
+    ],
+    "tldr": "DynamoDB Standard-IA: cheaper storage, dearer reads and writes, same performance; choose it per table, where storage dominates the bill.",
+    "wrong_reasons": {
+      "B": "on the sessions table the higher read and write prices far outweigh the small storage saving, so its cost rises.",
+      "C": "it is the wrong way round: the busy table pays more for throughput, and the large table keeps paying the full storage price.",
+      "D": "on-demand charges per request and usually costs more than well-used provisioned capacity for steady heavy traffic like the sessions table, and it does nothing about the archive's storage cost."
+    },
+    "pillars": [
+      "Cost Optimization"
+    ]
+  },
+  {
+    "id": 204,
+    "domain": "Networking & Content Delivery",
+    "exam_domain": 4,
+    "task": "4.4",
+    "difficulty": "hard",
+    "services": [
+      "VPC › Gateway endpoints",
+      "VPC › NAT gateways"
+    ],
+    "question": "Amazon EC2 instances in private subnets download about 50 TB a month from Amazon S3 buckets in the same AWS Region through a NAT gateway. The instances also call a partner's payment API on the internet. A cost review shows that the NAT gateway's data processing charges are the largest item on the networking bill. Which change reduces the cost the most without breaking any of the instances' traffic?",
+    "hint": "Only part of the traffic needs the NAT gateway. Which kind of S3 endpoint costs nothing, and what would removing the NAT gateway break?",
+    "keywords": [
+      "about 50 TB a month",
+      "same AWS Region",
+      "a partner's payment API on the internet",
+      "data processing charges",
+      "without breaking any of the instances' traffic"
+    ],
+    "options": {
+      "A": "Create an S3 interface VPC endpoint in each private subnet and remove the NAT gateway.",
+      "B": "Replace the NAT gateway with a NAT instance on a large Amazon EC2 instance.",
+      "C": "Create an S3 gateway VPC endpoint, add it to the private subnets' route tables, and keep the NAT gateway for the internet traffic.",
+      "D": "Move the instances to public subnets and give them public IP addresses so that they reach Amazon S3 through the internet gateway."
+    },
+    "correct_answer": "C",
+    "explanation": [
+      "A is wrong: removing the NAT gateway cuts off the partner's payment API, and interface endpoints charge by the hour and by the gigabyte, so they cost more than a gateway endpoint.",
+      "B is wrong: a NAT instance avoids the per-gigabyte processing charge, but it is a single point of failure to patch and scale, and the S3 traffic would still pass through it, while a gateway endpoint takes that traffic off NAT for free.",
+      "C is correct: an S3 gateway endpoint has no hourly or data processing charge, the route table sends only S3 traffic to it, so the 50 TB stops passing through the NAT gateway and the NAT gateway remains for the payment API.",
+      "D is wrong: it exposes the instances directly to the internet, against the private-subnet design, and every public IPv4 address now has an hourly charge, while the gateway endpoint costs nothing."
+    ],
+    "tldr": "S3 and DynamoDB gateway endpoints are free and take that traffic off the NAT gateway's per-GB charge; keep NAT only for real internet traffic.",
+    "wrong_reasons": {
+      "A": "removing the NAT gateway cuts off the partner's payment API, and interface endpoints charge by the hour and by the gigabyte, so they cost more than a gateway endpoint.",
+      "B": "a NAT instance avoids the per-gigabyte processing charge, but it is a single point of failure to patch and scale, and the S3 traffic would still pass through it, while a gateway endpoint takes that traffic off NAT for free.",
+      "D": "it exposes the instances directly to the internet, against the private-subnet design, and every public IPv4 address now has an hourly charge, while the gateway endpoint costs nothing."
+    },
+    "pillars": [
+      "Cost Optimization"
+    ]
   }
 ]
