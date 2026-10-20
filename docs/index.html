@@ -3259,21 +3259,13 @@
             nextSlice();
         }
 
-        // The sentence under the chart: when the forecast reaches the pass mark, if it does
+        // The sentence under the chart, kept plain: about how many new questions until the score first reaches
+        // the pass mark (the middle of the runs that get there), when most runs do
         function passSentence(fc, last) {
-            const n = fc.plan.n, runs = fc.crossAt.length;
-            const basis = fc.trend === 'unknown' ? 'At your current level' : 'At your recent rate';
-            const end = fc.plan.limit === 'exam'
-                ? `before your exam (${plural(n, 'new question')} at your ${PACE_LONG_DAYS}-day pace)`
-                : `by the end of your ${plural(n, 'unseen question')}`;
             if (last >= PASS_SCORE) return `You're already at or above ${PASS_SCORE}.`;
             const got = fc.crossAt.filter(k => k !== null).sort((a, b) => a - b);
-            if (got.length * 2 >= runs) {
-                const mid = got[got.length >> 1];
-                return `${basis} you'd reach ${PASS_SCORE} after about ${plural(mid, 'more answer')}`
-                    + (got.length > 1 ? ` (${got[0]}–${got[got.length - 1]} across the runs that got there${got.length < runs ? `, ${got.length} of ${runs}` : ''})` : '') + '.';
-            }
-            return `${basis} you'd likely not reach ${PASS_SCORE} ${end}` + (got.length ? ` (${got.length} of ${runs} runs did)` : '') + '.';
+            if (got.length * 2 >= fc.crossAt.length) return `You could reach ${PASS_SCORE} in about ${plural(got[got.length >> 1], 'more new question')}.`;
+            return `You're unlikely to reach ${PASS_SCORE} ${fc.plan.limit === 'exam' ? 'before your exam' : 'before you run out of new questions'}.`;
         }
 
 
