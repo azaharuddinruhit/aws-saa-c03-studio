@@ -215,6 +215,9 @@
         html:not(.dark) .text-slate-400 { color: #64748b; }
         /* the two places text-white sits on a plain card rather than a coloured button */
         html:not(.dark) #questionText, html:not(.dark) #tldrLine { color: #0f172a; }
+        /* the question's number before its text, in the mind map's style at the question's own size */
+        .q-num { margin-right: 2px; font: 600 1em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #94a3b8; }
+        html:not(.dark) .q-num { color: #64748b; }
         /* on a dark page these hovers brighten the text; on a light one they must darken it */
         html:not(.dark) .hover\:text-slate-300:hover { color: #0f172a; }
         /* accents: the 300/400-weight greens and reds are tuned for a black page and fall below
@@ -263,6 +266,29 @@
         .ov-practise:hover { background: var(--ov-wash); border-color: var(--ov-line); }
         .ov-practise:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
         @media (min-width: 1024px) { .ov-pair { grid-template-columns: 1fr 1fr; align-items: start; } }
+        /* Practice sections: the title line starts the section quiz, and the question map under it has one
+           square per question (18px with a 6px gap, so each tap target is 24px from the next) */
+        .db-sec:has(> .db-sec-head:hover) { border-color: #34d399; background-color: var(--db-sec-hover); }
+        .db-sec-head { border-radius: .75rem; }
+        .db-sec-head:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 4px; }
+        .qmap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .75rem; }
+        .qmap-sq { flex: none; width: 18px; height: 18px; border-radius: 4px; background: var(--ov-right); }
+        .qmap-sq[data-s="missed"] { background: var(--ov-missed); }
+        .qmap-sq[data-s="new"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--qmap-edge); }
+        .qmap > .qmap-sq:hover { outline: 2px solid var(--ov-ink); outline-offset: 1px; }
+        .qmap > .qmap-sq:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
+        .qmap-sq.qmap-key { width: 12px; height: 12px; border-radius: 3px; }
+        .qmap-switch { display: inline-flex; align-items: center; gap: .5rem; padding: .25rem 0 .25rem .5rem; border-radius: .5rem; font-size: .75rem; color: var(--ov-muted); }
+        .qmap-switch:hover { color: var(--ov-ink); }
+        .qmap-switch:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
+        .qmap-track { position: relative; flex: none; width: 32px; height: 18px; border-radius: 9999px; background: var(--qmap-edge); transition: background-color .15s; }
+        .qmap-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #ffffff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: transform .15s; }
+        .qmap-switch[aria-checked="true"] .qmap-track { background: var(--ov-line); }
+        .qmap-switch[aria-checked="true"] .qmap-track::after { transform: translateX(14px); }
+        @media (prefers-reduced-motion: reduce) { .qmap-track, .qmap-track::after { transition: none; } }
+        html:not(.dark) #dashboardView { --qmap-edge: #94a3b8; --db-sec-hover: #e2e8f0; }
+        .dark #dashboardView { --qmap-edge: #64748b; --db-sec-hover: #1e293b; }
         html:not(.dark) #overviewView, html:not(.dark) #dashboardView {
             --ov-surface: #ffffff; --ov-line: #059669; --ov-wash: rgba(5, 150, 105, .10);
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
@@ -525,6 +551,12 @@
 
             <!-- Domains -->
             <div class="bank-only bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <!-- the question map under each section is a view preference on this device, off until switched on -->
+                <div class="flex justify-end mb-3">
+                    <button type="button" id="qmapSwitch" role="switch" aria-checked="false" onclick="toggleQuestionMap()" title="Show a square for each question under every section" class="qmap-switch">
+                        <span>Show squares</span><span class="qmap-track" aria-hidden="true"></span>
+                    </button>
+                </div>
                 <div id="domainListContainer" class="space-y-3">
                     <!-- Populated via JS -->
                 </div>
@@ -1323,28 +1355,33 @@
             const container = document.getElementById('domainListContainer');
             container.innerHTML = '';
 
-            // Per section: total questions, and how many were answered correctly the last time they were attempted
+            // Per section: total questions, how many were answered correctly the last time they were attempted,
+            // and each question's standing for its square in the section's question map
             const domains = {};
             questions.forEach(q => {
                 const d = q.domain || 'General AWS';
-                if (!domains[d]) domains[d] = { total: 0, correct: 0 };
+                if (!domains[d]) domains[d] = { total: 0, correct: 0, squares: [] };
                 domains[d].total++;
                 const log = attemptLog[q.id];
-                if (log && log.length && log[log.length - 1][0] === 1) domains[d].correct++;
+                const state = !log || !log.length ? 'new' : log[log.length - 1][0] === 1 ? 'right' : 'missed';
+                if (state === 'right') domains[d].correct++;
+                domains[d].squares.push({ q, state });
             });
 
-            for (const [domain, { total: count, correct }] of Object.entries(domains).sort(([a], [b]) => compareDomains(a, b))) {
+            for (const [domain, { total: count, correct, squares }] of Object.entries(domains).sort(([a], [b]) => compareDomains(a, b))) {
                 // the text and, beside it, a bar for the same share, coloured like the overall Correct meter
                 const shown = count ? Math.round(correct / count * 100) : 0;
                 const tone = correctTone(shown);
                 const bar = `<span role="progressbar" aria-label="${escapeHtml(domain)}: share answered correctly" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${shown}" title="${shown}% correct" class="block w-20 h-1.5 shrink-0 rounded-full overflow-hidden ${tone.track}"><span class="block h-1.5 rounded-full" style="width:${count ? correct / count * 100 : 0}%;background-color:${tone.fill}"></span></span>`;
                 const tally = `<span class="inline-flex items-center gap-2"><span class="${correct === count ? 'text-emerald-400' : 'text-slate-400'}"><span class="font-semibold">${correct}</span> / ${count} correct</span>${bar}</span>`;
-                // the whole card is the control, so there is no separate Practice button to aim at
-                const item = document.createElement('button');
-                item.type = 'button';
-                item.title = 'Practice ' + domain;
-                item.className = "w-full text-left flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 hover:border-aws-lightblue transition";
+                // the title line starts the section quiz; the squares under it each open one question,
+                // in question order so a square keeps its place as its colour changes
+                const map = squares.sort((a, b) => a.q.id - b.q.id).map(({ q, state }, i) =>
+                    `<button type="button" class="qmap-sq" data-s="${state}" data-qid="${q.id}" tabindex="${i ? -1 : 0}" aria-label="Question ${q.id}, ${QMAP_STATES[state].toLowerCase()}"></button>`).join('');
+                const item = document.createElement('div');
+                item.className = "db-sec p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 transition";
                 item.innerHTML = `
+                    <button type="button" class="db-sec-head w-full text-left flex items-center justify-between" title="Practice ${escapeHtml(domain)}">
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="w-8 h-8 rounded-xl bg-aws-orange/10 text-aws-orange flex items-center justify-center font-bold text-xs shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
@@ -1358,10 +1395,101 @@
                         <span class="hidden sm:inline text-xs font-medium">${tally}</span>
                         <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
                     </div>
+                    </button>
+                    ${showSquares ? `<div class="qmap" role="group" aria-label="${escapeHtml(domain)} questions">${map}</div>` : ''}
                 `;
-                item.addEventListener('click', () => startQuizByDomain(domain));
+                item.querySelector('.db-sec-head').addEventListener('click', () => startQuizByDomain(domain));
                 container.appendChild(item);
             }
+            const sw = document.getElementById('qmapSwitch');
+            sw.setAttribute('aria-checked', String(showSquares));
+            if (showSquares && questions.length) {
+                const key = (state, label) => `<span class="inline-flex items-center gap-1.5"><span class="qmap-sq qmap-key" data-s="${state}" aria-hidden="true"></span>${label}</span>`;
+                container.insertAdjacentHTML('beforeend', `<p class="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] text-slate-400">${key('right', 'Right last time')}${key('missed', 'Wrong last time')}${key('new', 'Not answered yet')}<span>Tap a square to open that question.</span></p>`);
+            }
+
+            // back from a question opened from its square: focus returns to that square
+            const back = squareToFocus === null ? null : container.querySelector(`.qmap-sq[data-qid="${squareToFocus}"]`);
+            if (back && !document.getElementById('dashboardView').classList.contains('hidden')) {
+                squareToFocus = null;
+                setRovingSquare(back);
+                quietFocus = true;
+                back.focus({ preventScroll: true });
+                quietFocus = false;
+                back.scrollIntoView({ block: 'center' });
+            }
+        }
+
+        // ---- Question map ----
+        // One square per question under each section: right or wrong last time, or not answered yet.
+        // Each strip is a single Tab stop (roving tabindex), and the arrow keys move between its squares.
+        const QMAP_STATES = { right: 'Right last time', missed: 'Wrong last time', new: 'Not answered yet' };
+        const QMAP_KEY = 'saa_question_map';   // '1' while the squares are shown; a view preference, not synced
+        let showSquares = false;
+        try { showSquares = localStorage.getItem(QMAP_KEY) === '1'; } catch (e) {}
+        let squareToFocus = null;   // the question opened from its square, focused again back on Practice
+
+        function toggleQuestionMap() {
+            showSquares = !showSquares;
+            try { localStorage.setItem(QMAP_KEY, showSquares ? '1' : '0'); } catch (e) {}
+            hideTip();
+            renderDomainList();
+        }
+        let quietFocus = false;     // a focus the page moved itself shows no tooltip
+
+        function setRovingSquare(sq) {
+            for (const other of sq.parentElement.children) other.tabIndex = other === sq ? 0 : -1;
+        }
+
+        function squareTip(sq, x, y) {
+            const q = questions.find(item => item.id === Number(sq.dataset.qid));
+            if (!q) return;
+            const tags = (Array.isArray(q.services) ? q.services : []).join(', ');
+            showTip([[questionRef(q), '· ' + QMAP_STATES[sq.dataset.s]], ...(tags ? [[null, tags]] : [])], x, y);
+        }
+
+        // Next square along the arrow's direction; up and down keep to the nearest square in the next line
+        function squareToward(sq, key) {
+            const all = [...sq.parentElement.children];
+            const i = all.indexOf(sq);
+            if (key === 'ArrowLeft') return all[i - 1];
+            if (key === 'ArrowRight') return all[i + 1];
+            if (key === 'Home') return all[0];
+            if (key === 'End') return all[all.length - 1];
+            const step = key === 'ArrowUp' ? -1 : 1;
+            let line = null, best = null;
+            for (let j = i + step; j >= 0 && j < all.length; j += step) {
+                const top = all[j].offsetTop;
+                if (top === sq.offsetTop) continue;
+                if (line === null) line = top;
+                if (top !== line) break;
+                if (!best || Math.abs(all[j].offsetLeft - sq.offsetLeft) < Math.abs(best.offsetLeft - sq.offsetLeft)) best = all[j];
+            }
+            return best;
+        }
+
+        function wireQuestionMap() {
+            const box = document.getElementById('domainListContainer');
+            const squareOf = e => e.target.closest && e.target.closest('.qmap > .qmap-sq');
+            box.addEventListener('click', e => { const sq = squareOf(e); if (sq) startQuizByQuestion(Number(sq.dataset.qid)); });
+            box.addEventListener('pointerover', e => { const sq = squareOf(e); if (sq && e.pointerType === 'mouse') squareTip(sq, e.clientX, e.clientY); });
+            box.addEventListener('pointerout', e => { if (squareOf(e)) hideTip(); });
+            box.addEventListener('focusin', e => {
+                const sq = squareOf(e);
+                if (!sq) return;
+                setRovingSquare(sq);
+                if (quietFocus) return;
+                const r = sq.getBoundingClientRect();
+                squareTip(sq, r.left + r.width / 2, r.top);
+            });
+            box.addEventListener('focusout', e => { if (squareOf(e)) hideTip(); });
+            box.addEventListener('keydown', e => {
+                const sq = squareOf(e);
+                if (!sq || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+                e.preventDefault();
+                const to = squareToward(sq, e.key);
+                if (to) to.focus();
+            });
         }
 
         // Coverage of the bank: distinct questions attempted at least once
@@ -1772,9 +1900,15 @@
         // Named after what was started, matching the dashboard buttons; a section quiz is named after its section
         const QUIZ_TITLES = { all: 'Quiz', smart: 'Smart quiz', mistakes: 'Review mistakes', flagged: 'Flagged' };
 
+        // A question as the mind map names it: its set's letter and its id, e.g. α45
+        function questionRef(q) {
+            return (BANKS[bankKey] ? BANKS[bankKey].symbol : '') + q.id;
+        }
+
         function quizTitle() {
             if (currentQuizMode === 'domain') return currentQuizQuestions[0].domain || 'General AWS';
             if (currentQuizMode === 'service') return quizTag || 'Quiz';
+            if (currentQuizMode === 'question') return 'Question ' + questionRef(currentQuizQuestions[0]);
             return QUIZ_TITLES[currentQuizMode] || 'Quiz';
         }
 
@@ -1877,6 +2011,8 @@
             startQuiz(mode, size);
         }
 
+        wireQuestionMap();
+
         document.getElementById('sizeCustom').addEventListener('input', event => {
             setQuizSize(Number(event.target.value), true);
         });
@@ -1954,6 +2090,23 @@
             if (currentQuizQuestions.length === 0) return;
 
             beginSession();
+            startQuizTimer();
+            go({ name: 'quiz', n: 1 });
+        }
+
+        // A square in a section's question map opens that one question on its own. There is no time's-up
+        // dialog, and Next, or leaving once it is answered, goes straight back to Practice without a summary.
+        function startQuizByQuestion(id) {
+            const q = questions.find(item => item.id === id);
+            if (!q) return;
+            hideTip();
+            currentQuizMode = 'question';
+            quizTag = null;
+            smartReasons = {};
+            currentQuizQuestions = [q];
+            beginSession();
+            timeWarned = true;
+            squareToFocus = id;
             startQuizTimer();
             go({ name: 'quiz', n: 1 });
         }
@@ -4250,7 +4403,7 @@
             // a mixed quiz also names this question's domain; a section quiz's title already is the domain
             document.getElementById('quizTitle').innerHTML = escapeHtml(quizTitle()) + (currentQuizMode === 'domain' ? ''
                 : ' <span class="font-normal text-slate-400">· ' + escapeHtml(q.domain || 'General AWS') + '</span>');
-            document.getElementById('questionText').innerHTML = highlightKeywords(q.question, q.keywords);
+            document.getElementById('questionText').innerHTML = `<small class="q-num">${escapeHtml(questionRef(q))}</small> ` + highlightKeywords(q.question, q.keywords);
 
             const progress = ((currentIndex + 1) / currentQuizQuestions.length) * 100;
             document.getElementById('quizProgressBar').style.width = progress + '%';
@@ -4432,7 +4585,7 @@
             btn.classList.remove('hidden');
             btn.disabled = false;
             document.getElementById('nextBtnText').innerText =
-                currentIndex === currentQuizQuestions.length - 1 ? "View Summary" : "Next Question";
+                currentIndex < currentQuizQuestions.length - 1 ? "Next Question" : currentQuizMode === 'question' ? "Back to Practice" : "View Summary";
         }
 
         // One button serves as Submit (multi-select, before answering) and Next.
@@ -4456,6 +4609,7 @@
             const next = currentIndex + 1;
             if (next >= currentQuizQuestions.length) {
                 if (!quizFinished) finishQuiz();
+                if (currentQuizMode === 'question') { returnToDashboard(); return; }
                 go({ name: 'summary' });
                 return;
             }
@@ -4536,7 +4690,7 @@
         // that has answers in it. Resolves false if the reader cancels.
         async function leaveSession(title, confirmLabel) {
             const done = Object.keys(userAnswers).length;
-            if (currentQuizQuestions.length > 0 && done > 0 && !quizFinished) {
+            if (currentQuizQuestions.length > 0 && done > 0 && !quizFinished && currentQuizMode !== 'question') {
                 const total = currentQuizQuestions.length;
                 const ok = await showConfirm(
                     'You have answered ' + done + ' of ' + total + '. Those answers are already counted in your stats, '
