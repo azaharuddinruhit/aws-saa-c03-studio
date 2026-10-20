@@ -2697,13 +2697,13 @@ A healthcare company receives de-identified medical records from hospital partne
 
 ### Correct answer: D
 
-**Summary:** A bucket policy can deny PutObject requests without the x-amz-server-side-encryption header (S3 also encrypts new objects with SSE-S3 by default).
+**Summary:** A bucket policy that denies PutObject without the x-amz-server-side-encryption header is the classic way to require encryption at rest. Since January 2023, S3 encrypts every new object with SSE-S3 by default anyway, so the policy now just makes each upload ask for it.
 
 ### Explanation
 - A is wrong: x-amz-acl sets object ACLs; it has nothing to do with encryption.
 - B is wrong: bucket-owner-full-control is about object ownership, not encryption.
 - C is wrong: aws:SecureTransport enforces encryption in transit, not at rest.
-- D is correct: denying any PutObject without the server-side encryption header ensures every stored object is encrypted at rest.
+- D is correct: it is the only option about encryption at rest, and it refuses any upload that does not request server-side encryption. Since January 2023, S3 has encrypted every new object with SSE-S3 by default, so today the policy mainly makes each upload request encryption explicitly, and it rejects partner uploads that leave the header out.
 
 **Key phrases:** encryption of all stored health information
 **Hint:** Encryption at rest is requested with a specific header on each PUT. Which condition checks for it?

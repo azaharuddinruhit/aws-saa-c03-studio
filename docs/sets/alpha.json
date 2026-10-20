@@ -303,7 +303,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "DynamoDB › DAX",
       "ElastiCache"
@@ -1421,7 +1421,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Macie",
       "EventBridge"
@@ -1596,7 +1596,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 3,
     "task": "3.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "EC2 › Placement groups & EFA"
     ],
@@ -2119,7 +2119,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "CloudWatch › Agent & custom metrics",
       "EC2 Auto Scaling"
@@ -2161,7 +2161,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "CloudWatch › Logs",
       "CloudWatch › Alarms"
@@ -2630,7 +2630,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "RDS › Encryption"
     ],
@@ -3482,7 +3482,7 @@
     "domain": "Disaster Recovery & Migration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Storage Gateway › File Gateway"
     ],
@@ -3523,7 +3523,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "easy",
+    "difficulty": "medium",
     "services": [
       "EC2 Auto Scaling › Warm pools & lifecycle hooks"
     ],
@@ -3564,7 +3564,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Neptune"
     ],
@@ -3951,7 +3951,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Control Tower"
     ],
@@ -4039,7 +4039,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "IAM › Access Analyzer"
     ],
@@ -4078,7 +4078,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "KMS › Key rotation",
       "KMS › Multi-Region keys"
@@ -4286,7 +4286,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "X-Ray"
     ],
@@ -4415,7 +4415,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 3,
     "task": "3.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Batch"
     ],
@@ -4457,7 +4457,7 @@
     "domain": "Analytics & Data Processing",
     "exam_domain": 3,
     "task": "3.5",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "Glue"
     ],
@@ -4584,7 +4584,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "Route 53 › Routing policies"
     ],
@@ -4625,7 +4625,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 4,
     "task": "4.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "EC2 › Hibernation"
     ],
@@ -5381,7 +5381,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "IAM › Federation"
     ],
@@ -5635,7 +5635,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Route 53 › Alias records"
     ],
@@ -5716,7 +5716,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "CloudFront › Geo restriction"
     ],
@@ -5935,7 +5935,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 3,
     "task": "3.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "FSx › OpenZFS"
     ],
@@ -6026,7 +6026,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Keyspaces"
     ],
@@ -6067,7 +6067,7 @@
     "domain": "Application Integration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "AppSync"
     ],
@@ -6110,7 +6110,7 @@
     "domain": "Disaster Recovery & Migration",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "DR strategies › Multi-site active-active",
       "DynamoDB › Global tables",
@@ -6288,7 +6288,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Service Catalog"
     ],
@@ -6328,7 +6328,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 4,
     "task": "4.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Trusted Advisor"
     ],
@@ -6616,7 +6616,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "VPC › Security groups"
     ],
@@ -6704,7 +6704,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "EBS › Encryption",
       "KMS"
@@ -6791,7 +6791,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "VPC › PrivateLink & interface endpoints",
       "VPC › Gateway endpoints",
@@ -6916,7 +6916,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Lambda › Limits",
       "Fargate",
@@ -7248,7 +7248,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 3,
     "task": "3.1",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "S3 › Performance & Transfer Acceleration"
     ],

@@ -303,7 +303,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "DynamoDB › DAX",
       "ElastiCache"
@@ -1421,7 +1421,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Macie",
       "EventBridge"
@@ -1596,7 +1596,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 3,
     "task": "3.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "EC2 › Placement groups & EFA"
     ],
@@ -2119,7 +2119,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "CloudWatch › Agent & custom metrics",
       "EC2 Auto Scaling"
@@ -2161,7 +2161,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "CloudWatch › Logs",
       "CloudWatch › Alarms"
@@ -2630,7 +2630,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "RDS › Encryption"
     ],
@@ -3482,7 +3482,7 @@
     "domain": "Disaster Recovery & Migration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Storage Gateway › File Gateway"
     ],
@@ -3523,7 +3523,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "easy",
+    "difficulty": "medium",
     "services": [
       "EC2 Auto Scaling › Warm pools & lifecycle hooks"
     ],
@@ -3564,7 +3564,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Neptune"
     ],
@@ -3951,7 +3951,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Control Tower"
     ],
@@ -4039,7 +4039,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "IAM › Access Analyzer"
     ],
@@ -4078,7 +4078,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "KMS › Key rotation",
       "KMS › Multi-Region keys"
@@ -4286,7 +4286,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "X-Ray"
     ],
@@ -4415,7 +4415,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 3,
     "task": "3.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Batch"
     ],
@@ -4457,7 +4457,7 @@
     "domain": "Analytics & Data Processing",
     "exam_domain": 3,
     "task": "3.5",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "Glue"
     ],
@@ -4584,7 +4584,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "Route 53 › Routing policies"
     ],
@@ -4625,7 +4625,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 4,
     "task": "4.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "EC2 › Hibernation"
     ],
@@ -5381,7 +5381,7 @@
     "domain": "Security, Identity & Compliance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "IAM › Federation"
     ],
@@ -5635,7 +5635,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 3,
     "task": "3.4",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Route 53 › Alias records"
     ],
@@ -5716,7 +5716,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "CloudFront › Geo restriction"
     ],
@@ -5935,7 +5935,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 3,
     "task": "3.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "FSx › OpenZFS"
     ],
@@ -6026,7 +6026,7 @@
     "domain": "Databases & Caching",
     "exam_domain": 3,
     "task": "3.3",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Keyspaces"
     ],
@@ -6067,7 +6067,7 @@
     "domain": "Application Integration",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "AppSync"
     ],
@@ -6110,7 +6110,7 @@
     "domain": "Disaster Recovery & Migration",
     "exam_domain": 2,
     "task": "2.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "DR strategies › Multi-site active-active",
       "DynamoDB › Global tables",
@@ -6288,7 +6288,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 1,
     "task": "1.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Service Catalog"
     ],
@@ -6328,7 +6328,7 @@
     "domain": "Monitoring, Management & Governance",
     "exam_domain": 4,
     "task": "4.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Trusted Advisor"
     ],
@@ -6616,7 +6616,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "VPC › Security groups"
     ],
@@ -6704,7 +6704,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 1,
     "task": "1.3",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "EBS › Encryption",
       "KMS"
@@ -6791,7 +6791,7 @@
     "domain": "Networking & Content Delivery",
     "exam_domain": 1,
     "task": "1.2",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "VPC › PrivateLink & interface endpoints",
       "VPC › Gateway endpoints",
@@ -6916,7 +6916,7 @@
     "domain": "Compute & Serverless",
     "exam_domain": 2,
     "task": "2.1",
-    "difficulty": "medium",
+    "difficulty": "easy",
     "services": [
       "Lambda › Limits",
       "Fargate",
@@ -7248,7 +7248,7 @@
     "domain": "Storage & Backup",
     "exam_domain": 3,
     "task": "3.1",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "services": [
       "S3 › Performance & Transfer Acceleration"
     ],
@@ -12074,9 +12074,9 @@
       "A is wrong: x-amz-acl sets object ACLs; it has nothing to do with encryption.",
       "B is wrong: bucket-owner-full-control is about object ownership, not encryption.",
       "C is wrong: aws:SecureTransport enforces encryption in transit, not at rest.",
-      "D is correct: denying any PutObject without the server-side encryption header ensures every stored object is encrypted at rest."
+      "D is correct: it is the only option about encryption at rest, and it refuses any upload that does not request server-side encryption. Since January 2023, S3 has encrypted every new object with SSE-S3 by default, so today the policy mainly makes each upload request encryption explicitly, and it rejects partner uploads that leave the header out."
     ],
-    "tldr": "A bucket policy can deny PutObject requests without the x-amz-server-side-encryption header (S3 also encrypts new objects with SSE-S3 by default).",
+    "tldr": "A bucket policy that denies PutObject without the x-amz-server-side-encryption header is the classic way to require encryption at rest. Since January 2023, S3 encrypts every new object with SSE-S3 by default anyway, so the policy now just makes each upload ask for it.",
     "wrong_reasons": {
       "A": "x-amz-acl sets object ACLs; it has nothing to do with encryption.",
       "B": "bucket-owner-full-control is about object ownership, not encryption.",
@@ -15382,17 +15382,17 @@
     "options": {
       "A": "Configure CloudFront to send a Cache-Control response header. Set the maximum TTL to a low value.",
       "B": "Use CloudFront events to invoke Lambda@Edge functions to perform data processing for the website.",
-      "C": "Modify the CloudFront price class to include only the countries that the company serves.",
+      "C": "Change the CloudFront price class to Price Class 100, which uses edge locations in North America and Europe.",
       "D": "Use AWS Certificate Manager (ACM) to provision a public SSL/TLS certificate for the CloudFront distribution."
     },
     "correct_answer": "C",
     "explanation": [
       "A is wrong: a low maximum TTL means more origin fetches, which raises cost.",
       "B is wrong: Lambda@Edge adds cost and does nothing to lower distribution cost.",
-      "C is correct: a price class that uses only North American and European edge locations serves these users at lower rates.",
+      "C is correct: Price Class 100, the cheapest, uses edge locations in North America and Europe, which is where these users are. A price class picks groups of edge locations by geographic region, not individual countries, and viewers elsewhere are still served, from farther away.",
       "D is wrong: an ACM certificate enables HTTPS but does not lower cost."
     ],
-    "tldr": "A cheaper CloudFront price class (for example North America and Europe only) lowers costs when users are in those regions.",
+    "tldr": "A cheaper CloudFront price class, such as Price Class 100 (North America and Europe), lowers costs when users are in those areas. Price classes choose groups of edge locations by region, not individual countries.",
     "wrong_reasons": {
       "A": "a low maximum TTL means more origin fetches, which raises cost.",
       "B": "Lambda@Edge adds cost and does nothing to lower distribution cost.",
@@ -18393,22 +18393,22 @@
     ],
     "options": {
       "A": "Use AWS Backup to automatically create backups of the EC2 instance. In the event of a database failure, use the backups to restore the EC2 instance to a second Region.",
-      "B": "Use AWS DMS to migrate the database to an Amazon Aurora PostgreSQL database. Configure the Aurora database as a global database. Set the Aurora parameter group RPO setting to 60 seconds. In the event of a database failure, promote a secondary database in a second Region automatically.",
+      "B": "Use AWS DMS to migrate the database to an Amazon Aurora PostgreSQL database. Configure the Aurora database as a global database. Set the Aurora parameter group RPO setting to 60 seconds. In the event of a database failure, fail over the global database to a secondary Region.",
       "C": "Use AWS Elastic Disaster Recovery service to replicate the EC2 instance to a second Region. In the event of a database failure, use the Elastic Disaster Recovery dashboard to perform a failover.",
       "D": "Use AWS DMS to migrate the database to Amazon RDS for PostgreSQL. Create cross-Region read replicas in the Regions where most users are located. In the event of a database failure, manually promote a read replica to become the primary database."
     },
     "correct_answer": "B",
     "explanation": [
       "A is wrong: restoring from backups takes far longer than 5 minutes and loses recent data.",
-      "B is correct: Aurora improves performance, and a global database replicates across Regions with an RPO setting and fast promotion of a secondary Region.",
+      "B is correct: Aurora speeds up queries, and a global database replicates to other Regions, usually with under a second of lag. The RPO setting keeps at least one secondary within 60 seconds of the primary, and a secondary Region can take over writes in about a minute. You start that failover yourself: Aurora does not fail over across Regions on its own.",
       "C is wrong: Elastic Disaster Recovery replicates servers, but it does not improve query performance or spread the database across Regions.",
-      "D is wrong: manually promoting a read replica makes it hard to meet a 5-minute RTO."
+      "D is wrong: nothing bounds how far a cross-Region read replica lags, and promoting one and moving the application to it is slower, so neither the 5-minute RPO nor the RTO is assured."
     ],
-    "tldr": "Aurora PostgreSQL Global Database gives multi-Region reads, managed RPO control and fast cross-Region failover.",
+    "tldr": "Aurora PostgreSQL Global Database gives multi-Region reads, a managed RPO and cross-Region failover in about a minute, which you start yourself.",
     "wrong_reasons": {
       "A": "restoring from backups takes far longer than 5 minutes and loses recent data.",
       "C": "Elastic Disaster Recovery replicates servers, but it does not improve query performance or spread the database across Regions.",
-      "D": "manually promoting a read replica makes it hard to meet a 5-minute RTO."
+      "D": "nothing bounds how far a cross-Region read replica lags, and promoting one and moving the application to it is slower, so neither the 5-minute RPO nor the RTO is assured."
     },
     "pillars": [
       "Reliability",

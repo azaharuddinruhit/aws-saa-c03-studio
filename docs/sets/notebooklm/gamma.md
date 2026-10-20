@@ -2166,17 +2166,17 @@ A company hosts a static website in an Amazon S3 bucket. The S3 bucket is the or
 ### Options
 - **A.** Configure CloudFront to send a Cache-Control response header. Set the maximum TTL to a low value.
 - **B.** Use CloudFront events to invoke Lambda@Edge functions to perform data processing for the website.
-- **C.** Modify the CloudFront price class to include only the countries that the company serves.
+- **C.** Change the CloudFront price class to Price Class 100, which uses edge locations in North America and Europe.
 - **D.** Use AWS Certificate Manager (ACM) to provision a public SSL/TLS certificate for the CloudFront distribution.
 
 ### Correct answer: C
 
-**Summary:** A cheaper CloudFront price class (for example North America and Europe only) lowers costs when users are in those regions.
+**Summary:** A cheaper CloudFront price class, such as Price Class 100 (North America and Europe), lowers costs when users are in those areas. Price classes choose groups of edge locations by region, not individual countries.
 
 ### Explanation
 - A is wrong: a low maximum TTL means more origin fetches, which raises cost.
 - B is wrong: Lambda@Edge adds cost and does nothing to lower distribution cost.
-- C is correct: a price class that uses only North American and European edge locations serves these users at lower rates.
+- C is correct: Price Class 100, the cheapest, uses edge locations in North America and Europe, which is where these users are. A price class picks groups of edge locations by geographic region, not individual countries, and viewers elsewhere are still served, from farther away.
 - D is wrong: an ACM certificate enables HTTPS but does not lower cost.
 
 **Key phrases:** United States, Canada, and Europe · optimize distribution costs
@@ -4287,19 +4287,19 @@ A company hosts a PostgreSQL database on an Amazon EC2 instance. Database usage 
 
 ### Options
 - **A.** Use AWS Backup to automatically create backups of the EC2 instance. In the event of a database failure, use the backups to restore the EC2 instance to a second Region.
-- **B.** Use AWS DMS to migrate the database to an Amazon Aurora PostgreSQL database. Configure the Aurora database as a global database. Set the Aurora parameter group RPO setting to 60 seconds. In the event of a database failure, promote a secondary database in a second Region automatically.
+- **B.** Use AWS DMS to migrate the database to an Amazon Aurora PostgreSQL database. Configure the Aurora database as a global database. Set the Aurora parameter group RPO setting to 60 seconds. In the event of a database failure, fail over the global database to a secondary Region.
 - **C.** Use AWS Elastic Disaster Recovery service to replicate the EC2 instance to a second Region. In the event of a database failure, use the Elastic Disaster Recovery dashboard to perform a failover.
 - **D.** Use AWS DMS to migrate the database to Amazon RDS for PostgreSQL. Create cross-Region read replicas in the Regions where most users are located. In the event of a database failure, manually promote a read replica to become the primary database.
 
 ### Correct answer: B
 
-**Summary:** Aurora PostgreSQL Global Database gives multi-Region reads, managed RPO control and fast cross-Region failover.
+**Summary:** Aurora PostgreSQL Global Database gives multi-Region reads, a managed RPO and cross-Region failover in about a minute, which you start yourself.
 
 ### Explanation
 - A is wrong: restoring from backups takes far longer than 5 minutes and loses recent data.
-- B is correct: Aurora improves performance, and a global database replicates across Regions with an RPO setting and fast promotion of a secondary Region.
+- B is correct: Aurora speeds up queries, and a global database replicates to other Regions, usually with under a second of lag. The RPO setting keeps at least one secondary within 60 seconds of the primary, and a secondary Region can take over writes in about a minute. You start that failover yourself: Aurora does not fail over across Regions on its own.
 - C is wrong: Elastic Disaster Recovery replicates servers, but it does not improve query performance or spread the database across Regions.
-- D is wrong: manually promoting a read replica makes it hard to meet a 5-minute RTO.
+- D is wrong: nothing bounds how far a cross-Region read replica lags, and promoting one and moving the application to it is slower, so neither the 5-minute RPO nor the RTO is assured.
 
 **Key phrases:** recovery time objective (RTO) and a recovery point objective (RPO) of less than 5 minutes · multiple AWS Regions
 **Hint:** Managed, faster PostgreSQL that spans Regions and fails over within minutes.

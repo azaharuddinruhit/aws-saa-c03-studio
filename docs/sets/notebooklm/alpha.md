@@ -199,7 +199,7 @@ An e-commerce platform runs on Amazon Aurora MySQL. Long-running reporting queri
 ---
 
 ## ALPHA-008: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization
 **Services:** DynamoDB › DAX, ElastiCache
 
 ### Question
@@ -937,7 +937,7 @@ A company hires a third-party monitoring vendor that needs read-only access to r
 ---
 
 ## ALPHA-034: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** Macie, EventBridge
 
 ### Question
@@ -1051,7 +1051,7 @@ Analysts run ad hoc SQL queries with Amazon Athena over five years of applicatio
 ---
 
 ## ALPHA-038: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** hard · **Pillars:** Performance Efficiency
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency
 **Services:** EC2 › Placement groups & EFA
 
 ### Question
@@ -1395,7 +1395,7 @@ A security team wants any Amazon S3 bucket in a production account that becomes 
 ---
 
 ## ALPHA-050: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** hard · **Pillars:** Reliability, Operational Excellence
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
 **Services:** CloudWatch › Agent & custom metrics, EC2 Auto Scaling
 
 ### Question
@@ -1423,7 +1423,7 @@ An application runs on Amazon EC2 instances in an Auto Scaling group. The applic
 ---
 
 ## ALPHA-051: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Operational Excellence
 **Services:** CloudWatch › Logs, CloudWatch › Alarms
 
 ### Question
@@ -1737,7 +1737,7 @@ Administrators connect to Linux Amazon EC2 instances in private subnets through 
 ---
 
 ## ALPHA-062: Databases & Caching
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** easy · **Pillars:** Security
 **Services:** RDS › Encryption
 
 ### Question
@@ -2307,7 +2307,7 @@ A company has connected its data center to a VPC with AWS Direct Connect. Applic
 ---
 
 ## ALPHA-082: Disaster Recovery & Migration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Operational Excellence, Cost Optimization
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Operational Excellence, Cost Optimization
 **Services:** Storage Gateway › File Gateway
 
 ### Question
@@ -2335,7 +2335,7 @@ A media company's on-premises editing workstations write finished projects to an
 ---
 
 ## ALPHA-083: Compute & Serverless
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
 **Services:** EC2 Auto Scaling › Warm pools & lifecycle hooks
 
 ### Question
@@ -2363,7 +2363,7 @@ An Auto Scaling group runs worker instances that process long jobs and upload re
 ---
 
 ## ALPHA-084: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Performance Efficiency
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Performance Efficiency
 **Services:** Neptune
 
 ### Question
@@ -2621,7 +2621,7 @@ A company runs a permanent 60-node Amazon EMR cluster that is busy for about fou
 ---
 
 ## ALPHA-093: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** Control Tower
 
 ### Question
@@ -2679,7 +2679,7 @@ A security review of a company's AWS Organizations management account finds that
 ---
 
 ## ALPHA-095: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security
 **Services:** IAM › Access Analyzer
 
 ### Question
@@ -2707,7 +2707,7 @@ A compliance team must know continuously, across 40 accounts, which Amazon S3 bu
 ---
 
 ## ALPHA-096: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
 **Services:** KMS › Key rotation, KMS › Multi-Region keys
 
 ### Question
@@ -2849,7 +2849,7 @@ A company's disaster recovery plan fails over to a second Region where it normal
 ---
 
 ## ALPHA-101: Monitoring, Management & Governance
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Operational Excellence, Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** easy · **Pillars:** Operational Excellence, Reliability
 **Services:** X-Ray
 
 ### Question
@@ -2935,7 +2935,7 @@ A company exposes a public REST API through Amazon API Gateway to hundreds of th
 ---
 
 ## ALPHA-104: Compute & Serverless
-**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Cost Optimization, Sustainability
+**Exam domain:** 3 · **Task:** 3.2 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Cost Optimization, Sustainability
 **Services:** Batch
 
 ### Question
@@ -2963,7 +2963,7 @@ A research team submits thousands of independent containerized jobs each night. 
 ---
 
 ## ALPHA-105: Analytics & Data Processing
-**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Operational Excellence
+**Exam domain:** 3 · **Task:** 3.5 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
 **Services:** Glue
 
 ### Question
@@ -3049,7 +3049,7 @@ A 300 TB data lake in a single Amazon S3 bucket is shared by a dozen teams in di
 ---
 
 ## ALPHA-108: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
 **Services:** Route 53 › Routing policies
 
 ### Question
@@ -3077,7 +3077,7 @@ A company runs the same web application in eu-west-1, us-east-1 and ap-southeast
 ---
 
 ## ALPHA-109: Compute & Serverless
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization
 **Services:** EC2 › Hibernation
 
 ### Question
@@ -3589,7 +3589,7 @@ An Amazon RDS for PostgreSQL database stores order data, and automated backups a
 ---
 
 ## ALPHA-127: Security, Identity & Compliance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** IAM › Federation
 
 ### Question
@@ -3759,7 +3759,7 @@ A company uses AWS Transit Gateway to connect 40 spoke VPCs. All traffic between
 ---
 
 ## ALPHA-133: Networking & Content Delivery
-**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** medium · **Pillars:** Reliability, Cost Optimization
+**Exam domain:** 3 · **Task:** 3.4 · **Difficulty:** easy · **Pillars:** Reliability, Cost Optimization
 **Services:** Route 53 › Alias records
 
 ### Question
@@ -3815,7 +3815,7 @@ A company hosts a static website in an Amazon S3 bucket that has static website 
 ---
 
 ## ALPHA-135: Networking & Content Delivery
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** CloudFront › Geo restriction
 
 ### Question
@@ -3957,7 +3957,7 @@ Users upload videos of up to 2 GB from a single-page web application. Today, upl
 ---
 
 ## ALPHA-140: Storage & Backup
-**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
 **Services:** FSx › OpenZFS
 
 ### Question
@@ -4015,7 +4015,7 @@ A company stores orders in an Amazon DynamoDB table. An audit sets two requireme
 ---
 
 ## ALPHA-142: Databases & Caching
-**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** medium · **Pillars:** Operational Excellence, Performance Efficiency
+**Exam domain:** 3 · **Task:** 3.3 · **Difficulty:** easy · **Pillars:** Operational Excellence, Performance Efficiency
 **Services:** Keyspaces
 
 ### Question
@@ -4043,7 +4043,7 @@ A company runs an Apache Cassandra cluster on self-managed Amazon EC2 instances.
 ---
 
 ## ALPHA-143: Application Integration
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Operational Excellence
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Performance Efficiency, Operational Excellence
 **Services:** AppSync
 
 ### Question
@@ -4071,7 +4071,7 @@ A company is building a mobile app that displays a live sports scoreboard. In on
 ---
 
 ## ALPHA-144: Disaster Recovery & Migration
-**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** hard · **Pillars:** Reliability
+**Exam domain:** 2 · **Task:** 2.2 · **Difficulty:** medium · **Pillars:** Reliability
 **Services:** DR strategies › Multi-site active-active, DynamoDB › Global tables, Route 53 › Routing policies
 
 ### Question
@@ -4187,7 +4187,7 @@ A company uses AWS Organizations with 150 member accounts, and new accounts are 
 ---
 
 ## ALPHA-148: Monitoring, Management & Governance
-**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.1 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** Service Catalog
 
 ### Question
@@ -4215,7 +4215,7 @@ A central cloud team wants developers to launch only approved, preconfigured env
 ---
 
 ## ALPHA-149: Monitoring, Management & Governance
-**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** medium · **Pillars:** Cost Optimization, Security, Reliability
+**Exam domain:** 4 · **Task:** 4.2 · **Difficulty:** easy · **Pillars:** Cost Optimization, Security, Reliability
 **Services:** Trusted Advisor
 
 ### Question
@@ -4411,7 +4411,7 @@ Yesterday an Amazon RDS DB instance in a production account was deleted. Nobody 
 ---
 
 ## ALPHA-156: Networking & Content Delivery
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Operational Excellence
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** easy · **Pillars:** Security, Operational Excellence
 **Services:** VPC › Security groups
 
 ### Question
@@ -4469,7 +4469,7 @@ A developer's IAM role in a member account of an organization in AWS Organizatio
 ---
 
 ## ALPHA-158: Storage & Backup
-**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** hard · **Pillars:** Security
+**Exam domain:** 1 · **Task:** 1.3 · **Difficulty:** medium · **Pillars:** Security
 **Services:** EBS › Encryption, KMS
 
 ### Question
@@ -4527,7 +4527,7 @@ A public web application runs on Amazon EC2 instances behind an Application Load
 ---
 
 ## ALPHA-160: Networking & Content Delivery
-**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** hard · **Pillars:** Security, Reliability
+**Exam domain:** 1 · **Task:** 1.2 · **Difficulty:** medium · **Pillars:** Security, Reliability
 **Services:** VPC › PrivateLink & interface endpoints, VPC › Gateway endpoints, Direct Connect
 
 ### Question
@@ -4611,7 +4611,7 @@ Partners upload invoices to an Amazon S3 bucket. Each upload must be processed b
 ---
 
 ## ALPHA-163: Compute & Serverless
-**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** medium · **Pillars:** Reliability, Operational Excellence
+**Exam domain:** 2 · **Task:** 2.1 · **Difficulty:** easy · **Pillars:** Reliability, Operational Excellence
 **Services:** Lambda › Limits, Fargate, EventBridge › Scheduler
 
 ### Question
@@ -4837,7 +4837,7 @@ A website on www.example.com is served through one Amazon CloudFront distributio
 ---
 
 ## ALPHA-171: Storage & Backup
-**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** hard · **Pillars:** Performance Efficiency, Reliability
+**Exam domain:** 3 · **Task:** 3.1 · **Difficulty:** medium · **Pillars:** Performance Efficiency, Reliability
 **Services:** S3 › Performance & Transfer Acceleration
 
 ### Question
