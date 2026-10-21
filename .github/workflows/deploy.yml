@@ -29,6 +29,9 @@ jobs:
       - name: Check question tags
         run: node scripts/check-tags.js
 
+      - name: Check the services glossary is up to date
+        run: node scripts/build-glossary.js --check
+
       - name: Stamp version and deployment time
         run: |
           version="v1.${{ github.run_number }}"

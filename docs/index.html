@@ -236,6 +236,47 @@
         html:not(.dark) *::-webkit-scrollbar-thumb { background: #cbd5e1; background-clip: content-box; }
         html:not(.dark) *::-webkit-scrollbar-thumb:hover { background: #059669; background-clip: content-box; }
 
+        /* Services drawer: a pop-up under its button on wide screens, a bottom sheet on phones. Its surface and
+           text use the slate classes above, so both themes come with them; only the scrim and dividers are set here. */
+        #servicesLayer { position: fixed; inset: 0; z-index: 55; }
+        #servicesLayer[hidden] { display: none; }
+        #servicesScrim { position: absolute; inset: 0; background: rgba(5, 8, 16, .6); }
+        html:not(.dark) #servicesScrim { background: rgba(15, 23, 42, .45); }
+        #servicesPanel { position: absolute; display: flex; flex-direction: column; min-height: 0; outline: none; }
+        .svc-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 1rem .5rem; }
+        .svc-close { width: 1.75rem; height: 1.75rem; border-radius: .5rem; flex: none; }
+        .svc-list { overflow-y: auto; overscroll-behavior: contain; padding: 0 1rem .75rem; }
+        .svc-item { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); column-gap: .75rem; align-items: start; padding: .65rem 0; }
+        .svc-item + .svc-item { border-top: 1px solid rgba(148, 163, 184, .16); }
+        /* the service's AWS icon from the cheat sheets' icons.js, which loads on first open; until then, and for
+           the few entries AWS has no icon for, a soft tile (with a plain cube in the latter case) holds its place */
+        .svc-ico { display: block; width: 1.75rem; height: 1.75rem; border-radius: .375rem; margin-top: .1rem; background: rgba(148, 163, 184, .14); }
+        img.svc-ico[src] { background: none; }
+        .svc-cube { display: flex; align-items: center; justify-content: center; }
+        .svc-cube svg { width: 1.1rem; height: 1.1rem; }
+        .svc-name { font-size: .875rem; font-weight: 600; line-height: 1.35; }
+        .svc-name span { font-weight: 400; }
+        .svc-was { font-size: .75rem; margin-top: .1rem; }
+        .svc-what { font-size: .8125rem; line-height: 1.55; margin-top: .25rem; }
+        .svc-grip { display: none; }
+        @media (min-width: 1024px) {
+            /* a dialog in the middle of the window over the dimmed page, which grows in slightly as it appears */
+            #servicesPanel { left: 50%; top: 50%; width: 520px; max-width: calc(100vw - 2rem); max-height: min(60vh, 520px); border-radius: 1rem;
+                transform: translate(-50%, -50%); transition: transform .18s ease-out, opacity .18s ease-out; }
+            #servicesLayer.svc-start #servicesPanel { transform: translate(-50%, -50%) scale(.96); opacity: 0; }
+        }
+        @media (max-width: 1023px) {
+            #servicesPanel { left: 0; right: 0; bottom: 0; max-height: 75vh; max-height: 75dvh; border-width: 1px 0 0; border-radius: 1rem 1rem 0 0;
+                padding-bottom: env(safe-area-inset-bottom); transition: transform .22s ease-out; touch-action: none; }
+            #servicesLayer.svc-start #servicesPanel { transform: translateY(100%); }
+            .svc-list { touch-action: pan-y; }
+            /* the handle closes the sheet on phones (tap it, or drag the sheet down), so the x is left to wide screens */
+            .svc-grip { display: flex; justify-content: center; padding: .6rem 0 .1rem; cursor: grab; }
+            .svc-grip span { width: 2.25rem; height: .25rem; border-radius: 9999px; background: rgba(148, 163, 184, .45); }
+            .svc-close { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) { #servicesPanel { transition: none; } }
+
         /* The responsive (lg:/max-lg:) surface variants used by the question card, its mobile
            card styling and the fixed mobile Next bar need the same treatment in both themes --
            otherwise the quiz screen alone keeps Tailwind's navy slate while the rest of the app
@@ -605,6 +646,10 @@
                                 <i class="fa-regular fa-lightbulb"></i>
                                 <span id="hintToggleText">Show hint</span>
                             </button>
+                            <button id="servicesBtn" type="button" onclick="openServices()" aria-haspopup="dialog" aria-expanded="false" aria-controls="servicesPanel" title="What each AWS service in this question is" class="hidden inline-flex items-center gap-1.5 py-1 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition">
+                                <i class="fa-solid fa-book-open"></i>
+                                <span id="servicesBtnText">Services</span>
+                            </button>
                             <span id="difficultyBadge" class="hidden"></span>
                             <span id="reasonBadge" class="hidden"></span>
                             <span id="pillarsBadge" class="hidden"></span>
@@ -729,6 +774,20 @@
     <!-- The overview's chart and heatmap tooltip. It lives outside the views because their fade-in
          animation leaves a transform behind, which would make position: fixed relative to the view. -->
     <div id="ovTip" class="ov-tip" hidden></div>
+
+    <!-- The services the current question names, each with a plain definition: a pop-up under the Services
+         button on wide screens, a bottom sheet on phones. Filled by openServices(). -->
+    <div id="servicesLayer" hidden>
+        <div id="servicesScrim" onclick="closeServices()"></div>
+        <div id="servicesPanel" role="dialog" aria-modal="true" aria-labelledby="servicesTitle" tabindex="-1" class="bg-slate-900 border border-slate-800 shadow-2xl">
+            <div class="svc-grip" title="Close" aria-hidden="true"><span></span></div>
+            <div class="svc-head">
+                <h3 id="servicesTitle" class="text-sm font-semibold text-slate-200">Services in this question</h3>
+                <button type="button" onclick="closeServices()" class="svc-close text-slate-400 hover:text-slate-300 transition" title="Close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul id="servicesList" class="svc-list"></ul>
+        </div>
+    </div>
 
     <div id="confirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
@@ -872,7 +931,8 @@
                     if (parseRoute().name === 'dashboard') endSession();
                     renderRoute();
                 }
-                window.addEventListener('popstate', renderRoute);
+                // Back first closes the Services drawer, which opened as a history step of its own
+                window.addEventListener('popstate', () => { if (servicesOpen) hideServices(); else renderRoute(); });
                 loadOtherBanks();
             });
         });
@@ -1616,6 +1676,8 @@
         let questionClock = { id: null, spentMs: 0, since: null };
         let questionTimes = {};         // this quiz: question id -> seconds taken
         let quizDoneMs = 0;             // this quiz: the time of the questions already answered or skipped
+        let glossary = null;            // docs/glossary.json once read: see "Services in the question"
+        let servicesOpen = false;       // the Services drawer is open, so the question's clock stands still
 
         function questionClockMs() {
             const c = questionClock;
@@ -1635,9 +1697,9 @@
             questionClock.counted = true;
         }
 
-        // The question on screen is the live one and still waits for an answer
+        // The question on screen is the live one and still waits for an answer, with nothing open over it
         function liveQuestionOpen() {
-            return !quizFinished && !answered && currentIndex === liveIndex && currentQuizQuestions[currentIndex] !== undefined
+            return !quizFinished && !answered && !servicesOpen && currentIndex === liveIndex && currentQuizQuestions[currentIndex] !== undefined
                 && !document.getElementById('quizView').classList.contains('hidden');
         }
 
@@ -4422,7 +4484,8 @@
                 pillarsBadge.className = 'hidden';
             }
             const taskId = renderTaskBadge(q);
-            document.getElementById('hintWrap').classList.toggle('hidden', !q.hint && !diff && !reason && !pillars.length && !taskId);
+            const serviceCount = renderServicesButton(q);
+            document.getElementById('hintWrap').classList.toggle('hidden', !q.hint && !serviceCount && !diff && !reason && !pillars.length && !taskId);
             document.getElementById('currentQNum').innerText = currentIndex + 1;
             document.getElementById('totalQNum').innerText = currentQuizQuestions.length;
             // a mixed quiz also names this question's domain; a section quiz's title already is the domain
@@ -4598,7 +4661,8 @@
         function removeHint() {
             document.getElementById('hintToggleBtn').classList.add('hidden');
             document.getElementById('hintText').classList.add('hidden');
-            if (document.getElementById('difficultyBadge').classList.contains('hidden') && document.getElementById('reasonBadge').classList.contains('hidden') && document.getElementById('pillarsBadge').classList.contains('hidden') && document.getElementById('taskBadge').classList.contains('hidden')) {
+            // the Services button stays after an answer, so the row does too while it is there
+            if (document.getElementById('servicesBtn').classList.contains('hidden') && document.getElementById('difficultyBadge').classList.contains('hidden') && document.getElementById('reasonBadge').classList.contains('hidden') && document.getElementById('pillarsBadge').classList.contains('hidden') && document.getElementById('taskBadge').classList.contains('hidden')) {
                 document.getElementById('hintWrap').classList.add('hidden');
             }
         }
@@ -4629,6 +4693,166 @@
             if (show) { hintUsedThisQuestion = true; saveSession(); } // recorded with the attempt, and counts for less
             document.getElementById('hintToggleText').innerText = show ? 'Hide hint' : 'Show hint';
         }
+
+        // ===== Services in the question =====
+        // glossary.json, built by scripts/build-glossary.js, gives a plain definition of each AWS service and,
+        // per question, the services its text and options name. The Services button opens them as a pop-up on
+        // wide screens and a bottom sheet on phones. Reading them never counts as a hint, and the question's
+        // clock stands still while they are open. Opening is a history step, so Back closes it, as on the mind map.
+        let servicesFocusBack = null;
+        const WIDE = window.matchMedia('(min-width: 1024px)');
+        const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        fetch('./glossary.json', { cache: 'no-cache' })
+            .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+            .then(data => {
+                glossary = data;
+                // a question already on screen gets its button now
+                const q = currentQuizQuestions[currentIndex];
+                if (q && !document.getElementById('quizView').classList.contains('hidden') && renderServicesButton(q)) {
+                    document.getElementById('hintWrap').classList.remove('hidden');
+                }
+            })
+            .catch(() => {});   // without the glossary the button stays hidden and the quiz works as before
+
+        // The cheat sheets' icon file (window.AWS_ICONS) is about 200 KB, so it loads on the first open only;
+        // the browser then keeps it, for the cheat sheets too
+        const SERVICE_CUBE = '<span class="svc-ico svc-cube text-slate-400" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg></span>';
+        let serviceIconsLoad = null;
+        function loadServiceIcons() {
+            if (window.AWS_ICONS) return Promise.resolve();
+            if (!serviceIconsLoad) {
+                serviceIconsLoad = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'cheatsheet/icons.js';
+                    script.onload = resolve;
+                    script.onerror = () => { serviceIconsLoad = null; script.remove(); reject(new Error('icons.js')); };   // a later open tries again
+                    document.head.appendChild(script);
+                });
+            }
+            return serviceIconsLoad;
+        }
+
+        function fillServiceIcons() {
+            document.querySelectorAll('#servicesList img[data-ico]').forEach(img => {
+                const svg = window.AWS_ICONS && window.AWS_ICONS[img.dataset.ico];
+                if (svg && !img.getAttribute('src')) img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+            });
+        }
+
+        function questionServices(q) {
+            const ids = glossary && glossary.questions[bankKey] && glossary.questions[bankKey][q.id];
+            return ids ? ids.map(i => glossary.services[i]) : [];
+        }
+
+        // Shows the button with the question's service count; returns the count
+        function renderServicesButton(q) {
+            const n = questionServices(q).length;
+            document.getElementById('servicesBtn').classList.toggle('hidden', !n);
+            document.getElementById('servicesBtnText').innerText = 'Services (' + n + ')';
+            return n;
+        }
+
+        function openServices() {
+            const q = currentQuizQuestions[currentIndex];
+            const list = q ? questionServices(q) : [];
+            if (servicesOpen || !list.length) return;
+            document.getElementById('servicesList').innerHTML = list.map(s => '<li class="svc-item">'
+                + (s.icon ? '<img class="svc-ico" data-ico="' + escapeHtml(s.icon) + '" alt="">' : SERVICE_CUBE) + '<div>'
+                + '<p class="svc-name text-slate-200">' + escapeHtml(s.name) + (s.full ? ' <span class="text-slate-400">· ' + escapeHtml(s.full) + '</span>' : '') + '</p>'
+                + (s.formerly ? '<p class="svc-was text-slate-400">Formerly ' + escapeHtml(s.formerly) + '</p>' : '')
+                + '<p class="svc-what text-slate-300">' + escapeHtml(s.what) + '</p></div></li>').join('');
+            loadServiceIcons().then(fillServiceIcons).catch(() => {});   // without them the tiles stay plain
+            servicesOpen = true;
+            servicesFocusBack = document.activeElement;
+            pauseQuestionClock();
+            const layer = document.getElementById('servicesLayer');
+            const panel = document.getElementById('servicesPanel');
+            panel.style.transform = '';
+            layer.classList.add('svc-start');   // phones: the sheet starts below the screen and slides up
+            layer.hidden = false;
+            document.getElementById('servicesList').scrollTop = 0;
+            requestAnimationFrame(() => requestAnimationFrame(() => layer.classList.remove('svc-start')));
+            document.getElementById('servicesBtn').setAttribute('aria-expanded', 'true');
+            history.pushState(Object.assign({}, history.state, { servicesDrawer: true }), '');
+            panel.focus({ preventScroll: true });
+        }
+
+        // × , Escape, the scrim and the handle all step back through history, and popstate then hides it
+        function closeServices() {
+            if (!servicesOpen) return;
+            if (history.state && history.state.servicesDrawer) history.back();
+            else hideServices();
+        }
+
+        function hideServices() {
+            if (!servicesOpen) return;
+            servicesOpen = false;
+            const layer = document.getElementById('servicesLayer');
+            const panel = document.getElementById('servicesPanel');
+            const finish = () => {
+                if (servicesOpen) return;   // opened again while sliding away
+                layer.hidden = true;
+                layer.classList.remove('svc-start');
+            };
+            // it leaves the way it came: down on phones (from wherever a drag left it), right on wide screens
+            panel.style.transition = '';
+            panel.style.transform = '';
+            if (REDUCED_MOTION.matches) {
+                finish();
+            } else {
+                layer.classList.add('svc-start');
+                setTimeout(finish, 220);
+            }
+            document.getElementById('servicesBtn').setAttribute('aria-expanded', 'false');
+            if (servicesFocusBack && document.contains(servicesFocusBack)) servicesFocusBack.focus({ preventScroll: true });
+            const q = currentQuizQuestions[currentIndex];
+            if (liveQuestionOpen()) startQuestionClock(q);
+            else renderTimerChip();
+        }
+
+        document.addEventListener('keydown', event => {
+            if (!servicesOpen) return;
+            if (event.key === 'Escape') { event.preventDefault(); closeServices(); }
+            // focus stays in the dialog: its only control is the close button, so Tab keeps to the panel
+            else if (event.key === 'Tab') {
+                event.preventDefault();
+                const close = document.querySelector('#servicesPanel .svc-close');
+                (WIDE.matches && document.activeElement !== close ? close : document.getElementById('servicesPanel')).focus();
+            }
+        });
+
+        // Phones: drag the sheet down by its handle or heading to close it, or tap the handle
+        (function () {
+            const panel = document.getElementById('servicesPanel');
+            let startY = null, lastY = 0, lastT = 0, speed = 0;
+            panel.addEventListener('pointerdown', e => {
+                if (WIDE.matches || !e.target.closest('.svc-grip, .svc-head')) return;
+                startY = lastY = e.clientY;
+                lastT = e.timeStamp;
+                speed = 0;
+                panel.style.transition = 'none';
+                panel.setPointerCapture(e.pointerId);
+            });
+            panel.addEventListener('pointermove', e => {
+                if (startY === null) return;
+                speed = (e.clientY - lastY) / Math.max(1, e.timeStamp - lastT);
+                lastY = e.clientY;
+                lastT = e.timeStamp;
+                panel.style.transform = 'translateY(' + Math.max(0, e.clientY - startY) + 'px)';
+            });
+            const release = e => {
+                if (startY === null) return;
+                const moved = Math.max(0, e.clientY - startY);
+                const tapped = moved < 6 && e.target.closest('.svc-grip');
+                startY = null;
+                panel.style.transition = '';
+                if (e.type === 'pointerup' && (tapped || moved > 90 || (moved > 30 && speed > 0.5))) closeServices();
+                else panel.style.transform = '';
+            };
+            panel.addEventListener('pointerup', release);
+            panel.addEventListener('pointercancel', release);
+        })();
 
         function handleNextQuestion() {
             const next = currentIndex + 1;

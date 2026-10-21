@@ -2665,7 +2665,7 @@ A company wants to design a microservices architecture for an application. Each 
 - **A.** Use Amazon ECS on Amazon EC2 to host each microservice. Use Amazon API Gateway to manage the RESTful API requests.
 - **B.** Deploy each microservice as a set of AWS Lambda functions. Use Amazon API Gateway to manage the RESTful API requests.
 - **C.** Host each microservice on Amazon EC2 instances in Auto Scaling groups behind an Elastic Load Balancing (ELB) load balancer. Use the ELB to manage the RESTful API requests.
-- **D.** Deploy each microservice on Amazon Elastic Beanstalk. Use Amazon CloudFront to manage the RESTful API requests.
+- **D.** Deploy each microservice on AWS Elastic Beanstalk. Use Amazon CloudFront to manage the RESTful API requests.
 
 ### Correct answer: B
 

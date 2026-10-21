@@ -30,7 +30,8 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `docs/cheatsheet/infographics.css` | Styles shared by the infographics, loaded after `app.css`. |
 | `scripts/build-infographics.js` + `scripts/infographics/<key>.js` | Generates each infographic from its module, with counts and one worked example taken from the banks. |
 | `scripts/check-tags.js` + `tag-vocabulary.json` | Validates every question's `services` tags. |
-| `.github/workflows/deploy.yml` | On push to `develop`: checks tags, stamps the version, deploys Pages. |
+| `scripts/build-glossary.js` + `glossary.json` | Generates `docs/glossary.json` for the quiz's Services button: a plain definition of each AWS service and, per question, the services its text and options name (see below). |
+| `.github/workflows/deploy.yml` | On push to `develop`: checks tags, checks the glossary is up to date, stamps the version, deploys Pages. |
 
 ## Commands
 
@@ -39,6 +40,7 @@ node scripts/check-tags.js            # must pass, or the deploy fails
 node scripts/build-architectures.js   # after any change to the diagram specs
 node scripts/build-mindmap.js         # after changing cues, the vocabulary, questions or tags, or diagrams
 node scripts/build-infographics.js    # after changing an infographic module, questions or tags
+node scripts/build-glossary.js        # after changing the glossary or any question's text or options
 cd docs && python -m http.server 8000 # local preview at http://localhost:8000
 ```
 
@@ -76,6 +78,27 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
   - answer: `correct_answer`, `explanation`, `tldr`, `wrong_reasons`.
 - **Tags:** `services` holds 1–4 tags from `scripts/tag-vocabulary.json`, either `"Service"` or `"Service › Feature"`, joined by ` › `. Its `rules` say what to tag: what the correct answer depends on, most decisive first.
 - **Keep the copies in sync:** when a question or its tags change, update the matching `docs/sets/notebooklm/<bank>.md` entry too, then run `check-tags.js`.
+
+## Services glossary
+
+- **What it does:** each quiz question shows a **Services (n)** button next to Show hint. It lists every AWS service named in the question and its options, in the order they appear, each with its icon and one plain sentence on what it is.
+- **How it opens:**
+  - **Wide screens:** a 520px dialog in the middle of the window over the dimmed page. Escape, the × or a click on the dimmed page closes it.
+  - **Phones:** a bottom sheet that closes like the mind map's panel: tap the backdrop or the handle, drag it down, or press Back.
+  - **Size:** it grows to fit, up to 60% of the window (520px at most) on wide screens or 75% of the screen on phones. Past that, its heading stays put and the list scrolls.
+- **Icons:** each entry's `icon` is a key in `docs/cheatsheet/icons.js`. Where AWS has no icon for an entry, it borrows the closest related service's icon (AMI uses EC2's, the Systems Manager tools use Systems Manager's). With `null`, the entry shows a plain cube instead. The quiz loads `icons.js` the first time the drawer opens, not with the page.
+- **Where to edit:** `scripts/glossary.json`, then run `build-glossary.js`. Never hand-edit `docs/glossary.json`.
+  - **Every entry:** `name`, `icon`, `match` (the names to find, case-sensitive) and `what`.
+  - **Some entries:** `full` for an abbreviated name, and `formerly` for an old name questions may still use.
+- **Matching:** names match longest first. A name that starts with "AWS" or "Amazon" must appear with that prefix, which keeps ordinary words (Backup, Batch, Config, RAM) from matching; any other name also matches with either prefix in front. Features fold into their service (storage classes into S3, DynamoDB Streams into DynamoDB), but a product that behaves like a service of its own gets an entry (DAX, Lambda@Edge, Site-to-Site VPN, the FSx file systems, the Systems Manager tools).
+- **The build checks itself.** It fails when:
+  - a question names an "AWS …" or "Amazon …" service that has no entry (put a phrase that isn't a service in `ignore`);
+  - two entries claim the same name;
+  - an icon key isn't in `icons.js`.
+
+  The deploy runs it with `--check`, so a glossary left out of date fails the deploy.
+- **Definitions say what a service is, never when the exam wants it,** so opening the drawer gives nothing away. Reading it doesn't count as a hint, and the question's clock stands still while it is open.
+- **Same accuracy rule as the diagrams:** definitions must match current AWS behaviour, and prices or limits that change often are left out.
 
 ## Architecture diagrams
 
