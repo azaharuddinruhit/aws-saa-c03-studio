@@ -339,6 +339,8 @@
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
             --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0;
             --ov-lean-up: #0d9488; --ov-lean-down: #ea580c;
+            --sec-0: #4e79a7; --sec-1: #e8771a; --sec-2: #d93f43; --sec-3: #4f9a94; --sec-4: #4a8f41;
+            --sec-5: #c9a227; --sec-6: #9c5f8c; --sec-7: #e8748a; --sec-8: #8c6449; --sec-9: #8f8580;
             --ov-heat0: #e2e8f0; --ov-heat1: #29bf88; --ov-heat2: #0b9a6c; --ov-heat3: #06775a; --ov-heat4: #064e3b;
         }
         .dark #overviewView, .dark #dashboardView {
@@ -346,6 +348,8 @@
             --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
             --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447;
             --ov-lean-up: #2dd4bf; --ov-lean-down: #fb923c;
+            --sec-0: #6f9bd1; --sec-1: #f5a04f; --sec-2: #ef7476; --sec-3: #8fd0ca; --sec-4: #7cc26f;
+            --sec-5: #f1d35c; --sec-6: #c595b6; --sec-7: #ffb0b8; --sec-8: #b58c74; --sec-9: #c9c0bb;
             --ov-heat0: #212739; --ov-heat1: #065f46; --ov-heat2: #047857; --ov-heat3: #10b981; --ov-heat4: #6ee7b7;
         }
         .dark #ovExamDate { color-scheme: dark; }
@@ -419,6 +423,19 @@
         .fp-key-bar { width: 18px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--ov-muted) 35%, transparent); }
         .fp-key-ring { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ov-ink); }
         .fp-key-pass { height: 12px; border-left: 1.5px dashed var(--ov-muted); }
+        .sc-zone { color: var(--sc-c); }
+        .ov-chart text.sc-zone-label { font-weight: 600; }
+        .ov-chart text.sc-name { fill: var(--ov-ink); }
+        .ov-chart text.sc-strong { fill: var(--ov-ink); font-weight: 600; }
+        .sc-dot { transition: opacity .15s; }
+        .sc-key { display: flex; flex-wrap: wrap; gap: .375rem; }
+        .sc-chip { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
+            font-size: 11px; color: var(--ov-ink); transition: background-color .15s, border-color .15s; }
+        .sc-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--sc-c); flex: none; }
+        .sc-chip:hover { border-color: var(--ov-muted); }
+        .sc-chip[aria-pressed="true"] { border-color: var(--sc-c); background: color-mix(in srgb, var(--sc-c) 15%, transparent); }
+        .sc-chip:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
+        .sc-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc-c); margin-right: .4rem; vertical-align: 1px; }
         /* the tooltip keeps a dark surface in both themes, like the toast */
         .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
                   border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); white-space: nowrap; }
@@ -803,6 +820,10 @@
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">First tries by section</h3>
                 <div id="ovForest" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold">Speed and accuracy</h3>
+                <div id="ovScatter" class="mt-4"></div>
             </section>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Weak areas</h3>
@@ -3046,6 +3067,7 @@
             document.getElementById('ovScore').innerHTML = block(24);
             document.getElementById('ovTimeline').innerHTML = block(28);
             document.getElementById('ovForest').innerHTML = block(20);
+            document.getElementById('ovScatter').innerHTML = block(24);
             document.getElementById('ovWeak').innerHTML = block(16);
             document.getElementById('ovPace').innerHTML = block(9);
             document.getElementById('ovActivity').innerHTML = block(28);
@@ -3069,6 +3091,7 @@
             renderOverviewScore(banks, answered);
             renderTimeline(banks, tl);
             renderForest(banks);
+            renderScatter(banks);
             renderWeakAreas(banks, answered);
             renderPace(banks);
             renderActivity(tl);
@@ -4229,6 +4252,253 @@
                 ${footnote}`;
         }
 
+        // ---- Speed and accuracy ----
+        // A scatter of services: across, your typical time on first sight (the median of its timed first
+        // tries); up, your first-try rate, estimated as the forest plot does (leaning toward your overall rate
+        // while there are few answers). The target time and the pass line cut it into four zones. A dot takes
+        // its section's colour, its size the number of first tries, and a section in the key can be picked
+        // out. A question counts toward each service it is tagged with, its features folded into the service.
+        const SCATTER_MIN_FIRSTS = 3;   // first tries a service needs to be placed
+        const SCATTER_MIN_TIMED = 2;    // ...and timed first tries, for its typical time
+        const SCATTER_ZONES = {
+            solid: { name: 'Solid', colour: 'var(--ov-right)', says: 'quick and mostly right' },
+            slow: { name: 'Slow but sure', colour: 'var(--ov-lean-up)', says: 'mostly right, but slower than the target' },
+            rushing: { name: 'Rushing', colour: 'var(--ov-lean-down)', says: 'quick, but often wrong first time' },
+            gap: { name: 'Gap', colour: 'var(--ov-missed)', says: 'slow and often wrong first time' }
+        };
+        let scatter = null;   // what drawScatter() draws: { points, section (picked in the key), selected }
+
+        // a section's colour, by its place in the domain order
+        function sectionColour(name) {
+            const i = DOMAIN_ORDER.indexOf(name);
+            return `var(--sec-${i < 0 ? DOMAIN_ORDER.length - 1 : i})`;
+        }
+
+        function renderScatter(banks) {
+            const box = document.getElementById('ovScatter');
+            const svc = {};
+            let right = 0, seen = 0;
+            for (const b of banks) for (const q of b.questions) {
+                const log = b.log[q.id];
+                const open = !log || !log.length || !log[log.length - 1][0];
+                const first = log && log.length ? log[0] : null;
+                if (first) { seen++; if (first[0]) right++; }
+                const services = [...new Set(tagsOf(q).filter(t => !t.includes(TAG_SEP)))];
+                for (const s of services) {
+                    const e = svc[s] || (svc[s] = { firsts: 0, right: 0, seconds: [], domains: {}, byBank: {} });
+                    const n = e.byBank[b.key] || (e.byBank[b.key] = { asked: 0, open: 0 });
+                    n.asked++;
+                    if (open) n.open++;
+                    const d = q.domain || 'General AWS';
+                    e.domains[d] = (e.domains[d] || 0) + 1;
+                    if (!first) continue;
+                    e.firsts++;
+                    if (first[0]) e.right++;
+                    if (typeof first[3] === 'number' && first[3] <= AWAY_SECONDS) e.seconds.push(first[3]);
+                }
+            }
+            const overall = seen ? Math.min(0.95, Math.max(0.05, right / seen)) : 0;
+            const points = [];
+            let waiting = 0;
+            for (const [name, e] of Object.entries(svc)) {
+                if (e.firsts < SCATTER_MIN_FIRSTS) continue;
+                if (e.seconds.length < SCATTER_MIN_TIMED) { waiting++; continue; }
+                const section = Object.keys(e.domains).sort((a, b) => e.domains[b] - e.domains[a] || compareDomains(a, b))[0];
+                const rate = (FOREST_PRIOR * overall + e.right) / (FOREST_PRIOR + e.firsts);
+                const secs = median(e.seconds);
+                const zone = rate >= PASS_SHARE ? (secs <= TARGET_SECONDS ? 'solid' : 'slow') : (secs <= TARGET_SECONDS ? 'rushing' : 'gap');
+                points.push({ name, section, rate, secs, zone, firsts: e.firsts, right: e.right, timed: e.seconds.length, bank: practiseBank({ byBank: { [name]: e.byBank } }, name) });
+            }
+            const keep = scatter && points.some(p => p.name === scatter.selected) ? scatter.selected : null;
+            const pick = scatter && points.some(p => p.section === scatter.section) ? scatter.section : null;
+            scatter = { points, section: pick, selected: keep };
+
+            const target = formatDuration(TARGET_SECONDS * 1000), passPct = Math.round(PASS_SHARE * 100);
+            const need = `a service is placed once it has ${SCATTER_MIN_FIRSTS} first tries, ${SCATTER_MIN_TIMED} of them timed`;
+            if (!points.length) {
+                box.innerHTML = `<p class="text-sm text-slate-400">${waiting
+                    ? `${plural(waiting, 'service')} ${waiting === 1 ? 'has' : 'have'} enough first tries but not enough timed ones yet. Answers now record their time, so new questions will fill this in: ${need}.`
+                    : `Answer a few new questions to see your speed and accuracy by service: ${need}.`}</p>`;
+                return;
+            }
+
+            // a sentence per zone, the ones worth acting on first
+            const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
+            const names = zone => {
+                const all = points.filter(p => p.zone === zone).sort((a, b) => b.firsts - a.firsts).map(p => p.name);
+                const shown = all.length > 4 ? all.slice(0, 3).concat(`${all.length - 3} more`) : all;
+                return all.length ? `<span class="text-slate-200 font-semibold">${escapeHtml(list(shown))}</span>` : '';
+            };
+            const said = [];
+            if (names('gap')) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES.gap.colour}">Gap</b>: ${names('gap')}, slow and often missed first time, so the topic itself needs work.`);
+            if (names('rushing')) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES.rushing.colour}">Rushing</b>: ${names('rushing')}, quick but often missed, so read these for the trap before answering.`);
+            if (names('slow')) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES.slow.colour}">Slow but sure</b>: ${names('slow')}, right but past ${target}, so drill these for speed.`);
+            if (names('solid')) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES.solid.colour}">Solid</b>: ${names('solid')}.`);
+
+            const sections = [...new Set(points.map(p => p.section))].sort(compareDomains);
+            box.innerHTML = `
+                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
+                <div id="ovScatterChart" class="ov-chart mt-4"></div>
+                <div class="sc-key mt-3" role="group" aria-label="Pick out a section">${sections.map(s => `
+                    <button type="button" class="sc-chip" data-section="${escapeHtml(s)}" aria-pressed="${s === scatter.section}" style="--sc-c:${sectionColour(s)}"><i aria-hidden="true"></i>${escapeHtml(s)}</button>`).join('')}
+                </div>
+                <div id="ovScatterPick" class="mt-3"></div>
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in First tries by section. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}${waiting ? `; ${plural(waiting, 'more service')} will appear once ${waiting === 1 ? 'it has' : 'they have'} timed answers, since times are fairly new` : ''}. Tap a dot for its numbers, or a section to pick it out.</p>`;
+            box.querySelector('.sc-key').onclick = e => {
+                const chip = e.target.closest('.sc-chip');
+                if (!chip) return;
+                scatter.section = scatter.section === chip.dataset.section ? null : chip.dataset.section;
+                for (const c of box.querySelectorAll('.sc-chip')) c.setAttribute('aria-pressed', String(c.dataset.section === scatter.section));
+                drawScatter();
+            };
+            document.getElementById('ovScatterPick').onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (b) practiseTag(b.dataset.bank, b.dataset.tag);
+            };
+            drawScatter();
+        }
+
+        // The chart is drawn to its holder's width; the resize handler calls this again
+        function drawScatter() {
+            const holder = document.getElementById('ovScatterChart');
+            if (!scatter || !holder) return;
+            const pts = scatter.points;
+            const W = Math.max(260, holder.clientWidth), H = W < 500 ? 280 : 300;
+            const m = { top: 20, right: 14, bottom: 34, left: 38 };
+            const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+            // both axes zoom to where the dots are, always keeping the target time and the pass line in view
+            const secs = pts.map(p => p.secs), rates = pts.map(p => p.rate);
+            const xLo = Math.max(0, Math.floor((Math.min(...secs, TARGET_SECONDS) - 20) / 30) * 30);
+            const xHi = Math.ceil((Math.max(...secs, TARGET_SECONDS) + 20) / 30) * 30;
+            const yLo = Math.max(0, Math.floor((Math.min(...rates, PASS_SHARE) - 0.08) * 10) / 10);
+            const yHi = Math.min(1, Math.ceil((Math.max(...rates, PASS_SHARE) + 0.08) * 10) / 10);
+            const x = s => m.left + (Math.min(Math.max(s, xLo), xHi) - xLo) / (xHi - xLo) * iw;
+            const y = v => m.top + ih - (v - yLo) / (yHi - yLo) * ih;
+            const r = p => 4 + Math.min(7, Math.sqrt(p.firsts) * 1.4);
+            const parts = [];
+            // the zones, faintly tinted, each named in its outer corner
+            const tx = x(TARGET_SECONDS), py = y(PASS_SHARE);
+            const zone = (k, x1, y1, x2, y2) => parts.push(`<rect x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}" fill="${SCATTER_ZONES[k].colour}" fill-opacity=".08"/>`);
+            zone('solid', m.left, m.top, tx, py);
+            zone('slow', tx, m.top, W - m.right, py);
+            zone('rushing', m.left, py, tx, m.top + ih);
+            zone('gap', tx, py, W - m.right, m.top + ih);
+            const label = (k, lx, ly, anchor) => parts.push(`<text class="sc-zone-label" x="${lx}" y="${ly}" text-anchor="${anchor}" style="fill:${SCATTER_ZONES[k].colour}">${SCATTER_ZONES[k].name}</text>`);
+            label('solid', m.left + 6, m.top + 14, 'start');
+            label('slow', W - m.right - 6, m.top + 14, 'end');
+            label('rushing', m.left + 6, m.top + ih - 6, 'start');
+            label('gap', W - m.right - 6, m.top + ih - 6, 'end');
+            // grid and axes
+            const yStep = yHi - yLo <= 0.6 ? 0.1 : 0.25;
+            for (let v = Math.ceil(yLo / yStep - 1e-9) * yStep; v <= yHi + 1e-9; v += yStep) {
+                parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${m.left - 6}" y="${y(v) + 3}" text-anchor="end">${Math.round(v * 100)}%</text>`);
+            }
+            const xStep = xHi - xLo <= 240 ? 30 : xHi - xLo <= 480 ? 60 : 120;
+            for (let s = xLo; s <= xHi; s += xStep) {
+                parts.push(`<line x1="${x(s)}" x2="${x(s)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                if (Math.abs(s - TARGET_SECONDS) >= xStep && (W >= 500 || (s / 60) % 1 === 0)) parts.push(`<text x="${x(s)}" y="${m.top + ih + 14}" text-anchor="middle">${formatDuration(s * 1000)}</text>`);
+            }
+            parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${py}" y2="${py}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
+            parts.push(`<text x="${W - m.right - 6}" y="${py - 5}" text-anchor="end">${Math.round(PASS_SHARE * 100)}% pass</text>`);
+            parts.push(`<line x1="${tx}" x2="${tx}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
+            parts.push(`<text x="${tx}" y="${m.top + ih + 14}" text-anchor="middle" class="sc-strong">${formatDuration(TARGET_SECONDS * 1000)} target</text>`);
+            parts.push(`<text x="${W - m.right}" y="${H - 4}" text-anchor="end">typical time on first sight →</text>`);
+            parts.push(`<text x="0" y="9">↑ right first time</text>`);
+            // the dots, biggest first so small ones stay on top; a picked section dims the rest
+            const order = pts.slice().sort((a, b) => b.firsts - a.firsts);
+            for (const p of order) {
+                const dim = scatter.section && p.section !== scatter.section;
+                parts.push(`<circle class="sc-dot" cx="${x(p.secs).toFixed(1)}" cy="${y(p.rate).toFixed(1)}" r="${r(p).toFixed(1)}" fill="${sectionColour(p.section)}" stroke="var(--ov-surface)" stroke-width="1.5"${dim ? ' opacity=".15"' : ''}/>`);
+            }
+            // names beside the dots where they fit, the most answered first; a picked section's names always try first
+            const boxes = [
+                { x1: W - m.right - 56, x2: W - m.right, y1: py - 15, y2: py - 1 },                  // the pass line's label
+                { x1: m.left, x2: m.left + 40, y1: m.top, y2: m.top + 20 },                           // Solid
+                { x1: W - m.right - 80, x2: W - m.right, y1: m.top, y2: m.top + 20 },                 // Slow but sure
+                { x1: m.left, x2: m.left + 56, y1: m.top + ih - 18, y2: m.top + ih },                 // Rushing
+                { x1: W - m.right - 32, x2: W - m.right, y1: m.top + ih - 18, y2: m.top + ih }        // Gap
+            ];
+            const fits = bx => bx.x1 >= m.left && bx.x2 <= W - m.right && bx.y1 >= m.top && bx.y2 <= m.top + ih
+                && !boxes.some(o => bx.x1 < o.x2 && bx.x2 > o.x1 && bx.y1 < o.y2 && bx.y2 > o.y1)
+                && !pts.some(o => { const ox = x(o.secs), oy = y(o.rate), rr = r(o); return ox + rr > bx.x1 && ox - rr < bx.x2 && oy + rr > bx.y1 && oy - rr < bx.y2; });
+            const labelled = order.slice().sort((a, b) => (scatter.section ? (b.section === scatter.section) - (a.section === scatter.section) : 0) || b.firsts - a.firsts);
+            for (const p of labelled) {
+                if (scatter.section && p.section !== scatter.section) continue;
+                const cx = x(p.secs), cy = y(p.rate), w = p.name.length * 5.6 + 2, rr = r(p);
+                for (const [lx, anchor] of [[cx + rr + 3, 'start'], [cx - rr - 3, 'end']]) {
+                    const bx = { x1: anchor === 'start' ? lx : lx - w, x2: anchor === 'start' ? lx + w : lx, y1: cy - 6, y2: cy + 6 };
+                    if (!fits(bx)) continue;
+                    boxes.push(bx);
+                    parts.push(`<text class="sc-name" x="${lx.toFixed(1)}" y="${(cy + 3.5).toFixed(1)}" text-anchor="${anchor}">${escapeHtml(p.name)}</text>`);
+                    break;
+                }
+            }
+            parts.push(`<circle class="sc-ring" r="0" fill="none" stroke="var(--ov-ink)" stroke-width="2" visibility="hidden"/>`);
+            const summary = `Speed and accuracy for ${plural(pts.length, 'service')}: ` + Object.keys(SCATTER_ZONES)
+                .map(k => `${SCATTER_ZONES[k].name} ${pts.filter(p => p.zone === k).length}`).join(', ') + '. Use the arrow keys to step through them.';
+            holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
+
+            const svg = holder.querySelector('svg'), ring = svg.querySelector('.sc-ring');
+            const pick = document.getElementById('ovScatterPick');
+            const tipLines = p => [[p.name, `· ${SCATTER_ZONES[p.zone].name}`], [null, `${p.right} of ${p.firsts} right first time · typical ${formatDuration(p.secs * 1000)}`], [null, p.section]];
+            const mark = p => {
+                ring.setAttribute('visibility', p ? 'visible' : 'hidden');
+                if (!p) return;
+                ring.setAttribute('cx', x(p.secs));
+                ring.setAttribute('cy', y(p.rate));
+                ring.setAttribute('r', r(p) + 3);
+            };
+            const select = p => {
+                scatter.selected = p ? p.name : null;
+                mark(p);
+                if (!p) { pick.innerHTML = ''; return; }
+                const z = SCATTER_ZONES[p.zone], b = p.bank;
+                const label = b ? `Practise ${escapeHtml(p.name)} in ${BANKS[b.bank].label}` : '';
+                pick.innerHTML = `
+                    <div class="ov-weak-item">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-2 text-xs">
+                                <span class="text-slate-200 font-semibold"><i class="sc-swatch" style="--sc-c:${sectionColour(p.section)}" aria-hidden="true"></i>${escapeHtml(p.name)}</span>
+                                <span class="sc-zone font-semibold shrink-0" style="--sc-c:${z.colour}">${z.name}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">${p.right} of ${p.firsts} right first time (estimate ${Math.round(p.rate * 100)}%) · typical ${formatDuration(p.secs * 1000)} on first sight, from ${plural(p.timed, 'timed answer')} · ${z.says}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(p.section)}</p>
+                        </div>
+                        ${b ? `<button type="button" class="ov-practise" data-bank="${b.bank}" data-tag="${escapeHtml(p.name)}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.asked, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>` : ''}
+                    </div>`;
+            };
+            const nearest = e => {
+                const rc = svg.getBoundingClientRect(), px = (e.clientX - rc.left) * W / rc.width, py2 = (e.clientY - rc.top) * H / rc.height;
+                let best = null, dist = Infinity;
+                for (const p of pts) {
+                    if (scatter.section && p.section !== scatter.section) continue;
+                    const d = Math.hypot(x(p.secs) - px, y(p.rate) - py2);
+                    if (d < dist && d <= r(p) + 10) { best = p; dist = d; }
+                }
+                return best;
+            };
+            svg.addEventListener('pointermove', e => { const p = nearest(e); if (p) showTip(tipLines(p), e.clientX, e.clientY); else hideTip(); });
+            svg.addEventListener('pointerleave', hideTip);
+            svg.addEventListener('click', e => { const p = nearest(e); select(p || null); });
+            // the arrow keys step through the dots left to right
+            const byX = pts.filter(p => !scatter.section || p.section === scatter.section).sort((a, b) => a.secs - b.secs || b.rate - a.rate);
+            svg.addEventListener('keydown', e => {
+                const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[e.key];
+                if (step === undefined) { if (e.key === 'Escape') { hideTip(); select(null); } return; }
+                e.preventDefault();
+                if (!byX.length) return;
+                const at = byX.findIndex(p => p.name === scatter.selected);
+                const p = byX[at < 0 ? (step > 0 ? 0 : byX.length - 1) : (at + step + byX.length) % byX.length];
+                select(p);
+                const rc = svg.getBoundingClientRect();
+                showTip(tipLines(p), rc.left + x(p.secs) * rc.width / W, rc.top + y(p.rate) * rc.height / H);
+            });
+            svg.addEventListener('blur', hideTip);
+            const kept = pts.find(p => p.name === scatter.selected && (!scatter.section || p.section === scatter.section));
+            select(kept || null);
+        }
+
         // ---- Activity ----
         // One tooltip for the chart and the heatmap. Values lead; text goes in with textContent.
         function showTip(lines, clientX, clientY) {
@@ -4509,12 +4779,12 @@
             wireHeatmap();
         }
 
-        // The chart is drawn to its container's width, so a resize redraws it.
+        // The charts are drawn to their containers' width, so a resize redraws them.
         let overviewResizeTimer = null;
         window.addEventListener('resize', () => {
             clearTimeout(overviewResizeTimer);
             overviewResizeTimer = setTimeout(() => {
-                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); }
+                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); drawScatter(); }
                 if (!document.getElementById('dashboardView').classList.contains('hidden') && BANKS[bankKey]) drawScoreChart(scoreChartOf(bankKey));
             }, 150);
         });
