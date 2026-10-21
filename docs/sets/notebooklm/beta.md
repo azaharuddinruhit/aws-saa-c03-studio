@@ -971,7 +971,7 @@ A company has several backend services that produce a large amount of data every
 - **A.** Use Amazon EC2 Reserved Instances to run the Python script to process the data. Create an S3 Lifecycle configuration rule to delete the data after it is processed.
 - **B.** Use AWS Lambda to run the Python script to process the data. Create an S3 Lifecycle configuration rule to delete the data after it is processed.
 - **C.** Use AWS Lambda to run the Python script to process the data. After the data is processed, call the Amazon S3 API to delete the data.
-- **D.** Use Amazon EC2 Spot instances to run the Python script to process the data. After the data is processed, call the Amazon S3 API to delete the data.
+- **D.** Use Amazon EC2 Spot Instances to run the Python script to process the data. After the data is processed, call the Amazon S3 API to delete the data.
 
 ### Correct answer: D
 
@@ -1646,7 +1646,7 @@ A company runs its critical storage application in the AWS Cloud. The applicatio
 ### Options
 - **A.** Implement an active-active design between the two Regions. Configure the application to use the regional S3 endpoints closest to the user.
 - **B.** Use an active-passive configuration with S3 Multi-Region Access Points. Create a global endpoint for each of the Regions.
-- **C.** Send user data to the regional S3 endpoints closest to the user. Configure an S3 crossaccount replication rule to keep the S3 buckets synchronized.
+- **C.** Send user data to the regional S3 endpoints closest to the user. Configure an S3 cross-account replication rule to keep the S3 buckets synchronized.
 - **D.** Set up Amazon S3 to use Multi-Region Access Points in an active-active configuration with a single global endpoint. Configure S3 Cross-Region Replication.
 
 ### Correct answer: D
@@ -2715,7 +2715,7 @@ A healthcare company receives de-identified medical records from hospital partne
 **Services:** GuardDuty
 
 ### Question
-A company provides a three-tier web application to its customers. Each customer has an AWS account in which the application is deployed, and These accounts are members of the company's organization in AWS Organizations. To protect its customers' AWS accounts and applications, the company wants to monitor them for unusual and unexpected behavior. The company needs to analyze and monitor customer VPC Flow Logs, AWS CloudTrail logs, and DNS logs. What should a solutions architect do to meet these requirements?
+A company provides a three-tier web application to its customers. Each customer has an AWS account in which the application is deployed, and these accounts are members of the company's organization in AWS Organizations. To protect its customers' AWS accounts and applications, the company wants to monitor them for unusual and unexpected behavior. The company needs to analyze and monitor customer VPC Flow Logs, AWS CloudTrail logs, and DNS logs. What should a solutions architect do to meet these requirements?
 
 ### Options
 - **A.** Designate an account in the organization as the AWS Shield administrator account. Enable Shield and Shield logs in every account, and invite the accounts to join the Shield administrator account. Analyze Shield findings in the Shield administrator account.
@@ -2743,10 +2743,10 @@ A company provides a three-tier web application to its customers. Each customer 
 **Services:** ECR, IAM › Policy evaluation
 
 ### Question
-A company needs to use container images for a new project. A development team requires full access to a new Amazon ECR repository. A solutions architect creates a new IAM role that has the AmazonEC2ContainerRegistryFullAccess policy attached. The solutions architect creates a second ECR repository by using an existing repository as a template. When a developer tries to push a docker image to the second repository by using the new IAM role, the command fails with an authorization error. What is the likely cause of the error?
+A company needs to use container images for a new project. A development team requires full access to a new Amazon ECR repository. A solutions architect creates a new IAM role that has the AmazonEC2ContainerRegistryFullAccess policy attached. The solutions architect creates a second ECR repository by using an existing repository as a template. When a developer tries to push a Docker image to the second repository by using the new IAM role, the command fails with an authorization error. What is the likely cause of the error?
 
 ### Options
-- **A.** The token that the developer retrieved to log in to the docker repository by using the aws ecr get-login-password command is older than 2 hours.
+- **A.** The token that the developer retrieved to log in to the Docker repository by using the aws ecr get-login-password command is older than 2 hours.
 - **B.** The IAM role that is assigned to the development team does not have permission to pull images from the repository.
 - **C.** The developer does not have multi-factor authentication (MFA) enabled.
 - **D.** The new repository was created from an ECR repository policy that denies pushing images.

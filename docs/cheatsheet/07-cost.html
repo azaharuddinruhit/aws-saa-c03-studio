@@ -40,7 +40,7 @@ pick: {
       cur:       {t:'Cost and Usage Report', ico:'cur', w:'Hourly line items delivered to S3; query with Athena, chart with QuickSight.', alt:'The most granular billing data.'},
       anomaly:   {t:'Cost Anomaly Detection', ico:'costexplorer', w:'Machine learning flags unusual spend and alerts you, no threshold needed.', alt:'Known limits → AWS Budgets.'},
       budgets:   {t:'AWS Budgets', ico:'budgets', w:'Alerts on actual or forecasted cost and usage; budget actions can stop resources.', alt:'Budget actions apply IAM/SCP policies or stop EC2/RDS.'},
-      computesp: {t:'Compute Savings Plan', ico:'savings', w:'Up to ~66% off, flexible across EC2 families, Regions, Fargate and Lambda.', alt:'Databases need their own reserved instances.'},
+      computesp: {t:'Compute Savings Plan', ico:'savings', w:'Up to ~66% off, flexible across EC2 families, Regions, Fargate and Lambda.', alt:'Doesn\'t cover databases: use a Database Savings Plan or the database\'s own reservations.'},
       ri:        {t:'EC2 Instance SP / Standard RI', ico:'savings', w:'Up to ~72% off for one instance family in one Region.', alt:'Standard RIs can be sold on the RI Marketplace.'},
       spot:      {t:'Spot Instances', ico:'spot', w:'Up to ~90% off, with a 2-minute interruption warning.', alt:'Batch, CI, big data, stateless containers.'},
       computeopt:{t:'AWS Compute Optimizer', ico:'computeopt', w:'Right-sizing recommendations for EC2, ASG, EBS, Lambda and Fargate.', alt:'Memory data needs the CloudWatch agent.'},
@@ -114,7 +114,7 @@ commit: {
       ['Flexibility','Any family, Region, OS','Size and OS in one family/Region','Fixed type','Exchange family/OS'],
       ['Covers','EC2, Fargate, Lambda','EC2','EC2','EC2'],
       ['Resell','No','No','RI Marketplace','No']],
-      aid:'Databases (RDS, ElastiCache, Redshift, OpenSearch) use their own <b>reserved instances</b>; Compute Savings Plans don\'t cover them.'},
+      aid:'Compute Savings Plans don\'t cover databases. Use a 1-year <b>Database Savings Plan</b> (any engine or Region), or the database\'s own reservations: RDS Reserved Instances, or <b>reserved nodes</b> for ElastiCache and Redshift. Database Savings Plans don\'t cover Redshift.'},
     {tab:'Spot', type:'list', items:[
       ['Discount','Up to ~90% off On-Demand.'],
       ['Interruption','2-minute warning via instance metadata and EventBridge.'],
@@ -124,7 +124,7 @@ commit: {
       ['Not for','Databases or work that can\'t restart.']]}
   ],
   traps: [
-    '<b>Compute Savings Plans don\'t cover databases.</b> Buy RDS/ElastiCache/Redshift reserved instances.',
+    '<b>Compute Savings Plans don\'t cover databases.</b> Use RDS Reserved Instances (reserved nodes for ElastiCache and Redshift), or a 1-year Database Savings Plan.',
     '<b>Spot isn\'t for stateful databases</b> or jobs that can\'t be interrupted.',
     '<b>Only Standard RIs can be resold</b> on the Marketplace.'
   ]
@@ -205,7 +205,7 @@ const Q = [
   ['Commitments','Steady EC2, Fargate and Lambda usage for 3 years; instance families will change.',['Compute Savings Plan','EC2 Instance Savings Plan','Standard RI','Spot'],0,'Compute SPs cover all three and any family.'],
   ['Commitments','Steady m5 usage in one Region; get the highest discount.',['EC2 Instance Savings Plan or Standard RI','Compute Savings Plan','On-Demand','Spot'],0,'The less flexible options give up to ~72%.'],
   ['Commitments','Fault-tolerant batch jobs must run as cheaply as possible.',['Spot Instances','Reserved Instances','Dedicated Hosts','On-Demand'],0,'Spot is up to ~90% off for interruptible work.'],
-  ['Commitments','An RDS database runs 24/7 for the next 3 years.',['RDS Reserved Instances','Compute Savings Plan','Spot','EC2 Instance SP'],0,'Compute SPs don\'t cover RDS.'],
+  ['Commitments','An RDS database runs 24/7 for the next 3 years.',['RDS Reserved Instances','Compute Savings Plan','Spot','EC2 Instance SP'],0,'Compute SPs don\'t cover RDS, and Database Savings Plans run only 1 year.'],
   ['Commitments','The team may need to sell an unused commitment later.',['Standard Reserved Instances','Compute Savings Plan','Convertible RI','EC2 Instance SP'],0,'Only Standard RIs can be sold on the RI Marketplace.'],
   ['Commitments','A web tier has a steady baseline with unpredictable peaks.',['Savings Plan for the baseline; On-Demand/Spot for peaks','All Reserved Instances','All Spot','Dedicated Hosts'],0,'Commit to the baseline and flex the rest.'],
   ['Right-sizing','EC2 instances seem over-provisioned. Which sizes should they be?',['AWS Compute Optimizer','Cost Explorer','Budgets','CloudTrail'],0,'Compute Optimizer recommends right sizes.'],
@@ -232,7 +232,7 @@ const FC = [
   ['Control','Consolidated billing benefit?','One bill, volume tiers, shared RI/SP discounts.'],
   ['Commitments','Compute SP vs EC2 Instance SP discount?','Compute SP ~66%, flexible. EC2 Instance SP ~72%, one family and Region.'],
   ['Commitments','Which commitment can be resold?','Standard RIs (RI Marketplace).'],
-  ['Commitments','Do Compute Savings Plans cover RDS?','No. Buy RDS reserved instances.'],
+  ['Commitments','Do Compute Savings Plans cover RDS?','No. Use RDS Reserved Instances, or a 1-year Database Savings Plan.'],
   ['Commitments','Spot discount and warning?','Up to ~90%; 2-minute warning.'],
   ['Right-sizing','Compute Optimizer covers?','EC2, Auto Scaling groups, EBS, Lambda, ECS on Fargate.'],
   ['Right-sizing','Graviton saving?','About 20% cheaper, better price-performance.'],
@@ -267,7 +267,7 @@ const TRAPS = [
   ['"Block expensive instance types org-wide"','SCP'],
   ['"Commit across EC2, Fargate, Lambda"','Compute Savings Plan'],
   ['"Highest discount, one family/Region"','EC2 Instance SP / Standard RI'],
-  ['"Steady database for 3 years"','RDS reserved instances','Not Compute Savings Plans'],
+  ['"Steady database for 3 years"','RDS Reserved Instances','Not Compute Savings Plans; Database Savings Plans run 1 year'],
   ['"Interruptible batch, cheapest"','Spot'],
   ['"Which instance size?"','Compute Optimizer'],
   ['"Idle LBs, unattached EIPs"','Trusted Advisor'],

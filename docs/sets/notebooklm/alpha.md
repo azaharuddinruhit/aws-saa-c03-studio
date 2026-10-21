@@ -2955,7 +2955,7 @@ A research team submits thousands of independent containerized jobs each night. 
 - A is wrong: Fargate runs the containers, but there is no queue, dependency handling or retry logic, so thousands of jobs would have to be orchestrated by custom code.
 - B is wrong: Lambda stops each invocation at 15 minutes and offers at most 10 GB of memory, so multi-hour, 64 GB jobs cannot run.
 - C is wrong: a peak-sized cluster sits idle by day, and the team would still manage the cluster and its scheduling.
-- D is correct: Batch queues jobs, retries them, honours dependencies, sizes compute to the vCPU and memory each job asks for, and scales the environment down when the queue empties.
+- D is correct: Batch queues jobs, retries them, honors dependencies, sizes compute to the vCPU and memory each job asks for, and scales the environment down when the queue empties.
 
 **Key phrases:** several hours · up to 64 GB of memory · cannot start until others finish · without managing clusters or writing scheduling logic
 **Hint:** Look for the service whose core concepts are job queues, job definitions and dependencies, rather than one that only starts containers or functions.
@@ -4884,7 +4884,7 @@ A video platform stores master files in S3 Standard and generates lower-resoluti
 **Summary:** Infrequently read data that can be recreated (thumbnails, renditions, secondary copies): S3 One Zone-IA, the cheapest millisecond-access IA class.
 
 ### Explanation
-- A is wrong: it meets the access needs but pays for multi-AZ resilience that regenerable renditions do not need.
+- A is wrong: it meets the access needs but pays for Multi-AZ resilience that regenerable renditions do not need.
 - B is wrong: Standard costs more per GB than the infrequent-access classes for data read only a few times a month.
 - C is wrong: Flexible Retrieval needs a restore before reading, and even expedited retrievals take minutes, not milliseconds.
 - D is correct: One Zone-IA costs about 20% less than Standard-IA with the same millisecond access, and its single-zone storage is acceptable for data that can be regenerated.

@@ -1103,7 +1103,7 @@ A company runs an application that uses Amazon RDS for PostgreSQL. The applicati
 - A is correct: Instance Scheduler on AWS stops the database outside business hours on a schedule, cutting cost with no custom code.
 - B is wrong: turning off automatic backups weakens recovery and barely affects cost.
 - C is wrong: a custom Lambda function based on CPU is code to maintain and may stop the database at the wrong time.
-- D is wrong: reserved instances pay for 24/7 capacity that sits idle most of the week.
+- D is wrong: Reserved Instances pay for 24/7 capacity that sits idle most of the week.
 
 **Key phrases:** only on weekdays during business hours · optimize costs and reduce operational overhead
 **Hint:** Stop paying for the database outside business hours without writing code.
@@ -2109,7 +2109,7 @@ A manufacturing company runs an order processing application in its VPC. The com
 
 ### Options
 - **A.** Create an Amazon SNS topic in a fanout configuration that pushes data to an HTTPS endpoint. Configure the order processing application to publish messages to the SNS topic.
-- **B.** Create an Amazon SNS topic in a fanout configuration that pushes data to an Amazon Data Firehose delivery stream that has a HTTP destination. Configure the order processing application to publish messages to the SNS topic.
+- **B.** Create an Amazon SNS topic in a fanout configuration that pushes data to an Amazon Data Firehose delivery stream that has an HTTP destination. Configure the order processing application to publish messages to the SNS topic.
 - **C.** Create an Amazon EventBridge rule and configure an Amazon EventBridge API destination partner. Configure the order processing application to publish messages to Amazon EventBridge.
 - **D.** Create an Amazon Managed Streaming for Apache Kafka (Amazon MSK) topic that has an outbound MSK Connect connector. Configure the order processing application to publish messages to the MSK topic.
 
@@ -2195,7 +2195,7 @@ A company's cloud operations team uses the AWS Management Console to administer 
 - **A.** Enable AWS IAM Identity Center. Configure IAM Identity Center to always require users to use multi-factor authentication (MFA) to log in.
 - **B.** Disable console access. Require users to use the AWS CLI and AWS CloudFormation templates to manage cloud resources.
 - **C.** Disable the root user in the cloud operations account. Replace the PowerUserAccess AWS managed policy with a custom policy that is based on the principle of least privilege.
-- **D.** Configure a service control policy (SCP) that ensures only approved IP address can log in to the console.
+- **D.** Configure a service control policy (SCP) that ensures only approved IP addresses can log in to the console.
 
 ### Correct answer: A
 
@@ -3329,7 +3329,7 @@ A company runs an application on Amazon EC2 instances that have instance store v
 
 ### Options
 - **A.** Configure an AWS Storage Gateway Amazon S3 File Gateway to cache frequently accessed files locally. Store older files in Amazon S3.
-- **B.** Move the files from Amazon EFS, and store the the files locally on each EC2 instance.
+- **B.** Move the files from Amazon EFS, and store the files locally on each EC2 instance.
 - **C.** Configure a lifecycle policy to move the files to the EFS Infrequent Access (IA) storage class after 7 days.
 - **D.** Deploy AWS DataSync to automatically move files older than 7 days to Amazon S3 Glacier Deep Archive.
 
@@ -4431,7 +4431,7 @@ A company wants to migrate an application that processes logs to AWS. Currently,
 - **A.** Use a General Purpose SSD (gp3) Amazon EBS volume with 500 MBps provisioned throughput.
 - **B.** Use a Throughput Optimized HDD (st1) Amazon EBS volume with provisioned storage based on the throughput requirement.
 - **C.** Use a Cold HDD (sc1) Amazon EBS volume with provisioned storage based on the throughput requirement.
-- **D.** Use a Provisioned IOPS (io1) Amazon EBS volume with 500 MBps Provisioned throughput.
+- **D.** Use a Provisioned IOPS (io1) Amazon EBS volume with 500 MBps provisioned throughput.
 
 ### Correct answer: B
 

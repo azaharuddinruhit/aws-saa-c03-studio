@@ -154,7 +154,7 @@ const GROUPS = [
 const group = id => GROUPS.find(g => g.id === id);
 // diagrams 1 and 2 are hand-drawn in the page (their headings carry their numbers); they are listed
 // here for the contents and the numbering, and must stay first
-group('g-network').items.push({ id: 'vpc-layout', title: 'Classic multi-AZ VPC' }, { id: 'vpc-endpoints', title: 'Private access to AWS services' });
+group('g-network').items.push({ id: 'vpc-layout', title: 'Classic Multi-AZ VPC' }, { id: 'vpc-endpoints', title: 'Private access to AWS services' });
 
 // Diagrams are numbered in page order (group by group) when the page is written, so a new diagram
 // can go into any group and everything after it renumbers itself.

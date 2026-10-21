@@ -198,7 +198,7 @@ files: {
       ontap:{n:'FSx for NetApp ONTAP', short:'FSx ONTAP', ico:'fsxontap', tag:'NFS + SMB + iSCSI', pts:['Multi-protocol: Linux, Windows, macOS','Snapshots, clones, dedupe','Lift-and-shift of NetApp']},
       zfs:{n:'FSx for OpenZFS', short:'FSx OpenZFS', ico:'fsxzfs', tag:'NFS · ZFS', pts:['Move existing ZFS file servers','Snapshots and clones','Very low latency']}
     }, scen:[
-      ['"Linux web servers in 3 AZs share uploads"','efs','EFS is NFS, multi-AZ, and scales automatically.'],
+      ['"Linux web servers in 3 AZs share uploads"','efs','EFS is NFS, Multi-AZ, and scales automatically.'],
       ['"Windows users need a shared drive with AD permissions"','win','FSx for Windows speaks SMB and joins Active Directory.'],
       ['"ML training reads an S3 dataset at huge throughput"','lustre','FSx for Lustre links to S3 and delivers HPC throughput.'],
       ['"Migrate NetApp NAS with NFS and SMB clients"','ontap','FSx for NetApp ONTAP is multi-protocol and runs ONTAP.'],
@@ -309,7 +309,7 @@ const Q = [
   ['EBS','An existing unencrypted volume must be encrypted.',['Snapshot → copy with encryption → create a new volume','Enable encryption on the volume','Turn on encryption by default','Use SSE-S3'],0,'You can\'t encrypt in place. The encrypted copy of the snapshot creates an encrypted volume.'],
   ['EBS','Volumes created from snapshots must give full performance immediately.',['Fast Snapshot Restore','Snapshot archive tier','Elastic Volumes','Data Lifecycle Manager'],0,'FSR pre-initializes volumes so there is no first-read penalty.'],
   ['EBS','A clustered app needs one block volume attached to several instances in the same AZ.',['io2 with Multi-Attach','gp3 with Multi-Attach','EFS','st1'],0,'Only io1/io2 support Multi-Attach, up to 16 Nitro instances in one AZ.'],
-  ['Files','Linux web servers in three AZs must share uploaded files.',['Amazon EFS','EBS Multi-Attach','Instance store','FSx for Windows'],0,'EFS is multi-AZ NFS that many instances mount at once.'],
+  ['Files','Linux web servers in three AZs must share uploaded files.',['Amazon EFS','EBS Multi-Attach','Instance store','FSx for Windows'],0,'EFS is Multi-AZ NFS that many instances mount at once.'],
   ['Files','Windows users need a shared drive with Active Directory permissions.',['FSx for Windows File Server','Amazon EFS','S3 File Gateway only','FSx for Lustre'],0,'FSx for Windows provides SMB with AD integration.'],
   ['Files','An HPC job must process a large dataset stored in S3 at very high throughput.',['FSx for Lustre linked to the S3 bucket','EFS General Purpose','EBS gp3','S3 Transfer Acceleration'],0,'FSx for Lustre integrates with S3 and delivers HPC throughput.'],
   ['Files','An on-premises NetApp NAS serving NFS and SMB clients must move to AWS with minimal change.',['FSx for NetApp ONTAP','Amazon EFS','FSx for Lustre','S3 File Gateway'],0,'ONTAP is multi-protocol and keeps NetApp features.'],

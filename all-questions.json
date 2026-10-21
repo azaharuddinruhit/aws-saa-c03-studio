@@ -4438,7 +4438,7 @@
       "A is wrong: Fargate runs the containers, but there is no queue, dependency handling or retry logic, so thousands of jobs would have to be orchestrated by custom code.",
       "B is wrong: Lambda stops each invocation at 15 minutes and offers at most 10 GB of memory, so multi-hour, 64 GB jobs cannot run.",
       "C is wrong: a peak-sized cluster sits idle by day, and the team would still manage the cluster and its scheduling.",
-      "D is correct: Batch queues jobs, retries them, honours dependencies, sizes compute to the vCPU and memory each job asks for, and scales the environment down when the queue empties."
+      "D is correct: Batch queues jobs, retries them, honors dependencies, sizes compute to the vCPU and memory each job asks for, and scales the environment down when the queue empties."
     ],
     "tldr": "Queues of batch jobs with varied resources, long runtimes and dependencies = AWS Batch; Fargate alone has no queue, Lambda has 15-minute and 10 GB limits.",
     "wrong_reasons": {
@@ -7315,14 +7315,14 @@
     },
     "correct_answer": "D",
     "explanation": [
-      "A is wrong: it meets the access needs but pays for multi-AZ resilience that regenerable renditions do not need.",
+      "A is wrong: it meets the access needs but pays for Multi-AZ resilience that regenerable renditions do not need.",
       "B is wrong: Standard costs more per GB than the infrequent-access classes for data read only a few times a month.",
       "C is wrong: Flexible Retrieval needs a restore before reading, and even expedited retrievals take minutes, not milliseconds.",
       "D is correct: One Zone-IA costs about 20% less than Standard-IA with the same millisecond access, and its single-zone storage is acceptable for data that can be regenerated."
     ],
     "tldr": "Infrequently read data that can be recreated (thumbnails, renditions, secondary copies): S3 One Zone-IA, the cheapest millisecond-access IA class.",
     "wrong_reasons": {
-      "A": "it meets the access needs but pays for multi-AZ resilience that regenerable renditions do not need.",
+      "A": "it meets the access needs but pays for Multi-AZ resilience that regenerable renditions do not need.",
       "B": "Standard costs more per GB than the infrequent-access classes for data read only a few times a month.",
       "C": "Flexible Retrieval needs a restore before reading, and even expedited retrievals take minutes, not milliseconds."
     },
@@ -10110,7 +10110,7 @@
       "A": "Use Amazon EC2 Reserved Instances to run the Python script to process the data. Create an S3 Lifecycle configuration rule to delete the data after it is processed.",
       "B": "Use AWS Lambda to run the Python script to process the data. Create an S3 Lifecycle configuration rule to delete the data after it is processed.",
       "C": "Use AWS Lambda to run the Python script to process the data. After the data is processed, call the Amazon S3 API to delete the data.",
-      "D": "Use Amazon EC2 Spot instances to run the Python script to process the data. After the data is processed, call the Amazon S3 API to delete the data."
+      "D": "Use Amazon EC2 Spot Instances to run the Python script to process the data. After the data is processed, call the Amazon S3 API to delete the data."
     },
     "correct_answer": "D",
     "explanation": [
@@ -11081,7 +11081,7 @@
     "options": {
       "A": "Implement an active-active design between the two Regions. Configure the application to use the regional S3 endpoints closest to the user.",
       "B": "Use an active-passive configuration with S3 Multi-Region Access Points. Create a global endpoint for each of the Regions.",
-      "C": "Send user data to the regional S3 endpoints closest to the user. Configure an S3 crossaccount replication rule to keep the S3 buckets synchronized.",
+      "C": "Send user data to the regional S3 endpoints closest to the user. Configure an S3 cross-account replication rule to keep the S3 buckets synchronized.",
       "D": "Set up Amazon S3 to use Multi-Region Access Points in an active-active configuration with a single global endpoint. Configure S3 Cross-Region Replication."
     },
     "correct_answer": "D",
@@ -12610,7 +12610,7 @@
     "services": [
       "GuardDuty"
     ],
-    "question": "A company provides a three-tier web application to its customers. Each customer has an AWS account in which the application is deployed, and These accounts are members of the company's organization in AWS Organizations. To protect its customers' AWS accounts and applications, the company wants to monitor them for unusual and unexpected behavior. The company needs to analyze and monitor customer VPC Flow Logs, AWS CloudTrail logs, and DNS logs. What should a solutions architect do to meet these requirements?",
+    "question": "A company provides a three-tier web application to its customers. Each customer has an AWS account in which the application is deployed, and these accounts are members of the company's organization in AWS Organizations. To protect its customers' AWS accounts and applications, the company wants to monitor them for unusual and unexpected behavior. The company needs to analyze and monitor customer VPC Flow Logs, AWS CloudTrail logs, and DNS logs. What should a solutions architect do to meet these requirements?",
     "hint": "Which service analyzes exactly these three log sources for threats, with a delegated administrator for the organization?",
     "keywords": [
       "unusual and unexpected behavior",
@@ -12649,7 +12649,7 @@
       "ECR",
       "IAM › Policy evaluation"
     ],
-    "question": "A company needs to use container images for a new project. A development team requires full access to a new Amazon ECR repository. A solutions architect creates a new IAM role that has the AmazonEC2ContainerRegistryFullAccess policy attached. The solutions architect creates a second ECR repository by using an existing repository as a template. When a developer tries to push a docker image to the second repository by using the new IAM role, the command fails with an authorization error. What is the likely cause of the error?",
+    "question": "A company needs to use container images for a new project. A development team requires full access to a new Amazon ECR repository. A solutions architect creates a new IAM role that has the AmazonEC2ContainerRegistryFullAccess policy attached. The solutions architect creates a second ECR repository by using an existing repository as a template. When a developer tries to push a Docker image to the second repository by using the new IAM role, the command fails with an authorization error. What is the likely cause of the error?",
     "hint": "The role has full ECR permissions. What could still deny the push, and what did the template copy?",
     "keywords": [
       "AmazonEC2ContainerRegistryFullAccess",
@@ -12657,7 +12657,7 @@
       "authorization error"
     ],
     "options": {
-      "A": "The token that the developer retrieved to log in to the docker repository by using the aws ecr get-login-password command is older than 2 hours.",
+      "A": "The token that the developer retrieved to log in to the Docker repository by using the aws ecr get-login-password command is older than 2 hours.",
       "B": "The IAM role that is assigned to the development team does not have permission to pull images from the repository.",
       "C": "The developer does not have multi-factor authentication (MFA) enabled.",
       "D": "The new repository was created from an ECR repository policy that denies pushing images."
@@ -14380,13 +14380,13 @@
       "A is correct: Instance Scheduler on AWS stops the database outside business hours on a schedule, cutting cost with no custom code.",
       "B is wrong: turning off automatic backups weakens recovery and barely affects cost.",
       "C is wrong: a custom Lambda function based on CPU is code to maintain and may stop the database at the wrong time.",
-      "D is wrong: reserved instances pay for 24/7 capacity that sits idle most of the week."
+      "D is wrong: Reserved Instances pay for 24/7 capacity that sits idle most of the week."
     ],
     "tldr": "Instance Scheduler on AWS starts and stops RDS and EC2 on a schedule with no custom code.",
     "wrong_reasons": {
       "B": "turning off automatic backups weakens recovery and barely affects cost.",
       "C": "a custom Lambda function based on CPU is code to maintain and may stop the database at the wrong time.",
-      "D": "reserved instances pay for 24/7 capacity that sits idle most of the week."
+      "D": "Reserved Instances pay for 24/7 capacity that sits idle most of the week."
     },
     "pillars": [
       "Cost Optimization",
@@ -15819,7 +15819,7 @@
     ],
     "options": {
       "A": "Create an Amazon SNS topic in a fanout configuration that pushes data to an HTTPS endpoint. Configure the order processing application to publish messages to the SNS topic.",
-      "B": "Create an Amazon SNS topic in a fanout configuration that pushes data to an Amazon Data Firehose delivery stream that has a HTTP destination. Configure the order processing application to publish messages to the SNS topic.",
+      "B": "Create an Amazon SNS topic in a fanout configuration that pushes data to an Amazon Data Firehose delivery stream that has an HTTP destination. Configure the order processing application to publish messages to the SNS topic.",
       "C": "Create an Amazon EventBridge rule and configure an Amazon EventBridge API destination partner. Configure the order processing application to publish messages to Amazon EventBridge.",
       "D": "Create an Amazon Managed Streaming for Apache Kafka (Amazon MSK) topic that has an outbound MSK Connect connector. Configure the order processing application to publish messages to the MSK topic."
     },
@@ -15938,7 +15938,7 @@
       "A": "Enable AWS IAM Identity Center. Configure IAM Identity Center to always require users to use multi-factor authentication (MFA) to log in.",
       "B": "Disable console access. Require users to use the AWS CLI and AWS CloudFormation templates to manage cloud resources.",
       "C": "Disable the root user in the cloud operations account. Replace the PowerUserAccess AWS managed policy with a custom policy that is based on the principle of least privilege.",
-      "D": "Configure a service control policy (SCP) that ensures only approved IP address can log in to the console."
+      "D": "Configure a service control policy (SCP) that ensures only approved IP addresses can log in to the console."
     },
     "correct_answer": "A",
     "explanation": [
@@ -17558,7 +17558,7 @@
     ],
     "options": {
       "A": "Configure an AWS Storage Gateway Amazon S3 File Gateway to cache frequently accessed files locally. Store older files in Amazon S3.",
-      "B": "Move the files from Amazon EFS, and store the the files locally on each EC2 instance.",
+      "B": "Move the files from Amazon EFS, and store the files locally on each EC2 instance.",
       "C": "Configure a lifecycle policy to move the files to the EFS Infrequent Access (IA) storage class after 7 days.",
       "D": "Deploy AWS DataSync to automatically move files older than 7 days to Amazon S3 Glacier Deep Archive."
     },
@@ -19116,7 +19116,7 @@
       "A": "Use a General Purpose SSD (gp3) Amazon EBS volume with 500 MBps provisioned throughput.",
       "B": "Use a Throughput Optimized HDD (st1) Amazon EBS volume with provisioned storage based on the throughput requirement.",
       "C": "Use a Cold HDD (sc1) Amazon EBS volume with provisioned storage based on the throughput requirement.",
-      "D": "Use a Provisioned IOPS (io1) Amazon EBS volume with 500 MBps Provisioned throughput."
+      "D": "Use a Provisioned IOPS (io1) Amazon EBS volume with 500 MBps provisioned throughput."
     },
     "correct_answer": "B",
     "explanation": [

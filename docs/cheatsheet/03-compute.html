@@ -733,7 +733,7 @@ const Q = [
   ['Containers','ECS tasks fail because they can\'t pull the image from ECR.',['Fix the task execution role','Fix the task role','Open port 443 on the ALB','Add a lifecycle hook'],0,'The execution role lets ECS pull images, write logs and fetch secrets.'],
   ['Containers','The company runs Kubernetes on-premises and wants the same tooling on AWS.',['Amazon EKS','Amazon ECS','Elastic Beanstalk','App Runner'],0,'Kubernetes / portability = EKS.'],
   ['Containers','Containers need GPUs.',['ECS on EC2 launch type','ECS on Fargate','EKS on Fargate','App Runner'],0,'Fargate has no GPU support. Use EC2 instances.'],
-  ['Containers','Tasks across several AZs need shared, persistent storage.',['Amazon EFS','Instance store','EBS gp3','Task ephemeral storage'],0,'EFS is multi-AZ and mounts on Fargate and EC2.'],
+  ['Containers','Tasks across several AZs need shared, persistent storage.',['Amazon EFS','Instance store','EBS gp3','Task ephemeral storage'],0,'EFS is Multi-AZ and mounts on Fargate and EC2.'],
   ['Containers','Run a containerized web app with no cluster, VPC or load balancer setup.',['AWS App Runner','ECS on EC2','EKS','Elastic Beanstalk multi-container'],0,'App Runner builds and runs it as a managed HTTPS service.'],
   ['Containers','Each task needs its own security group.',['awsvpc network mode','bridge network mode','host network mode','A NAT gateway'],0,'awsvpc gives every task its own ENI, so it can have its own security group.']
 ];
