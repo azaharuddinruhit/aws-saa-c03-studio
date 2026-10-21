@@ -338,12 +338,14 @@
             --ov-surface: #ffffff; --ov-line: #059669; --ov-wash: rgba(5, 150, 105, .10);
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
             --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0;
+            --ov-lean-up: #0d9488; --ov-lean-down: #ea580c;
             --ov-heat0: #e2e8f0; --ov-heat1: #29bf88; --ov-heat2: #0b9a6c; --ov-heat3: #06775a; --ov-heat4: #064e3b;
         }
         .dark #overviewView, .dark #dashboardView {
             --ov-surface: #101522; --ov-line: #14a874; --ov-wash: rgba(20, 168, 116, .12);
             --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
             --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447;
+            --ov-lean-up: #2dd4bf; --ov-lean-down: #fb923c;
             --ov-heat0: #212739; --ov-heat1: #065f46; --ov-heat2: #047857; --ov-heat3: #10b981; --ov-heat4: #6ee7b7;
         }
         .dark #ovExamDate { color-scheme: dark; }
@@ -388,14 +390,18 @@
         .ov-chart text { font-family: 'Inter', sans-serif; font-size: 10px; fill: var(--ov-muted); font-variant-numeric: tabular-nums; }
         .fp-list { display: grid; gap: 1rem; }
         @media (min-width: 1024px) { .fp-list { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; } }
-        .fp-axis { position: relative; height: 12px; font-size: 10px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
-        .fp-axis > span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
-        .fp-axis > span:first-child { transform: none; }
-        .fp-axis > span:last-child { transform: translateX(-100%); }
+        /* the axis stops where the tracks do, short of each row's Practise button (2rem and a .75rem gap) */
+        .fp-axis { padding-right: 2.75rem; font-size: 10px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
+        .fp-axis > div { position: relative; height: 12px; }
+        .fp-axis span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+        .fp-axis span:first-child { transform: none; }
+        .fp-axis span:last-child { transform: translateX(-100%); }
         .fp-axis-2 { display: none; }
         @media (min-width: 1024px) { .fp-axis-2 { display: block; } }
-        .fp-row { --fp-c: var(--ov-muted); }
+        .fp-row { --fp-c: var(--ov-muted); display: flex; align-items: center; gap: .75rem; }
         .fp-row[data-v="weak"] { --fp-c: var(--ov-missed); }
+        .fp-row[data-v="down"] { --fp-c: var(--ov-lean-down); }
+        .fp-row[data-v="up"] { --fp-c: var(--ov-lean-up); }
         .fp-row[data-v="strong"] { --fp-c: var(--ov-right); }
         .fp-verdict { color: var(--fp-c); }
         .fp-track { position: relative; height: 14px; margin-top: .4rem;
@@ -404,6 +410,15 @@
         .fp-range { position: absolute; top: 3px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--fp-c) 35%, transparent); }
         .fp-dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--fp-c);
             box-shadow: 0 0 0 2px var(--ov-surface); z-index: 1; }
+        .fp-ring { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+            border: 2px solid var(--ov-ink); z-index: 2; }
+        .fp-key { display: flex; flex-wrap: wrap; gap: .5rem 1rem; font-size: 10px; color: var(--ov-muted); }
+        .fp-key > span { display: inline-flex; align-items: center; gap: .375rem; }
+        .fp-key i { display: inline-block; flex: none; }
+        .fp-key-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ov-muted); }
+        .fp-key-bar { width: 18px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--ov-muted) 35%, transparent); }
+        .fp-key-ring { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ov-ink); }
+        .fp-key-pass { height: 12px; border-left: 1.5px dashed var(--ov-muted); }
         /* the tooltip keeps a dark surface in both themes, like the toast */
         .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
                   border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); white-space: nowrap; }
@@ -3810,12 +3825,15 @@
         // the range that share likely lies in. Each section's estimate is a Beta posterior whose prior is
         // centred on your overall first-try rate and weighs as much as FOREST_PRIOR answers, so a section
         // with three answers leans toward your overall rate instead of swinging to 0% or 100%. The bar runs
-        // from the 10th to the 90th percentile, so the true rate is inside it 8 times in 10. A section is
-        // below or above the pass line only when its whole range is; otherwise it can't be told yet.
+        // from the 10th to the 90th percentile, so the true rate is inside it 8 times in 10. The row's colour
+        // is the chance the rate is above the pass line: clearly either way at 9 in 10, probably either way
+        // past FOREST_LEAN, a toss-up between. A hollow ring marks the share right on your latest answers.
         const FOREST_PRIOR = 4;
         const FOREST_LOW = 0.1, FOREST_HIGH = 0.9;
+        const FOREST_LEAN = 0.65;
 
-        // The 10th and 90th percentiles of Beta(a, b), from its density summed on a fine grid
+        // The 10th and 90th percentiles of Beta(a, b), and the chance it is at or above the pass line,
+        // from its density summed on a fine grid
         function betaRange(a, b) {
             const N = 2000, logs = [];
             for (let i = 0; i < N; i++) { const x = (i + 0.5) / N; logs.push((a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x)); }
@@ -3823,7 +3841,8 @@
             let sum = 0;
             for (const l of logs) { sum += Math.exp(l - top); cdf.push(sum); }
             const at = p => (cdf.findIndex(c => c >= p * sum) + 0.5) / N;
-            return [at(FOREST_LOW), at(FOREST_HIGH)];
+            const pass = Math.round(PASS_SHARE * N);
+            return [at(FOREST_LOW), at(FOREST_HIGH), 1 - (pass ? cdf[pass - 1] : 0) / sum];
         }
 
         // About how many more first tries would move the range clear of the pass line, if the rate stays where
@@ -3836,18 +3855,31 @@
             return need <= left ? need : null;
         }
 
+        // The set a section's Practise button opens: the one with the most of its questions never seen
+        // (the chart is about first tries), then the most still to get right, then the most questions
+        function forestBank(byBank) {
+            const counts = Object.entries(byBank);
+            for (const key of ['unseen', 'open', 'total']) {
+                const best = counts.reduce((top, c) => (!top || c[1][key] > top[1][key] ? c : top), null);
+                if (best && best[1][key]) return { bank: best[0], ...best[1] };
+            }
+            return null;
+        }
+
         function renderForest(banks) {
             const box = document.getElementById('ovForest');
             const sections = {};
             let right = 0, seen = 0;
             for (const b of banks) for (const q of b.questions) {
                 const name = q.domain || 'General AWS';
-                const sec = sections[name] || (sections[name] = { total: 0, seen: 0, right: 0 });
-                sec.total++;
+                const sec = sections[name] || (sections[name] = { total: 0, seen: 0, right: 0, now: 0, byBank: {} });
+                const inBank = sec.byBank[b.key] || (sec.byBank[b.key] = { total: 0, unseen: 0, open: 0 });
+                sec.total++; inBank.total++;
                 const log = b.log[q.id];
-                if (!log || !log.length) continue;
+                if (!log || !log.length) { inBank.unseen++; continue; }
                 sec.seen++; seen++;
                 if (log[0][0]) { sec.right++; right++; }
+                if (log[log.length - 1][0]) sec.now++; else inBank.open++;
             }
             if (!seen) {
                 box.innerHTML = '<p class="text-sm text-slate-400">Answer a few questions to see where you stand in each section.</p>';
@@ -3860,55 +3892,83 @@
                 const sec = sections[name];
                 if (!sec.seen) return { name, sec, verdict: 'none' };
                 const a = FOREST_PRIOR * overall + sec.right, b = FOREST_PRIOR * (1 - overall) + sec.seen - sec.right;
-                const mean = a / (a + b), [lo, hi] = betaRange(a, b);
-                const verdict = hi < PASS_SHARE ? 'weak' : lo >= PASS_SHARE ? 'strong' : 'unsure';
-                return { name, sec, mean, lo, hi, verdict, more: verdict === 'unsure' ? answersToTell(mean, a + b, sec.total - sec.seen) : null };
+                const mean = a / (a + b), [lo, hi, above] = betaRange(a, b);
+                const verdict = above >= FOREST_HIGH ? 'strong' : above >= FOREST_LEAN ? 'up'
+                    : above <= FOREST_LOW ? 'weak' : above <= 1 - FOREST_LEAN ? 'down' : 'unsure';
+                const settled = verdict === 'strong' || verdict === 'weak';
+                return { name, sec, mean, lo, hi, above, verdict, more: settled ? null : answersToTell(mean, a + b, sec.total - sec.seen) };
             });
 
-            const LABEL = { weak: 'Below the pass line', strong: 'Above the pass line', unsure: "Can't tell yet", none: 'Not started' };
+            const LABEL = { weak: 'Clearly below', down: 'Probably below', unsure: 'Toss-up', up: 'Probably above', strong: 'Clearly above', none: 'Not started' };
+            // the chance of the side the row leans to, which is the one its label names
+            const chance = r => r.verdict === 'none' || r.verdict === 'unsure' ? null : pc(r.above >= 0.5 ? r.above : 1 - r.above);
+            const practise = r => {
+                const p = forestBank(r.sec.byBank);
+                if (!p) return '';
+                const why = p.unseen ? `the ${plural(p.unseen, 'question')} you haven't seen first`
+                    : p.open ? `the ${plural(p.open, 'question')} still to get right first` : `all ${plural(p.total, 'question')}`;
+                const label = `Practise ${escapeHtml(r.name)} in ${BANKS[p.bank].label}`;
+                return `<button type="button" class="ov-practise" data-bank="${p.bank}" data-section="${escapeHtml(r.name)}" aria-label="${label}" title="${label}: ${why}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
+            };
             const row = r => {
-                const label = LABEL[r.verdict];
-                const tip = r.verdict !== 'unsure' ? ''
-                    : r.more ? `About ${plural(r.more, 'more new question')} here would likely settle it, if you keep answering as you have`
-                    : 'Too close to the pass line to settle with the questions this section has left';
+                const c = chance(r);
+                const label = LABEL[r.verdict] + (c !== null ? ` · ${c}%` : '');
+                const tip = r.verdict === 'none' ? ''
+                    : r.verdict === 'unsure' ? `About as likely above the ${passPct}% pass line as below it (${pc(r.above)}% above)`
+                    : `A ${c}% chance your first-try rate here is ${r.above >= 0.5 ? 'above' : 'below'} the ${passPct}% pass line`;
+                const nowShare = r.verdict === 'none' ? 0 : r.sec.now / r.sec.seen;
                 const track = r.verdict === 'none' ? '<div class="fp-track"></div>' : `
-                    <div class="fp-track" role="img" aria-label="Likely ${pc(r.lo)} to ${pc(r.hi)}%, best estimate ${pc(r.mean)}%, pass line ${passPct}%">
+                    <div class="fp-track" role="img" aria-label="First tries: likely ${pc(r.lo)} to ${pc(r.hi)}%, best estimate ${pc(r.mean)}%. Latest answers: ${pc(nowShare)}% right. Pass line ${passPct}%">
                         <span class="fp-range" style="left:${(r.lo * 100).toFixed(1)}%;width:${((r.hi - r.lo) * 100).toFixed(1)}%"></span>
+                        <span class="fp-ring" style="left:${(nowShare * 100).toFixed(1)}%"></span>
                         <span class="fp-dot" style="left:${(r.mean * 100).toFixed(1)}%"></span>
                     </div>`;
                 const detail = r.verdict === 'none' ? `None of its ${r.sec.total} questions answered yet`
-                    : `${r.sec.right} of ${r.sec.seen} right first time · likely ${pc(r.lo)}–${pc(r.hi)}% · ${r.sec.seen} of ${r.sec.total} seen`
-                        + (r.more ? ` · <span class="text-slate-400">about ${r.more} more to tell</span>` : '');
+                    : `${r.sec.right} of ${r.sec.seen} right first time, ${r.sec.now} now · likely ${pc(r.lo)}–${pc(r.hi)}% · ${r.sec.seen} of ${r.sec.total} seen`
+                        + (r.more ? ` · <span class="text-slate-300">about ${r.more} more to tell</span>` : '');
                 return `
                     <div class="fp-row" data-v="${r.verdict}">
-                        <div class="flex items-baseline justify-between gap-2 text-xs">
-                            <span class="text-slate-200 font-semibold min-w-0">${escapeHtml(r.name)}</span>
-                            <span class="fp-verdict shrink-0 font-semibold"${tip ? ` title="${escapeHtml(tip)}"` : ''}>${label}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-2 text-xs">
+                                <span class="text-slate-200 font-semibold">${escapeHtml(r.name)}</span>
+                                <span class="fp-verdict shrink-0 font-semibold"${tip ? ` title="${escapeHtml(tip)}"` : ''}>${label}</span>
+                            </div>
+                            ${track}
+                            <p class="text-[10px] text-slate-500 mt-1">${detail}</p>
                         </div>
-                        ${track}
-                        <p class="text-[10px] text-slate-500 mt-1">${detail}</p>
+                        ${practise(r)}
                     </div>`;
             };
-            const axis = extra => `<div class="fp-axis${extra}" aria-hidden="true"><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:${(PASS_SHARE * 100).toFixed(1)}%">${passPct}% pass</span><span style="left:100%">100%</span></div>`;
+            const axis = extra => `<div class="fp-axis${extra}" aria-hidden="true"><div><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:${(PASS_SHARE * 100).toFixed(1)}%">${passPct}% pass</span><span style="left:100%">100%</span></div></div>`;
 
-            // one plain sentence: which sections are clearly below or above the line, and how many can't be told
+            // plain sentences: the sections each side of the line, clearly then probably, and how many are open
             const names = v => rows.filter(r => r.verdict === v).map(r => r.name);
-            const weak = names('weak'), strong = names('strong'), unsure = names('unsure'), none = names('none');
             const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
             const bold = arr => `<span class="text-slate-200 font-semibold">${escapeHtml(list(arr))}</span>`;
-            const count = (n, one, many) => n === 1 ? one : plural(n, 'section') + many;
             const said = [];
-            if (weak.length) said.push(`Clearly below the pass line: ${bold(weak)}.`);
-            if (strong.length) said.push(`Clearly above it: ${bold(strong)}.`);
-            if (!weak.length && !strong.length) said.push('No section is clearly above or below the pass line yet.');
-            if (unsure.length) said.push(`${count(unsure.length, 'One section needs', ' need')} more answers before ${unsure.length === 1 ? 'it' : 'they'} can be judged`
-                + (none.length ? `, and ${count(none.length, 'one has', ' have')} no answers yet.` : '.'));
-            else if (none.length) said.push(`${count(none.length, 'One section has', ' have')} no answers yet.`);
+            for (const [v, words] of [['weak', 'Clearly below the pass line'], ['down', 'Probably below'], ['up', 'Probably above'], ['strong', 'Clearly above']]) {
+                const n = names(v);
+                if (n.length) said.push(`${words}: ${bold(n)}.`);
+            }
+            if (!said.length) said.push('No section leans either way yet.');
+            const unsure = names('unsure').length, none = names('none').length;
+            if (unsure) said.push(`${unsure === 1 ? 'One section is' : plural(unsure, 'section') + ' are'} a toss-up.`);
+            if (none) said.push(`${none === 1 ? 'One section has' : plural(none, 'section') + ' have'} no answers yet.`);
 
             box.innerHTML = `
                 <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
                 <div class="fp-list mt-4" style="--fp-pass:${(PASS_SHARE * 100).toFixed(1)}%">${axis('')}${axis(' fp-axis-2')}${rows.map(row).join('')}</div>
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">First tries only: the first time you saw each question, in all four sets. The dot is the best estimate of your first-try rate in that section, and the bar the range it likely lies in, 8 times in 10. While a section has few answers its estimate leans toward your overall rate (${pc(right / seen)}%), so a couple of lucky or unlucky answers don't decide it. A section is below or above the ${passPct}% pass line only when its whole bar is.</p>`;
+                <div class="fp-key mt-4" aria-hidden="true">
+                    <span><i class="fp-key-dot"></i>First tries, best estimate</span>
+                    <span><i class="fp-key-bar"></i>Likely range</span>
+                    <span><i class="fp-key-ring"></i>Latest answers</span>
+                    <span><i class="fp-key-pass"></i>${passPct}% pass</span>
+                </div>
+                <p class="mt-3 text-[11px] text-slate-500 leading-relaxed">The dot and bar count first tries only: the first time you saw each question, in all four sets. The bar is the range your first-try rate likely lies in, 8 times in 10, and the colour is the chance that rate is above the ${passPct}% pass line: clearly above or below at 90%, probably at ${pc(FOREST_LEAN)}%, a toss-up between. While a section has few answers its estimate leans toward your overall rate (${pc(right / seen)}%), so a couple of lucky or unlucky answers don't decide it. The ring is the share right on your latest answer to each question you've seen, so the gap from the dot is what your reviews have fixed. Practise starts a quiz of that section in the set with the most questions you haven't seen.</p>`;
+            box.onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (b) practiseSection(b.dataset.bank, b.dataset.section);
+            };
         }
 
         // ---- Weak areas ----
@@ -3985,16 +4045,25 @@
         // outstanding first), in this tab. A quiz waiting here is ended first, with the usual confirmation,
         // and the set is switched if it isn't the active one. Back from the first question returns here.
         let practising = false;
-        async function practiseTag(key, tag) {
+        async function practiseIn(key, start) {
             if (practising) return;
             practising = true;
             try {
                 if (!BANKS[key] || !(await leaveSession('Start a new quiz?', 'Start'))) return;
                 if (key !== bankKey) await useBank(key);
-                if (!startQuizByService(tag)) alertBox('No questions in ' + BANKS[bankKey].label + ' are tagged with ' + tag + '.');
+                start();
             } finally {
                 practising = false;
             }
+        }
+        function practiseTag(key, tag) {
+            return practiseIn(key, () => {
+                if (!startQuizByService(tag)) alertBox('No questions in ' + BANKS[bankKey].label + ' are tagged with ' + tag + '.');
+            });
+        }
+        // From the forest plot: that section's questions in that set, outstanding first, as the Practice page's sections start
+        function practiseSection(key, domain) {
+            return practiseIn(key, () => startQuizByDomain(domain));
         }
 
         function renderWeakAreas(banks, answered) {
