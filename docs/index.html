@@ -303,6 +303,7 @@
         .pace-fill { height: 100%; border-radius: 9999px; }
         .pace-mark { position: absolute; top: -.1875rem; bottom: -.1875rem; width: 2px; border-radius: 1px; background: var(--ov-ink); }
         .timer-chip { padding-left: .625rem; padding-right: .625rem; gap: .375rem; font-variant-numeric: tabular-nums; }
+        .timer-chip.timer-stopped { opacity: .5; }
         .ov-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 9999px; flex-shrink: 0; }
         #ovVerdict { align-items: flex-start; }
         #ovVerdict .ov-dot { margin-top: .4rem; }   /* sits on the first line when the verdict wraps */
@@ -1584,7 +1585,7 @@
         }
 
         function tickQuizTimer() {
-            quizElapsedMs = Date.now() - quizTimerStartedAt;
+            quizElapsedMs = quizAnswerMs();
             const left = quizBudgetMs() - quizElapsedMs;
             renderTimerChip();
             // waits a tick if another dialog is open, since there is only one
@@ -1608,15 +1609,30 @@
         // ===== Question pace =====
         // The target is the exam's own pace of 2 minutes a question; a lower one would leave time at the end to
         // revisit flagged questions. The live question has its own clock, which pauses while the tab is hidden
-        // or another page is open, and its seconds are kept with the attempt as a fourth field.
+        // or another page is open, and its seconds are kept with the attempt as a fourth field. The quiz's time
+        // is the sum of its questions' clocks, so it stands still too while an answer is being reviewed.
         const TARGET_SECONDS = 120;
         const AWAY_SECONDS = 20 * 60;   // longer than this was a break, not reading, so the pace figures leave it out
         let questionClock = { id: null, spentMs: 0, since: null };
         let questionTimes = {};         // this quiz: question id -> seconds taken
+        let quizDoneMs = 0;             // this quiz: the time of the questions already answered or skipped
 
         function questionClockMs() {
             const c = questionClock;
             return c.spentMs + (c.since === null ? 0 : Date.now() - c.since);
+        }
+
+        // The quiz's time so far: the closed questions, plus the live one until it is answered or skipped
+        function quizAnswerMs() {
+            return quizDoneMs + (questionClock.id !== null && !questionClock.counted ? questionClockMs() : 0);
+        }
+
+        // Stops the question's clock and adds its time to the quiz's, once
+        function closeQuestionClock() {
+            pauseQuestionClock();
+            if (questionClock.id === null || questionClock.counted) return;
+            quizDoneMs += questionClock.spentMs;
+            questionClock.counted = true;
         }
 
         // The question on screen is the live one and still waits for an answer
@@ -1642,7 +1658,7 @@
         // the timer chip shows them, so the time it stopped on is the time recorded.
         function takeQuestionSeconds(q) {
             if (questionClock.id !== q.id) return null;
-            pauseQuestionClock();
+            closeQuestionClock();
             return Math.floor(questionClock.spentMs / 1000);
         }
 
@@ -1671,12 +1687,11 @@
             const chip = document.getElementById('quizTimer');
             let text, over, label;
             if (timerView === 'quiz') {
-                const elapsed = quizTimerInterval ? Date.now() - quizTimerStartedAt : quizElapsedMs;
-                const left = quizBudgetMs() - elapsed;
+                const left = quizBudgetMs() - quizAnswerMs();
                 over = left < 0;
                 // counting down, round up so a fresh quiz opens on its full time; below zero, show the overrun
                 text = over ? formatDuration(-left) + ' over' : formatDuration(Math.ceil(left / 1000) * 1000) + ' left';
-                label = 'Quiz time ' + (over ? 'over' : 'left') + ". Tap to show this question's time.";
+                label = 'Quiz time ' + (over ? 'over' : 'left') + ", counted only while you answer. Tap to show this question's time.";
             } else {
                 const ms = shownQuestionMs();
                 over = ms !== null && ms >= TARGET_SECONDS * 1000;
@@ -1688,6 +1703,7 @@
             chip.title = label;
             chip.setAttribute('aria-label', text + '. ' + label);
             chip.classList.toggle('text-rose-400', over);
+            chip.classList.toggle('timer-stopped', questionClock.since === null);
             chip.classList.toggle('text-slate-400', !over);
         }
 
@@ -1726,7 +1742,8 @@
                     startedAt: quizTimerStartedAt,
                     elapsedMs: quizElapsedMs,
                     warned: timeWarned,
-                    clock: { id: questionClock.id, ms: questionClockMs() },
+                    clock: { id: questionClock.id, ms: questionClockMs(), counted: !!questionClock.counted },
+                    doneMs: quizDoneMs,
                     times: questionTimes
                 }));
             } catch (e) {}
@@ -1762,12 +1779,16 @@
             skippedIds = new Set(Array.isArray(saved.skipped) ? saved.skipped : []);
             smartReasons = saved.reasons || {};
             hintUsedThisQuestion = !!saved.hint;
-            quizElapsedMs = saved.elapsedMs || 0;
             timeWarned = !!saved.warned;
             // the question clock comes back paused; showQuestionAt() starts it again on the live question
             const clock = saved.clock && typeof saved.clock === 'object' ? saved.clock : {};
-            questionClock = { id: clock.id ?? null, spentMs: clock.ms || 0, since: null };
             questionTimes = saved.times && typeof saved.times === 'object' ? saved.times : {};
+            // a session saved before the quiz clock paused for reviews has no total; its answered questions make one
+            const old = typeof saved.doneMs !== 'number';
+            quizDoneMs = old ? Object.values(questionTimes).reduce((sum, t) => sum + t * 1000, 0) : saved.doneMs;
+            questionClock = { id: clock.id ?? null, spentMs: clock.ms || 0, since: null,
+                counted: old ? clock.id in questionTimes || skippedIds.has(clock.id) : !!clock.counted };
+            quizElapsedMs = quizAnswerMs();
             if (!quizFinished && saved.startedAt) startQuizTimer(saved.startedAt);
             else stopAndHideQuizTimer();
         }
@@ -1784,6 +1805,7 @@
             timeWarned = false;
             questionClock = { id: null, spentMs: 0, since: null };
             questionTimes = {};
+            quizDoneMs = 0;
             stopAndHideQuizTimer();
         }
 
@@ -2063,6 +2085,7 @@
             timeWarned = false;
             questionClock = { id: null, spentMs: 0, since: null };
             questionTimes = {};
+            quizDoneMs = 0;
             // the baseline the quiz bar and the summary measure this session's progress from
             const s = examScore();
             sessionStartScore = s.ready ? s.score : null;
@@ -4552,7 +4575,7 @@
         function skipQuestion() {
             const q = currentQuizQuestions[currentIndex];
             if (answered || currentIndex !== liveIndex) return;
-            pauseQuestionClock();
+            closeQuestionClock();
             skippedIds.add(q.id);
             handleNextQuestion();
         }
@@ -4624,7 +4647,7 @@
         }
 
         function finishQuiz() {
-            if (quizTimerInterval) quizElapsedMs = Date.now() - quizTimerStartedAt;
+            quizElapsedMs = quizAnswerMs();
             clearQuizTimerInterval();
             quizFinished = true;
             liveIndex = currentQuizQuestions.length;
