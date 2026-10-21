@@ -386,6 +386,24 @@
         /* a click or tap focuses the chart (for its arrow keys) but should not draw the browser's outline around it */
         .ov-chart svg:focus:not(:focus-visible) { outline: none; }
         .ov-chart text { font-family: 'Inter', sans-serif; font-size: 10px; fill: var(--ov-muted); font-variant-numeric: tabular-nums; }
+        .fp-list { display: grid; gap: 1rem; }
+        @media (min-width: 1024px) { .fp-list { grid-template-columns: 1fr 1fr; column-gap: 2.5rem; } }
+        .fp-axis { position: relative; height: 12px; font-size: 10px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
+        .fp-axis > span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+        .fp-axis > span:first-child { transform: none; }
+        .fp-axis > span:last-child { transform: translateX(-100%); }
+        .fp-axis-2 { display: none; }
+        @media (min-width: 1024px) { .fp-axis-2 { display: block; } }
+        .fp-row { --fp-c: var(--ov-muted); }
+        .fp-row[data-v="weak"] { --fp-c: var(--ov-missed); }
+        .fp-row[data-v="strong"] { --fp-c: var(--ov-right); }
+        .fp-verdict { color: var(--fp-c); }
+        .fp-track { position: relative; height: 14px; margin-top: .4rem;
+            background: linear-gradient(var(--ov-grid), var(--ov-grid)) center / 100% 2px no-repeat; }
+        .fp-track::after { content: ""; position: absolute; left: var(--fp-pass); top: -2px; bottom: -2px; border-left: 1.5px dashed var(--ov-muted); }
+        .fp-range { position: absolute; top: 3px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--fp-c) 35%, transparent); }
+        .fp-dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--fp-c);
+            box-shadow: 0 0 0 2px var(--ov-surface); z-index: 1; }
         /* the tooltip keeps a dark surface in both themes, like the toast */
         .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
                   border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); white-space: nowrap; }
@@ -767,6 +785,10 @@
                     <div id="ovTimeline" class="mt-4"></div>
                 </section>
             </div>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold">First tries by section</h3>
+                <div id="ovForest" class="mt-4"></div>
+            </section>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Weak areas</h3>
                 <div id="ovWeak" class="mt-4"></div>
@@ -2816,10 +2838,13 @@
             }
             const start = sessionStartScore;
             const change = start === null ? 0 : s.shown - start;
-            el.title = name + ' (100–1000, pass ' + PASS_SCORE + '): ' + s.passLine
+            el.title = name + ' ' + s.shown + ' (100–1000, pass ' + PASS_SCORE + '): ' + s.passLine
                 + (start === null ? '' : '. ' + start + ' when this session started'
                     + (change ? ' (' + (change > 0 ? '+' : '') + change + ')' : ''));
-            el.innerHTML = icon + '<span class="font-semibold ' + s.tone.text + '">' + s.shown + '</span>';
+            // the change since the quiz started once there is one; until then, or with no start to compare, the score
+            el.innerHTML = icon + (change
+                ? '<span class="font-semibold ' + (change > 0 ? 'text-emerald-400' : 'text-rose-400') + '">' + (change > 0 ? '▲' : '▼') + Math.abs(change) + '</span>'
+                : '<span class="font-semibold ' + s.tone.text + '">' + s.shown + '</span>');
         }
 
         function renderSummaryEstimate() {
@@ -3005,6 +3030,7 @@
             document.getElementById('ovVerdict').innerHTML = block(1.25, '60%');
             document.getElementById('ovScore').innerHTML = block(24);
             document.getElementById('ovTimeline').innerHTML = block(28);
+            document.getElementById('ovForest').innerHTML = block(20);
             document.getElementById('ovWeak').innerHTML = block(16);
             document.getElementById('ovPace').innerHTML = block(9);
             document.getElementById('ovActivity').innerHTML = block(28);
@@ -3027,6 +3053,7 @@
             renderVerdict(answered, tl);
             renderOverviewScore(banks, answered);
             renderTimeline(banks, tl);
+            renderForest(banks);
             renderWeakAreas(banks, answered);
             renderPace(banks);
             renderActivity(tl);
@@ -3776,6 +3803,112 @@
                 else if (++tries < 40) setTimeout(reach, 50);
             };
             reach();
+        }
+
+        // ---- First tries by section ----
+        // A forest plot: for each section, the share of its questions right the first time you saw them, and
+        // the range that share likely lies in. Each section's estimate is a Beta posterior whose prior is
+        // centred on your overall first-try rate and weighs as much as FOREST_PRIOR answers, so a section
+        // with three answers leans toward your overall rate instead of swinging to 0% or 100%. The bar runs
+        // from the 10th to the 90th percentile, so the true rate is inside it 8 times in 10. A section is
+        // below or above the pass line only when its whole range is; otherwise it can't be told yet.
+        const FOREST_PRIOR = 4;
+        const FOREST_LOW = 0.1, FOREST_HIGH = 0.9;
+
+        // The 10th and 90th percentiles of Beta(a, b), from its density summed on a fine grid
+        function betaRange(a, b) {
+            const N = 2000, logs = [];
+            for (let i = 0; i < N; i++) { const x = (i + 0.5) / N; logs.push((a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x)); }
+            const top = Math.max(...logs), cdf = [];
+            let sum = 0;
+            for (const l of logs) { sum += Math.exp(l - top); cdf.push(sum); }
+            const at = p => (cdf.findIndex(c => c >= p * sum) + 0.5) / N;
+            return [at(FOREST_LOW), at(FOREST_HIGH)];
+        }
+
+        // About how many more first tries would move the range clear of the pass line, if the rate stays where
+        // it is (the normal approximation to the posterior); null when that's more than the section has left
+        function answersToTell(mean, weight, left) {
+            const d = Math.abs(mean - PASS_SHARE);
+            if (d < 0.005) return null;
+            const z = 1.2816;   // the 90th percentile of the normal
+            const need = Math.max(1, Math.ceil(z * z * mean * (1 - mean) / (d * d) - weight));
+            return need <= left ? need : null;
+        }
+
+        function renderForest(banks) {
+            const box = document.getElementById('ovForest');
+            const sections = {};
+            let right = 0, seen = 0;
+            for (const b of banks) for (const q of b.questions) {
+                const name = q.domain || 'General AWS';
+                const sec = sections[name] || (sections[name] = { total: 0, seen: 0, right: 0 });
+                sec.total++;
+                const log = b.log[q.id];
+                if (!log || !log.length) continue;
+                sec.seen++; seen++;
+                if (log[0][0]) { sec.right++; right++; }
+            }
+            if (!seen) {
+                box.innerHTML = '<p class="text-sm text-slate-400">Answer a few questions to see where you stand in each section.</p>';
+                return;
+            }
+            const overall = Math.min(0.95, Math.max(0.05, right / seen));
+            const passPct = Math.round(PASS_SHARE * 100);
+            const pc = v => Math.round(v * 100);
+            const rows = Object.keys(sections).sort(compareDomains).map(name => {
+                const sec = sections[name];
+                if (!sec.seen) return { name, sec, verdict: 'none' };
+                const a = FOREST_PRIOR * overall + sec.right, b = FOREST_PRIOR * (1 - overall) + sec.seen - sec.right;
+                const mean = a / (a + b), [lo, hi] = betaRange(a, b);
+                const verdict = hi < PASS_SHARE ? 'weak' : lo >= PASS_SHARE ? 'strong' : 'unsure';
+                return { name, sec, mean, lo, hi, verdict, more: verdict === 'unsure' ? answersToTell(mean, a + b, sec.total - sec.seen) : null };
+            });
+
+            const LABEL = { weak: 'Below the pass line', strong: 'Above the pass line', unsure: "Can't tell yet", none: 'Not started' };
+            const row = r => {
+                const label = LABEL[r.verdict];
+                const tip = r.verdict !== 'unsure' ? ''
+                    : r.more ? `About ${plural(r.more, 'more new question')} here would likely settle it, if you keep answering as you have`
+                    : 'Too close to the pass line to settle with the questions this section has left';
+                const track = r.verdict === 'none' ? '<div class="fp-track"></div>' : `
+                    <div class="fp-track" role="img" aria-label="Likely ${pc(r.lo)} to ${pc(r.hi)}%, best estimate ${pc(r.mean)}%, pass line ${passPct}%">
+                        <span class="fp-range" style="left:${(r.lo * 100).toFixed(1)}%;width:${((r.hi - r.lo) * 100).toFixed(1)}%"></span>
+                        <span class="fp-dot" style="left:${(r.mean * 100).toFixed(1)}%"></span>
+                    </div>`;
+                const detail = r.verdict === 'none' ? `None of its ${r.sec.total} questions answered yet`
+                    : `${r.sec.right} of ${r.sec.seen} right first time · likely ${pc(r.lo)}–${pc(r.hi)}% · ${r.sec.seen} of ${r.sec.total} seen`
+                        + (r.more ? ` · <span class="text-slate-400">about ${r.more} more to tell</span>` : '');
+                return `
+                    <div class="fp-row" data-v="${r.verdict}">
+                        <div class="flex items-baseline justify-between gap-2 text-xs">
+                            <span class="text-slate-200 font-semibold min-w-0">${escapeHtml(r.name)}</span>
+                            <span class="fp-verdict shrink-0 font-semibold"${tip ? ` title="${escapeHtml(tip)}"` : ''}>${label}</span>
+                        </div>
+                        ${track}
+                        <p class="text-[10px] text-slate-500 mt-1">${detail}</p>
+                    </div>`;
+            };
+            const axis = extra => `<div class="fp-axis${extra}" aria-hidden="true"><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:${(PASS_SHARE * 100).toFixed(1)}%">${passPct}% pass</span><span style="left:100%">100%</span></div>`;
+
+            // one plain sentence: which sections are clearly below or above the line, and how many can't be told
+            const names = v => rows.filter(r => r.verdict === v).map(r => r.name);
+            const weak = names('weak'), strong = names('strong'), unsure = names('unsure'), none = names('none');
+            const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
+            const bold = arr => `<span class="text-slate-200 font-semibold">${escapeHtml(list(arr))}</span>`;
+            const count = (n, one, many) => n === 1 ? one : plural(n, 'section') + many;
+            const said = [];
+            if (weak.length) said.push(`Clearly below the pass line: ${bold(weak)}.`);
+            if (strong.length) said.push(`Clearly above it: ${bold(strong)}.`);
+            if (!weak.length && !strong.length) said.push('No section is clearly above or below the pass line yet.');
+            if (unsure.length) said.push(`${count(unsure.length, 'One section needs', ' need')} more answers before ${unsure.length === 1 ? 'it' : 'they'} can be judged`
+                + (none.length ? `, and ${count(none.length, 'one has', ' have')} no answers yet.` : '.'));
+            else if (none.length) said.push(`${count(none.length, 'One section has', ' have')} no answers yet.`);
+
+            box.innerHTML = `
+                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
+                <div class="fp-list mt-4" style="--fp-pass:${(PASS_SHARE * 100).toFixed(1)}%">${axis('')}${axis(' fp-axis-2')}${rows.map(row).join('')}</div>
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">First tries only: the first time you saw each question, in all four sets. The dot is the best estimate of your first-try rate in that section, and the bar the range it likely lies in, 8 times in 10. While a section has few answers its estimate leans toward your overall rate (${pc(right / seen)}%), so a couple of lucky or unlucky answers don't decide it. A section is below or above the ${passPct}% pass line only when its whole bar is.</p>`;
         }
 
         // ---- Weak areas ----
