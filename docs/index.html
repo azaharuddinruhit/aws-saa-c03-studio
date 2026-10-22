@@ -431,6 +431,8 @@
         .fp-key-bar { width: 18px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--ov-muted) 35%, transparent); }
         .fp-key-ring { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ov-ink); }
         .fp-key-pass { height: 12px; border-left: 1.5px dashed var(--ov-muted); }
+        #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
+        span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
         .sc-zone { color: var(--sc-c); }
         .ov-chart text.sc-zone-label { font-weight: 600; }
         .ov-chart text.sc-name { fill: var(--ov-ink); }
@@ -832,6 +834,10 @@
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Speed and accuracy</h3>
                 <div id="ovScatter" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold">Exam blueprint</h3>
+                <div id="ovBlueprint" class="mt-4"></div>
             </section>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Weak areas</h3>
@@ -2067,6 +2073,7 @@
         function quizTitle() {
             if (currentQuizMode === 'domain') return currentQuizQuestions[0].domain || 'General AWS';
             if (currentQuizMode === 'service') return quizTag || 'Quiz';
+            if (currentQuizMode === 'task') return quizTag ? 'Task ' + quizTag : 'Quiz';
             if (currentQuizMode === 'question') return 'Question ' + questionRef(currentQuizQuestions[0]);
             return QUIZ_TITLES[currentQuizMode] || 'Quiz';
         }
@@ -2289,6 +2296,21 @@
             return true;
         }
 
+        // From the exam blueprint map: one task statement's questions, outstanding first, as a section's are.
+        // Returns false when the set has none.
+        function startQuizByTask(id) {
+            const list = outstandingFirst(questions.filter(q => taskOf(q) === id && id[0] === String(examDomainOf(q))));
+            if (!list.length) return false;
+            currentQuizMode = 'task';
+            quizTag = id;
+            smartReasons = {};
+            currentQuizQuestions = list;
+            beginSession();
+            startQuizTimer();
+            go({ name: 'quiz', n: 1 });
+            return true;
+        }
+
         // ===== Exam score estimator =====
         // Bayesian, blueprint-weighted estimate of the scaled SAA-C03 score (100-1000, pass = 720).
         // AWS does not publish its scoring model, so this is an approximation, not a prediction guarantee.
@@ -2357,7 +2379,7 @@
         const FLAG_HINT = 1, FLAG_DRILL = 2;
         let hintUsedThisQuestion = false;
         let currentQuizMode = 'all';
-        let quizTag = null;   // the service a 'service' quiz practises
+        let quizTag = null;   // the service a 'service' quiz practises, or the task statement a 'task' quiz does
 
         const sigmoid = z => 1 / (1 + Math.exp(-z));
         const itemP = (theta, b, c) => c + (1 - c) * sigmoid(theta - b);
@@ -2789,6 +2811,10 @@
                 const top = Math.max(...lw);
                 const w = normalise(lw.map(v => Math.exp(v - top)));
                 t.mean = w.reduce((a, wt, g) => a + wt * projectedAccuracy(GRID[g]), 0);
+                let cum = 0;
+                const at = p => { cum = 0; return projectedAccuracy(GRID[w.findIndex(v => (cum += v) >= p)]); };
+                t.lo = at(0.1);
+                t.hi = at(0.9);
             }
 
             // The headline is the expected score of a sitting: the exact posterior mean of the number
@@ -3076,6 +3102,7 @@
             document.getElementById('ovTimeline').innerHTML = block(28);
             document.getElementById('ovForest').innerHTML = block(20);
             document.getElementById('ovScatter').innerHTML = block(24);
+            document.getElementById('ovBlueprint').innerHTML = block(24);
             document.getElementById('ovWeak').innerHTML = block(16);
             document.getElementById('ovPace').innerHTML = block(9);
             document.getElementById('ovActivity').innerHTML = block(28);
@@ -3100,6 +3127,7 @@
             renderTimeline(banks, tl);
             renderForest(banks);
             renderScatter(banks);
+            renderBlueprint(banks, answered);
             renderWeakAreas(banks, answered);
             renderPace(banks);
             renderActivity(tl);
@@ -4106,6 +4134,12 @@
         function practiseSection(key, domain) {
             return practiseIn(key, () => startQuizByDomain(domain));
         }
+        // From the exam blueprint map: that task statement's questions in that set, outstanding first
+        function practiseTask(key, id) {
+            return practiseIn(key, () => {
+                if (!startQuizByTask(id)) alertBox('No questions in ' + BANKS[bankKey].label + ' test task ' + id + '.');
+            });
+        }
 
         function renderWeakAreas(banks, answered) {
             const box = document.getElementById('ovWeak');
@@ -4317,10 +4351,10 @@
             }
             const overall = seen ? Math.min(0.95, Math.max(0.05, right / seen)) : 0;
             const points = [];
-            let waiting = 0;
+            const waiting = [];   // enough first tries, too few of them timed: { name, need, firsts }
             for (const [name, e] of Object.entries(svc)) {
                 if (e.firsts < SCATTER_MIN_FIRSTS) continue;
-                if (e.seconds.length < SCATTER_MIN_TIMED) { waiting++; continue; }
+                if (e.seconds.length < SCATTER_MIN_TIMED) { waiting.push({ name, need: SCATTER_MIN_TIMED - e.seconds.length, firsts: e.firsts }); continue; }
                 const section = Object.keys(e.domains).sort((a, b) => e.domains[b] - e.domains[a] || compareDomains(a, b))[0];
                 const rate = (FOREST_PRIOR * overall + e.right) / (FOREST_PRIOR + e.firsts);
                 const secs = median(e.seconds);
@@ -4333,15 +4367,20 @@
 
             const target = formatDuration(TARGET_SECONDS * 1000), passPct = Math.round(PASS_SHARE * 100);
             const need = `a service is placed once it has ${SCATTER_MIN_FIRSTS} first tries, ${SCATTER_MIN_TIMED} of them timed`;
+            const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
+            // the services short of a dot only for timed first tries, grouped by how many more each needs
+            const waitingLine = !waiting.length ? '' : 'Waiting for timed first tries: ' + [...new Set(waiting.map(w => w.need))].sort((a, b) => a - b).map(n => {
+                const names = waiting.filter(w => w.need === n).sort((a, b) => b.firsts - a.firsts || a.name.localeCompare(b.name)).map(w => w.name);
+                return `<span class="text-slate-300 font-semibold">${escapeHtml(list(names))}</span> ${names.length === 1 ? 'needs' : 'need'} ${plural(n, 'more new question')}${names.length > 1 ? ' each' : ''}`;
+            }).join('; ') + ". Times are fairly new, so earlier answers have none, and retries don't count.";
             if (!points.length) {
-                box.innerHTML = `<p class="text-sm text-slate-400">${waiting
-                    ? `${plural(waiting, 'service')} ${waiting === 1 ? 'has' : 'have'} enough first tries but not enough timed ones yet. Answers now record their time, so new questions will fill this in: ${need}.`
-                    : `Answer a few new questions to see your speed and accuracy by service: ${need}.`}</p>`;
+                box.innerHTML = `<p class="text-sm text-slate-400">${waiting.length
+                    ? `${plural(waiting.length, 'service')} ${waiting.length === 1 ? 'has' : 'have'} enough first tries but not enough timed ones yet: ${need}.`
+                    : `Answer a few new questions to see your speed and accuracy by service: ${need}.`}</p>${waitingLine ? `<p class="mt-2 text-[11px] text-slate-500 leading-relaxed">${waitingLine}</p>` : ''}`;
                 return;
             }
 
             // a sentence per zone, the ones worth acting on first
-            const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
             const names = zone => {
                 const all = points.filter(p => p.zone === zone).sort((a, b) => b.firsts - a.firsts).map(p => p.name);
                 const shown = all.length > 4 ? all.slice(0, 3).concat(`${all.length - 3} more`) : all;
@@ -4361,7 +4400,8 @@
                     <button type="button" class="sc-chip" data-section="${escapeHtml(s)}" aria-pressed="${s === scatter.section}" style="--sc-c:${sectionColour(s)}"><i aria-hidden="true"></i>${escapeHtml(s)}</button>`).join('')}
                 </div>
                 <div id="ovScatterPick" class="mt-3"></div>
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in First tries by section. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}${waiting ? `; ${plural(waiting, 'more service')} will appear once ${waiting === 1 ? 'it has' : 'they have'} timed answers, since times are fairly new` : ''}. Tap a dot for its numbers, or a section to pick it out.</p>`;
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in First tries by section. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}. Tap a dot for its numbers, or a section to pick it out.</p>${waitingLine ? `
+                <p class="mt-2 text-[11px] text-slate-500 leading-relaxed">${waitingLine}</p>` : ''}`;
             box.querySelector('.sc-key').onclick = e => {
                 const chip = e.target.closest('.sc-chip');
                 if (!chip) return;
@@ -4515,6 +4555,179 @@
             svg.addEventListener('blur', hideTip);
             const kept = pts.find(p => p.name === scatter.selected && (!scatter.section || p.section === scatter.section));
             select(kept || null);
+        }
+
+        // ---- Exam blueprint ----
+        // A scatter of the exam guide's task statements: across, about how much of the exam each one is, up,
+        // its projected accuracy (the readiness model's, as in the score card's task list), with a whisker
+        // for the range it likely lies in. AWS publishes only the four domains' weights, so a task's share is
+        // its domain's weight split by how many of the domain's questions it has across the four sets.
+        let blueprint = null;   // what drawBlueprint() draws: { points, selected }
+
+        const domainColour = id => `var(--dom-${id})`;
+
+        function renderBlueprint(banks, answered) {
+            const box = document.getElementById('ovBlueprint');
+            const est = examScore(answered, 'all');
+            // questions per task and per domain across the sets, and per set what is left to get right
+            const inTask = {}, inDomain = {}, byBank = {};
+            for (const b of banks) for (const q of b.questions) {
+                const id = taskOf(q), d = examDomainOf(q);
+                if (!id || id[0] !== String(d)) continue;
+                inTask[id] = (inTask[id] || 0) + 1;
+                inDomain[d] = (inDomain[d] || 0) + 1;
+                const log = b.log[q.id];
+                const n = (byBank[id] || (byBank[id] = {}))[b.key] || (byBank[id][b.key] = { asked: 0, open: 0 });
+                n.asked++;
+                if (!log || !log.length || !log[log.length - 1][0]) n.open++;
+            }
+            if (!est.ready) {
+                box.innerHTML = `<p class="text-sm text-slate-400">Answer ${plural(est.min - est.distinct, 'more question')} to see where each task statement of the exam guide stands.</p>`;
+                return;
+            }
+            const points = Object.keys(EXAM_TASKS).filter(id => est.perTask[id].n > 0 && inTask[id]).map(id => {
+                const t = est.perTask[id], d = Number(id[0]);
+                // below the line as shown: on the rounded figures, so a task shown at the pass line's 69% isn't called below it
+                return { id, name: EXAM_TASKS[id], domain: d, weight: EXAM_DOMAINS[d].w * inTask[id] / inDomain[d], level: t.mean, lo: t.lo, hi: t.hi,
+                    below: Math.round(t.mean * 100) < Math.round(PASS_SHARE * 100),
+                    answered: t.questions, total: inTask[id], bank: practiseBank({ byBank }, id) };
+            });
+            const unstarted = Object.keys(EXAM_TASKS).filter(id => inTask[id] && !points.some(p => p.id === id));
+            blueprint = { points, selected: blueprint && points.some(p => p.id === blueprint.selected) ? blueprint.selected : null };
+
+            const pct = v => Math.round(v * 100), passPct = pct(PASS_SHARE);
+            // what each task below the pass line costs: its share of the exam times its gap below the line
+            const atStake = points.filter(p => p.below).sort((a, b) => b.weight * (PASS_SHARE - b.level) - a.weight * (PASS_SHARE - a.level));
+            const above = points.filter(p => !p.below).length;
+            const name = p => `<span class="text-slate-200 font-semibold">${p.id} ${escapeHtml(p.name)}</span> (about ${pct(p.weight)}% of the exam, ${pct(p.level)}%)`;
+            const said = [];
+            if (atStake.length) said.push(`Most marks at stake: ${atStake.slice(0, 2).map(name).join(atStake.length > 1 ? ' and ' : '')}.`);
+            said.push(`${above} of ${plural(points.length, 'task statement')} ${above === 1 ? 'is' : 'are'} at or above the ${passPct}% pass line.`);
+
+            box.innerHTML = `
+                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
+                <div id="ovBlueprintChart" class="ov-chart mt-4"></div>
+                <div class="sc-key mt-3" aria-hidden="true">${Object.entries(EXAM_DOMAINS).map(([id, d]) => `
+                    <span class="sc-chip" style="--sc-c:${domainColour(id)}"><i></i>${id} ${escapeHtml(d.name)} · ${pct(d.w)}%</span>`).join('')}
+                </div>
+                <div id="ovBlueprintPick" class="mt-3"></div>
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a task statement of the official SAA-C03 exam guide, coloured by its domain and sized by how many of its questions you've answered. Up is its projected accuracy, the same figure as the score card's task list: it allows for question difficulty and guessing, and leans toward your level on the rest of its domain while a task has few answers. The whisker is the range it likely lies in, 8 times in 10. Across is an estimate: AWS publishes only each domain's weight, so a task's share is its domain's weight split by how many of the domain's questions it has in the four sets. Tap a dot for its numbers and a Practise button.${unstarted.length ? ` Not answered yet: ${unstarted.join(', ')}.` : ''}</p>`;
+            document.getElementById('ovBlueprintPick').onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (b) practiseTask(b.dataset.bank, b.dataset.task);
+            };
+            drawBlueprint();
+        }
+
+        // Drawn to its holder's width; the resize handler calls this again
+        function drawBlueprint() {
+            const holder = document.getElementById('ovBlueprintChart');
+            if (!blueprint || !holder) return;
+            const pts = blueprint.points;
+            if (!pts.length) { holder.innerHTML = ''; return; }
+            const W = Math.max(260, holder.clientWidth), H = W < 500 ? 280 : 300;
+            const m = { top: 20, right: 14, bottom: 34, left: 38 };
+            const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+            const xHi = Math.ceil((Math.max(...pts.map(p => p.weight)) * 100 + 1) / 2) * 2 / 100;
+            const yLo = Math.max(0, Math.floor((Math.min(...pts.map(p => p.lo), PASS_SHARE) - 0.05) * 10) / 10);
+            const yHi = Math.min(1, Math.ceil((Math.max(...pts.map(p => p.hi), PASS_SHARE) + 0.05) * 10) / 10);
+            const x = w => m.left + w / xHi * iw;
+            const y = v => m.top + ih - (v - yLo) / (yHi - yLo) * ih;
+            const r = p => 4 + Math.min(7, Math.sqrt(p.answered) * 1.2);
+            const parts = [];
+            const yStep = yHi - yLo <= 0.6 ? 0.1 : 0.25;
+            for (let v = Math.ceil(yLo / yStep - 1e-9) * yStep; v <= yHi + 1e-9; v += yStep) {
+                parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${m.left - 6}" y="${y(v) + 3}" text-anchor="end">${Math.round(v * 100)}%</text>`);
+            }
+            const xStep = xHi <= 0.1 ? 0.02 : W < 500 ? 0.04 : 0.02;
+            for (let w = 0; w <= xHi + 1e-9; w += xStep) {
+                parts.push(`<line x1="${x(w)}" x2="${x(w)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${x(w)}" y="${m.top + ih + 14}" text-anchor="${w ? 'middle' : 'start'}">${Math.round(w * 100)}%</text>`);
+            }
+            const py = y(PASS_SHARE);
+            parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${py}" y2="${py}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
+            parts.push(`<text x="${W - m.right - 6}" y="${py - 5}" text-anchor="end">${Math.round(PASS_SHARE * 100)}% pass</text>`);
+            parts.push(`<text x="${W - m.right}" y="${H - 4}" text-anchor="end">share of the exam (estimated) →</text>`);
+            parts.push(`<text x="0" y="9">↑ projected accuracy</text>`);
+            // whiskers first, then the dots, biggest first so small ones stay on top
+            for (const p of pts) parts.push(`<line x1="${x(p.weight).toFixed(1)}" x2="${x(p.weight).toFixed(1)}" y1="${y(p.hi).toFixed(1)}" y2="${y(p.lo).toFixed(1)}" stroke="${domainColour(p.domain)}" stroke-width="2" stroke-linecap="round" opacity=".45"/>`);
+            const order = pts.slice().sort((a, b) => b.answered - a.answered);
+            for (const p of order) parts.push(`<circle cx="${x(p.weight).toFixed(1)}" cy="${y(p.level).toFixed(1)}" r="${r(p).toFixed(1)}" fill="${domainColour(p.domain)}" stroke="var(--ov-surface)" stroke-width="1.5"/>`);
+            // each task's number beside its dot, wherever it fits first: right, left, above, below
+            const boxes = [{ x1: W - m.right - 56, x2: W - m.right, y1: py - 15, y2: py - 1 }];
+            const clear = bx => bx.x1 >= m.left && bx.x2 <= W - m.right && bx.y1 >= m.top && bx.y2 <= m.top + ih
+                && !boxes.some(o => bx.x1 < o.x2 && bx.x2 > o.x1 && bx.y1 < o.y2 && bx.y2 > o.y1)
+                && !pts.some(o => { const ox = x(o.weight), oy = y(o.level), rr = r(o); return ox + rr > bx.x1 && ox - rr < bx.x2 && oy + rr > bx.y1 && oy - rr < bx.y2; });
+            for (const p of order) {
+                const cx = x(p.weight), cy = y(p.level), rr = r(p), w = 17;
+                const spots = [[cx + rr + 2, cy + 3.5, 'start'], [cx - rr - 2, cy + 3.5, 'end'], [cx, cy - rr - 3, 'middle'], [cx, cy + rr + 10, 'middle']];
+                for (const [lx, ly, anchor] of spots) {
+                    const x1 = anchor === 'start' ? lx : anchor === 'end' ? lx - w : lx - w / 2;
+                    const bx = { x1, x2: x1 + w, y1: ly - 9, y2: ly + 2 };
+                    if (!clear(bx)) continue;
+                    boxes.push(bx);
+                    parts.push(`<text class="sc-name" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}">${p.id}</text>`);
+                    break;
+                }
+            }
+            parts.push(`<circle class="sc-ring" r="0" fill="none" stroke="var(--ov-ink)" stroke-width="2" visibility="hidden"/>`);
+            const summary = `Projected accuracy against estimated share of the exam for ${plural(pts.length, 'task statement')}; `
+                + `${pts.filter(p => !p.below).length} at or above the ${Math.round(PASS_SHARE * 100)}% pass line. Use the arrow keys to step through them.`;
+            holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
+
+            const svg = holder.querySelector('svg'), ring = svg.querySelector('.sc-ring');
+            const pick = document.getElementById('ovBlueprintPick');
+            const pct = v => Math.round(v * 100);
+            const tipLines = p => [[p.id, p.name], [null, `${pct(p.level)}% projected (likely ${pct(p.lo)}–${pct(p.hi)}%) · about ${pct(p.weight)}% of the exam`]];
+            const select = p => {
+                blueprint.selected = p ? p.id : null;
+                ring.setAttribute('visibility', p ? 'visible' : 'hidden');
+                if (!p) { pick.innerHTML = ''; return; }
+                ring.setAttribute('cx', x(p.weight));
+                ring.setAttribute('cy', y(p.level));
+                ring.setAttribute('r', r(p) + 3);
+                const b = p.bank, below = p.below;
+                const label = b ? `Practise ${p.id} in ${BANKS[b.bank].label}` : '';
+                pick.innerHTML = `
+                    <div class="ov-weak-item">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-2 text-xs">
+                                <span class="text-slate-200 font-semibold"><i class="sc-swatch" style="--sc-c:${domainColour(p.domain)}" aria-hidden="true"></i>${p.id} ${escapeHtml(p.name)}</span>
+                                <span class="font-semibold shrink-0 ${correctTone(pct(p.level)).text}">${pct(p.level)}%</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Projected ${pct(p.level)}%, likely ${pct(p.lo)}–${pct(p.hi)}% · about ${pct(p.weight)}% of the exam · ${p.answered} of its ${plural(p.total, 'question')} answered${below ? ` · ${pct(PASS_SHARE - p.level)} points below the pass line` : ''}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">Domain ${p.domain}: ${escapeHtml(EXAM_DOMAINS[p.domain].name)}</p>
+                        </div>
+                        ${b ? `<button type="button" class="ov-practise" data-bank="${b.bank}" data-task="${p.id}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.asked, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>` : ''}
+                    </div>`;
+            };
+            const nearest = e => {
+                const rc = svg.getBoundingClientRect(), px = (e.clientX - rc.left) * W / rc.width, py2 = (e.clientY - rc.top) * H / rc.height;
+                let best = null, dist = Infinity;
+                for (const p of pts) {
+                    const d = Math.hypot(x(p.weight) - px, y(p.level) - py2);
+                    if (d < dist && d <= r(p) + 10) { best = p; dist = d; }
+                }
+                return best;
+            };
+            svg.addEventListener('pointermove', e => { const p = nearest(e); if (p) showTip(tipLines(p), e.clientX, e.clientY); else hideTip(); });
+            svg.addEventListener('pointerleave', hideTip);
+            svg.addEventListener('click', e => select(nearest(e)));
+            // the arrow keys step through the tasks in exam guide order
+            const byId = pts.slice().sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+            svg.addEventListener('keydown', e => {
+                const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[e.key];
+                if (step === undefined) { if (e.key === 'Escape') { hideTip(); select(null); } return; }
+                e.preventDefault();
+                const at = byId.findIndex(p => p.id === blueprint.selected);
+                const p = byId[at < 0 ? (step > 0 ? 0 : byId.length - 1) : (at + step + byId.length) % byId.length];
+                select(p);
+                const rc = svg.getBoundingClientRect();
+                showTip(tipLines(p), rc.left + x(p.weight) * rc.width / W, rc.top + y(p.level) * rc.height / H);
+            });
+            svg.addEventListener('blur', hideTip);
+            select(pts.find(p => p.id === blueprint.selected) || null);
         }
 
         // ---- Activity ----
@@ -4802,7 +5015,7 @@
         window.addEventListener('resize', () => {
             clearTimeout(overviewResizeTimer);
             overviewResizeTimer = setTimeout(() => {
-                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); drawScatter(); }
+                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); drawScatter(); drawBlueprint(); }
                 if (!document.getElementById('dashboardView').classList.contains('hidden') && BANKS[bankKey]) drawScoreChart(scoreChartOf(bankKey));
             }, 150);
         });
