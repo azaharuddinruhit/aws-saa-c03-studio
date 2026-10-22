@@ -302,7 +302,8 @@
            the readable lightness band, checked against each theme's card surface. */
         .page-tabs { margin-bottom: 1.25rem; }
         .ov-pair { display: grid; gap: 1.5rem; }
-        .ov-pair > * { min-width: 0; }   /* a card never widens past the column on a phone */
+        .ov-pair > *, .ov-col > * { min-width: 0; }   /* a card never widens past the column on a phone */
+        .ov-col { display: grid; gap: 1.5rem; align-content: start; }   /* cards stacked in one column of a pair */
         /* placeholder blocks at about each card's finished height, shown until the first render */
         .ov-skel { border-radius: .75rem; background: var(--ov-grid); animation: ovPulse 1.4s ease-in-out infinite; }
         @keyframes ovPulse { 50% { opacity: .55; } }
@@ -375,7 +376,9 @@
         /* a click or tap focuses the chart (for its arrow keys) but should not draw the browser's outline around it */
         .ov-chart svg:focus:not(:focus-visible) { outline: none; }
         .ov-chart text { font-family: 'Inter', sans-serif; font-size: 10px; fill: var(--ov-muted); font-variant-numeric: tabular-nums; }
-        .fp-list { display: grid; gap: .125rem; }
+        .fp-list { display: grid; gap: .5rem; }
+        .fp-row { border: 1px solid var(--ov-grid); border-radius: .875rem; }
+        .fp-weak-list .ov-weak-item { border-color: transparent; background: color-mix(in srgb, var(--ov-grid) 40%, transparent); }
         /* the axis is inset as the rows' tracks are, by their summary's padding */
         .fp-axis { padding: 0 .625rem; font-size: 10px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
         .fp-axis > div { position: relative; height: 12px; }
@@ -387,7 +390,7 @@
         .fp-row[data-v="down"], .fp-chip[data-v="down"] { --fp-c: var(--ov-lean-down); }
         .fp-row[data-v="up"], .fp-chip[data-v="up"] { --fp-c: var(--ov-lean-up); }
         .fp-row[data-v="strong"], .fp-chip[data-v="strong"] { --fp-c: var(--ov-right); }
-        .fp-row > summary { list-style: none; cursor: pointer; padding: .5rem .625rem; border-radius: .75rem; transition: background-color .15s; }
+        .fp-row > summary { list-style: none; cursor: pointer; padding: .5rem .625rem; border-radius: calc(.875rem - 1px); transition: background-color .15s; }
         .fp-row > summary::-webkit-details-marker { display: none; }
         .fp-row > summary:hover, .fp-row[open] > summary { background: color-mix(in srgb, var(--ov-grid) 45%, transparent); }
         .fp-row > summary:focus-visible { outline: 2px solid var(--ov-line); outline-offset: -2px; }
@@ -442,7 +445,17 @@
         .td-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--ov-line); }
         .td-bar > i { position: absolute; top: -4px; bottom: -4px; margin-left: -1px; border-left: 2px solid var(--ov-ink); border-radius: 1px; }
         .fp-weak { margin-top: .25rem; font-size: 10px; color: var(--ov-missed); }
+        .ws-row { position: relative; }
         .ws-row .ws-scroll { flex-wrap: nowrap; }
+        .ws-arrow { display: none; position: absolute; top: 50%; z-index: 1; width: 1.75rem; height: 1.75rem; margin-top: -.875rem;
+            align-items: center; justify-content: center; border-radius: 9999px; border: 1px solid var(--ov-grid);
+            background: var(--ov-surface); color: var(--ov-ink); font-size: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, .18); transition: border-color .15s, color .15s; }
+        .ws-arrow.left { left: 0; }
+        .ws-arrow.right { right: 0; }
+        .ws-arrow:hover { border-color: var(--ov-line); color: var(--ov-line); }
+        @media (hover: hover) and (pointer: fine) {
+            .ws-row[data-more~="left"] .ws-arrow.left, .ws-row[data-more~="right"] .ws-arrow.right { display: flex; }
+        }
         .ws-scroll { display: flex; gap: .375rem; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 3px; margin: -3px; }
         .ws-scroll::-webkit-scrollbar { display: none; }
         .ws-scroll > * { flex: none; white-space: nowrap; }
@@ -582,7 +595,9 @@
         <div id="dashboardView" class="hidden space-y-6 animate-fade-in">
             <!-- Hero -->
             <section class="pt-2">
-                <div class="bank-only flex flex-wrap gap-2">
+                <!-- one line that scrolls sideways on a phone, fading at an edge while a button is hidden that way -->
+                <div class="bank-only ws-row" id="practiceRow">
+                  <div class="ws-scroll" role="group" aria-label="Start a quiz">
                     <button onclick="chooseQuizSize('all')" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Start quiz</span>
@@ -597,6 +612,7 @@
                     <button onclick="startQuiz('flagged')" id="reviewFlaggedBtn" class="border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm hidden">
                         <span>Flagged (<span id="flaggedCountBadge">0</span>)</span>
                     </button>
+                  </div>
                 </div>
                 <p id="smartPlan" class="bank-only mt-3 text-xs text-slate-500"></p>
             </section>
@@ -695,7 +711,7 @@
                 <div class="flex items-center justify-between gap-2">
                     <!-- the question count keeps its width; on a narrow phone the stats on the right wrap instead -->
                     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                        <button onclick="returnToDashboard()" aria-label="Back to dashboard" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0">
+                        <button onclick="leaveQuiz()" aria-label="Back" title="Back" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0">
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
                         <div class="min-w-0">
@@ -812,7 +828,7 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                    <button onclick="returnToDashboard()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-bold px-6 py-3.5 rounded-2xl shadow transition text-sm">
+                    <button id="summaryBackBtn" onclick="leaveQuiz()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-bold px-6 py-3.5 rounded-2xl shadow transition text-sm">
                         Return to Dashboard
                     </button>
                 </div>
@@ -828,13 +844,21 @@
                 <p id="ovVerdict" class="mt-2 text-sm text-slate-300 flex items-center gap-2"></p>
                 <p id="ovNote" class="hidden mt-1 text-xs text-amber-400"></p>
             </div>
+            <!-- desktop: the score across both columns, then two pairs; phones stack them in this order -->
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-bold">Combined score</h3>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                </div>
+                <div id="ovScore" class="mt-4"></div>
+            </section>
             <div class="ov-pair">
                 <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                     <div class="flex items-center justify-between gap-3">
-                        <h3 class="text-lg font-bold">Combined score</h3>
-                        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                        <h3 class="text-lg font-bold">Daily summary</h3>
+                        <span id="ovDailyWhen" class="text-[10px] font-mono uppercase tracking-wider text-slate-400"></span>
                     </div>
-                    <div id="ovScore" class="mt-4"></div>
+                    <div id="ovDaily" class="mt-4"></div>
                 </section>
                 <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                     <div class="flex items-center justify-between gap-3">
@@ -844,26 +868,21 @@
                     <div id="ovProgress" class="mt-4"></div>
                 </section>
             </div>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <div class="flex items-center justify-between gap-3">
-                    <h3 class="text-lg font-bold">Daily summary</h3>
-                    <span id="ovDailyWhen" class="text-[10px] font-mono uppercase tracking-wider text-slate-400"></span>
-                </div>
-                <div id="ovDaily" class="mt-4"></div>
-            </section>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">Where to focus</h3>
-                <div id="ovForest" class="mt-4"></div>
-            </section>
             <div class="ov-pair">
                 <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                    <h3 class="text-lg font-bold">Speed and accuracy</h3>
-                    <div id="ovScatter" class="mt-4"></div>
+                    <h3 class="text-lg font-bold">Where to focus</h3>
+                    <div id="ovForest" class="mt-4"></div>
                 </section>
-                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                    <h3 class="text-lg font-bold">Time per question</h3>
-                    <div id="ovPace" class="mt-4"></div>
-                </section>
+                <div class="ov-col">
+                    <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="text-lg font-bold">Speed and accuracy</h3>
+                        <div id="ovScatter" class="mt-4"></div>
+                    </section>
+                    <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="text-lg font-bold">Time per question</h3>
+                        <div id="ovPace" class="mt-4"></div>
+                    </section>
+                </div>
             </div>
         </div>
 
@@ -1479,6 +1498,7 @@
             } else {
                 document.getElementById('reviewFlaggedBtn').classList.add('hidden');
             }
+            fadeEdges(document.getElementById('practiceRow'));
 
             renderDomainList();
             renderAnsweredStat();
@@ -1963,6 +1983,7 @@
         // Forgets the session in memory and in this tab.
         function endSession() {
             clearSession();
+            try { sessionStorage.removeItem(RETURN_KEY); } catch (e) {}
             currentQuizQuestions = [];
             currentIndex = liveIndex = 0;
             quizFinished = false;
@@ -2026,10 +2047,13 @@
             const active = currentQuizQuestions.length > 0;
             pauseQuestionClock();   // showQuestionAt() starts it again if the live question comes back
 
-            // The overview sits beside a quiz rather than ending it: Back returns to the question.
+            // The overview sits beside a quiz rather than ending it: Back returns to the question. Coming back
+            // from a quiz started on the overview, the page returns to the card it was started from.
             if (route.name === 'overview') {
+                const fromQuiz = !document.getElementById('quizView').classList.contains('hidden') || !document.getElementById('summaryView').classList.contains('hidden');
+                const spot = fromQuiz ? quizReturn() : null;
                 showOverviewView();
-                renderOverview();
+                renderOverview().then(() => { if (spot && parseRoute().name === 'overview') restoreOverviewSpot(spot); });
                 return;
             }
 
@@ -4107,7 +4131,8 @@
         }
 
         // A row that scrolls sideways without a scrollbar (the weakest services, Speed and accuracy's key, and
-        // the Daily summary's moved sections and review buttons) fades at an edge while there is more that way
+        // the Daily summary's sections and review buttons, the Practice page's quiz buttons) fades at an
+        // edge while there is more that way
         // (data-more holds "left" and/or "right"), checked as it scrolls and when it changes size.
         // One observer serves every such row; a row the overview has redrawn away is let go.
         const fadeObserver = window.ResizeObserver ? new ResizeObserver(entries => {
@@ -4119,6 +4144,7 @@
         function fadeEdges(row) {
             if (!row) return;
             const strip = row.firstElementChild;
+            if (strip.fadeUpdate) { strip.fadeUpdate(); return; }
             strip.fadeUpdate = () => {
                 const more = [];
                 if (strip.scrollLeft > 2) more.push('left');
@@ -4127,6 +4153,22 @@
             };
             strip.addEventListener('scroll', strip.fadeUpdate, { passive: true });
             if (fadeObserver) fadeObserver.observe(strip);
+            // with a mouse there is no swipe: a button over each faded edge moves the row by most of its width.
+            // Keyboard users Tab through the chips instead, so the buttons stay out of the tab order.
+            for (const side of ['left', 'right']) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'ws-arrow ' + side;
+                b.tabIndex = -1;
+                b.title = side === 'left' ? 'Scroll back' : 'Scroll for more';
+                b.setAttribute('aria-hidden', 'true');
+                b.innerHTML = `<i class="fa-solid fa-chevron-${side}"></i>`;
+                b.addEventListener('click', e => {
+                    e.stopPropagation();
+                    strip.scrollBy({ left: (side === 'left' ? -1 : 1) * strip.clientWidth * 0.8, behavior: 'smooth' });
+                });
+                row.appendChild(b);
+            }
             strip.fadeUpdate();
         }
 
@@ -4213,12 +4255,69 @@
             if (practising) return;
             practising = true;
             try {
-                if (!BANKS[key] || !(await leaveSession('Start a new quiz?', 'Start'))) return;
+                // started from the overview: no Practice page in between, and the spot to come back to
+                const spot = parseRoute().name === 'overview' ? overviewSpot() : null;
+                if (!BANKS[key] || !(await leaveSession('Start a new quiz?', 'Start', !!spot))) return;
                 if (key !== bankKey) await useBank(key);
                 start();
+                if (spot && currentQuizQuestions.length) {
+                    try { sessionStorage.setItem(RETURN_KEY, JSON.stringify(spot)); } catch (e) {}
+                }
             } finally {
                 practising = false;
             }
+        }
+
+        // A quiz started from the overview goes back there, to the card it was started from: the quiz's back
+        // arrow, the summary's button and the browser's Back all return to that place. The spot is kept in this
+        // tab with the session, so it outlasts a refresh, and is forgotten when the session ends.
+        const RETURN_KEY = 'saa_quiz_return';
+        function quizReturn() {
+            try { return JSON.parse(sessionStorage.getItem(RETURN_KEY)); } catch (e) { return null; }
+        }
+        // the first card whose top is on screen (or, if none is, the one filling it), by the id of its content,
+        // and how far its top sits from the page's top
+        function overviewSpot() {
+            const main = document.querySelector('main'), top = main.getBoundingClientRect().top;
+            const cards = [...document.querySelectorAll('#overviewView section')];
+            const card = cards.find(c => c.getBoundingClientRect().top >= top - 1) || cards.find(c => c.getBoundingClientRect().bottom > top + 1);
+            const inner = card && card.querySelector('[id^="ov"]');
+            return { scroll: main.scrollTop, id: inner ? inner.id : null, offset: card ? card.getBoundingClientRect().top - top : 0 };
+        }
+        function restoreOverviewSpot(spot) {
+            const main = document.querySelector('main');
+            const view = document.getElementById('overviewView');
+            const place = () => {
+                const el = spot.id && document.getElementById(spot.id);
+                const card = el && el.closest('section');
+                // the view fades in sliding up a few pixels, so the card is measured where it will settle
+                const slide = new DOMMatrix(getComputedStyle(view).transform).m42 || 0;
+                if (card) main.scrollTop += card.getBoundingClientRect().top - slide - main.getBoundingClientRect().top - spot.offset;
+                else main.scrollTop = spot.scroll;
+            };
+            place();
+            // what sits above the card can still change size (the tabs lose Resume quiz, charts and the forecast
+            // finish), so the card is held in place for a moment, until the reader scrolls
+            if (!window.ResizeObserver) return;
+            const hold = new ResizeObserver(place);
+            hold.observe(view);
+            hold.observe(document.getElementById('pageTabs'));
+            const stop = () => {
+                hold.disconnect();
+                for (const type of ['wheel', 'touchstart', 'keydown']) main.removeEventListener(type, stop);
+            };
+            for (const type of ['wheel', 'touchstart', 'keydown']) main.addEventListener(type, stop, { passive: true });
+            setTimeout(stop, 2000);
+        }
+        // The quiz's back arrow and the summary's button: back to where the quiz was started from
+        async function leaveQuiz() {
+            const spot = quizReturn();
+            if (!spot) { returnToDashboard(); return; }
+            if (!(await leaveSession('Leave this session?', 'Leave', true))) return;
+            setRoute({ name: 'overview' }, true);
+            showOverviewView();
+            await renderOverview();
+            restoreOverviewSpot(spot);
         }
         function practiseTag(key, tag) {
             return practiseIn(key, () => {
@@ -4645,9 +4744,8 @@
         // ---- Daily summary ----
         // Today, or yesterday before you've answered anything today, counted from the day's answers: the day's
         // count against your average over the 7 days before it (the tick on its bar), first tries, questions
-        // seen, bests, the sections that moved and the streak, then what is due for review now. A section
-        // moves as in Where to focus: its first-try estimate, which leans toward your overall rate while it has
-        // few answers. The score's change is beside the Combined score.
+        // seen, bests, each section's first tries that day and the streak, then what is due for review now.
+        // The score's change is beside the Combined score.
         const DAILY_BEST_MIN = 10;   // new questions a day needs before its first-try rate can be a personal best
 
         function renderDaily(banks, tl) {
@@ -4679,30 +4777,24 @@
             const rate = d => (d.firsts ? pct(d.right / d.firsts) + '%' : '–');
             const dayWord = isToday ? 'today' : 'yesterday';
 
-            // questions seen, and per section, first tries before the day and by its end
+            // questions seen, and per section the questions first seen during the day and how many were right
             let seen = 0, total = 0;
-            const sec = {}, overall = { b: [0, 0], a: [0, 0] };
+            const sec = {};   // section -> { right, n }
             for (const b of banks) for (const q of b.questions) {
                 total++;
                 const log = b.log[q.id];
                 if (!log || !log.length) continue;
                 seen++;
-                const name = q.domain || 'General AWS';
-                const s = sec[name] || (sec[name] = { b: [0, 0], a: [0, 0], touched: false });
                 const f = log[0];
-                for (const [side, counts] of [['a', s.a], ['a', overall.a], ['b', s.b], ['b', overall.b]]) {
-                    if (side === 'b' && f[1] >= start) continue;
-                    counts[1]++;
-                    if (f[0]) counts[0]++;
-                }
-                if (f[1] >= start) s.touched = true;
+                if (f[1] < start || f[1] >= end) continue;
+                const t = sec[q.domain || 'General AWS'] || (sec[q.domain || 'General AWS'] = { right: 0, n: 0 });
+                t.n++;
+                if (f[0]) t.right++;
             }
-            const lean = ([r, n]) => (n ? Math.min(0.95, Math.max(0.05, r / n)) : 0.5);
-            const firstTry = ([r, n], o) => (FOREST_PRIOR * o + r) / (FOREST_PRIOR + n);
-            const movers = Object.entries(sec).filter(([, s]) => s.touched)
-                .map(([name, s]) => ({ name, d: Math.round(100 * (firstTry(s.a, lean(overall.a)) - firstTry(s.b, lean(overall.b)))) }))
-                .filter(m => m.d)
-                .sort((a, b) => Math.abs(b.d) - Math.abs(a.d) || compareDomains(a.name, b.name));
+            // most practised first; green from the pass rate, amber from half, red below
+            const practised = Object.entries(sec).map(([name, t]) => ({ name, ...t }))
+                .sort((a, b) => b.n - a.n || compareDomains(a.name, b.name));
+            const shade = t => (t.right / t.n >= PASS_SHARE ? 'strong' : t.right / t.n >= 0.5 ? 'down' : 'weak');
 
             let streak = 0;
             while (days[addDays(day, -streak)]) streak++;
@@ -4751,10 +4843,10 @@
                     ${tile('Seen', `${seen}<span class="dy-of">/${total}</span>`, `+${D.firsts} ${dayWord}`)}
                 </div>
                 ${bests.length ? `<div class="dy-badges mt-3">${bests.map(t => `<span class="dy-badge"><i class="fa-solid fa-trophy" aria-hidden="true"></i>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-                ${movers.length ? `
-                <p class="mt-3 text-xs text-slate-400">Sections that moved, biggest first</p>
-                <div class="ws-row mt-1.5" id="ovMovedRow">
-                    <div class="ws-scroll" role="group" aria-label="Sections that moved, biggest first">${movers.map(m => `<span class="fp-chip" data-v="${m.d > 0 ? 'strong' : 'weak'}">${escapeHtml(m.name)} ${m.d > 0 ? '▲' : '▼'}${Math.abs(m.d)}</span>`).join('')}</div>
+                ${practised.length ? `
+                <p class="mt-3 text-xs text-slate-400">Sections you practised ${dayWord}, right first time</p>
+                <div class="ws-row mt-1.5" id="ovPractisedRow">
+                    <div class="ws-scroll" role="group" aria-label="Sections you practised ${dayWord}, right first time">${practised.map(t => `<span class="fp-chip" data-v="${shade(t)}" title="${t.right} of ${plural(t.n, 'new question')} right first time ${dayWord}">${escapeHtml(t.name)} ${t.right}/${t.n}</span>`).join('')}</div>
                 </div>` : ''}
                 <p class="mt-3 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-fire dy-icon" aria-hidden="true"></i>${streakText}</p>
                 ${pace ? `<p class="mt-1.5 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-flag-checkered dy-icon" aria-hidden="true"></i>${pace}</p>` : ''}
@@ -4766,13 +4858,13 @@
                         <li>The answer count includes new questions and reviews (questions you'd seen before). The tick on its bar is your average over the 7 days before.</li>
                         <li>Right first time counts only questions you saw for the first time.</li>
                         <li>A question is done when your latest answer to it is right.</li>
-                        <li>Section moves are in points of the first-try estimate from Where to focus.</li>
+                        <li>Each section you practised shows how many of its new questions you got right first time, out of those you saw for the first time: green from ${Math.round(PASS_SHARE * 100)}% (the pass rate), amber from 50%, red below.</li>
                         <li>To redo: questions whose latest answer is wrong. Slipped ones are those you'd answered right before, so you've forgotten something you knew.</li>
                         <li>Due again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
                         <li>Each set's button starts a quiz of its questions to redo and due: today's misses first, then your other misses, latest first, then the most overdue.</li>
                     </ul>
                 </details>`;
-            fadeEdges(document.getElementById('ovMovedRow'));
+            fadeEdges(document.getElementById('ovPractisedRow'));
             fadeEdges(document.getElementById('ovReviewRow'));
         }
 
@@ -4835,8 +4927,8 @@
                     <p class="mt-2 text-xs text-slate-400 leading-relaxed">${examLine}</p>
                 </div>
                 ${data ? `
-                <div class="ov-rule">
-                    <p class="text-xs text-slate-400">Questions done over time, and where your pace leads</p>
+                <details class="ov-rule" id="ovChartFold"${progressChartOpen() ? ' open' : ''}>
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Questions done over time, and where your pace leads</summary>
                     <div id="ovChart" class="ov-chart mt-3"></div>
                     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400">
                         <span class="flex items-center gap-1.5">${lineKey(false)}Done so far</span>
@@ -4846,10 +4938,16 @@
                         <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
                         <div class="mt-2">${chartTable(tl, data)}</div>
                     </details>
-                </div>` : ''}
+                </details>` : ''}
                 <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">A question is done when your latest answer to it is right; the finish date and pace are net, so a question that slips back to wrong counts against them.</p>`;
             overviewChart = data ? { tl, data } : null;
             drawProgressChart();
+            // the chart is drawn to its width, which it only has while its fold is open
+            const fold = document.getElementById('ovChartFold');
+            if (fold) fold.addEventListener('toggle', () => {
+                try { localStorage.setItem(PROGRESS_CHART_KEY, fold.open ? '1' : '0'); } catch (e) {}
+                if (fold.open) drawProgressChart();
+            });
         }
 
         // ---- Due for review ----
@@ -4942,9 +5040,15 @@
 
         // Questions done over time: a 2px line with a light wash under it, then dashed projections from today
         // at the two paces with a wash between them, the total as the goal line, and the aim and exam dates.
+        // Whether the Progress card's chart is open: a view preference in this browser, folded until opened
+        const PROGRESS_CHART_KEY = 'saa_progress_chart_open';
+        function progressChartOpen() {
+            try { return localStorage.getItem(PROGRESS_CHART_KEY) === '1'; } catch (e) { return false; }
+        }
+
         function drawProgressChart() {
             const holder = document.getElementById('ovChart');
-            if (!holder || !overviewChart) return;
+            if (!holder || !overviewChart || !holder.clientWidth) return;   // folded away: drawn when opened
             const { tl, data } = overviewChart;
             const W = Math.max(280, holder.clientWidth), H = 220;
             const m = { top: 24, right: 10, bottom: 24, left: 34 };
@@ -5685,6 +5789,7 @@
         }
 
         function showSummary() {
+            document.getElementById('summaryBackBtn').innerText = quizReturn() ? 'Back to overview' : 'Return to Dashboard';
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');
@@ -5743,7 +5848,7 @@
         // Ends whatever is on screen and goes back to the dashboard. The summary screen uses this too,
         // where there is nothing left to abandon, so the warning is limited to a quiz still in progress
         // that has answers in it. Resolves false if the reader cancels.
-        async function leaveSession(title, confirmLabel) {
+        async function leaveSession(title, confirmLabel, stay = false) {
             const done = Object.keys(userAnswers).length;
             if (currentQuizQuestions.length > 0 && done > 0 && !quizFinished && currentQuizMode !== 'question') {
                 const total = currentQuizQuestions.length;
@@ -5754,8 +5859,10 @@
                 if (!ok) return false;
             }
             endSession();
-            setRoute({ name: 'dashboard' }, false);
-            showDashboardView();
+            if (!stay) {
+                setRoute({ name: 'dashboard' }, false);
+                showDashboardView();
+            }
             return true;
         }
 
