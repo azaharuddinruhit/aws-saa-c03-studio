@@ -85,7 +85,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **How it opens:**
   - **Wide screens:** a 520px dialog in the middle of the window over the dimmed page. Escape, the × or a click on the dimmed page closes it.
   - **Phones:** a bottom sheet that closes like the mind map's panel: tap the backdrop or the handle, drag it down, or press Back.
-  - **Size:** it grows to fit, up to 60% of the window (520px at most) on wide screens or 75% of the screen on phones. Past that, its heading stays put and the list scrolls.
+  - **Size:** it grows to fit, up to 60% of the window (520px at most) on wide screens or 72% of the screen on phones (the mind map sheet's height). Past that, its heading stays put and the list scrolls.
 - **Icons:** each entry's `icon` is a key in `docs/cheatsheet/icons.js`. Where AWS has no icon for an entry, it borrows the closest related service's icon (AMI uses EC2's, the Systems Manager tools use Systems Manager's). With `null`, the entry shows a plain cube instead. The quiz loads `icons.js` the first time the drawer opens, not with the page.
 - **Where to edit:** `scripts/glossary.json`, then run `build-glossary.js`. Never hand-edit `docs/glossary.json`.
   - **Every entry:** `name`, `icon`, `match` (the names to find, case-sensitive) and `what`.
