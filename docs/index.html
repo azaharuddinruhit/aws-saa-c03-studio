@@ -298,9 +298,8 @@
         }
         /* ===== Progress overview =====
            Plain CSS, because the prebuilt Tailwind has no two-column grid at lg or the small dot and
-           cell sizes, and the charts need their own light and dark values. The heatmap steps are one
-           emerald hue, light to dark (dark to light on the dark theme), and the line colours sit in
-           the readable lightness band; all were checked against each theme's card surface. */
+           cell sizes, and the charts need their own light and dark values. The line colours sit in
+           the readable lightness band, checked against each theme's card surface. */
         .page-tabs { margin-bottom: 1.25rem; }
         .ov-pair { display: grid; gap: 1.5rem; }
         .ov-pair > * { min-width: 0; }   /* a card never widens past the column on a phone */
@@ -309,7 +308,7 @@
         @keyframes ovPulse { 50% { opacity: .55; } }
         @media (prefers-reduced-motion: reduce) { .ov-skel { animation: none; } }
         .ov-rule { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ov-grid); }
-        /* Weak areas: one box per service, with a round play button on its right edge that starts its quiz */
+        /* Weak services (under Where to focus): one box per service, with a round play button on its right edge that starts its quiz */
         .ov-weak-item { display: flex; align-items: center; gap: .875rem; padding: .75rem .875rem; border: 1px solid var(--ov-grid); border-radius: .875rem; }
         .ov-practise { display: grid; place-items: center; flex: none; width: 2rem; height: 2rem; border-radius: 9999px; border: 1px solid var(--ov-grid); color: var(--ov-line); font-size: 10px; transition: background-color .15s, border-color .15s; }
         .ov-practise i { margin-left: 2px; }   /* nudged right, so the triangle looks centred */
@@ -342,7 +341,6 @@
             --ov-lean-up: #0d9488; --ov-lean-down: #ea580c;
             --sec-0: #4e79a7; --sec-1: #e8771a; --sec-2: #d93f43; --sec-3: #4f9a94; --sec-4: #4a8f41;
             --sec-5: #c9a227; --sec-6: #9c5f8c; --sec-7: #e8748a; --sec-8: #8c6449; --sec-9: #8f8580;
-            --ov-heat0: #e2e8f0; --ov-heat1: #29bf88; --ov-heat2: #0b9a6c; --ov-heat3: #06775a; --ov-heat4: #064e3b;
         }
         .dark #overviewView, .dark #dashboardView {
             --ov-surface: #101522; --ov-line: #14a874; --ov-wash: rgba(20, 168, 116, .12);
@@ -351,7 +349,6 @@
             --ov-lean-up: #2dd4bf; --ov-lean-down: #fb923c;
             --sec-0: #6f9bd1; --sec-1: #f5a04f; --sec-2: #ef7476; --sec-3: #8fd0ca; --sec-4: #7cc26f;
             --sec-5: #f1d35c; --sec-6: #c595b6; --sec-7: #ffb0b8; --sec-8: #b58c74; --sec-9: #c9c0bb;
-            --ov-heat0: #212739; --ov-heat1: #065f46; --ov-heat2: #047857; --ov-heat3: #10b981; --ov-heat4: #6ee7b7;
         }
         .dark #ovExamDate { color-scheme: dark; }
         /* a section's typical time; the tick marks the target time a question */
@@ -372,21 +369,6 @@
         .ov-stack.thin { height: .375rem; }
         .ov-stack > span { display: block; height: 100%; }
         .ov-key { display: inline-block; width: .625rem; height: .625rem; border-radius: 2px; flex-shrink: 0; }
-        .ov-heat { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; max-width: var(--heat-w, 18rem); }
-        .ov-cell { aspect-ratio: 1; border-radius: 3px; background: var(--ov-heat0); }
-        .ov-cell.future { background: transparent; }
-        .ov-cell[data-level="1"] { background: var(--ov-heat1); }
-        .ov-cell[data-level="2"] { background: var(--ov-heat2); }
-        .ov-cell[data-level="3"] { background: var(--ov-heat3); }
-        .ov-cell[data-level="4"] { background: var(--ov-heat4); }
-        .ov-cell.hot { outline: 2px solid var(--ov-ink); outline-offset: 1px; }
-        /* Activity: on desktop the chart and the answers-per-day heatmap sit side by side, the heatmap
-           a little larger so it stands about as tall as the chart; below that they stack */
-        .ov-split > * { min-width: 0; }
-        @media (min-width: 1024px) {
-            .ov-split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; --heat-w: 24rem; }
-            .ov-split > .ov-rule { margin-top: 0; padding: 0 0 0 2rem; border-top: 0; border-left: 1px solid var(--ov-grid); }
-        }
         .ov-chart { position: relative; touch-action: pan-y; }
         .ov-chart svg { display: block; width: 100%; overflow: visible; }
         .ov-chart svg:focus-visible { outline: 2px solid #10B981; outline-offset: 4px; border-radius: 4px; }
@@ -423,20 +405,14 @@
         .fp-range { position: absolute; top: 3px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--fp-c) 35%, transparent); }
         .fp-dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--fp-c);
             box-shadow: 0 0 0 2px var(--ov-surface); z-index: 1; }
-        .fp-ring { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
-            border: 2px solid var(--ov-ink); z-index: 2; }
         .fp-key { display: flex; flex-wrap: wrap; gap: .5rem 1rem; font-size: 10px; color: var(--ov-muted); }
         .fp-key > span { display: inline-flex; align-items: center; gap: .375rem; }
         .fp-key i { display: inline-block; flex: none; }
         .fp-key-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ov-muted); }
         .fp-key-bar { width: 18px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--ov-muted) 35%, transparent); }
-        .fp-key-ring { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ov-ink); }
         .fp-key-pass { height: 12px; border-left: 1.5px dashed var(--ov-muted); }
         #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
-        .sc-zone { color: var(--sc-c); }
-        .dy-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
-        @media (min-width: 768px) { .dy-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
         .dy-tile { min-width: 0; padding: .75rem .875rem; border: 1px solid var(--ov-grid); border-radius: .875rem; }
         .dy-label { font-size: 11px; color: var(--ov-muted); }
         .dy-value { margin-top: .125rem; font-size: 1.5rem; line-height: 1.25; font-weight: 600; color: var(--ov-ink); font-variant-numeric: tabular-nums; }
@@ -450,13 +426,23 @@
         .dy-review i { font-size: 9px; }
         .dy-review:hover { background: var(--ov-wash); border-color: var(--ov-line); }
         .dy-review:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        .pg-value { color: var(--ov-ink); font-variant-numeric: tabular-nums; }
-        .pg-track { height: 8px; margin-top: .4rem; border-radius: 9999px; background: var(--ov-grid); overflow: hidden; }
-        .pg-track > span { display: block; height: 100%; border-radius: inherit; background: var(--pg-c); }
+        .dy-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
+        @media (min-width: 768px) { .dy-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .dy-part { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ov-grid); }
+        .fp-gain { flex: none; font-size: 10px; font-weight: 600; color: var(--ov-ink); font-variant-numeric: tabular-nums; }
+        .fp-gain b { color: var(--ov-line); font-weight: 600; }
+        .fp-sort { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; font-size: 11px; color: var(--ov-muted); }
+        .sc-zone { color: var(--sc-c); }
         .ov-chart text.sc-zone-label { font-weight: 600; }
         .ov-chart text.sc-name { fill: var(--ov-ink); }
         .ov-chart text.sc-strong { fill: var(--ov-ink); font-weight: 600; }
         .sc-dot { transition: opacity .15s; }
+        .sc-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc-c); margin-right: .4rem; vertical-align: 1px; }
+        .td-bar { position: relative; height: 10px; border-radius: 9999px; background: var(--ov-grid); }
+        .td-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--ov-line); }
+        .td-bar > i { position: absolute; top: -4px; bottom: -4px; margin-left: -1px; border-left: 2px solid var(--ov-ink); border-radius: 1px; }
+        .fp-weak { margin-top: .25rem; font-size: 10px; color: var(--ov-missed); }
+        .fp-weak-list { display: grid; gap: .375rem; margin: 0 .625rem .5rem; }
         .sc-key { display: flex; flex-wrap: wrap; gap: .375rem; }
         .sc-chip { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
             font-size: 11px; color: var(--ov-ink); transition: background-color .15s, border-color .15s; }
@@ -464,7 +450,6 @@
         .sc-chip:hover { border-color: var(--ov-muted); }
         .sc-chip[aria-pressed="true"] { border-color: var(--sc-c); background: color-mix(in srgb, var(--sc-c) 15%, transparent); }
         .sc-chip:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        .sc-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc-c); margin-right: .4rem; vertical-align: 1px; }
         /* the tooltip keeps a dark surface in both themes, like the toast */
         .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
                   border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); white-space: nowrap; }
@@ -843,11 +828,13 @@
                         <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
                     </div>
                     <div id="ovScore" class="mt-4"></div>
-                    <div id="ovPace" class="ov-rule"></div>
                 </section>
                 <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                    <h3 class="text-lg font-bold">Timeline</h3>
-                    <div id="ovTimeline" class="mt-4"></div>
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold">Progress</h3>
+                        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                    </div>
+                    <div id="ovProgress" class="mt-4"></div>
                 </section>
             </div>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
@@ -858,34 +845,24 @@
                 <div id="ovDaily" class="mt-4"></div>
             </section>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">First tries by section</h3>
+                <h3 class="text-lg font-bold">Where to focus</h3>
                 <div id="ovForest" class="mt-4"></div>
             </section>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">Speed and accuracy</h3>
-                <div id="ovScatter" class="mt-4"></div>
-            </section>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">Exam blueprint</h3>
-                <div id="ovBlueprint" class="mt-4"></div>
-            </section>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">What raises your pass chance</h3>
-                <div id="ovGains" class="mt-4"></div>
-            </section>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">Weak areas</h3>
-                <div id="ovWeak" class="mt-4"></div>
-            </section>
-            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                <h3 class="text-lg font-bold">Activity</h3>
-                <div id="ovActivity" class="mt-4"></div>
-            </section>
+            <div class="ov-pair">
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Speed and accuracy</h3>
+                    <div id="ovScatter" class="mt-4"></div>
+                </section>
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Time per question</h3>
+                    <div id="ovPace" class="mt-4"></div>
+                </section>
+            </div>
         </div>
 
     </main>
 
-    <!-- The overview's chart and heatmap tooltip. It lives outside the views because their fade-in
+    <!-- The overview's chart tooltip. It lives outside the views because their fade-in
          animation leaves a transform behind, which would make position: fixed relative to the view. -->
     <div id="ovTip" class="ov-tip" hidden></div>
 
@@ -2111,7 +2088,7 @@
         function quizTitle() {
             if (currentQuizMode === 'domain') return currentQuizQuestions[0].domain || 'General AWS';
             if (currentQuizMode === 'service') return quizTag || 'Quiz';
-            if (currentQuizMode === 'task') return quizTag ? 'Task ' + quizTag : 'Quiz';
+            if (currentQuizMode === 'task') return quizTag ? 'Task ' + quizTag : 'Quiz';   // a task quiz saved before they were retired
             if (currentQuizMode === 'list') return quizTag || 'Quiz';
             if (currentQuizMode === 'question') return 'Question ' + questionRef(currentQuizQuestions[0]);
             return QUIZ_TITLES[currentQuizMode] || 'Quiz';
@@ -2335,28 +2312,13 @@
             return true;
         }
 
-        // From the daily summary: the given questions of the open set in the order given, under the given title
-        // (the day's misses). Returns false when none of them is in the set.
+        // From Due for review: the given questions of the open set in the order given, under the given title
+        // (questions to redo and due). Returns false when none of them is in the set.
         function startQuizByIds(ids, title) {
             const list = ids.map(id => questions.find(q => String(q.id) === String(id))).filter(Boolean);
             if (!list.length) return false;
             currentQuizMode = 'list';
             quizTag = title;
-            smartReasons = {};
-            currentQuizQuestions = list;
-            beginSession();
-            startQuizTimer();
-            go({ name: 'quiz', n: 1 });
-            return true;
-        }
-
-        // From the exam blueprint map: one task statement's questions, outstanding first, as a section's are.
-        // Returns false when the set has none.
-        function startQuizByTask(id) {
-            const list = outstandingFirst(questions.filter(q => taskOf(q) === id && id[0] === String(examDomainOf(q))));
-            if (!list.length) return false;
-            currentQuizMode = 'task';
-            quizTag = id;
             smartReasons = {};
             currentQuizQuestions = list;
             beginSession();
@@ -3071,9 +3033,10 @@
 
         // ===== Progress overview =====
         // Every bank at once, read from the same answers as the dashboard, so nothing here is stored except
-        // the exam date: a readiness verdict, the combined score, what is left and when it will be done, the
-        // services and concepts you are weakest in (from each question's services tags), and your practice
-        // over time.
+        // the exam date: a readiness verdict, the combined score, what is left and when it will be done, a
+        // summary of the day against your usual one with what is due for review, each section's first
+        // tries with how much it would raise your chance of passing and the services you are weakest in, and
+        // each service's speed against its accuracy beside your time per question.
         const REVIEW_BUFFER_DAYS = 7;       // aim to finish this long before the exam, keeping the last week for review and mock exams
         const TIGHT_SHARE = 0.8;            // a pace within 20% of the one needed is tight, not behind
         const PACE_SHORT_DAYS = 7, PACE_LONG_DAYS = 28;
@@ -3083,8 +3046,6 @@
         const PASS_SHARE = (PASS_SCORE - 100) / 900;   // share right that reaches the pass mark on the score's straight line (69%)
         const TAG_SD = 0.7;                 // how far a tag's level may sit from your overall level, in logits
         const TAG_SEP = ' › ';
-        const HEAT_WEEKS = 13;
-        const HEAT_BINS = [1, 10, 25, 50];  // answers in a day for each heat step: 1-9, 10-24, 25-49, 50+
         const READY = { minAnswered: 50, seenNearly: 0.8, seenReady: 0.9, passNearly: 0.5, passReady: 0.8, staleDays: 7 };
         const DATE_SHORT = { day: 'numeric', month: 'short' };
         const DATE_LONG = { weekday: 'short', day: 'numeric', month: 'short' };
@@ -3135,7 +3096,7 @@
             if (parseRoute().name === 'overview') renderOverview();
         }
 
-        // Local calendar days, so "today" and the heatmap follow the reader's own midnight.
+        // Local calendar days, so "today" follows the reader's own midnight.
         const dayStart = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); };
         const addDays = (ts, n) => { const d = new Date(ts); d.setDate(d.getDate() + n); return d.getTime(); };
         const daysBetween = (from, to) => Math.round((dayStart(to) - dayStart(from)) / DAY_MS);
@@ -3154,15 +3115,11 @@
             const block = (h, w = '100%') => '<div class="ov-skel" style="height:' + h + 'rem;width:' + w + '"></div>';
             document.getElementById('ovVerdict').innerHTML = block(1.25, '60%');
             document.getElementById('ovScore').innerHTML = block(24);
-            document.getElementById('ovTimeline').innerHTML = block(28);
-            document.getElementById('ovDaily').innerHTML = block(16);
-            document.getElementById('ovForest').innerHTML = block(20);
+            document.getElementById('ovProgress').innerHTML = block(32);
+            document.getElementById('ovDaily').innerHTML = block(22);
+            document.getElementById('ovForest').innerHTML = block(24);
             document.getElementById('ovScatter').innerHTML = block(24);
-            document.getElementById('ovBlueprint').innerHTML = block(24);
-            document.getElementById('ovGains').innerHTML = block(26);
-            document.getElementById('ovWeak').innerHTML = block(16);
-            document.getElementById('ovPace').innerHTML = block(9);
-            document.getElementById('ovActivity').innerHTML = block(28);
+            document.getElementById('ovPace').innerHTML = block(20);
         }
 
         async function renderOverview() {
@@ -3181,15 +3138,11 @@
             const tl = overviewTimeline(banks);
             renderVerdict(answered, tl);
             renderOverviewScore(banks, answered);
-            renderTimeline(banks, tl);
+            renderProgress(tl);
             renderDaily(banks, answered, tl);
-            renderForest(banks);
+            renderForest(banks, answered);
             renderScatter(banks);
-            renderBlueprint(banks, answered);
-            renderPassGains(banks, answered);
-            renderWeakAreas(banks, answered);
             renderPace(banks);
-            renderActivity(tl);
             overviewPainted = true;
         }
 
@@ -3440,7 +3393,7 @@
 
         // How far the forecast looks: every question you haven't answered yet, or, with an exam date set, as
         // many new questions as your PACE_LONG_DAYS-day pace fits in before the exam, whichever is fewer. The
-        // pace counts first answers in the last PACE_LONG_DAYS days, the Timeline card's window, so a break
+        // pace counts first answers in the last PACE_LONG_DAYS days, the Progress card's window, so a break
         // or a stretch of retakes only gives a pace of zero: no new questions before the exam.
         function forecastHorizon(banks) {
             let unseen = 0;
@@ -3855,77 +3808,13 @@
             });
         }
 
-        function renderTimeline(banks, tl) {
-            const box = document.getElementById('ovTimeline');
-            const segments = c => [[c.right, '--ov-right'], [c.missed, '--ov-missed'], [c.total - c.right - c.missed, '--ov-unseen']]
-                .filter(([n]) => n > 0).map(([n, v]) => `<span style="flex:${n} 1 0;background:var(${v})"></span>`).join('');
-            const stack = (c, thin) => `<div class="ov-stack${thin ? ' thin' : ''}" role="img" aria-label="${c.right} right, ${c.missed} missed, ${c.total - c.right - c.missed} unseen">${segments(c)}</div>`;
-            const key = (v, text) => `<span class="flex items-center gap-1.5"><span class="ov-key" style="background:var(${v})"></span>${text}</span>`;
-            const bankRows = banks.map(b => {
-                const c = tl.perBank[b.key];
-                return `
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="w-20 shrink-0 text-slate-300 truncate">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
-                        <div class="flex-1 min-w-0">${stack(c, true)}</div>
-                        <span class="w-9 text-right shrink-0 text-slate-400">${Math.round(c.right / c.total * 100)}%</span>
-                    </div>`;
-            }).join('');
-
-            let finish;
-            if (tl.left === 0) {
-                finish = `<p class="text-sm font-semibold text-emerald-400">All ${tl.total} questions done</p>`;
-            } else if (!(tl.paceShort > 0) && !(tl.paceLong > 0)) {
-                finish = '<p class="text-sm text-slate-400">No recent progress to project a finish date from.</p>';
-            } else {
-                const dates = [tl.finishShort, tl.finishLong].filter(Boolean).sort((a, b) => a - b);
-                const last = dates[dates.length - 1];
-                const when = daysBetween(dates[0], last) <= 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + '–' + fmtDate(last);
-                finish = `<p class="text-xs text-slate-400">Finish</p><p class="text-xl font-semibold">≈ ${when}</p>`;
-            }
-            const paceLine = tl.first === null ? '' : `<p class="mt-1 text-xs text-slate-400">Pace: ${perDay(tl.paceShort)} over the last ${PACE_SHORT_DAYS} days · ${perDay(tl.paceLong)} over the last ${PACE_LONG_DAYS}</p>`;
-
-            const STATUS = {
-                on: { label: 'On track', chip: 'bg-emerald-500/10 text-emerald-400' },
-                tight: { label: 'Tight', chip: 'bg-amber-500/10 text-amber-400' },
-                behind: { label: 'Behind', chip: 'bg-rose-500/10 text-rose-400' }
-            };
-            let examLine;
-            if (!tl.exam) examLine = 'Set your exam date to see the daily pace you need.';
-            else if (tl.status === 'done') examLine = 'Every question is done; the time before the exam is for review and mock exams.';
-            else if (tl.status === 'past') examLine = 'That date has passed; set your next exam date.';
-            else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left (${perDay(tl.needed)} to finish them first).`;
-            else {
-                const st = STATUS[tl.status];
-                examLine = `Aim to finish by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam: needs ${perDay(tl.needed)}, your ${PACE_LONG_DAYS}-day pace is ${perDay(tl.paceLong)}
-                    <span class="inline-block ml-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.chip}">${st.label}</span>`;
-            }
-
-            box.innerHTML = `
-                <p class="text-3xl font-semibold tracking-tight">${tl.right}<span class="text-base text-slate-500 font-normal"> / ${tl.total} done</span></p>
-                <div class="mt-3">${stack({ total: tl.total, right: tl.right, missed: tl.missed })}</div>
-                <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
-                    ${key('--ov-right', tl.right + ' right')}${key('--ov-missed', tl.missed + ' missed')}${key('--ov-unseen', tl.unseen + ' unseen')}
-                </div>
-                <div class="mt-4 space-y-2">${bankRows}</div>
-                <div class="ov-rule">${finish}${paceLine}</div>
-                <div class="ov-rule">
-                    <label for="ovExamDate" class="text-xs text-slate-400">Exam date</label>
-                    <div class="flex items-center gap-2 mt-1.5">
-                        <input id="ovExamDate" type="date" value="${tl.exam || ''}" onchange="onExamDateChange(this.value)" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm">
-                        ${tl.exam ? '<button type="button" onclick="onExamDateChange(\'\')" class="text-xs text-slate-400 hover:text-slate-300 transition">Clear</button>' : ''}
-                    </div>
-                    <p class="mt-2 text-xs text-slate-400 leading-relaxed">${examLine}</p>
-                </div>
-                <p class="mt-4 text-[11px] text-slate-500">A question is done when your latest answer to it is right. The finish date uses your net pace, so a question that slips back to wrong counts against it.</p>`;
-        }
-
         function onExamDateChange(value) {
             if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) return;
             setExamDate(value || null);
             renderOverview();
         }
 
-        // From a score card's "Set your exam date": the Timeline card's date field, on the overview, focused.
+        // From a score card's "Set your exam date": the Progress card's date field, on the overview, focused.
         // The overview fills in after the bank files load, so this waits a little for the field to appear.
         function focusExamDate() {
             if (parseRoute().name !== 'overview') go({ name: 'overview' });
@@ -3938,17 +3827,18 @@
             reach();
         }
 
-        // ---- First tries by section ----
+        // ---- Where to focus: sections and weak services ----
         // A forest plot: for each section, the share of its questions right the first time you saw them, and
         // the range that share likely lies in. Each section's estimate is a Beta posterior whose prior is
         // centred on your overall first-try rate and weighs as much as FOREST_PRIOR answers, so a section
         // with three answers leans toward your overall rate instead of swinging to 0% or 100%. The bar runs
         // from the 10th to the 90th percentile, so the true rate is inside it 8 times in 10. The row's colour
         // is the chance the rate is above the pass line: clearly either way at 9 in 10, probably either way
-        // past FOREST_LEAN, a toss-up between. A hollow ring marks the share right on your latest answers.
+        // past FOREST_LEAN, a toss-up between.
         const FOREST_PRIOR = 4;
         const FOREST_LOW = 0.1, FOREST_HIGH = 0.9;
         const FOREST_LEAN = 0.65;
+        const FOCUS_SORT_KEY = 'saa_focus_sort';   // the order of Where to focus's sections, a view preference not synced
 
         // The 10th and 90th percentiles of Beta(a, b), and the chance it is at or above the pass line,
         // from its density summed on a fine grid
@@ -3984,12 +3874,15 @@
             return null;
         }
 
-        function renderForest(banks) {
+        function renderForest(banks, answered) {
             const box = document.getElementById('ovForest');
             const sections = {};
+            const split = {};   // exam domain -> section -> questions, for the pass-chance gains
             let right = 0, seen = 0;
             for (const b of banks) for (const q of b.questions) {
                 const name = q.domain || 'General AWS';
+                const d = split[examDomainOf(q)] || (split[examDomainOf(q)] = {});
+                d[name] = (d[name] || 0) + 1;
                 const sec = sections[name] || (sections[name] = { total: 0, seen: 0, right: 0, now: 0, byBank: {} });
                 const inBank = sec.byBank[b.key] || (sec.byBank[b.key] = { total: 0, unseen: 0, open: 0 });
                 sec.total++; inBank.total++;
@@ -4017,6 +3910,77 @@
                 return { name, sec, mean, lo, hi, above, verdict, settled, more: settled ? null : answersToTell(mean, a + b, sec.total - sec.seen) };
             });
 
+            // Weak services: at least WEAK_MIN_ANSWERED questions answered, and below the pass line both on first
+            // tries and on the estimate, so two unlucky answers alone don't list one. Each goes under the section most of its questions
+            // are in, costliest first: how far it is below the line, times how often the exam asks about it.
+            const lv = tagLevels(banks, answered);
+            const weakIn = {}, weakAll = [];
+
+            // how much a 10-point rise in each section would add to your chance of passing, and its exam share
+            const est = examScore(answered, 'all');
+            const level = {};
+            for (const name of Object.keys(sections)) level[name] = lv && lv.sections[name] !== undefined ? lv.sections[name] : lv ? lv.overall : 0.5;
+            const sim = est.ready && lv ? passGainsOf(est, split, level) : null;
+            const examShare = name => Object.entries(split).reduce((a, [d, o]) => a + (o[name] ? EXAM_DOMAINS[d].w * o[name] / Object.values(o).reduce((x, n) => x + n, 0) : 0), 0);
+            for (const r of rows) {
+                r.gain = sim ? sim.gains[r.name] || 0 : null;
+                r.level = level[r.name];
+                r.share = examShare(r.name);
+            }
+            const step = pc(PASS_GAIN_STEP);
+            const pts = v => (v * 100).toFixed(1);
+            const share = e => e.first / e.answered;
+            const isWeak = t => !!lv.tags[t] && lv.tags[t].answered >= WEAK_MIN_ANSWERED && lv.tags[t].level < PASS_SHARE && share(lv.tags[t]) < PASS_SHARE;
+            const ratedCount = lv ? Object.keys(lv.tags).filter(t => !t.includes(TAG_SEP) && lv.tags[t].answered >= WEAK_MIN_ANSWERED).length : 0;
+            if (lv) {
+                const home = {};   // service -> section -> questions
+                for (const b of banks) for (const q of b.questions) for (const t of tagsOf(q)) {
+                    if (t.includes(TAG_SEP)) continue;
+                    const h = home[t] || (home[t] = {}), name = q.domain || 'General AWS';
+                    h[name] = (h[name] || 0) + 1;
+                }
+                for (const t of Object.keys(lv.tags)) {
+                    if (t.includes(TAG_SEP) || !isWeak(t) || !home[t]) continue;
+                    const section = Object.entries(home[t]).sort((x, y) => y[1] - x[1] || compareDomains(x[0], y[0]))[0][0];
+                    const w = { s: t, section, cost: (PASS_SHARE - lv.tags[t].level) * Math.sqrt(4 * lv.weight[t]) };
+                    (weakIn[section] || (weakIn[section] = [])).push(w);
+                    weakAll.push(w);
+                }
+                for (const list of [weakAll, ...Object.values(weakIn)]) list.sort((x, y) => y.cost - x.cost);
+            }
+            const tagPlay = t => {
+                const p = practiseBank(lv, t);
+                if (!p) return '';
+                const why = p.open ? `the ${plural(p.open, 'question')} still to get right first` : `all ${plural(p.asked, 'question')}`;
+                const label = `Practise ${escapeHtml(t)} in ${BANKS[p.bank].label}`;
+                return `<button type="button" class="ov-practise" data-bank="${p.bank}" data-tag="${escapeHtml(t)}" aria-label="${label}" title="${label}: ${why}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
+            };
+            const service = ({ s: t }) => {
+                const e = lv.tags[t];
+                const pct = Math.round(share(e) * 100), tone = correctTone(pct);
+                const features = Object.keys(lv.tags)
+                    .filter(f => f.startsWith(t + TAG_SEP) && isWeak(f))
+                    .sort((a, b) => lv.tags[a].level - lv.tags[b].level)
+                    .slice(0, WEAK_FEATURES_SHOWN)
+                    .map(f => `
+                            <div class="flex items-center gap-2 text-[11px] mt-1.5 pl-4">
+                                <span class="flex-1 min-w-0 truncate text-slate-400" title="${escapeHtml(f)}">› ${escapeHtml(f.slice(t.length + TAG_SEP.length))}</span>
+                                <span class="shrink-0 ${correctTone(Math.round(share(lv.tags[f]) * 100)).text}">${lv.tags[f].first} of ${lv.tags[f].answered} first time</span>
+                            </div>`).join('');
+                return `
+                    <div class="ov-weak-item">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between text-xs gap-2">
+                                <span class="text-slate-200 font-semibold truncate">${escapeHtml(t)}</span>
+                                <span class="font-semibold shrink-0 ${tone.text}">${e.first} of ${e.answered} first time</span>
+                            </div>
+                            <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full" style="width:${pct}%;background:${tone.fill}"></div></div>
+                            ${features}
+                        </div>
+                        ${tagPlay(t)}
+                    </div>`;
+            };
+
             const LABEL = { weak: 'Clearly below', down: 'Probably below', unsure: 'Toss-up', up: 'Probably above', strong: 'Clearly above', none: 'Not started' };
             // the chance of the side the row leans to, which is the one its label names
             const chance = r => r.verdict === 'none' || r.verdict === 'unsure' ? null : pc(r.above >= 0.5 ? r.above : 1 - r.above);
@@ -4032,11 +3996,9 @@
             const row = r => {
                 const c = chance(r);
                 const label = LABEL[r.verdict] + (c !== null ? ` · ${c}%` : '');
-                const nowShare = r.verdict === 'none' ? 0 : r.sec.now / r.sec.seen;
                 const track = r.verdict === 'none' ? '<div class="fp-track"></div>' : `
-                        <div class="fp-track" role="img" aria-label="First tries: likely ${pc(r.lo)} to ${pc(r.hi)}%, best estimate ${pc(r.mean)}%. Latest answers: ${pc(nowShare)}% right. Pass line ${passPct}%">
+                        <div class="fp-track" role="img" aria-label="First tries: likely ${pc(r.lo)} to ${pc(r.hi)}%, best estimate ${pc(r.mean)}%. Pass line ${passPct}%">
                             <span class="fp-range" style="left:${(r.lo * 100).toFixed(1)}%;width:${((r.hi - r.lo) * 100).toFixed(1)}%"></span>
-                            <span class="fp-ring" style="left:${(nowShare * 100).toFixed(1)}%"></span>
                             <span class="fp-dot" style="left:${(r.mean * 100).toFixed(1)}%"></span>
                         </div>`;
                 const short = r.verdict === 'none' ? `Not started · ${plural(r.sec.total, 'question')}`
@@ -4047,7 +4009,8 @@
                     r.verdict === 'unsure' ? `About as likely above the ${passPct}% pass line as below it (${pc(r.above)}% above).`
                         : `A ${c}% chance it's ${r.above >= 0.5 ? 'above' : 'below'} the ${passPct}% pass line.`,
                     r.settled ? '' : r.more ? `About ${plural(r.more, 'more new question')} here would likely settle it, if you keep answering as you have.`
-                        : 'Too close to the pass line to settle with the questions this section has left.'
+                        : 'Too close to the pass line to settle with the questions this section has left.',
+                    r.gain === null ? '' : `About ${pc(r.share)}% of the exam. If your accuracy here rose ${step} points, from about ${pc(r.level)}% to ${Math.min(100, pc(r.level) + step)}%, your chance of passing would go from ${pc(est.passProb)}% to about ${Math.min(100, Math.round((est.passProb + r.gain) * 100))}%.`
                 ].filter(Boolean);
                 return `
                     <details class="fp-row" data-v="${r.verdict}">
@@ -4057,12 +4020,17 @@
                                 <span class="fp-verdict shrink-0 font-semibold">${label}<i class="fa-solid fa-chevron-down fp-chev" aria-hidden="true"></i></span>
                             </div>
                             ${track}
-                            <p class="text-[10px] text-slate-500 mt-1">${short}</p>
+                            <div class="flex items-baseline justify-between gap-2 mt-1">
+                                <p class="text-[10px] text-slate-500 min-w-0">${short}</p>
+                                ${r.gain === null ? '' : `<span class="fp-gain" title="Points added to your chance of passing if your accuracy here rose ${step} points"><b>+${pts(r.gain)}</b> pass chance</span>`}
+                            </div>
+                            ${weakIn[r.name] ? `<p class="fp-weak">Weak: ${weakIn[r.name].slice(0, 3).map(w => escapeHtml(w.s)).join(' · ')}${weakIn[r.name].length > 3 ? ` +${weakIn[r.name].length - 3}` : ''}</p>` : ''}
                         </summary>
                         <div class="fp-more">
                             <div class="flex-1 min-w-0 space-y-1 text-[11px] text-slate-400 leading-relaxed">${more.map(t => `<p>${t}</p>`).join('')}</div>
                             ${practise(r)}
                         </div>
+                        ${weakIn[r.name] ? `<div class="fp-weak-list">${weakIn[r.name].map(service).join('')}</div>` : ''}
                     </details>`;
             };
 
@@ -4070,36 +4038,65 @@
             const counts = ['weak', 'down', 'unsure', 'up', 'strong', 'none'].map(v => [v, rows.filter(r => r.verdict === v).length]).filter(([, n]) => n);
             const chip = ([v, n]) => `<span class="fp-chip" data-v="${v}"><i aria-hidden="true"></i>${n} ${LABEL[v].toLowerCase()}</span>`;
 
+            const SORTS = { gain: 'Biggest payoff', exam: 'Section order' };
+            let sort = 'gain';
+            try { if (SORTS[localStorage.getItem(FOCUS_SORT_KEY)]) sort = localStorage.getItem(FOCUS_SORT_KEY); } catch (e) {}
+            if (!sim) sort = 'exam';
+            const ordered = () => sort === 'gain' ? [...rows].sort((a, b) => b.gain - a.gain || compareDomains(a.name, b.name)) : rows;
+            const lead = sim ? rows.filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain).slice(0, 2) : [];
+            const name = r => `<span class="text-slate-200 font-semibold">${escapeHtml(r.name)}</span> (+${pts(r.gain)} points)`;
+
             box.innerHTML = `
+                ${sim ? `<p class="text-xs text-slate-400 leading-relaxed" style="margin-bottom:.75rem">Your chance of passing is <b class="${est.tone.text}">${pc(est.passProb)}%</b>. ${lead.length
+                    ? `Raising your accuracy by ${step} points would add the most in ${lead.map(name).join(' and ')}.`
+                    : `It's already about as high as a ${step}-point rise in any one section can make it.`}</p>` : ''}
                 <div class="fp-chips">${counts.map(chip).join('')}</div>
-                <div class="fp-list mt-4" style="--fp-pass:${(PASS_SHARE * 100).toFixed(1)}%">
+                <div class="dy-line mt-3">${weakAll.length
+                    ? `<span>Weakest services:</span>${weakAll.slice(0, WEAK_LIST_SIZE).map(w => { const p = practiseBank(lv, w.s); return p ? `<button type="button" class="dy-review" data-bank="${p.bank}" data-tag="${escapeHtml(w.s)}" title="Practise ${escapeHtml(w.s)} in ${BANKS[p.bank].label}">${escapeHtml(w.s)}<i class="fa-solid fa-play" aria-hidden="true"></i></button>` : `<span>${escapeHtml(w.s)}</span>`; }).join('')}`
+                    : `<span>${ratedCount ? 'No service is clearly below the pass line yet.' : `No service has ${WEAK_MIN_ANSWERED} answered questions yet.`}</span>`}</div>
+                ${sim ? `<div class="fp-sort mt-4" role="group" aria-label="Order the sections">Order:${Object.entries(SORTS).map(([k, label]) => `<button type="button" class="sc-chip" data-sort="${k}" aria-pressed="${k === sort}" style="--sc-c:var(--ov-line)">${label}</button>`).join('')}</div>` : ''}
+                <div class="fp-list mt-3" style="--fp-pass:${(PASS_SHARE * 100).toFixed(1)}%">
                     <div class="fp-axis" aria-hidden="true"><div><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:${(PASS_SHARE * 100).toFixed(1)}%">${passPct}% pass</span><span style="left:100%">100%</span></div></div>
-                    ${rows.map(row).join('')}
+                    <div class="fp-list" id="ovForestRows">${ordered().map(row).join('')}</div>
                 </div>
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <div class="fp-key mt-3" aria-hidden="true">
                         <span><i class="fp-key-dot"></i>First tries, best estimate</span>
                         <span><i class="fp-key-bar"></i>Likely range</span>
-                        <span><i class="fp-key-ring"></i>Latest answers</span>
                         <span><i class="fp-key-pass"></i>${passPct}% pass</span>
                     </div>
                     <ul class="mt-3 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
                         <li>The dot and bar count first tries only: the first time you saw each question, in all four sets. The bar is the range your first-try rate likely lies in, 8 times in 10.</li>
                         <li>The colour is the chance that rate is above the ${passPct}% pass line: clearly above or below at 90%, probably at ${pc(FOREST_LEAN)}%, a toss-up between.</li>
                         <li>While a section has few answers its estimate leans toward your overall rate (${pc(right / seen)}%), so a couple of lucky or unlucky answers don't decide it.</li>
-                        <li>The ring is the share right on your latest answer to each question you've seen, so the gap from the dot is what your reviews have fixed.</li>
                         <li>"More to tell" is about how many new questions in that section would settle it, if you keep answering as you have. Retries don't count, since only first tries do.</li>
                         <li>Tap a section for its numbers. Its Practise button starts a quiz of that section in the set with the most questions you haven't seen.</li>
+                        <li>A service is weak once it has ${WEAK_MIN_ANSWERED} answered questions and is below ${passPct}% both on your first tries and on its estimate (the readiness score's rules, leaning toward your overall level while it has few answers). It's listed under the section most of its questions are in, the costliest first: how far below the line it is, times how often it comes up, with the heavier exam domains counting more.</li>
+                        <li>A service's Practise button starts a quiz of it in the set with the most of its questions still to get right, those first.</li>
+                        ${sim ? `
+                        <li>"+N pass chance" is a sensitivity analysis of the readiness model behind your score. It simulates ${sim.runs.toLocaleString()} sittings of the ${SCORED_QUESTIONS} scored questions as the score card does, and deals each question to a section by that section's share of its exam domain's questions in the four sets.</li>
+                        <li>For each section, the same sittings are replayed with its questions answered ${step} points of accuracy higher than its current level. That level is estimated as the weak services' are, from all your answers with the readiness score's rules. The random draws are shared, so the gain is the share of sittings that fail as you are and pass with that section improved.</li>
+                        <li>Each gain improves one section alone, so the gains don't add up. A section's share of the exam comes from how the four sets spread their questions, so the big sections tend to gain most. Your chance of passing is the score card's figure; these runs found ${pc(sim.base)}% with their own draws.</li>` : ''}
                     </ul>
                 </details>`;
             box.onclick = e => {
-                const b = e.target.closest('.ov-practise');
-                if (b) practiseSection(b.dataset.bank, b.dataset.section);
+                const o = e.target.closest('.fp-sort button');
+                if (o) {
+                    sort = o.dataset.sort;
+                    try { localStorage.setItem(FOCUS_SORT_KEY, sort); } catch (err) {}
+                    for (const c of box.querySelectorAll('.fp-sort button')) c.setAttribute('aria-pressed', String(c.dataset.sort === sort));
+                    document.getElementById('ovForestRows').innerHTML = ordered().map(row).join('');
+                    return;
+                }
+                const b = e.target.closest('.ov-practise, .dy-review');
+                if (!b) return;
+                if (b.dataset.tag) practiseTag(b.dataset.bank, b.dataset.tag);
+                else practiseSection(b.dataset.bank, b.dataset.section);
             };
         }
 
-        // ---- Weak areas ----
+        // ---- Weak services ----
         // A question's tags, plus the service behind each feature tag, so "S3 > Lifecycle rules" also counts toward S3.
         function tagsOf(q) {
             const out = new Set();
@@ -4115,14 +4112,15 @@
         // your overall level, so a tag with two answers stays near that level instead of jumping to 0% or
         // 100%. The overall level includes the tag's own answers too, a small double count next to the
         // prior's width that slightly softens the gaps rather than inventing them.
-        // Each answered tag also counts its questions right on the first try (first), which Weak areas judges
+        // Each answered tag also counts its questions right on the first try (first), which weak services are judged
         // by: a question retaken until it is right would otherwise always count as right.
+        // Each section of the Studio gets a level the same way, which sizes its step in Where to focus.
         // Alongside the levels, for each tag: how many questions carry it (asked), the same count weighted
         // by each question's exam domain (weight, a quarter per question in an average domain), and per
         // bank how many it has and how many are still to get right (byBank), which the Practise buttons use.
         function tagLevels(banks, answered) {
             const now = latestAnswerTime(answered);
-            const all = [], tags = {}, asked = {}, weight = {}, byBank = {};
+            const all = [], tags = {}, asked = {}, weight = {}, byBank = {}, secObs = {};
             for (const b of banks) for (const q of b.questions) {
                 const qTags = tagsOf(q);
                 const log = b.log[q.id];
@@ -4138,6 +4136,8 @@
                 if (!log || !log.length) continue;
                 const obs = answerObservations(q, log, now);
                 all.push(...obs);
+                const sn = q.domain || 'General AWS';
+                (secObs[sn] || (secObs[sn] = [])).push(...obs);
                 const first = !!log[0][0];
                 for (const t of qTags) {
                     const e = tags[t] || (tags[t] = { obs: [], answered: 0, first: 0 });
@@ -4157,7 +4157,9 @@
             const overall = posterior(all, 0, PRIOR_SD);
             const theta = overall.reduce((a, w, g) => a + w * GRID[g], 0);
             for (const e of Object.values(tags)) e.level = levelOf(posterior(e.obs, theta, TAG_SD));
-            return { overall: levelOf(overall), tags, asked, weight, byBank };
+            const sections = {};
+            for (const [name, obs] of Object.entries(secObs)) sections[name] = levelOf(posterior(obs, theta, TAG_SD));
+            return { overall: levelOf(overall), tags, asked, weight, byBank, sections };
         }
 
         // The set a tag's Practise button opens: the one with the most of its questions still to get right,
@@ -4169,7 +4171,7 @@
             return pick ? { bank: pick[0], ...pick[1] } : null;
         }
 
-        // From the Weak areas card: the quiz a mind-map practice link starts (that tag's questions,
+        // From Where to focus: the quiz a mind-map practice link starts (that tag's questions,
         // outstanding first), in this tab. A quiz waiting here is ended first, with the usual confirmation,
         // and the set is switched if it isn't the active one. Back from the first question returns here.
         let practising = false;
@@ -4193,106 +4195,13 @@
         function practiseSection(key, domain) {
             return practiseIn(key, () => startQuizByDomain(domain));
         }
-        // From the exam blueprint map: that task statement's questions in that set, outstanding first
-        function practiseTask(key, id) {
-            return practiseIn(key, () => {
-                if (!startQuizByTask(id)) alertBox('No questions in ' + BANKS[bankKey].label + ' test task ' + id + '.');
-            });
-        }
 
-        function renderWeakAreas(banks, answered) {
-            const box = document.getElementById('ovWeak');
-            const lv = tagLevels(banks, answered);
-            if (!lv) {
-                box.innerHTML = '<p class="text-sm text-slate-400">Answer a few questions to see which services and concepts need work.</p>';
-                return;
-            }
-            const passPct = Math.round(PASS_SHARE * 100);
-            const services = Object.keys(lv.asked).filter(t => !t.includes(TAG_SEP));
-            const answeredFor = t => (lv.tags[t] ? lv.tags[t].answered : 0);
-            const share = e => e.first / e.answered;
-            // Weak means below the pass level both on your first tries and on the estimate, so the counts shown
-            // never contradict the listing and two unlucky answers alone don't list a service. First tries,
-            // because retaking a question until it is right would make every service look done.
-            const isWeak = t => lv.tags[t].level < PASS_SHARE && share(lv.tags[t]) < PASS_SHARE;
-            const rated = services.filter(s => answeredFor(s) >= WEAK_MIN_ANSWERED);
-            // what a service costs you on the exam: its estimated gap below the pass level, times how much
-            // it comes up, with each question weighted by its exam domain (4 x weight is 1 a question in an
-            // average domain), square-rooted so a common service doesn't drown everything else
-            const cost = s => (PASS_SHARE - lv.tags[s].level) * Math.sqrt(4 * lv.weight[s]);
-            const shown = rated.filter(isWeak).sort((a, b) => cost(b) - cost(a)).slice(0, WEAK_LIST_SIZE);
-
-            const practise = t => {
-                const p = practiseBank(lv, t);
-                if (!p) return '';
-                const why = p.open ? `the ${plural(p.open, 'question')} still to get right first` : `all ${plural(p.asked, 'question')}`;
-                const label = `Practise ${escapeHtml(t)} in ${BANKS[p.bank].label}`;
-                return `<button type="button" class="ov-practise" data-bank="${p.bank}" data-tag="${escapeHtml(t)}" aria-label="${label}" title="${label}: ${why}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
-            };
-            const block = s => {
-                const e = lv.tags[s];
-                const pct = Math.round(share(e) * 100), missed = e.answered - e.first;
-                const features = Object.keys(lv.tags)
-                    .filter(t => t.startsWith(s + TAG_SEP) && lv.tags[t].answered >= WEAK_MIN_ANSWERED && isWeak(t))
-                    .sort((a, b) => lv.tags[a].level - lv.tags[b].level)
-                    .slice(0, WEAK_FEATURES_SHOWN)
-                    .map(t => {
-                        const f = lv.tags[t];
-                        return `
-                            <div class="flex items-center gap-2 text-[11px] mt-1.5 pl-4">
-                                <span class="flex-1 min-w-0 truncate text-slate-400" title="${escapeHtml(t)}">› ${escapeHtml(t.slice(s.length + TAG_SEP.length))}</span>
-                                <span class="shrink-0 ${correctTone(Math.round(share(f) * 100)).text}">${f.first} of ${f.answered} first time</span>
-                            </div>`;
-                    }).join('');
-                const tone = correctTone(pct);
-                // one box per service, its play button on the right edge, so the button can only belong to it
-                return `
-                    <div class="ov-weak-item">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between text-xs gap-2">
-                                <span class="text-slate-200 font-semibold truncate">${escapeHtml(s)}</span>
-                                <span class="font-semibold shrink-0 ${tone.text}">${missed} missed first time</span>
-                            </div>
-                            <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full" style="width:${pct}%;background:${tone.fill}"></div></div>
-                            <p class="text-[10px] text-slate-500 mt-1.5">${e.first} of ${e.answered} right first time · in ${plural(lv.asked[s], 'question')}</p>
-                            ${features}
-                        </div>
-                        ${practise(s)}
-                    </div>`;
-            };
-
-            box.innerHTML = `
-                <p class="text-xs text-slate-400">${shown.length > 1
-                    ? `The ${shown.length} services furthest below the ${passPct}% right a pass needs, the one costing you most on the exam first.`
-                    : `Services below the ${passPct}% right a pass needs.`}</p>
-                ${shown.length
-                    ? `<div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">${shown.map(block).join('')}</div>`
-                    : `<p class="mt-4 text-sm text-slate-300">${rated.length
-                        ? `No service is clearly below the pass level yet.`
-                        : `No service has ${WEAK_MIN_ANSWERED} answered questions yet.`}</p>`}
-                <details class="mt-4">
-                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
-                    <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
-                        <li>Every question is tagged with the services and concepts it tests, such as S3 › Lifecycle rules. A feature's answers also count toward its service, and a missed question counts against every service it is tagged with.</li>
-                        <li>The counts are your first try at each question, so getting it right on a retake doesn't hide a gap. ${passPct}% is the share of a 50-question exam that reaches the ${PASS_SCORE} pass mark.</li>
-                        <li>A service can be listed once it has ${WEAK_MIN_ANSWERED} answered questions, when both its share right first time and its estimated level are below ${passPct}%; the ${WEAK_LIST_SIZE} costliest are shown. The estimate uses the same rules as the readiness score (hard questions, recent answers and first attempts count more; a hint makes a question easier) and leans toward your overall level while a service has few answers.</li>
-                        <li>The order is how much each one costs you: how far its estimate is below the pass level, and how often it comes up, with questions from the heavier exam domains counting more.</li>
-                        <li>Practise starts a quiz of that service in the set with the most of its questions still to get right, those first.</li>
-                    </ul>
-                </details>`;
-            box.onclick = e => {
-                const b = e.target.closest('.ov-practise');
-                if (b) practiseTag(b.dataset.bank, b.dataset.tag);
-            };
-        }
-
-        // ---- Answer pace ----
-        // The bottom of the Combined score card. From the seconds kept with each attempt. Medians, so one slow
+        // ---- Time per question ----
+        // Its own card, beside Speed and accuracy. From the seconds kept with each attempt. Medians, so one slow
         // question does not drag the figure; first sightings and repeats are told apart, since a question you
         // have seen before reads faster.
         const PACE_RECENT = 50;          // the headline figures use this many of the latest timed answers
         const PACE_MIN_ANSWERS = 3;      // a section needs this many timed answers to be listed
-        const PACE_SECTIONS_SHOWN = 3;   // the slowest sections listed
         const PACE_SCALE = 180;          // seconds at the end of a section's bar
 
         const median = list => {
@@ -4316,7 +4225,7 @@
             const footnote = `<p class="mt-4 text-[11px] text-slate-500">The exam allows ${formatDuration(SECONDS_PER_QUESTION * 1000)} a question${spare > 0
                 ? `. Answering in ${target} leaves about ${spare} minutes to review flagged questions.` : ', so the target is exam pace.'} Answers from before pace tracking have no time.</p>`;
             if (!timed.length) {
-                box.innerHTML = `<p class="text-xs text-slate-400">Answer pace</p><p class="mt-2 text-sm text-slate-400">Each answer now records how long it took. Answer a few questions to see your pace against the ${target} target.</p>` + footnote;
+                box.innerHTML = `<p class="text-sm text-slate-400">Each answer now records how long it took. Answer a few questions to see your pace against the ${target} target.</p>` + footnote;
                 return;
             }
             timed.sort((a, b) => b.ts - a.ts);
@@ -4334,8 +4243,11 @@
             for (const t of timed) (bySection[t.q.domain || 'General AWS'] = bySection[t.q.domain || 'General AWS'] || []).push(t.seconds);
             const sections = Object.entries(bySection).filter(([, list]) => list.length >= PACE_MIN_ANSWERS)
                 .map(([name, list]) => ({ name, typical: median(list), n: list.length }))
-                .sort((a, b) => b.typical - a.typical)
-                .slice(0, PACE_SECTIONS_SHOWN);
+                .sort((a, b) => b.typical - a.typical);
+            // sections with too few timed answers yet, named in section order
+            const thin = Object.keys(bySection).concat(banks.flatMap(b => b.questions.map(q => q.domain || 'General AWS')))
+                .filter((n, i, all) => all.indexOf(n) === i && (bySection[n] || []).length < PACE_MIN_ANSWERS)
+                .sort(compareDomains);
             const fill = s => s <= TARGET_SECONDS ? 'good' : s <= SECONDS_PER_QUESTION ? 'warn' : 'bad';
             const sectionRows = sections.map(s => `
                     <div>
@@ -4347,8 +4259,7 @@
                     </div>`).join('');
 
             box.innerHTML = `
-                <p class="text-xs text-slate-400">Answer pace</p>
-                <div class="mt-3 grid grid-cols-2 gap-4 items-end">
+                <div class="grid grid-cols-2 gap-4 items-end">
                     <div>
                         <p class="text-xs text-slate-400">Typical time a question</p>
                         <p class="text-4xl font-semibold tracking-tight ${paceTone(typical)}">${fmt(typical)}<span class="text-base text-slate-500 font-normal"> / ${target}</span></p>
@@ -4359,7 +4270,8 @@
                     </div>
                 </div>
                 <p class="mt-2 text-xs text-slate-400">${recent.length < PACE_RECENT ? 'All ' + plural(recent.length, 'timed answer') : 'Your latest ' + PACE_RECENT + ' timed answers'}${split.length ? ' · ' + split.join(' · ') : ''}</p>
-                ${sectionRows ? `<p class="mt-5 text-xs text-slate-400">Slowest ${sections.length > 1 ? sections.length + ' sections' : 'section'}, by typical time. The tick marks ${target}.</p><div class="mt-3 space-y-3">${sectionRows}</div>` : ''}
+                ${sectionRows ? `<p class="mt-5 text-xs text-slate-400">Each section's typical time, slowest first. The tick marks ${target}.</p><div class="mt-3 space-y-3">${sectionRows}</div>` : ''}
+                ${thin.length ? `<p class="mt-3 text-[11px] text-slate-500">Fewer than ${PACE_MIN_ANSWERS} timed answers yet: ${thin.map(escapeHtml).join(', ')}.</p>` : ''}
                 ${footnote}`;
         }
 
@@ -4459,7 +4371,7 @@
                     <button type="button" class="sc-chip" data-section="${escapeHtml(s)}" aria-pressed="${s === scatter.section}" style="--sc-c:${sectionColour(s)}"><i aria-hidden="true"></i>${escapeHtml(s)}</button>`).join('')}
                 </div>
                 <div id="ovScatterPick" class="mt-3"></div>
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in First tries by section. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}. Tap a dot for its numbers, or a section to pick it out.</p>${waitingLine ? `
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in Where to focus. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}. Tap a dot for its numbers, or a section to pick it out.</p>${waitingLine ? `
                 <p class="mt-2 text-[11px] text-slate-500 leading-relaxed">${waitingLine}</p>` : ''}`;
             box.querySelector('.sc-key').onclick = e => {
                 const chip = e.target.closest('.sc-chip');
@@ -4616,193 +4528,14 @@
             select(kept || null);
         }
 
-        // ---- Exam blueprint ----
-        // A scatter of the exam guide's task statements: across, about how much of the exam each one is, up,
-        // its projected accuracy (the readiness model's, as in the score card's task list), with a whisker
-        // for the range it likely lies in. AWS publishes only the four domains' weights, so a task's share is
-        // its domain's weight split by how many of the domain's questions it has across the four sets.
-        let blueprint = null;   // what drawBlueprint() draws: { points, selected }
-
-        const domainColour = id => `var(--dom-${id})`;
-
-        // Questions per task statement and per exam domain across the sets, and per set how many of each task's
-        // are still to get right (the shape practiseBank reads); the blueprint map and the pass-chance chart share it
-        function taskCounts(banks) {
-            const inTask = {}, inDomain = {}, byBank = {};
-            for (const b of banks) for (const q of b.questions) {
-                const id = taskOf(q), d = examDomainOf(q);
-                if (!id || id[0] !== String(d)) continue;
-                inTask[id] = (inTask[id] || 0) + 1;
-                inDomain[d] = (inDomain[d] || 0) + 1;
-                const log = b.log[q.id];
-                const n = (byBank[id] || (byBank[id] = {}))[b.key] || (byBank[id][b.key] = { asked: 0, open: 0 });
-                n.asked++;
-                if (!log || !log.length || !log[log.length - 1][0]) n.open++;
-            }
-            return { inTask, inDomain, byBank };
-        }
-
-        function renderBlueprint(banks, answered) {
-            const box = document.getElementById('ovBlueprint');
-            const est = examScore(answered, 'all');
-            const { inTask, inDomain, byBank } = taskCounts(banks);
-            if (!est.ready) {
-                box.innerHTML = `<p class="text-sm text-slate-400">Answer ${plural(est.min - est.distinct, 'more question')} to see where each task statement of the exam guide stands.</p>`;
-                return;
-            }
-            const points = Object.keys(EXAM_TASKS).filter(id => est.perTask[id].n > 0 && inTask[id]).map(id => {
-                const t = est.perTask[id], d = Number(id[0]);
-                // below the line as shown: on the rounded figures, so a task shown at the pass line's 69% isn't called below it
-                return { id, name: EXAM_TASKS[id], domain: d, weight: EXAM_DOMAINS[d].w * inTask[id] / inDomain[d], level: t.mean, lo: t.lo, hi: t.hi,
-                    below: Math.round(t.mean * 100) < Math.round(PASS_SHARE * 100),
-                    answered: t.questions, total: inTask[id], bank: practiseBank({ byBank }, id) };
-            });
-            const unstarted = Object.keys(EXAM_TASKS).filter(id => inTask[id] && !points.some(p => p.id === id));
-            blueprint = { points, selected: blueprint && points.some(p => p.id === blueprint.selected) ? blueprint.selected : null };
-
-            const pct = v => Math.round(v * 100), passPct = pct(PASS_SHARE);
-            // what each task below the pass line costs: its share of the exam times its gap below the line
-            const atStake = points.filter(p => p.below).sort((a, b) => b.weight * (PASS_SHARE - b.level) - a.weight * (PASS_SHARE - a.level));
-            const above = points.filter(p => !p.below).length;
-            const name = p => `<span class="text-slate-200 font-semibold">${p.id} ${escapeHtml(p.name)}</span> (about ${pct(p.weight)}% of the exam, ${pct(p.level)}%)`;
-            const said = [];
-            if (atStake.length) said.push(`Most marks at stake: ${atStake.slice(0, 2).map(name).join(atStake.length > 1 ? ' and ' : '')}.`);
-            said.push(`${above} of ${plural(points.length, 'task statement')} ${above === 1 ? 'is' : 'are'} at or above the ${passPct}% pass line.`);
-
-            box.innerHTML = `
-                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
-                <div id="ovBlueprintChart" class="ov-chart mt-4"></div>
-                <div class="sc-key mt-3" aria-hidden="true">${Object.entries(EXAM_DOMAINS).map(([id, d]) => `
-                    <span class="sc-chip" style="--sc-c:${domainColour(id)}"><i></i>${id} ${escapeHtml(d.name)} · ${pct(d.w)}%</span>`).join('')}
-                </div>
-                <div id="ovBlueprintPick" class="mt-3"></div>
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a task statement of the official SAA-C03 exam guide, coloured by its domain and sized by how many of its questions you've answered. Up is its projected accuracy, the same figure as the score card's task list: it allows for question difficulty and guessing, and leans toward your level on the rest of its domain while a task has few answers. The whisker is the range it likely lies in, 8 times in 10. Across is an estimate: AWS publishes only each domain's weight, so a task's share is its domain's weight split by how many of the domain's questions it has in the four sets. Tap a dot for its numbers and a Practise button.${unstarted.length ? ` Not answered yet: ${unstarted.join(', ')}.` : ''}</p>`;
-            document.getElementById('ovBlueprintPick').onclick = e => {
-                const b = e.target.closest('.ov-practise');
-                if (b) practiseTask(b.dataset.bank, b.dataset.task);
-            };
-            drawBlueprint();
-        }
-
-        // Drawn to its holder's width; the resize handler calls this again
-        function drawBlueprint() {
-            const holder = document.getElementById('ovBlueprintChart');
-            if (!blueprint || !holder) return;
-            const pts = blueprint.points;
-            if (!pts.length) { holder.innerHTML = ''; return; }
-            const W = Math.max(260, holder.clientWidth), H = W < 500 ? 280 : 300;
-            const m = { top: 20, right: 14, bottom: 34, left: 38 };
-            const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
-            const xHi = Math.ceil((Math.max(...pts.map(p => p.weight)) * 100 + 1) / 2) * 2 / 100;
-            const yLo = Math.max(0, Math.floor((Math.min(...pts.map(p => p.lo), PASS_SHARE) - 0.05) * 10) / 10);
-            const yHi = Math.min(1, Math.ceil((Math.max(...pts.map(p => p.hi), PASS_SHARE) + 0.05) * 10) / 10);
-            const x = w => m.left + w / xHi * iw;
-            const y = v => m.top + ih - (v - yLo) / (yHi - yLo) * ih;
-            const r = p => 4 + Math.min(7, Math.sqrt(p.answered) * 1.2);
-            const parts = [];
-            const yStep = yHi - yLo <= 0.6 ? 0.1 : 0.25;
-            for (let v = Math.ceil(yLo / yStep - 1e-9) * yStep; v <= yHi + 1e-9; v += yStep) {
-                parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
-                parts.push(`<text x="${m.left - 6}" y="${y(v) + 3}" text-anchor="end">${Math.round(v * 100)}%</text>`);
-            }
-            const xStep = xHi <= 0.1 ? 0.02 : W < 500 ? 0.04 : 0.02;
-            for (let w = 0; w <= xHi + 1e-9; w += xStep) {
-                parts.push(`<line x1="${x(w)}" x2="${x(w)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
-                parts.push(`<text x="${x(w)}" y="${m.top + ih + 14}" text-anchor="${w ? 'middle' : 'start'}">${Math.round(w * 100)}%</text>`);
-            }
-            const py = y(PASS_SHARE);
-            parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${py}" y2="${py}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
-            parts.push(`<text x="${W - m.right - 6}" y="${py - 5}" text-anchor="end">${Math.round(PASS_SHARE * 100)}% pass</text>`);
-            parts.push(`<text x="${W - m.right}" y="${H - 4}" text-anchor="end">share of the exam (estimated) →</text>`);
-            parts.push(`<text x="0" y="9">↑ projected accuracy</text>`);
-            // whiskers first, then the dots, biggest first so small ones stay on top
-            for (const p of pts) parts.push(`<line x1="${x(p.weight).toFixed(1)}" x2="${x(p.weight).toFixed(1)}" y1="${y(p.hi).toFixed(1)}" y2="${y(p.lo).toFixed(1)}" stroke="${domainColour(p.domain)}" stroke-width="2" stroke-linecap="round" opacity=".45"/>`);
-            const order = pts.slice().sort((a, b) => b.answered - a.answered);
-            for (const p of order) parts.push(`<circle cx="${x(p.weight).toFixed(1)}" cy="${y(p.level).toFixed(1)}" r="${r(p).toFixed(1)}" fill="${domainColour(p.domain)}" stroke="var(--ov-surface)" stroke-width="1.5"/>`);
-            // each task's number beside its dot, wherever it fits first: right, left, above, below
-            const boxes = [{ x1: W - m.right - 56, x2: W - m.right, y1: py - 15, y2: py - 1 }];
-            const clear = bx => bx.x1 >= m.left && bx.x2 <= W - m.right && bx.y1 >= m.top && bx.y2 <= m.top + ih
-                && !boxes.some(o => bx.x1 < o.x2 && bx.x2 > o.x1 && bx.y1 < o.y2 && bx.y2 > o.y1)
-                && !pts.some(o => { const ox = x(o.weight), oy = y(o.level), rr = r(o); return ox + rr > bx.x1 && ox - rr < bx.x2 && oy + rr > bx.y1 && oy - rr < bx.y2; });
-            for (const p of order) {
-                const cx = x(p.weight), cy = y(p.level), rr = r(p), w = 17;
-                const spots = [[cx + rr + 2, cy + 3.5, 'start'], [cx - rr - 2, cy + 3.5, 'end'], [cx, cy - rr - 3, 'middle'], [cx, cy + rr + 10, 'middle']];
-                for (const [lx, ly, anchor] of spots) {
-                    const x1 = anchor === 'start' ? lx : anchor === 'end' ? lx - w : lx - w / 2;
-                    const bx = { x1, x2: x1 + w, y1: ly - 9, y2: ly + 2 };
-                    if (!clear(bx)) continue;
-                    boxes.push(bx);
-                    parts.push(`<text class="sc-name" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}">${p.id}</text>`);
-                    break;
-                }
-            }
-            parts.push(`<circle class="sc-ring" r="0" fill="none" stroke="var(--ov-ink)" stroke-width="2" visibility="hidden"/>`);
-            const summary = `Projected accuracy against estimated share of the exam for ${plural(pts.length, 'task statement')}; `
-                + `${pts.filter(p => !p.below).length} at or above the ${Math.round(PASS_SHARE * 100)}% pass line. Use the arrow keys to step through them.`;
-            holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
-
-            const svg = holder.querySelector('svg'), ring = svg.querySelector('.sc-ring');
-            const pick = document.getElementById('ovBlueprintPick');
-            const pct = v => Math.round(v * 100);
-            const tipLines = p => [[p.id, p.name], [null, `${pct(p.level)}% projected (likely ${pct(p.lo)}–${pct(p.hi)}%) · about ${pct(p.weight)}% of the exam`]];
-            const select = p => {
-                blueprint.selected = p ? p.id : null;
-                ring.setAttribute('visibility', p ? 'visible' : 'hidden');
-                if (!p) { pick.innerHTML = ''; return; }
-                ring.setAttribute('cx', x(p.weight));
-                ring.setAttribute('cy', y(p.level));
-                ring.setAttribute('r', r(p) + 3);
-                const b = p.bank, below = p.below;
-                const label = b ? `Practise ${p.id} in ${BANKS[b.bank].label}` : '';
-                pick.innerHTML = `
-                    <div class="ov-weak-item">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-baseline justify-between gap-2 text-xs">
-                                <span class="text-slate-200 font-semibold"><i class="sc-swatch" style="--sc-c:${domainColour(p.domain)}" aria-hidden="true"></i>${p.id} ${escapeHtml(p.name)}</span>
-                                <span class="font-semibold shrink-0 ${correctTone(pct(p.level)).text}">${pct(p.level)}%</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 mt-1">Projected ${pct(p.level)}%, likely ${pct(p.lo)}–${pct(p.hi)}% · about ${pct(p.weight)}% of the exam · ${p.answered} of its ${plural(p.total, 'question')} answered${below ? ` · ${pct(PASS_SHARE - p.level)} points below the pass line` : ''}</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Domain ${p.domain}: ${escapeHtml(EXAM_DOMAINS[p.domain].name)}</p>
-                        </div>
-                        ${b ? `<button type="button" class="ov-practise" data-bank="${b.bank}" data-task="${p.id}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.asked, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>` : ''}
-                    </div>`;
-            };
-            const nearest = e => {
-                const rc = svg.getBoundingClientRect(), px = (e.clientX - rc.left) * W / rc.width, py2 = (e.clientY - rc.top) * H / rc.height;
-                let best = null, dist = Infinity;
-                for (const p of pts) {
-                    const d = Math.hypot(x(p.weight) - px, y(p.level) - py2);
-                    if (d < dist && d <= r(p) + 10) { best = p; dist = d; }
-                }
-                return best;
-            };
-            svg.addEventListener('pointermove', e => { const p = nearest(e); if (p) showTip(tipLines(p), e.clientX, e.clientY); else hideTip(); });
-            svg.addEventListener('pointerleave', hideTip);
-            svg.addEventListener('click', e => select(nearest(e)));
-            // the arrow keys step through the tasks in exam guide order
-            const byId = pts.slice().sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
-            svg.addEventListener('keydown', e => {
-                const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[e.key];
-                if (step === undefined) { if (e.key === 'Escape') { hideTip(); select(null); } return; }
-                e.preventDefault();
-                const at = byId.findIndex(p => p.id === blueprint.selected);
-                const p = byId[at < 0 ? (step > 0 ? 0 : byId.length - 1) : (at + step + byId.length) % byId.length];
-                select(p);
-                const rc = svg.getBoundingClientRect();
-                showTip(tipLines(p), rc.left + x(p.weight) * rc.width / W, rc.top + y(p.level) * rc.height / H);
-            });
-            svg.addEventListener('blur', hideTip);
-            select(pts.find(p => p.id === blueprint.selected) || null);
-        }
-
         // ---- What raises your pass chance ----
-        // A sensitivity analysis of the readiness model. The exam sittings are simulated as the score card's
-        // are (shared level, each domain's level given it, the calendar drift, then every scored item), with
-        // each item also dealt to one of its domain's task statements by their estimated shares. For every
-        // task, the same sittings are replayed with that task's items answered at a level PASS_GAIN_STEP of
-        // accuracy higher: the same random draws, so a sitting can only change by that task's items and the
-        // difference is the effect, not noise. A task's gain is the share of sittings that fail as you are and
-        // pass with it improved.
+        // A sensitivity analysis of the readiness model, by section. The exam sittings are simulated as the
+        // score card's are (shared level, each domain's level given it, the calendar drift, then every scored
+        // item), with each item also dealt to a section by that section's share of its exam domain's questions
+        // in the four sets. For every section, the same sittings are replayed with its items answered at a level
+        // PASS_GAIN_STEP of accuracy higher than the section's own: the same random draws, so a sitting can
+        // only change by that section's items and the difference is the effect, not noise. A section's gain is
+        // the share of sittings that fail as you are and pass with it improved.
         const PASS_GAIN_STEP = 0.10;
         const PASS_GAIN_RUNS = 6000;
 
@@ -4813,23 +4546,20 @@
             return (lo + hi) / 2;
         }
 
-        // { gains: { task: share of sittings it turns into a pass }, base: share passing as you are, runs }
-        function passGains(est, counts) {
-            const ids = Object.keys(EXAM_TASKS).filter(id => counts.inTask[id]);
-            // each task's step in ability: from its own level (its domain's while it has no answers) to 10 points more
+        // { gains: { section: share of sittings it turns into a pass }, base: share passing as you are, runs }.
+        // split: per exam domain, how many of its questions each section has; level: each section's accuracy.
+        function passGains(est, split, level) {
+            const ids = [...new Set(Object.values(split).flatMap(o => Object.keys(o)))];
+            // each section's step in ability: from its own level to 10 points more
             const shift = {};
-            for (const id of ids) {
-                const t = est.perTask[id];
-                const now = t && t.n > 0 ? t.mean : projectedAccuracy(est.post[id[0]].theta);
-                shift[id] = abilityFor(Math.min(0.995, now + PASS_GAIN_STEP)) - abilityFor(now);
-            }
-            // a domain's items are dealt to its tasks by their share of its questions
+            for (const id of ids) shift[id] = abilityFor(Math.min(0.995, level[id] + PASS_GAIN_STEP)) - abilityFor(level[id]);
+            // a domain's items are dealt to the sections by their share of its questions
             const deal = {};
             for (const d of Object.keys(EXAM_DOMAINS)) {
-                const own = ids.filter(id => id[0] === d);
-                const total = own.reduce((a, id) => a + counts.inTask[id], 0);
+                const own = Object.entries(split[d] || {});
+                const total = own.reduce((a, [, n]) => a + n, 0);
                 let run = 0;
-                deal[d] = own.map(id => ({ id, upTo: (run += counts.inTask[id] / total) }));
+                deal[d] = own.map(([id, n]) => ({ id, upTo: (run += n / total) }));
             }
             const passK = Array.from({ length: SCORED_QUESTIONS + 1 }, (_, k) => k).find(k => Math.round(100 + 900 * k / SCORED_QUESTIONS) >= PASS_SCORE);
             const fit = est.fit;
@@ -4850,11 +4580,11 @@
                 const extra = {};
                 for (const item of EXAM_ITEMS) {
                     const u = rng(), list = deal[item.dom];
-                    const task = (list.find(t => u <= t.upTo) || list[list.length - 1]).id;
+                    const task = list.length ? (list.find(t => u <= t.upTo) || list[list.length - 1]).id : null;
                     const v = rng(), at = theta[item.dom] + drift;
                     const right = v < itemP(at, item.b, item.c);
                     if (right) k++;
-                    else if (v < itemP(at + shift[task], item.b, item.c)) extra[task] = (extra[task] || 0) + 1;
+                    else if (task !== null && v < itemP(at + shift[task], item.b, item.c)) extra[task] = (extra[task] || 0) + 1;
                 }
                 if (k >= passK) { passes++; continue; }
                 for (const [task, n] of Object.entries(extra)) if (k + n >= passK) flips[task]++;
@@ -4864,115 +4594,22 @@
             return { gains, base: passes / PASS_GAIN_RUNS, runs: PASS_GAIN_RUNS };
         }
 
-        // passGains, worked out once per fit of the model and set of questions
+        // passGains, worked out once per fit of the model, split of questions and section levels
         let passGainsMemo = null;
-        function passGainsOf(est, counts) {
-            const key = Object.values(counts.inTask).join();
-            if (!passGainsMemo || passGainsMemo.fit !== est.fit || passGainsMemo.key !== key) passGainsMemo = { fit: est.fit, key, value: passGains(est, counts) };
+        function passGainsOf(est, split, level) {
+            const key = JSON.stringify([split, level]);
+            if (!passGainsMemo || passGainsMemo.fit !== est.fit || passGainsMemo.key !== key) passGainsMemo = { fit: est.fit, key, value: passGains(est, split, level) };
             return passGainsMemo.value;
-        }
-
-        function renderPassGains(banks, answered) {
-            const box = document.getElementById('ovGains');
-            const est = examScore(answered, 'all');
-            if (!est.ready) {
-                box.innerHTML = `<p class="text-sm text-slate-400">Answer ${plural(est.min - est.distinct, 'more question')} to see where study would raise your chance of passing most.</p>`;
-                return;
-            }
-            const counts = taskCounts(banks);
-            const sim = passGainsOf(est, counts);
-            const pts = v => (v * 100).toFixed(1);
-            const pct = v => Math.round(v * 100);
-            const step = pct(PASS_GAIN_STEP);
-            const rows = Object.entries(sim.gains).map(([id, gain]) => {
-                const t = est.perTask[id], d = Number(id[0]);
-                const level = t && t.n > 0 ? t.mean : null;
-                return { id, gain, d, level, answered: t ? t.questions : 0, total: counts.inTask[id],
-                    weight: EXAM_DOMAINS[d].w * counts.inTask[id] / counts.inDomain[d], bank: practiseBank(counts, id) };
-            }).sort((a, b) => b.gain - a.gain || a.id.localeCompare(b.id, undefined, { numeric: true }));
-            const top = Math.max(...rows.map(r => r.gain), 1e-9);
-            const now = est.passProb;
-            // the simulation's own error on a gain, the largest of them, for the model details
-            const err = Math.max(...rows.map(r => Math.sqrt(r.gain * (1 - r.gain) / sim.runs)));
-
-            const practise = r => {
-                const b = r.bank;
-                if (!b) return '';
-                const label = `Practise ${r.id} in ${BANKS[b.bank].label}`;
-                return `<button type="button" class="ov-practise" data-bank="${b.bank}" data-task="${r.id}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.asked, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
-            };
-            const row = r => {
-                const from = r.level === null ? null : pct(r.level), to = r.level === null ? null : Math.min(100, pct(r.level) + step);
-                const after = Math.min(100, Math.round((now + r.gain) * 100));
-                return `
-                    <details class="fp-row pg-row" style="--pg-c:${domainColour(r.d)}">
-                        <summary>
-                            <div class="flex items-baseline justify-between gap-2 text-xs">
-                                <span class="text-slate-200 font-semibold min-w-0"><span class="font-mono text-slate-400">${r.id}</span> ${escapeHtml(EXAM_TASKS[r.id])}</span>
-                                <span class="pg-value shrink-0 font-semibold">+${pts(r.gain)}<i class="fa-solid fa-chevron-down fp-chev" aria-hidden="true"></i></span>
-                            </div>
-                            <div class="pg-track"><span style="width:${(r.gain / top * 100).toFixed(1)}%"></span></div>
-                        </summary>
-                        <div class="fp-more">
-                            <div class="flex-1 min-w-0 space-y-1 text-[11px] text-slate-400 leading-relaxed">
-                                <p>${from === null ? `If your accuracy on its questions rose ${step} points` : `If your accuracy on its questions rose ${step} points, from about ${from}% to ${to}%`}, your chance of passing would go from ${pct(now)}% to about ${after}%.</p>
-                                <p>About ${pct(r.weight)}% of the exam · ${r.answered} of its ${plural(r.total, 'question')} answered · Domain ${r.d}: ${escapeHtml(EXAM_DOMAINS[r.d].name)}</p>
-                            </div>
-                            ${practise(r)}
-                        </div>
-                    </details>`;
-            };
-            const lead = rows.filter(r => r.gain > 0).slice(0, 2);
-            const name = r => `<span class="text-slate-200 font-semibold">${r.id} ${escapeHtml(EXAM_TASKS[r.id])}</span> (+${pts(r.gain)} points)`;
-            box.innerHTML = `
-                <p class="text-xs text-slate-400 leading-relaxed">Your chance of passing is <b class="${est.tone.text}">${pct(now)}%</b>. ${lead.length
-                    ? `Raising your accuracy by ${step} points would add the most in ${lead.map(name).join(' and ')}.`
-                    : `Your chance is already about as high as a ${step}-point rise in any one task can make it.`}</p>
-                <p class="mt-3 text-[10px] text-slate-500">Points added to your chance of passing if one task's accuracy rose ${step} points</p>
-                <div class="fp-list mt-1">${rows.map(row).join('')}</div>
-                <div class="sc-key mt-3" aria-hidden="true">${Object.entries(EXAM_DOMAINS).map(([id, d]) => `
-                    <span class="sc-chip" style="--sc-c:${domainColour(id)}"><i></i>${id} ${escapeHtml(d.name)}</span>`).join('')}
-                </div>
-                <details class="mt-4">
-                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Model details</summary>
-                    <ul class="mt-3 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
-                        <li>This is a sensitivity analysis of the readiness model behind your score: an item response model (each question's chance of a right answer from your ability, its difficulty and a guessing floor), fitted to every answer you've given across the four sets.</li>
-                        <li>It simulates ${sim.runs.toLocaleString()} sittings of the ${SCORED_QUESTIONS} scored questions, as the score card does: your ability in each domain drawn from what the model believes, with its uncertainty, then each question answered by chance. Each question is also dealt to one of its domain's task statements, by that task's share of the domain's questions in the four sets.</li>
-                        <li>For each task, the same sittings are replayed with that task's questions answered at an ability ${step} points of accuracy higher, measured from the task's projected accuracy (the blueprint map's figure). The random draws are shared, so a sitting can only change through that task's questions, and the bar is the share of sittings that fail as you are and pass with it improved.</li>
-                        <li>Each bar improves one task alone, with everything else as it is, so the bars don't add up: improving two tasks gains less than their sum once you're past the line.</li>
-                        <li>Your chance of passing is the score card's figure; these runs found ${pct(sim.base)}% with their own draws. Each gain is within about ±${pts(Math.max(err, 0.0005))} points of what endless runs would give.</li>
-                        <li>A ${step}-point rise is the same step everywhere, so the order shows where a fixed amount of improvement pays most: how often a task comes up, and how close it puts your sittings to the ${PASS_SCORE} line. It doesn't say how hard that rise is to get.</li>
-                    </ul>
-                </details>`;
-            box.onclick = e => {
-                const b = e.target.closest('.ov-practise');
-                if (b) practiseTask(b.dataset.bank, b.dataset.task);
-            };
         }
 
         // ---- Daily summary ----
         // Today against the end of yesterday; before you've answered anything today, yesterday against the day
         // before. The score and pass chance are the readiness model on the answers given before the day and on
-        // all of them; the rest is counted from the day's answers. A section moves as in First tries by section:
+        // all of them; the rest is counted from the day's answers, with the day's count against your average
+        // over the 7 days before it, the tick on its bar. Below them, what is due for review now. A section moves as in Where to focus:
         // its first-try estimate, which leans toward your overall rate while it has few answers.
         const DAILY_BEST_MIN = 10;   // new questions a day needs before its first-try rate can be a personal best
         const DAILY_MOVERS = 3;      // sections listed as moving most
-
-        // The pass-chance chart's top task, as one suggestion with its Practise button; '' when there is none
-        function nextStepHtml(banks, est) {
-            if (!est.ready) return '';
-            const counts = taskCounts(banks);
-            const gains = passGainsOf(est, counts).gains;
-            const id = Object.keys(gains).sort((a, b) => gains[b] - gains[a])[0];
-            if (!id || !(gains[id] > 0)) return '';
-            const b = practiseBank(counts, id);
-            const label = b ? `Practise ${id} in ${BANKS[b.bank].label}` : '';
-            return `
-                <div class="ov-weak-item mt-3">
-                    <p class="flex-1 min-w-0 text-xs text-slate-400 leading-relaxed">Next: <span class="text-slate-200 font-semibold">${id} ${escapeHtml(EXAM_TASKS[id])}</span> would raise your chance of passing the most (+${(gains[id] * 100).toFixed(1)} points for a 10-point rise).</p>
-                    ${b ? `<button type="button" class="ov-practise" data-bank="${b.bank}" data-task="${id}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.asked, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>` : ''}
-                </div>`;
-        }
 
         function renderDaily(banks, answered, tl) {
             const box = document.getElementById('ovDaily'), whenEl = document.getElementById('ovDailyWhen');
@@ -4986,16 +4623,15 @@
             const day = days[today] ? today : days[yesterday] ? yesterday : null;
             const isToday = day === today;
             const est = examScore(answered, 'all');
+            const rq = reviewQueue(banks);
             box.onclick = e => {
-                const p = e.target.closest('.ov-practise');
-                if (p) { practiseTask(p.dataset.bank, p.dataset.task); return; }
                 const r = e.target.closest('.dy-review');
-                if (r) practiseIn(r.dataset.bank, () => startQuizByIds(r.dataset.ids.split(','), r.dataset.title));
+                if (r) practiseIn(r.dataset.bank, () => startQuizByIds(r.dataset.ids.split(','), DUE_QUIZ_TITLE));
             };
             if (day === null) {
                 whenEl.innerText = '';
                 box.innerHTML = `<p class="text-sm text-slate-400">${tl.first === null ? 'Answer a few questions to start your daily summary.'
-                    : `Nothing answered today or yesterday. You last practised on ${fmtDate(dayStart(tl.latest), DATE_LONG, false)}.`}</p>${nextStepHtml(banks, est)}`;
+                    : `Nothing answered today or yesterday. You last practised on ${fmtDate(dayStart(tl.latest), DATE_LONG, false)}.`}</p>${tl.first === null ? '' : reviewHtml(rq)}`;
                 return;
             }
             whenEl.innerText = (isToday ? 'Today' : 'Yesterday') + ' · ' + fmtDate(day, DATE_LONG, false);
@@ -5017,7 +4653,7 @@
             // per question: seen, put right during the day, missed during the day and still wrong; per section,
             // first tries before the day and by its end
             let seen = 0, total = 0, fixed = 0;
-            const misses = {}, sec = {}, overall = { b: [0, 0], a: [0, 0] };
+            const sec = {}, overall = { b: [0, 0], a: [0, 0] };
             for (const b of banks) for (const q of b.questions) {
                 total++;
                 const log = b.log[q.id];
@@ -5037,7 +4673,6 @@
                 if (last < 0) continue;
                 // put right: the day's last answer is right and the answer before it, whenever it was, wasn't
                 if (log[last][0] && last > 0 && !log[last - 1][0]) fixed++;
-                if (!log[log.length - 1][0] && log.some(e => e[1] >= start && e[1] < end && !e[0])) (misses[b.key] || (misses[b.key] = [])).push(q.id);
             }
             const lean = ([r, n]) => (n ? Math.min(0.95, Math.max(0.05, r / n)) : 0.5);
             const firstTry = ([r, n], o) => (FOREST_PRIOR * o + r) / (FOREST_PRIOR + n);
@@ -5078,35 +4713,167 @@
                     <p class="dy-value">${value}</p>
                     ${lines.filter(Boolean).map(l => `<p class="dy-sub">${l}</p>`).join('')}
                 </div>`;
-            const retries = D.answers - D.firsts;
-            const missCount = Object.values(misses).reduce((a, l) => a + l.length, 0);
-            const title = isToday ? "Today's misses" : "Yesterday's misses";
-            const review = Object.entries(misses).sort((a, b) => b[1].length - a[1].length).map(([key, ids]) => `
-                <button type="button" class="dy-review" data-bank="${key}" data-ids="${ids.join(',')}" data-title="${title}" title="Review the ${plural(ids.length, 'question')} in ${BANKS[key].label}">${BANKS[key].symbol} ${ids.length}<i class="fa-solid fa-play" aria-hidden="true"></i></button>`).join('');
 
             box.innerHTML = `
                 <p class="text-sm text-slate-300 leading-relaxed">${tone}: ${plural(D.answers, 'answer')}${qual}${move}.</p>
+                <div class="flex items-baseline justify-between gap-3 mt-3 text-xs text-slate-400">
+                    <span>Answered ${dayWord}</span>
+                    <span class="shrink-0">${D.firsts} new · ${plural(D.answers - D.firsts, 'review')}</span>
+                </div>
+                <div class="td-bar mt-1.5" role="img" aria-label="${D.answers} ${dayWord} against your usual ${perDay(avg)}">
+                    <span style="width:${(D.answers / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%"></span>
+                    ${avg >= 0.5 ? `<i style="left:${(avg / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%"></i>` : ''}
+                </div>
+                <p class="mt-1.5 text-[11px] text-slate-400">${avg >= 0.5 ? `Your usual: ${perDay(avg)}, the average of the 7 days before${D.answers >= avg ? ' · past your usual' : ''}` : 'No practice in the 7 days before'}</p>
                 <div class="dy-tiles mt-4">
                     ${tile('Score', est.ready ? `${est.score} ${before.ready ? estimateDelta(before.score, est.score) : ''}` : '–',
                         [est.ready ? `Pass chance ${pct(est.passProb)}% ${before.ready ? estimateDelta(pct(before.passProb), pct(est.passProb)) : ''}` : `Needs ${MIN_ANSWERED} answers`])}
-                    ${tile('Answered', D.answers, [`${D.firsts} new · ${retries} ${retries === 1 ? 'retry' : 'retries'}`, `${prevWord} ${P.answers} · avg ${perDay(avg)}`])}
                     ${tile('Right first time', rate(D), [D.firsts ? `${D.right} of ${plural(D.firsts, 'new question')}` : 'No new questions', `${prevWord} ${rate(P)} · week ${sum('firsts') ? pct(sum('right') / sum('firsts')) + '%' : '–'}`])}
                     ${tile('Seen', `${seen}<span class="dy-of"> / ${total}</span>`, [`+${D.firsts} ${dayWord}`, fixed === 1 ? '1 miss put right' : `${fixed} misses put right`])}
+                    ${tile('To review', rq.redo + rq.due, [`${rq.redo} to redo · ${rq.due} due again`, rq.missedToday ? `${rq.missedToday} missed today` : ''])}
                 </div>
                 ${bests.length ? `<div class="dy-badges mt-3">${bests.map(t => `<span class="dy-badge"><i class="fa-solid fa-trophy" aria-hidden="true"></i>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
                 ${movers.length ? `<div class="dy-line mt-3"><span>Sections that moved most:</span>${movers.map(m => `<span class="fp-chip" data-v="${m.d > 0 ? 'strong' : 'weak'}">${escapeHtml(m.name)} ${m.d > 0 ? '▲' : '▼'}${Math.abs(m.d)}</span>`).join('')}</div>` : ''}
                 <p class="dy-line mt-3"><i class="fa-solid fa-fire" aria-hidden="true"></i><span>${plural(streak, 'day')} in a row${pace ? ' · ' + pace : ''}</span></p>
-                ${missCount ? `
-                <div class="ov-weak-item mt-3">
-                    <p class="flex-1 min-w-0 text-xs text-slate-400 leading-relaxed"><span class="text-slate-200 font-semibold">${missCount} missed ${dayWord}</span> and not put right yet. Go over them while they're fresh.</p>
-                    <div class="flex flex-wrap justify-end gap-1.5 shrink-0">${review}</div>
-                </div>` : ''}
-                ${nextStepHtml(banks, est)}
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">${isToday ? 'Today so far, against the end of yesterday' : "Yesterday, as you haven't answered anything today yet"}. Answered counts every answer, new questions and retries; the average is over the 7 days before. Right first time counts only questions you saw for the first time. A miss is put right when your latest answer turns it from wrong to right. Section moves are in points of the first-try estimate from First tries by section.</p>`;
+                ${reviewHtml(rq)}
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">${isToday ? 'Today so far, against the end of yesterday' : "Yesterday, as you haven't answered anything today yet"}. The answer count includes new questions and reviews (questions you'd seen before); the tick on its bar is your average over the 7 days before. Right first time counts only questions you saw for the first time. A miss is put right when your latest answer turns it from wrong to right. Section moves are in points of the first-try estimate from Where to focus.</p>
+                <details class="mt-2">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How reviews are scheduled</summary>
+                    <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>To redo: questions whose latest answer is wrong. Slipped ones are those you'd answered right before, so you've forgotten something you knew.</li>
+                        <li>Due again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
+                        <li>Each set's button starts a quiz of its questions to redo and due: today's misses first, then your other misses, latest first, then the most overdue.</li>
+                    </ul>
+                </details>`;
         }
 
-        // ---- Activity ----
-        // One tooltip for the chart and the heatmap. Values lead; text goes in with textContent.
+        // ---- Progress ----
+        // The long view, beside the score: where every question stands, when your pace finishes them and what
+        // your exam date needs, and questions done over time with where your pace leads.
+        function renderProgress(tl) {
+            const box = document.getElementById('ovProgress');
+            hideTip();
+            const data = tl.first === null ? null : chartData(tl);
+            const lineKey = dashed => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="var(--ov-line)" stroke-width="2" stroke-linecap="round"${dashed ? ' stroke-dasharray="4 4"' : ''}/></svg>`;
+
+            // where every question stands, the finish date at your pace, and the exam date
+            const segments = c => [[c.right, '--ov-right'], [c.missed, '--ov-missed'], [c.total - c.right - c.missed, '--ov-unseen']]
+                .filter(([n]) => n > 0).map(([n, v]) => `<span style="flex:${n} 1 0;background:var(${v})"></span>`).join('');
+            const key = (v, text) => `<span class="flex items-center gap-1.5"><span class="ov-key" style="background:var(${v})"></span>${text}</span>`;
+            let finish;
+            if (tl.left === 0) {
+                finish = `<p class="text-sm font-semibold text-emerald-400">All ${tl.total} questions done</p>`;
+            } else if (!(tl.paceShort > 0) && !(tl.paceLong > 0)) {
+                finish = '<p class="text-sm text-slate-400">No recent progress to project a finish date from.</p>';
+            } else {
+                const dates = [tl.finishShort, tl.finishLong].filter(Boolean).sort((a, b) => a - b);
+                const last = dates[dates.length - 1];
+                const when = daysBetween(dates[0], last) <= 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + '–' + fmtDate(last);
+                finish = `<p class="text-sm text-slate-300">Finish all ${tl.total} <span class="font-semibold text-slate-200">≈ ${when}</span></p>`;
+            }
+            const paceLine = tl.first === null ? '' : `<p class="mt-1 text-xs text-slate-400">Net pace: ${perDay(tl.paceShort)} over the last ${PACE_SHORT_DAYS} days · ${perDay(tl.paceLong)} over the last ${PACE_LONG_DAYS}</p>`;
+            const STATUS = {
+                on: { label: 'On track', chip: 'bg-emerald-500/10 text-emerald-400' },
+                tight: { label: 'Tight', chip: 'bg-amber-500/10 text-amber-400' },
+                behind: { label: 'Behind', chip: 'bg-rose-500/10 text-rose-400' }
+            };
+            let examLine;
+            if (!tl.exam) examLine = 'Set your exam date to see the pace you need.';
+            else if (tl.status === 'done') examLine = 'Every question is done; the time before the exam is for review and mock exams.';
+            else if (tl.status === 'past') examLine = 'That date has passed; set your next exam date.';
+            else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left (${perDay(tl.needed)} to finish them first).`;
+            else {
+                const st = STATUS[tl.status];
+                examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam, needs ${perDay(tl.needed)}; your ${PACE_LONG_DAYS}-day pace is ${perDay(tl.paceLong)}
+                    <span class="inline-block ml-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.chip}">${st.label}</span>`;
+            }
+
+            box.innerHTML = `
+                <div>
+                    <p class="text-3xl font-semibold tracking-tight">${tl.right}<span class="text-base text-slate-500 font-normal"> / ${tl.total} done</span></p>
+                    <div class="ov-stack mt-3" role="img" aria-label="${tl.right} right, ${tl.missed} missed, ${tl.unseen} unseen">${segments({ total: tl.total, right: tl.right, missed: tl.missed })}</div>
+                    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
+                        ${key('--ov-right', tl.right + ' right')}${key('--ov-missed', tl.missed + ' missed')}${key('--ov-unseen', tl.unseen + ' unseen')}
+                    </div>
+                    <div class="mt-3">${finish}${paceLine}</div>
+                </div>
+                <div class="ov-rule">
+                    <label for="ovExamDate" class="text-xs text-slate-400">Exam date</label>
+                    <div class="flex items-center gap-2 mt-1.5">
+                        <input id="ovExamDate" type="date" value="${tl.exam || ''}" onchange="onExamDateChange(this.value)" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm">
+                        ${tl.exam ? '<button type="button" onclick="onExamDateChange(\'\')" class="text-xs text-slate-400 hover:text-slate-300 transition">Clear</button>' : ''}
+                    </div>
+                    <p class="mt-2 text-xs text-slate-400 leading-relaxed">${examLine}</p>
+                </div>
+                ${data ? `
+                <div class="ov-rule">
+                    <p class="text-xs text-slate-400">Questions done over time, and where your pace leads</p>
+                    <div id="ovChart" class="ov-chart mt-3"></div>
+                    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400">
+                        <span class="flex items-center gap-1.5">${lineKey(false)}Done so far</span>
+                        ${data.paces.length ? `<span class="flex items-center gap-1.5">${lineKey(true)}Projected at your ${PACE_SHORT_DAYS}- and ${PACE_LONG_DAYS}-day pace</span>` : ''}
+                    </div>
+                    <details class="mt-2">
+                        <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
+                        <div class="mt-2">${chartTable(tl, data)}</div>
+                    </details>
+                </div>` : ''}
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">A question is done when your latest answer to it is right; the finish date and pace are net, so a question that slips back to wrong counts against them.</p>`;
+            overviewChart = data ? { tl, data } : null;
+            drawProgressChart();
+        }
+
+        // ---- Due for review ----
+        // The Daily summary's review part. Across the four sets, by the Smart quiz's own rule (standingOf): a
+        // question whose latest answer is wrong is to redo, and one you've got right falls due again once
+        // SPACING_DAYS has passed for its run of right answers. Slipped are those to redo that you'd got right
+        // before. Each set's button starts a quiz of its questions to redo and due: today's misses first while
+        // they're fresh, then the rest of the misses, latest first, then the most overdue.
+        const DUE_QUIZ_TITLE = 'Due for review';
+
+        function reviewQueue(banks) {
+            const now = Date.now(), today = dayStart(now);
+            const perBank = {};   // bank -> [{ id, order }]
+            let redo = 0, slipped = 0, missedToday = 0, due = 0;
+            for (const b of banks) for (const q of b.questions) {
+                const log = b.log[q.id];
+                if (!log || !log.length) continue;
+                const st = standingOf(log, now), last = log[log.length - 1];
+                let order = null;
+                if (st.kind === 'missed') {
+                    redo++;
+                    if (log.some(e => e[0])) slipped++;
+                    const fresh = last[1] >= today;
+                    if (fresh) missedToday++;
+                    order = (fresh ? 0 : 1) * 1e13 - last[1];   // today's misses, then the others, latest first
+                } else if (st.kind === 'due') {
+                    due++;
+                    order = 2e13 - st.ratio * 1e6;                // the most overdue first
+                }
+                if (order !== null) (perBank[b.key] || (perBank[b.key] = [])).push({ id: q.id, order });
+            }
+            const ids = {};
+            for (const [key, list] of Object.entries(perBank)) ids[key] = list.sort((a, b) => a.order - b.order).map(x => x.id);
+            return { redo, slipped, missedToday, due, ids };
+        }
+
+        // The review part's heading, line and buttons
+        function reviewHtml(rq) {
+            const total = rq.redo + rq.due;
+            const buttons = Object.keys(BANKS).filter(key => rq.ids[key]).map(key =>
+                `<button type="button" class="dy-review" data-bank="${key}" data-ids="${escapeHtml(rq.ids[key].join(','))}" title="Review ${plural(rq.ids[key].length, 'question')} in ${BANKS[key].label}, misses first">${BANKS[key].symbol} ${BANKS[key].label} · ${rq.ids[key].length}<i class="fa-solid fa-play" aria-hidden="true"></i></button>`).join('');
+            return `
+                <div class="dy-part">
+                    <p class="text-sm font-semibold text-slate-200">Due for review</p>
+                    <p class="mt-1 text-xs text-slate-400 leading-relaxed">${total
+                        ? `${plural(rq.redo, 'question')} to redo${rq.slipped ? ` (${rq.slipped} slipped after being right)` : ''} and ${rq.due} due again${rq.missedToday ? `; the ${rq.missedToday} you missed today come first while they're fresh` : ''}.`
+                        : 'Nothing to review right now: every question you’ve answered is right and not yet due again.'}</p>
+                    ${buttons ? `<div class="flex flex-wrap gap-1.5 mt-3">${buttons}</div>` : ''}
+                </div>`;
+        }
+
+        // ---- Tooltip ----
+        // One tooltip for the overview's charts. Values lead; text goes in with textContent.
         function showTip(lines, clientX, clientY) {
             const tip = document.getElementById('ovTip');
             tip.replaceChildren(...lines.map(([strong, rest]) => {
@@ -5291,106 +5058,12 @@
             return `<table class="ov-table"><thead><tr><th>Day</th><th>Questions done</th></tr></thead><tbody>${rows.join('')}${finish}</tbody></table>`;
         }
 
-        // Answers per day for the last 13 weeks: columns are weeks starting Monday, today in the last one.
-        function heatmapHtml(tl) {
-            const monday = addDays(tl.today, -((new Date(tl.today).getDay() + 6) % 7));
-            const start = addDays(monday, -7 * (HEAT_WEEKS - 1));
-            const cells = [], months = [];
-            let total = 0, active = 0, prevMonth = null;
-            for (let i = 0; i < HEAT_WEEKS * 7; i++) {
-                const day = addDays(start, i);
-                if (i % 7 === 0) {
-                    // a month label over the first week that starts in it
-                    const mo = new Date(day).getMonth();
-                    months.push(mo !== prevMonth ? `<span class="text-[10px] text-slate-500 whitespace-nowrap">${escapeHtml(fmtDate(day, { month: 'short' }))}</span>` : '<span></span>');
-                    prevMonth = mo;
-                }
-                if (day > tl.today) { cells.push('<span class="ov-cell future"></span>'); continue; }
-                const n = tl.daily[day] || 0;
-                total += n;
-                if (n) active++;
-                const level = HEAT_BINS.filter(b => n >= b).length;
-                cells.push(`<span class="ov-cell" data-level="${level}" data-day="${day}" data-n="${n}"></span>`);
-            }
-            const legend = [0, 1, 2, 3, 4].map(l => `<span class="ov-cell" data-level="${l}" style="width:10px"></span>`).join('');
-            const days = Object.keys(tl.daily).map(Number).filter(d => d >= start).sort((a, b) => b - a);
-            const table = days.length
-                ? `<table class="ov-table"><thead><tr><th>Day</th><th>Answers</th></tr></thead><tbody>${days.map(d => `<tr><td>${escapeHtml(fmtDate(d, DATE_LONG))}</td><td>${tl.daily[d]}</td></tr>`).join('')}</tbody></table>`
-                : '<p class="text-xs text-slate-500">No answers in these weeks.</p>';
-            return `
-                <div class="ov-heat-wrap mt-3">
-                    <div class="ov-heat-months" style="display:grid;grid-template-columns:repeat(${HEAT_WEEKS},minmax(0,1fr));gap:3px;max-width:var(--heat-w,18rem)">${months.join('')}</div>
-                    <div id="ovHeat" class="ov-heat mt-1">${cells.join('')}</div>
-                </div>
-                <div class="flex flex-wrap items-center justify-between gap-2 mt-2" style="max-width:var(--heat-w,18rem)">
-                    <span class="flex items-center gap-1 text-[10px] text-slate-500">Less <span class="flex items-center gap-1" aria-hidden="true">${legend}</span> More</span>
-                </div>
-                <p class="mt-2 text-xs text-slate-400">${plural(total, 'answer')} on ${plural(active, 'day')} in the last ${HEAT_WEEKS} weeks</p>
-                <details class="mt-2">
-                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
-                    <div class="mt-2">${table}</div>
-                </details>`;
-        }
-
-        // The whole grid is the hit area: the pointer picks the cell under it, gaps included.
-        function wireHeatmap() {
-            const grid = document.getElementById('ovHeat');
-            if (!grid) return;
-            let hot = null;
-            const clear = () => { if (hot) hot.classList.remove('hot'); hot = null; hideTip(); };
-            grid.addEventListener('pointermove', e => {
-                const r = grid.getBoundingClientRect();
-                const col = Math.floor((e.clientX - r.left) / r.width * HEAT_WEEKS);
-                const row = Math.floor((e.clientY - r.top) / r.height * 7);
-                const cell = grid.children[Math.max(0, Math.min(HEAT_WEEKS - 1, col)) * 7 + Math.max(0, Math.min(6, row))];
-                if (!cell || !cell.dataset.day) { clear(); return; }
-                if (hot !== cell) { if (hot) hot.classList.remove('hot'); hot = cell; cell.classList.add('hot'); }
-                const n = Number(cell.dataset.n);
-                showTip([[n ? String(n) : null, n ? (n === 1 ? 'answer' : 'answers') : 'No answers'], [null, fmtDate(Number(cell.dataset.day), DATE_LONG)]], e.clientX, e.clientY);
-            });
-            grid.addEventListener('pointerleave', clear);
-        }
-
-        function renderActivity(tl) {
-            const box = document.getElementById('ovActivity');
-            hideTip();
-            if (tl.first === null) {
-                overviewChart = null;
-                box.innerHTML = '<p class="text-sm text-slate-400">Your practice shows up here once you answer some questions.</p>';
-                return;
-            }
-            const data = chartData(tl);
-            overviewChart = { tl, data };
-            const lineKey = dashed => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="var(--ov-line)" stroke-width="2" stroke-linecap="round"${dashed ? ' stroke-dasharray="4 4"' : ''}/></svg>`;
-            box.innerHTML = `
-                <div class="ov-split">
-                    <div>
-                        <p class="text-xs text-slate-400">Questions done over time, and where your pace leads.</p>
-                        <div id="ovChart" class="ov-chart mt-3"></div>
-                        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400">
-                            <span class="flex items-center gap-1.5">${lineKey(false)}Done so far</span>
-                            ${data.paces.length ? `<span class="flex items-center gap-1.5">${lineKey(true)}Projected at your ${PACE_SHORT_DAYS}- and ${PACE_LONG_DAYS}-day pace</span>` : ''}
-                        </div>
-                        <details class="mt-2">
-                            <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
-                            <div class="mt-2">${chartTable(tl, data)}</div>
-                        </details>
-                    </div>
-                    <div class="ov-rule">
-                        <p class="text-xs text-slate-400">Answers per day</p>
-                        ${heatmapHtml(tl)}
-                    </div>
-                </div>`;
-            drawProgressChart();
-            wireHeatmap();
-        }
-
         // The charts are drawn to their containers' width, so a resize redraws them.
         let overviewResizeTimer = null;
         window.addEventListener('resize', () => {
             clearTimeout(overviewResizeTimer);
             overviewResizeTimer = setTimeout(() => {
-                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); drawScatter(); drawBlueprint(); }
+                if (!document.getElementById('overviewView').classList.contains('hidden')) { drawProgressChart(); drawScoreChart(scoreChartOf('all')); drawScatter(); }
                 if (!document.getElementById('dashboardView').classList.contains('hidden') && BANKS[bankKey]) drawScoreChart(scoreChartOf(bankKey));
             }, 150);
         });
@@ -5400,11 +5073,16 @@
         // and questions that are due for review (spaced repetition), weighted toward your weakest exam domains.
         const SMART_SIZE = 15;
         const EXAM_SIZE = 65;   // the real SAA-C03 is 65 questions in one sitting
-        const SPACING_DAYS = [2, 4, 8, 16, 32];  // review interval grows with each consecutive correct answer
+        const SPACING_DAYS = [10, 20, 30];      // review interval grows with each consecutive correct answer, then stays at the last
         let smartReasons = {};                   // question id -> why it was picked (shown as a chip in the quiz)
 
+        // Where a question stands, from its answers: new, missed (latest answer wrong), or right and either due
+        // again (SPACING_DAYS for its run of right answers has passed) or not yet, with when it falls due.
+        // The Smart quiz picks by it, and the overview's Due for review card counts by it across the sets.
         function questionStanding(q, now) {
-            const log = attemptLog[q.id];
+            return standingOf(attemptLog[q.id], now);
+        }
+        function standingOf(log, now) {
             if (!log || !log.length) return { kind: 'new', base: 0.55, reason: 'New question' };
             const last = log[log.length - 1];
             const days = Math.max(0, now - last[1]) / DAY_MS;
@@ -5413,7 +5091,7 @@
             for (let i = log.length - 1; i >= 0 && log[i][0]; i--) streak++;
             const interval = SPACING_DAYS[Math.min(streak, SPACING_DAYS.length) - 1];
             const ratio = days / interval;
-            return { kind: ratio >= 1 ? 'due' : 'solid', base: 0.5 * Math.min(1.2, ratio), reason: ratio >= 1 ? 'Due for review' : 'Refresher' };
+            return { kind: ratio >= 1 ? 'due' : 'solid', base: 0.5 * Math.min(1.2, ratio), reason: ratio >= 1 ? 'Due for review' : 'Refresher', ratio, dueAt: last[1] + interval * DAY_MS };
         }
 
         function selectSmartQuestions(size) {
