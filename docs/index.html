@@ -2269,6 +2269,8 @@
         }
 
         function beginSession() {
+            // a new quiz goes back to Practice unless practiseIn() records an overview spot once it has started
+            try { sessionStorage.removeItem(RETURN_KEY); } catch (e) {}
             currentIndex = liveIndex = 0;
             quizFinished = false;
             score = 0;
