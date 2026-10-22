@@ -434,6 +434,9 @@
         #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
         .sc-zone { color: var(--sc-c); }
+        .pg-value { color: var(--ov-ink); font-variant-numeric: tabular-nums; }
+        .pg-track { height: 8px; margin-top: .4rem; border-radius: 9999px; background: var(--ov-grid); overflow: hidden; }
+        .pg-track > span { display: block; height: 100%; border-radius: inherit; background: var(--pg-c); }
         .ov-chart text.sc-zone-label { font-weight: 600; }
         .ov-chart text.sc-name { fill: var(--ov-ink); }
         .ov-chart text.sc-strong { fill: var(--ov-ink); font-weight: 600; }
@@ -838,6 +841,10 @@
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Exam blueprint</h3>
                 <div id="ovBlueprint" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <h3 class="text-lg font-bold">What raises your pass chance</h3>
+                <div id="ovGains" class="mt-4"></div>
             </section>
             <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <h3 class="text-lg font-bold">Weak areas</h3>
@@ -2831,7 +2838,7 @@
             const scores = sittingScores(fit, staleSd);
             const at = f => scores[Math.min(scores.length - 1, Math.floor(f * scores.length))];
             return {
-                ready: true, per, post, perTask, distinct, totalAttempts, effectiveN: N, staleDays,
+                ready: true, per, post, perTask, fit, staleSd, distinct, totalAttempts, effectiveN: N, staleDays,
                 repeatShare: (totalAttempts - distinct) / totalAttempts,
                 score: Math.round(100 + 900 * expectedCorrect / SCORED_QUESTIONS), lo: at(0.1), hi: at(0.9),
                 passProb: scores.filter(s => s >= PASS_SCORE).length / scores.length
@@ -3103,6 +3110,7 @@
             document.getElementById('ovForest').innerHTML = block(20);
             document.getElementById('ovScatter').innerHTML = block(24);
             document.getElementById('ovBlueprint').innerHTML = block(24);
+            document.getElementById('ovGains').innerHTML = block(26);
             document.getElementById('ovWeak').innerHTML = block(16);
             document.getElementById('ovPace').innerHTML = block(9);
             document.getElementById('ovActivity').innerHTML = block(28);
@@ -3128,6 +3136,7 @@
             renderForest(banks);
             renderScatter(banks);
             renderBlueprint(banks, answered);
+            renderPassGains(banks, answered);
             renderWeakAreas(banks, answered);
             renderPace(banks);
             renderActivity(tl);
@@ -4566,10 +4575,9 @@
 
         const domainColour = id => `var(--dom-${id})`;
 
-        function renderBlueprint(banks, answered) {
-            const box = document.getElementById('ovBlueprint');
-            const est = examScore(answered, 'all');
-            // questions per task and per domain across the sets, and per set what is left to get right
+        // Questions per task statement and per exam domain across the sets, and per set how many of each task's
+        // are still to get right (the shape practiseBank reads); the blueprint map and the pass-chance chart share it
+        function taskCounts(banks) {
             const inTask = {}, inDomain = {}, byBank = {};
             for (const b of banks) for (const q of b.questions) {
                 const id = taskOf(q), d = examDomainOf(q);
@@ -4581,6 +4589,13 @@
                 n.asked++;
                 if (!log || !log.length || !log[log.length - 1][0]) n.open++;
             }
+            return { inTask, inDomain, byBank };
+        }
+
+        function renderBlueprint(banks, answered) {
+            const box = document.getElementById('ovBlueprint');
+            const est = examScore(answered, 'all');
+            const { inTask, inDomain, byBank } = taskCounts(banks);
             if (!est.ready) {
                 box.innerHTML = `<p class="text-sm text-slate-400">Answer ${plural(est.min - est.distinct, 'more question')} to see where each task statement of the exam guide stands.</p>`;
                 return;
@@ -4728,6 +4743,153 @@
             });
             svg.addEventListener('blur', hideTip);
             select(pts.find(p => p.id === blueprint.selected) || null);
+        }
+
+        // ---- What raises your pass chance ----
+        // A sensitivity analysis of the readiness model. The exam sittings are simulated as the score card's
+        // are (shared level, each domain's level given it, the calendar drift, then every scored item), with
+        // each item also dealt to one of its domain's task statements by their estimated shares. For every
+        // task, the same sittings are replayed with that task's items answered at a level PASS_GAIN_STEP of
+        // accuracy higher: the same random draws, so a sitting can only change by that task's items and the
+        // difference is the effect, not noise. A task's gain is the share of sittings that fail as you are and
+        // pass with it improved.
+        const PASS_GAIN_STEP = 0.10;
+        const PASS_GAIN_RUNS = 6000;
+
+        // The ability at which the projected accuracy reaches a given share (it rises with ability)
+        function abilityFor(accuracy) {
+            let lo = -8, hi = 8;
+            for (let i = 0; i < 50; i++) { const mid = (lo + hi) / 2; if (projectedAccuracy(mid) < accuracy) lo = mid; else hi = mid; }
+            return (lo + hi) / 2;
+        }
+
+        // { gains: { task: share of sittings it turns into a pass }, base: share passing as you are, runs }
+        function passGains(est, counts) {
+            const ids = Object.keys(EXAM_TASKS).filter(id => counts.inTask[id]);
+            // each task's step in ability: from its own level (its domain's while it has no answers) to 10 points more
+            const shift = {};
+            for (const id of ids) {
+                const t = est.perTask[id];
+                const now = t && t.n > 0 ? t.mean : projectedAccuracy(est.post[id[0]].theta);
+                shift[id] = abilityFor(Math.min(0.995, now + PASS_GAIN_STEP)) - abilityFor(now);
+            }
+            // a domain's items are dealt to its tasks by their share of its questions
+            const deal = {};
+            for (const d of Object.keys(EXAM_DOMAINS)) {
+                const own = ids.filter(id => id[0] === d);
+                const total = own.reduce((a, id) => a + counts.inTask[id], 0);
+                let run = 0;
+                deal[d] = own.map(id => ({ id, upTo: (run += counts.inTask[id] / total) }));
+            }
+            const passK = Array.from({ length: SCORED_QUESTIONS + 1 }, (_, k) => k).find(k => Math.round(100 + 900 * k / SCORED_QUESTIONS) >= PASS_SCORE);
+            const fit = est.fit;
+            const muCdf = cumulative(fit.muPost);
+            const condCdf = fit.cond.map(row => { const out = {}; for (const id of Object.keys(row)) out[id] = cumulative(row[id]); return out; });
+            const rng = mulberry32(0x5AA0C05);
+            const flips = Object.fromEntries(ids.map(id => [id, 0]));
+            let passes = 0;
+            for (let r = 0; r < PASS_GAIN_RUNS; r++) {
+                const m = pickIndex(muCdf, rng() * muCdf[muCdf.length - 1]);
+                const theta = {};
+                for (const d of Object.keys(EXAM_DOMAINS)) {
+                    const cdf = condCdf[m][d];
+                    theta[d] = GRID[pickIndex(cdf, rng() * cdf[cdf.length - 1])] + (rng() - 0.5) * GRID_STEP;
+                }
+                const drift = est.staleSd ? est.staleSd * normalSample(rng) : 0;
+                let k = 0;
+                const extra = {};
+                for (const item of EXAM_ITEMS) {
+                    const u = rng(), list = deal[item.dom];
+                    const task = (list.find(t => u <= t.upTo) || list[list.length - 1]).id;
+                    const v = rng(), at = theta[item.dom] + drift;
+                    const right = v < itemP(at, item.b, item.c);
+                    if (right) k++;
+                    else if (v < itemP(at + shift[task], item.b, item.c)) extra[task] = (extra[task] || 0) + 1;
+                }
+                if (k >= passK) { passes++; continue; }
+                for (const [task, n] of Object.entries(extra)) if (k + n >= passK) flips[task]++;
+            }
+            const gains = {};
+            for (const id of ids) gains[id] = flips[id] / PASS_GAIN_RUNS;
+            return { gains, base: passes / PASS_GAIN_RUNS, runs: PASS_GAIN_RUNS };
+        }
+
+        function renderPassGains(banks, answered) {
+            const box = document.getElementById('ovGains');
+            const est = examScore(answered, 'all');
+            if (!est.ready) {
+                box.innerHTML = `<p class="text-sm text-slate-400">Answer ${plural(est.min - est.distinct, 'more question')} to see where study would raise your chance of passing most.</p>`;
+                return;
+            }
+            const counts = taskCounts(banks);
+            const sim = passGains(est, counts);
+            const pts = v => (v * 100).toFixed(1);
+            const pct = v => Math.round(v * 100);
+            const step = pct(PASS_GAIN_STEP);
+            const rows = Object.entries(sim.gains).map(([id, gain]) => {
+                const t = est.perTask[id], d = Number(id[0]);
+                const level = t && t.n > 0 ? t.mean : null;
+                return { id, gain, d, level, answered: t ? t.questions : 0, total: counts.inTask[id],
+                    weight: EXAM_DOMAINS[d].w * counts.inTask[id] / counts.inDomain[d], bank: practiseBank(counts, id) };
+            }).sort((a, b) => b.gain - a.gain || a.id.localeCompare(b.id, undefined, { numeric: true }));
+            const top = Math.max(...rows.map(r => r.gain), 1e-9);
+            const now = est.passProb;
+            // the simulation's own error on a gain, the largest of them, for the model details
+            const err = Math.max(...rows.map(r => Math.sqrt(r.gain * (1 - r.gain) / sim.runs)));
+
+            const practise = r => {
+                const b = r.bank;
+                if (!b) return '';
+                const label = `Practise ${r.id} in ${BANKS[b.bank].label}`;
+                return `<button type="button" class="ov-practise" data-bank="${b.bank}" data-task="${r.id}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.asked, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
+            };
+            const row = r => {
+                const from = r.level === null ? null : pct(r.level), to = r.level === null ? null : Math.min(100, pct(r.level) + step);
+                const after = Math.min(100, Math.round((now + r.gain) * 100));
+                return `
+                    <details class="fp-row pg-row" style="--pg-c:${domainColour(r.d)}">
+                        <summary>
+                            <div class="flex items-baseline justify-between gap-2 text-xs">
+                                <span class="text-slate-200 font-semibold min-w-0"><span class="font-mono text-slate-400">${r.id}</span> ${escapeHtml(EXAM_TASKS[r.id])}</span>
+                                <span class="pg-value shrink-0 font-semibold">+${pts(r.gain)}<i class="fa-solid fa-chevron-down fp-chev" aria-hidden="true"></i></span>
+                            </div>
+                            <div class="pg-track"><span style="width:${(r.gain / top * 100).toFixed(1)}%"></span></div>
+                        </summary>
+                        <div class="fp-more">
+                            <div class="flex-1 min-w-0 space-y-1 text-[11px] text-slate-400 leading-relaxed">
+                                <p>${from === null ? `If your accuracy on its questions rose ${step} points` : `If your accuracy on its questions rose ${step} points, from about ${from}% to ${to}%`}, your chance of passing would go from ${pct(now)}% to about ${after}%.</p>
+                                <p>About ${pct(r.weight)}% of the exam · ${r.answered} of its ${plural(r.total, 'question')} answered · Domain ${r.d}: ${escapeHtml(EXAM_DOMAINS[r.d].name)}</p>
+                            </div>
+                            ${practise(r)}
+                        </div>
+                    </details>`;
+            };
+            const lead = rows.filter(r => r.gain > 0).slice(0, 2);
+            const name = r => `<span class="text-slate-200 font-semibold">${r.id} ${escapeHtml(EXAM_TASKS[r.id])}</span> (+${pts(r.gain)} points)`;
+            box.innerHTML = `
+                <p class="text-xs text-slate-400 leading-relaxed">Your chance of passing is <b class="${est.tone.text}">${pct(now)}%</b>. ${lead.length
+                    ? `Raising your accuracy by ${step} points would add the most in ${lead.map(name).join(' and ')}.`
+                    : `Your chance is already about as high as a ${step}-point rise in any one task can make it.`}</p>
+                <p class="mt-3 text-[10px] text-slate-500">Points added to your chance of passing if one task's accuracy rose ${step} points</p>
+                <div class="fp-list mt-1">${rows.map(row).join('')}</div>
+                <div class="sc-key mt-3" aria-hidden="true">${Object.entries(EXAM_DOMAINS).map(([id, d]) => `
+                    <span class="sc-chip" style="--sc-c:${domainColour(id)}"><i></i>${id} ${escapeHtml(d.name)}</span>`).join('')}
+                </div>
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Model details</summary>
+                    <ul class="mt-3 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>This is a sensitivity analysis of the readiness model behind your score: an item response model (each question's chance of a right answer from your ability, its difficulty and a guessing floor), fitted to every answer you've given across the four sets.</li>
+                        <li>It simulates ${sim.runs.toLocaleString()} sittings of the ${SCORED_QUESTIONS} scored questions, as the score card does: your ability in each domain drawn from what the model believes, with its uncertainty, then each question answered by chance. Each question is also dealt to one of its domain's task statements, by that task's share of the domain's questions in the four sets.</li>
+                        <li>For each task, the same sittings are replayed with that task's questions answered at an ability ${step} points of accuracy higher, measured from the task's projected accuracy (the blueprint map's figure). The random draws are shared, so a sitting can only change through that task's questions, and the bar is the share of sittings that fail as you are and pass with it improved.</li>
+                        <li>Each bar improves one task alone, with everything else as it is, so the bars don't add up: improving two tasks gains less than their sum once you're past the line.</li>
+                        <li>Your chance of passing is the score card's figure; these runs found ${pct(sim.base)}% with their own draws. Each gain is within about ±${pts(Math.max(err, 0.0005))} points of what endless runs would give.</li>
+                        <li>A ${step}-point rise is the same step everywhere, so the order shows where a fixed amount of improvement pays most: how often a task comes up, and how close it puts your sittings to the ${PASS_SCORE} line. It doesn't say how hard that rise is to get.</li>
+                    </ul>
+                </details>`;
+            box.onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (b) practiseTask(b.dataset.bank, b.dataset.task);
+            };
         }
 
         // ---- Activity ----
