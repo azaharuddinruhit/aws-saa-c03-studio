@@ -393,8 +393,8 @@
         .fp-row > summary:focus-visible { outline: 2px solid var(--ov-line); outline-offset: -2px; }
         .fp-chev { font-size: 8px; margin-left: .375rem; color: var(--ov-muted); vertical-align: 1px; transition: transform .15s; }
         .fp-row[open] .fp-chev { transform: rotate(180deg); }
-        .fp-more { display: flex; align-items: center; gap: .875rem; margin: .375rem .625rem .5rem; padding: .625rem .75rem; border: 1px solid var(--ov-grid); border-radius: .75rem; }
-        .fp-chips { display: flex; flex-wrap: wrap; gap: .375rem; }
+        .fp-note { margin: .25rem .625rem .5rem; font-size: 11px; line-height: 1.5; color: var(--ov-muted); }
+        .fp-row .ov-practise { width: 1.75rem; height: 1.75rem; font-size: 10px; }
         .fp-chip { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; font-size: 11px; font-weight: 600;
             color: var(--fp-c); background: color-mix(in srgb, var(--fp-c) 12%, transparent); }
         .fp-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--fp-c); flex: none; }
@@ -413,25 +413,25 @@
         .fp-key-pass { height: 12px; border-left: 1.5px dashed var(--ov-muted); }
         #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
+        .dy-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
         .dy-tile { min-width: 0; padding: .75rem .875rem; border: 1px solid var(--ov-grid); border-radius: .875rem; }
         .dy-label { font-size: 11px; color: var(--ov-muted); }
         .dy-value { margin-top: .125rem; font-size: 1.5rem; line-height: 1.25; font-weight: 600; color: var(--ov-ink); font-variant-numeric: tabular-nums; }
-        .dy-of { font-size: .875rem; font-weight: 400; color: var(--ov-muted); }
+        .dy-of { margin-left: .125rem; font-size: .875rem; font-weight: 400; color: var(--ov-muted); }
         .dy-sub { margin-top: .125rem; font-size: 11px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
         .dy-badges { display: flex; flex-wrap: wrap; gap: .375rem; }
         .dy-badge { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; font-size: 11px; font-weight: 600; color: var(--ov-line); background: var(--ov-wash); }
-        .dy-line { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; font-size: 12px; color: var(--ov-muted); }
+        .dy-icon { margin-right: .375rem; }
         .dy-review { display: inline-flex; align-items: center; gap: .375rem; padding: .3rem .7rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
             color: var(--ov-line); font-size: 12px; font-weight: 600; transition: background-color .15s, border-color .15s; }
         .dy-review i { font-size: 9px; }
         .dy-review:hover { background: var(--ov-wash); border-color: var(--ov-line); }
         .dy-review:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        .dy-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
-        @media (min-width: 768px) { .dy-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
         .dy-part { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--ov-grid); }
+        .sc-figure { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .375rem; }
+        .sc-figure.end { justify-content: flex-end; }
         .fp-gain { flex: none; font-size: 10px; font-weight: 600; color: var(--ov-ink); font-variant-numeric: tabular-nums; }
         .fp-gain b { color: var(--ov-line); font-weight: 600; }
-        .fp-sort { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; font-size: 11px; color: var(--ov-muted); }
         .sc-zone { color: var(--sc-c); }
         .ov-chart text.sc-zone-label { font-weight: 600; }
         .ov-chart text.sc-name { fill: var(--ov-ink); }
@@ -442,6 +442,13 @@
         .td-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--ov-line); }
         .td-bar > i { position: absolute; top: -4px; bottom: -4px; margin-left: -1px; border-left: 2px solid var(--ov-ink); border-radius: 1px; }
         .fp-weak { margin-top: .25rem; font-size: 10px; color: var(--ov-missed); }
+        .ws-row .ws-scroll { flex-wrap: nowrap; }
+        .ws-scroll { display: flex; gap: .375rem; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding: 3px; margin: -3px; }
+        .ws-scroll::-webkit-scrollbar { display: none; }
+        .ws-scroll > * { flex: none; white-space: nowrap; }
+        .ws-row[data-more="right"] .ws-scroll { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); }
+        .ws-row[data-more="left"] .ws-scroll { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent); }
+        .ws-row[data-more="left right"] .ws-scroll { -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent); }
         .fp-weak-list { display: grid; gap: .375rem; margin: 0 .625rem .5rem; }
         .sc-key { display: flex; flex-wrap: wrap; gap: .375rem; }
         .sc-chip { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
@@ -1366,9 +1373,12 @@
                 syncMenuLabel();
                 return;
             }
-            // connecting may replace the active bank, which is only safe while no quiz holds it
-            if (parseRoute().name !== 'dashboard') {
-                alertBox('Connect sync from the dashboard, not during a quiz.');
+            // connecting may replace the active bank, which is only safe while no quiz holds it: one running,
+            // or one waiting in this tab for Resume quiz
+            if (quizHoldsActiveBank()) {
+                alertBox(parseRoute().name === 'quiz'
+                    ? 'Finish or leave this quiz first, then turn on sync from the menu.'
+                    : 'A quiz is waiting in this tab. End it with its back arrow or by opening Practice, then turn on sync.');
                 return;
             }
             const token = (prompt('Paste a GitHub token with the "gist" scope. It is stored only in this browser.') || '').trim();
@@ -2882,6 +2892,19 @@
             return ids.length ? ids.reduce((a, b) => (levels[a] <= levels[b] ? a : b)) : null;
         }
 
+        // The change since the end of yesterday beside a score card's figures: the same estimate on the answers
+        // given before today, in points for the score and for the pass chance. Empty when it hasn't moved or
+        // there was no estimate before today. Each card keeps its "before" under its own scope.
+        function changeSinceYesterday(answered, scope, now) {
+            const midnight = new Date();
+            midnight.setHours(0, 0, 0, 0);
+            const before = estimateExamScore(answered.map(({ q, log }) => ({ q, log: log.filter(e => e[1] < midnight.getTime()) })).filter(x => x.log.length), scope + ':yesterday');
+            if (!before.ready) return { score: '', pass: '', before: null };
+            const tag = (d, what) => d ? `<span class="text-sm font-semibold whitespace-nowrap ${d > 0 ? 'text-emerald-400' : 'text-rose-400'}" title="${d > 0 ? 'Up' : 'Down'} ${Math.abs(d)} ${what} since the end of yesterday">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>` : '';
+            const d = now.score - before.score, pc = Math.round(now.passProb * 100) - Math.round(before.passProb * 100);
+            return { score: tag(d, d === 1 || d === -1 ? 'point' : 'points'), pass: tag(pc, 'percentage points'), before: before.score };
+        }
+
         // "▲8" / "▼3"; empty when the score has not moved
         function estimateDelta(from, to) {
             const d = to - from;
@@ -2963,8 +2986,10 @@
 
             const pp = Math.round(est.passProb * 100);
             const tone = estimateTone(est.passProb);
+            const change = changeSinceYesterday(activeAnswered(), bankKey, est);
             document.getElementById('estimateSummary').innerHTML =
-                '<span class="font-semibold ' + tone.text + '">' + est.score + '</span> <span class="text-slate-500">·</span> ' + pp + '% pass';
+                '<span class="font-semibold ' + tone.text + '">' + est.score + '</span>' + (change.before === null ? '' : ' ' + estimateDelta(change.before, est.score))
+                + ' <span class="text-slate-500">·</span> ' + pp + '% pass';
             applyEstimateState();
             const confidence = est.effectiveN < 15 ? 'Low' : est.effectiveN < 40 ? 'Medium' : 'High';
             // this set's score over time and its forecast, worked out only while the card is open
@@ -3009,12 +3034,12 @@
                 <div class="grid grid-cols-2 gap-4 items-end">
                     <div>
                         <p class="text-xs text-slate-400">Readiness score</p>
-                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${est.score}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="sc-figure"><span class="text-4xl sm:text-5xl font-semibold tracking-tight">${est.score}</span>${change.score}</p>
                         <p class="text-xs text-slate-400 mt-1" title="Where 80% of simulated sittings land, including luck on the day">80% range ${est.lo}\u2013${est.hi}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-xs text-slate-400" title="AWS's published pass mark is 720. How correct answers convert to the scaled score is not published; this model assumes a straight line, so 720 needs 35 of 50 correct.">Chance of reaching ${PASS_SCORE}</p>
-                        <p class="text-3xl sm:text-4xl font-semibold ${tone.text}">${pp}%</p>
+                        <p class="sc-figure end"><span class="text-3xl sm:text-4xl font-semibold ${tone.text}">${pp}%</span>${change.pass}</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
                     </div>
                 </div>
@@ -3041,7 +3066,6 @@
         const TIGHT_SHARE = 0.8;            // a pace within 20% of the one needed is tight, not behind
         const PACE_SHORT_DAYS = 7, PACE_LONG_DAYS = 28;
         const WEAK_MIN_ANSWERED = 3;        // a tag needs this many answered questions before it can be called weak
-        const WEAK_LIST_SIZE = 4;
         const WEAK_FEATURES_SHOWN = 3;      // weakest features listed under each service
         const PASS_SHARE = (PASS_SCORE - 100) / 900;   // share right that reaches the pass mark on the score's straight line (69%)
         const TAG_SD = 0.7;                 // how far a tag's level may sit from your overall level, in logits
@@ -3139,7 +3163,7 @@
             renderVerdict(answered, tl);
             renderOverviewScore(banks, answered);
             renderProgress(tl);
-            renderDaily(banks, answered, tl);
+            renderDaily(banks, tl);
             renderForest(banks, answered);
             renderScatter(banks);
             renderPace(banks);
@@ -3152,7 +3176,7 @@
             const now = Date.now(), today = dayStart(now);
             const steps = [];      // [time, +1 | -1]: a question became done, or its latest answer turned wrong
             const perBank = {};
-            const daily = {};      // day start -> answers given that day
+            const days = {};       // day start -> { answers, firsts, right }: every answer, new questions, and those right first time
             let first = null, latest = 0;
             for (const b of banks) {
                 const c = perBank[b.key] = { total: b.questions.length, right: 0, missed: 0 };
@@ -3160,13 +3184,14 @@
                     const log = b.log[q.id];
                     if (!log || !log.length) continue;
                     let done = false;
-                    for (const [right, ts] of log) {
+                    log.forEach(([right, ts], i) => {
                         if (!!right !== done) { steps.push([ts, right ? 1 : -1]); done = !!right; }
                         first = first === null ? ts : Math.min(first, ts);
                         latest = Math.max(latest, ts);
-                        const day = dayStart(ts);
-                        daily[day] = (daily[day] || 0) + 1;
-                    }
+                        const d = days[dayStart(ts)] || (days[dayStart(ts)] = { answers: 0, firsts: 0, right: 0 });
+                        d.answers++;
+                        if (!i) { d.firsts++; if (right) d.right++; }
+                    });
                     if (done) c.right++; else c.missed++;
                 }
             }
@@ -3199,7 +3224,7 @@
                 }
             }
             return {
-                now, today, total, right, missed, unseen: total - right - missed, left, perBank, daily, first, latest, doneAt,
+                now, today, total, right, missed, unseen: total - right - missed, left, days, first, latest, doneAt,
                 paceShort, paceLong, finishShort: finishAt(paceShort), finishLong: finishAt(paceLong),
                 exam, examAt, target, daysToExam, daysToTarget, status, needed
             };
@@ -3273,16 +3298,17 @@
                         <div class="h-1.5 rounded-full bg-slate-800 mt-1.5"><div class="h-1.5 rounded-full bg-aws-orange" style="width:${pct || 0}%"></div></div>
                     </div>`;
             }).join('');
+            const change = changeSinceYesterday(answered, 'all', s);
             box.innerHTML = `
                 <div class="grid grid-cols-2 gap-4 items-end">
                     <div>
                         <p class="text-xs text-slate-400">Readiness score</p>
-                        <p class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.shown}<span class="text-base text-slate-500 font-normal"> / 1000</span></p>
+                        <p class="sc-figure"><span class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.shown}</span>${change.score}</p>
                         <p class="text-xs text-slate-400 mt-1">80% range ${Math.round(s.lo)}–${Math.round(s.hi)}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-xs text-slate-400">Chance of reaching ${PASS_SCORE}</p>
-                        <p class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${Math.round(s.passProb * 100)}%</p>
+                        <p class="sc-figure end"><span class="text-3xl sm:text-4xl font-semibold ${s.tone.text}">${Math.round(s.passProb * 100)}%</span>${change.pass}</p>
                         <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${s.tone.chip}">${s.tone.label}</span>
                     </div>
                 </div>
@@ -3838,7 +3864,6 @@
         const FOREST_PRIOR = 4;
         const FOREST_LOW = 0.1, FOREST_HIGH = 0.9;
         const FOREST_LEAN = 0.65;
-        const FOCUS_SORT_KEY = 'saa_focus_sort';   // the order of Where to focus's sections, a view preference not synced
 
         // The 10th and 90th percentiles of Beta(a, b), and the chance it is at or above the pass line,
         // from its density summed on a fine grid
@@ -3883,14 +3908,14 @@
                 const name = q.domain || 'General AWS';
                 const d = split[examDomainOf(q)] || (split[examDomainOf(q)] = {});
                 d[name] = (d[name] || 0) + 1;
-                const sec = sections[name] || (sections[name] = { total: 0, seen: 0, right: 0, now: 0, byBank: {} });
+                const sec = sections[name] || (sections[name] = { total: 0, seen: 0, right: 0, byBank: {} });
                 const inBank = sec.byBank[b.key] || (sec.byBank[b.key] = { total: 0, unseen: 0, open: 0 });
                 sec.total++; inBank.total++;
                 const log = b.log[q.id];
                 if (!log || !log.length) { inBank.unseen++; continue; }
                 sec.seen++; seen++;
                 if (log[0][0]) { sec.right++; right++; }
-                if (log[log.length - 1][0]) sec.now++; else inBank.open++;
+                if (!log[log.length - 1][0]) inBank.open++;
             }
             if (!seen) {
                 box.innerHTML = '<p class="text-sm text-slate-400">Answer a few questions to see where you stand in each section.</p>';
@@ -3992,7 +4017,8 @@
                 const label = `Practise ${escapeHtml(r.name)} in ${BANKS[p.bank].label}`;
                 return `<button type="button" class="ov-practise" data-bank="${p.bank}" data-section="${escapeHtml(r.name)}" aria-label="${label}" title="${label}: ${why}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
             };
-            // a row shows its name, verdict, bar and a short line; tapping it opens the rest and its Practise button
+            // a row shows its name, verdict, Practise button, bar and a short line; tapping it opens one more line
+            // and its weak services
             const row = r => {
                 const c = chance(r);
                 const label = LABEL[r.verdict] + (c !== null ? ` · ${c}%` : '');
@@ -4002,22 +4028,21 @@
                             <span class="fp-dot" style="left:${(r.mean * 100).toFixed(1)}%"></span>
                         </div>`;
                 const short = r.verdict === 'none' ? `Not started · ${plural(r.sec.total, 'question')}`
-                    : `${r.sec.right}/${r.sec.seen} first try · ${r.sec.now} now` + (r.more ? ` · ${r.more} more to tell` : '');
-                const more = r.verdict === 'none' ? [`None of its ${plural(r.sec.total, 'question')} answered yet.`] : [
-                    `${r.sec.right} of ${r.sec.seen} right the first time you saw them, ${r.sec.now} right on your latest answer.`,
-                    `Your first-try rate here is likely ${pc(r.lo)}–${pc(r.hi)}% (8 times in 10), best estimate ${pc(r.mean)}%, with ${r.sec.seen} of ${r.sec.total} questions seen.`,
-                    r.verdict === 'unsure' ? `About as likely above the ${passPct}% pass line as below it (${pc(r.above)}% above).`
-                        : `A ${c}% chance it's ${r.above >= 0.5 ? 'above' : 'below'} the ${passPct}% pass line.`,
-                    r.settled ? '' : r.more ? `About ${plural(r.more, 'more new question')} here would likely settle it, if you keep answering as you have.`
-                        : 'Too close to the pass line to settle with the questions this section has left.',
-                    r.gain === null ? '' : `About ${pc(r.share)}% of the exam. If your accuracy here rose ${step} points, from about ${pc(r.level)}% to ${Math.min(100, pc(r.level) + step)}%, your chance of passing would go from ${pc(est.passProb)}% to about ${Math.min(100, Math.round((est.passProb + r.gain) * 100))}%.`
+                    : `${r.sec.right}/${r.sec.seen} first try` + (r.more ? ` · ${r.more} more to tell` : '');
+                const more = r.verdict === 'none' ? [`None of its ${plural(r.sec.total, 'question')} answered yet`] : [
+                    `${r.sec.seen} of ${r.sec.total} questions seen`,
+                    r.settled ? '' : r.more ? `about ${plural(r.more, 'more new question')} would settle the verdict`
+                        : 'too close to the pass line to settle with what this section has left'
                 ].filter(Boolean);
                 return `
                     <details class="fp-row" data-v="${r.verdict}">
                         <summary>
-                            <div class="flex items-baseline justify-between gap-2 text-xs">
+                            <div class="flex items-center justify-between gap-2 text-xs">
                                 <span class="text-slate-200 font-semibold">${escapeHtml(r.name)}</span>
-                                <span class="fp-verdict shrink-0 font-semibold">${label}<i class="fa-solid fa-chevron-down fp-chev" aria-hidden="true"></i></span>
+                                <span class="flex items-center gap-2 shrink-0">
+                                    <span class="fp-verdict font-semibold">${label}<i class="fa-solid fa-chevron-down fp-chev" aria-hidden="true"></i></span>
+                                    ${practise(r)}
+                                </span>
                             </div>
                             ${track}
                             <div class="flex items-baseline justify-between gap-2 mt-1">
@@ -4026,38 +4051,29 @@
                             </div>
                             ${weakIn[r.name] ? `<p class="fp-weak">Weak: ${weakIn[r.name].slice(0, 3).map(w => escapeHtml(w.s)).join(' · ')}${weakIn[r.name].length > 3 ? ` +${weakIn[r.name].length - 3}` : ''}</p>` : ''}
                         </summary>
-                        <div class="fp-more">
-                            <div class="flex-1 min-w-0 space-y-1 text-[11px] text-slate-400 leading-relaxed">${more.map(t => `<p>${t}</p>`).join('')}</div>
-                            ${practise(r)}
-                        </div>
+                        <p class="fp-note">${more.join(' · ')}</p>
                         ${weakIn[r.name] ? `<div class="fp-weak-list">${weakIn[r.name].map(service).join('')}</div>` : ''}
                     </details>`;
             };
 
-            // the verdicts counted, in coloured chips, worst first
-            const counts = ['weak', 'down', 'unsure', 'up', 'strong', 'none'].map(v => [v, rows.filter(r => r.verdict === v).length]).filter(([, n]) => n);
-            const chip = ([v, n]) => `<span class="fp-chip" data-v="${v}"><i aria-hidden="true"></i>${n} ${LABEL[v].toLowerCase()}</span>`;
-
-            const SORTS = { gain: 'Biggest payoff', exam: 'Section order' };
-            let sort = 'gain';
-            try { if (SORTS[localStorage.getItem(FOCUS_SORT_KEY)]) sort = localStorage.getItem(FOCUS_SORT_KEY); } catch (e) {}
-            if (!sim) sort = 'exam';
-            const ordered = () => sort === 'gain' ? [...rows].sort((a, b) => b.gain - a.gain || compareDomains(a.name, b.name)) : rows;
+            // biggest payoff first; until the score is ready there are no gains, so the usual section order
+            const ordered = sim ? [...rows].sort((a, b) => b.gain - a.gain || compareDomains(a.name, b.name)) : rows;
             const lead = sim ? rows.filter(r => r.gain > 0).sort((a, b) => b.gain - a.gain).slice(0, 2) : [];
             const name = r => `<span class="text-slate-200 font-semibold">${escapeHtml(r.name)}</span> (+${pts(r.gain)} points)`;
 
             box.innerHTML = `
-                ${sim ? `<p class="text-xs text-slate-400 leading-relaxed" style="margin-bottom:.75rem">Your chance of passing is <b class="${est.tone.text}">${pc(est.passProb)}%</b>. ${lead.length
+                ${sim ? `<p class="text-xs text-slate-400 leading-relaxed">Your chance of passing is <b class="${est.tone.text}">${pc(est.passProb)}%</b>. ${lead.length
                     ? `Raising your accuracy by ${step} points would add the most in ${lead.map(name).join(' and ')}.`
                     : `It's already about as high as a ${step}-point rise in any one section can make it.`}</p>` : ''}
-                <div class="fp-chips">${counts.map(chip).join('')}</div>
-                <div class="dy-line mt-3">${weakAll.length
-                    ? `<span>Weakest services:</span>${weakAll.slice(0, WEAK_LIST_SIZE).map(w => { const p = practiseBank(lv, w.s); return p ? `<button type="button" class="dy-review" data-bank="${p.bank}" data-tag="${escapeHtml(w.s)}" title="Practise ${escapeHtml(w.s)} in ${BANKS[p.bank].label}">${escapeHtml(w.s)}<i class="fa-solid fa-play" aria-hidden="true"></i></button>` : `<span>${escapeHtml(w.s)}</span>`; }).join('')}`
-                    : `<span>${ratedCount ? 'No service is clearly below the pass line yet.' : `No service has ${WEAK_MIN_ANSWERED} answered questions yet.`}</span>`}</div>
-                ${sim ? `<div class="fp-sort mt-4" role="group" aria-label="Order the sections">Order:${Object.entries(SORTS).map(([k, label]) => `<button type="button" class="sc-chip" data-sort="${k}" aria-pressed="${k === sort}" style="--sc-c:var(--ov-line)">${label}</button>`).join('')}</div>` : ''}
-                <div class="fp-list mt-3" style="--fp-pass:${(PASS_SHARE * 100).toFixed(1)}%">
+                ${weakAll.length ? `
+                <p class="mt-3 text-xs text-slate-400">Weakest services, costliest first</p>
+                <div class="ws-row mt-1.5" id="ovWeakRow">
+                    <div class="ws-scroll" role="group" aria-label="Weakest services, costliest first">${weakAll.map(w => { const p = practiseBank(lv, w.s); return p ? `<button type="button" class="dy-review" data-bank="${p.bank}" data-tag="${escapeHtml(w.s)}" title="Practise ${escapeHtml(w.s)} in ${BANKS[p.bank].label}">${escapeHtml(w.s)}<i class="fa-solid fa-play" aria-hidden="true"></i></button>` : `<span class="dy-review">${escapeHtml(w.s)}</span>`; }).join('')}</div>
+                </div>`
+                    : `<p class="mt-3 text-xs text-slate-400">${ratedCount ? 'No service is clearly below the pass line yet.' : `No service has ${WEAK_MIN_ANSWERED} answered questions yet.`}</p>`}
+                <div class="fp-list mt-4" style="--fp-pass:${(PASS_SHARE * 100).toFixed(1)}%">
                     <div class="fp-axis" aria-hidden="true"><div><span style="left:0">0%</span><span style="left:50%">50%</span><span style="left:${(PASS_SHARE * 100).toFixed(1)}%">${passPct}% pass</span><span style="left:100%">100%</span></div></div>
-                    <div class="fp-list" id="ovForestRows">${ordered().map(row).join('')}</div>
+                    ${ordered.map(row).join('')}
                 </div>
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
@@ -4071,7 +4087,7 @@
                         <li>The colour is the chance that rate is above the ${passPct}% pass line: clearly above or below at 90%, probably at ${pc(FOREST_LEAN)}%, a toss-up between.</li>
                         <li>While a section has few answers its estimate leans toward your overall rate (${pc(right / seen)}%), so a couple of lucky or unlucky answers don't decide it.</li>
                         <li>"More to tell" is about how many new questions in that section would settle it, if you keep answering as you have. Retries don't count, since only first tries do.</li>
-                        <li>Tap a section for its numbers. Its Practise button starts a quiz of that section in the set with the most questions you haven't seen.</li>
+                        <li>Each section's ▶ starts a quiz of it in the set with the most questions you haven't seen, those first. Tap the section itself for how much of it you've seen and its weak services.</li>
                         <li>A service is weak once it has ${WEAK_MIN_ANSWERED} answered questions and is below ${passPct}% both on your first tries and on its estimate (the readiness score's rules, leaning toward your overall level while it has few answers). It's listed under the section most of its questions are in, the costliest first: how far below the line it is, times how often it comes up, with the heavier exam domains counting more.</li>
                         <li>A service's Practise button starts a quiz of it in the set with the most of its questions still to get right, those first.</li>
                         ${sim ? `
@@ -4081,19 +4097,37 @@
                     </ul>
                 </details>`;
             box.onclick = e => {
-                const o = e.target.closest('.fp-sort button');
-                if (o) {
-                    sort = o.dataset.sort;
-                    try { localStorage.setItem(FOCUS_SORT_KEY, sort); } catch (err) {}
-                    for (const c of box.querySelectorAll('.fp-sort button')) c.setAttribute('aria-pressed', String(c.dataset.sort === sort));
-                    document.getElementById('ovForestRows').innerHTML = ordered().map(row).join('');
-                    return;
-                }
                 const b = e.target.closest('.ov-practise, .dy-review');
-                if (!b) return;
+                if (!b || !b.dataset.bank) return;
+                e.preventDefault();
                 if (b.dataset.tag) practiseTag(b.dataset.bank, b.dataset.tag);
                 else practiseSection(b.dataset.bank, b.dataset.section);
             };
+            fadeEdges(document.getElementById('ovWeakRow'));
+        }
+
+        // A row that scrolls sideways without a scrollbar (the weakest services, Speed and accuracy's key, and
+        // the Daily summary's moved sections and review buttons) fades at an edge while there is more that way
+        // (data-more holds "left" and/or "right"), checked as it scrolls and when it changes size.
+        // One observer serves every such row; a row the overview has redrawn away is let go.
+        const fadeObserver = window.ResizeObserver ? new ResizeObserver(entries => {
+            for (const { target } of entries) {
+                if (target.isConnected) target.fadeUpdate();
+                else fadeObserver.unobserve(target);
+            }
+        }) : null;
+        function fadeEdges(row) {
+            if (!row) return;
+            const strip = row.firstElementChild;
+            strip.fadeUpdate = () => {
+                const more = [];
+                if (strip.scrollLeft > 2) more.push('left');
+                if (strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2) more.push('right');
+                row.dataset.more = more.join(' ');
+            };
+            strip.addEventListener('scroll', strip.fadeUpdate, { passive: true });
+            if (fadeObserver) fadeObserver.observe(strip);
+            strip.fadeUpdate();
         }
 
         // ---- Weak services ----
@@ -4367,12 +4401,17 @@
             box.innerHTML = `
                 <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
                 <div id="ovScatterChart" class="ov-chart mt-4"></div>
-                <div class="sc-key mt-3" role="group" aria-label="Pick out a section">${sections.map(s => `
-                    <button type="button" class="sc-chip" data-section="${escapeHtml(s)}" aria-pressed="${s === scatter.section}" style="--sc-c:${sectionColour(s)}"><i aria-hidden="true"></i>${escapeHtml(s)}</button>`).join('')}
+                <div class="ws-row mt-3" id="ovScatterKey">
+                    <div class="sc-key ws-scroll" role="group" aria-label="Pick out a section">${sections.map(s => `
+                        <button type="button" class="sc-chip" data-section="${escapeHtml(s)}" aria-pressed="${s === scatter.section}" style="--sc-c:${sectionColour(s)}"><i aria-hidden="true"></i>${escapeHtml(s)}</button>`).join('')}
+                    </div>
                 </div>
                 <div id="ovScatterPick" class="mt-3"></div>
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in Where to focus. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}. Tap a dot for its numbers, or a section to pick it out.</p>${waitingLine ? `
-                <p class="mt-2 text-[11px] text-slate-500 leading-relaxed">${waitingLine}</p>` : ''}`;
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
+                    <p class="mt-2 text-[11px] text-slate-500 leading-relaxed">Each dot is a service, coloured by the section most of its questions are in and sized by how many you've answered. Across is your typical time the first time you see one of its questions, up is your first-try rate, estimated as in Where to focus. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}. Tap a dot for its numbers, or a section to pick it out.</p>${waitingLine ? `
+                    <p class="mt-2 text-[11px] text-slate-500 leading-relaxed">${waitingLine}</p>` : ''}
+                </details>`;
             box.querySelector('.sc-key').onclick = e => {
                 const chip = e.target.closest('.sc-chip');
                 if (!chip) return;
@@ -4380,6 +4419,7 @@
                 for (const c of box.querySelectorAll('.sc-chip')) c.setAttribute('aria-pressed', String(c.dataset.section === scatter.section));
                 drawScatter();
             };
+            fadeEdges(document.getElementById('ovScatterKey'));
             document.getElementById('ovScatterPick').onclick = e => {
                 const b = e.target.closest('.ov-practise');
                 if (b) practiseTag(b.dataset.bank, b.dataset.tag);
@@ -4603,26 +4643,19 @@
         }
 
         // ---- Daily summary ----
-        // Today against the end of yesterday; before you've answered anything today, yesterday against the day
-        // before. The score and pass chance are the readiness model on the answers given before the day and on
-        // all of them; the rest is counted from the day's answers, with the day's count against your average
-        // over the 7 days before it, the tick on its bar. Below them, what is due for review now. A section moves as in Where to focus:
-        // its first-try estimate, which leans toward your overall rate while it has few answers.
+        // Today, or yesterday before you've answered anything today, counted from the day's answers: the day's
+        // count against your average over the 7 days before it (the tick on its bar), first tries, questions
+        // seen, bests, the sections that moved and the streak, then what is due for review now. A section
+        // moves as in Where to focus: its first-try estimate, which leans toward your overall rate while it has
+        // few answers. The score's change is beside the Combined score.
         const DAILY_BEST_MIN = 10;   // new questions a day needs before its first-try rate can be a personal best
-        const DAILY_MOVERS = 3;      // sections listed as moving most
 
-        function renderDaily(banks, answered, tl) {
+        function renderDaily(banks, tl) {
             const box = document.getElementById('ovDaily'), whenEl = document.getElementById('ovDailyWhen');
             const today = dayStart(Date.now()), yesterday = addDays(today, -1);
-            const days = {};   // day start -> { answers, firsts, right }
-            for (const b of banks) for (const q of b.questions) (b.log[q.id] || []).forEach((e, i) => {
-                const d = days[dayStart(e[1])] || (days[dayStart(e[1])] = { answers: 0, firsts: 0, right: 0 });
-                d.answers++;
-                if (!i) { d.firsts++; if (e[0]) d.right++; }
-            });
+            const days = tl.days;   // day start -> { answers, firsts, right }
             const day = days[today] ? today : days[yesterday] ? yesterday : null;
             const isToday = day === today;
-            const est = examScore(answered, 'all');
             const rq = reviewQueue(banks);
             box.onclick = e => {
                 const r = e.target.closest('.dy-review');
@@ -4632,27 +4665,22 @@
                 whenEl.innerText = '';
                 box.innerHTML = `<p class="text-sm text-slate-400">${tl.first === null ? 'Answer a few questions to start your daily summary.'
                     : `Nothing answered today or yesterday. You last practised on ${fmtDate(dayStart(tl.latest), DATE_LONG, false)}.`}</p>${tl.first === null ? '' : reviewHtml(rq)}`;
+                fadeEdges(document.getElementById('ovReviewRow'));
                 return;
             }
             whenEl.innerText = (isToday ? 'Today' : 'Yesterday') + ' · ' + fmtDate(day, DATE_LONG, false);
             const start = day, end = addDays(day, 1);
             const none = { answers: 0, firsts: 0, right: 0 };
-            const D = days[day], P = days[addDays(day, -1)] || none;
+            const D = days[day];
             const week = Array.from({ length: 7 }, (_, k) => days[addDays(day, -1 - k)] || none);
             const sum = k => week.reduce((a, d) => a + d[k], 0);
             const avg = sum('answers') / 7;
             const pct = v => Math.round(v * 100);
             const rate = d => (d.firsts ? pct(d.right / d.firsts) + '%' : '–');
-            const prevWord = isToday ? 'yesterday' : 'day before';
             const dayWord = isToday ? 'today' : 'yesterday';
 
-            // the readiness model on the answers given before the day
-            const before = examScore(answered.map(({ q, log }) => ({ q, log: log.filter(e => e[1] < start) })).filter(x => x.log.length), 'daily');
-            const sd = est.ready && before.ready ? est.score - before.score : null;
-
-            // per question: seen, put right during the day, missed during the day and still wrong; per section,
-            // first tries before the day and by its end
-            let seen = 0, total = 0, fixed = 0;
+            // questions seen, and per section, first tries before the day and by its end
+            let seen = 0, total = 0;
             const sec = {}, overall = { b: [0, 0], a: [0, 0] };
             for (const b of banks) for (const q of b.questions) {
                 total++;
@@ -4668,25 +4696,27 @@
                     if (f[0]) counts[0]++;
                 }
                 if (f[1] >= start) s.touched = true;
-                let last = -1;
-                log.forEach((e, i) => { if (e[1] >= start && e[1] < end) last = i; });
-                if (last < 0) continue;
-                // put right: the day's last answer is right and the answer before it, whenever it was, wasn't
-                if (log[last][0] && last > 0 && !log[last - 1][0]) fixed++;
             }
             const lean = ([r, n]) => (n ? Math.min(0.95, Math.max(0.05, r / n)) : 0.5);
             const firstTry = ([r, n], o) => (FOREST_PRIOR * o + r) / (FOREST_PRIOR + n);
             const movers = Object.entries(sec).filter(([, s]) => s.touched)
                 .map(([name, s]) => ({ name, d: Math.round(100 * (firstTry(s.a, lean(overall.a)) - firstTry(s.b, lean(overall.b)))) }))
                 .filter(m => m.d)
-                .sort((a, b) => Math.abs(b.d) - Math.abs(a.d) || compareDomains(a.name, b.name))
-                .slice(0, DAILY_MOVERS);
+                .sort((a, b) => Math.abs(b.d) - Math.abs(a.d) || compareDomains(a.name, b.name));
 
             let streak = 0;
             while (days[addDays(day, -streak)]) streak++;
             const done = tl.doneAt(end - 1) - tl.doneAt(start - 1);
+            // the streak and the exam plan, each as a plain sentence
+            const streakText = streak === 1
+                ? (isToday ? 'Streak: 1 day. Practise again tomorrow to start a run.' : 'Streak: 1 day, yesterday. Practise today to keep it going.')
+                : isToday ? `Streak: you've practised ${streak} days in a row, today included.`
+                : `Streak: you practised ${streak} days in a row up to yesterday. Practise today to keep it going.`;
+            const doneText = done > 0 ? `${plural(done, 'more question')} done ${dayWord}`
+                : done < 0 ? `you're ${plural(-done, 'question')} down ${dayWord}, as more slipped back to wrong than you put right`
+                : `no more questions done ${dayWord}`;
             const pace = tl.needed !== null && tl.status !== 'done' && tl.status !== 'past'
-                ? `exam pace: ${done > 0 ? '+' : ''}${done} done ${dayWord}, about ${Math.ceil(tl.needed)} a day needed` : '';
+                ? `Exam plan: ${doneText}. To finish all ${tl.total} ${tl.status === 'review' ? 'before your exam' : 'a week before your exam'}, you need about ${plural(Math.ceil(tl.needed), 'question')} done a day.` : '';
 
             // personal bests against every earlier day
             const earlier = Object.keys(days).map(Number).filter(d => d < start).map(d => days[d]);
@@ -4699,24 +4729,15 @@
             const highBefore = high(-Infinity, start), highDay = high(start, end);
             if (highBefore > -Infinity && highDay > highBefore) bests.push(`Highest score yet: ${highDay}`);
 
-            // the recap: how much you did against your week, and which way the score went
-            const busiest = Math.max(...week.map(d => d.answers));
-            const qual = sum('answers') && D.answers > busiest ? ', your most in a week'
-                : avg && D.answers >= avg * 1.25 ? ', above your daily average'
-                : avg && D.answers <= avg * 0.75 ? ', below your daily average' : '';
-            const tone = sd === null ? (isToday ? 'So far today' : 'Yesterday') : sd >= 5 ? 'A strong day' : sd > 0 ? 'A good day' : sd < 0 ? 'A tough day' : 'A steady day';
-            const move = sd === null ? '' : sd > 0 ? `, and your score rose ${plural(sd, 'point')}` : sd < 0 ? `, and your score fell ${plural(-sd, 'point')}` : ', and your score held steady';
-
-            const tile = (label, value, lines) => `
+            const tile = (label, value, line) => `
                 <div class="dy-tile">
                     <p class="dy-label">${label}</p>
                     <p class="dy-value">${value}</p>
-                    ${lines.filter(Boolean).map(l => `<p class="dy-sub">${l}</p>`).join('')}
+                    <p class="dy-sub">${line}</p>
                 </div>`;
 
             box.innerHTML = `
-                <p class="text-sm text-slate-300 leading-relaxed">${tone}: ${plural(D.answers, 'answer')}${qual}${move}.</p>
-                <div class="flex items-baseline justify-between gap-3 mt-3 text-xs text-slate-400">
+                <div class="flex items-baseline justify-between gap-3 text-xs text-slate-400">
                     <span>Answered ${dayWord}</span>
                     <span class="shrink-0">${D.firsts} new · ${plural(D.answers - D.firsts, 'review')}</span>
                 </div>
@@ -4726,25 +4747,33 @@
                 </div>
                 <p class="mt-1.5 text-[11px] text-slate-400">${avg >= 0.5 ? `Your usual: ${perDay(avg)}, the average of the 7 days before${D.answers >= avg ? ' · past your usual' : ''}` : 'No practice in the 7 days before'}</p>
                 <div class="dy-tiles mt-4">
-                    ${tile('Score', est.ready ? `${est.score} ${before.ready ? estimateDelta(before.score, est.score) : ''}` : '–',
-                        [est.ready ? `Pass chance ${pct(est.passProb)}% ${before.ready ? estimateDelta(pct(before.passProb), pct(est.passProb)) : ''}` : `Needs ${MIN_ANSWERED} answers`])}
-                    ${tile('Right first time', rate(D), [D.firsts ? `${D.right} of ${plural(D.firsts, 'new question')}` : 'No new questions', `${prevWord} ${rate(P)} · week ${sum('firsts') ? pct(sum('right') / sum('firsts')) + '%' : '–'}`])}
-                    ${tile('Seen', `${seen}<span class="dy-of"> / ${total}</span>`, [`+${D.firsts} ${dayWord}`, fixed === 1 ? '1 miss put right' : `${fixed} misses put right`])}
-                    ${tile('To review', rq.redo + rq.due, [`${rq.redo} to redo · ${rq.due} due again`, rq.missedToday ? `${rq.missedToday} missed today` : ''])}
+                    ${tile('Right first time', rate(D), D.firsts ? `${D.right} of ${plural(D.firsts, 'new question')}` : 'No new questions')}
+                    ${tile('Seen', `${seen}<span class="dy-of">/${total}</span>`, `+${D.firsts} ${dayWord}`)}
                 </div>
                 ${bests.length ? `<div class="dy-badges mt-3">${bests.map(t => `<span class="dy-badge"><i class="fa-solid fa-trophy" aria-hidden="true"></i>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-                ${movers.length ? `<div class="dy-line mt-3"><span>Sections that moved most:</span>${movers.map(m => `<span class="fp-chip" data-v="${m.d > 0 ? 'strong' : 'weak'}">${escapeHtml(m.name)} ${m.d > 0 ? '▲' : '▼'}${Math.abs(m.d)}</span>`).join('')}</div>` : ''}
-                <p class="dy-line mt-3"><i class="fa-solid fa-fire" aria-hidden="true"></i><span>${plural(streak, 'day')} in a row${pace ? ' · ' + pace : ''}</span></p>
+                ${movers.length ? `
+                <p class="mt-3 text-xs text-slate-400">Sections that moved, biggest first</p>
+                <div class="ws-row mt-1.5" id="ovMovedRow">
+                    <div class="ws-scroll" role="group" aria-label="Sections that moved, biggest first">${movers.map(m => `<span class="fp-chip" data-v="${m.d > 0 ? 'strong' : 'weak'}">${escapeHtml(m.name)} ${m.d > 0 ? '▲' : '▼'}${Math.abs(m.d)}</span>`).join('')}</div>
+                </div>` : ''}
+                <p class="mt-3 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-fire dy-icon" aria-hidden="true"></i>${streakText}</p>
+                ${pace ? `<p class="mt-1.5 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-flag-checkered dy-icon" aria-hidden="true"></i>${pace}</p>` : ''}
                 ${reviewHtml(rq)}
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">${isToday ? 'Today so far, against the end of yesterday' : "Yesterday, as you haven't answered anything today yet"}. The answer count includes new questions and reviews (questions you'd seen before); the tick on its bar is your average over the 7 days before. Right first time counts only questions you saw for the first time. A miss is put right when your latest answer turns it from wrong to right. Section moves are in points of the first-try estimate from Where to focus.</p>
-                <details class="mt-2">
-                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How reviews are scheduled</summary>
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
+                        <li>${isToday ? 'Today so far, against the end of yesterday' : "Yesterday, as you haven't answered anything today yet"}.</li>
+                        <li>The answer count includes new questions and reviews (questions you'd seen before). The tick on its bar is your average over the 7 days before.</li>
+                        <li>Right first time counts only questions you saw for the first time.</li>
+                        <li>A question is done when your latest answer to it is right.</li>
+                        <li>Section moves are in points of the first-try estimate from Where to focus.</li>
                         <li>To redo: questions whose latest answer is wrong. Slipped ones are those you'd answered right before, so you've forgotten something you knew.</li>
                         <li>Due again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
                         <li>Each set's button starts a quiz of its questions to redo and due: today's misses first, then your other misses, latest first, then the most overdue.</li>
                     </ul>
                 </details>`;
+            fadeEdges(document.getElementById('ovMovedRow'));
+            fadeEdges(document.getElementById('ovReviewRow'));
         }
 
         // ---- Progress ----
@@ -4868,7 +4897,7 @@
                     <p class="mt-1 text-xs text-slate-400 leading-relaxed">${total
                         ? `${plural(rq.redo, 'question')} to redo${rq.slipped ? ` (${rq.slipped} slipped after being right)` : ''} and ${rq.due} due again${rq.missedToday ? `; the ${rq.missedToday} you missed today come first while they're fresh` : ''}.`
                         : 'Nothing to review right now: every question you’ve answered is right and not yet due again.'}</p>
-                    ${buttons ? `<div class="flex flex-wrap gap-1.5 mt-3">${buttons}</div>` : ''}
+                    ${buttons ? `<div class="ws-row mt-3" id="ovReviewRow"><div class="ws-scroll" role="group" aria-label="Review by set">${buttons}</div></div>` : ''}
                 </div>`;
         }
 
@@ -5845,8 +5874,11 @@
         function alertBox(msg) {
             // A short-lived toast instead of the native alert()
             const div = document.createElement('div');
-            div.className = "fixed bottom-24 lg:bottom-5 left-4 right-4 sm:left-auto lg:right-5 bg-aws-darkblue text-white px-5 py-3 rounded-2xl shadow-xl z-50 text-xs sm:text-sm flex items-center space-x-3 border border-emerald-500/30 animate-fade-in";
+            div.className = "fixed left-4 right-4 sm:left-auto lg:right-5 bg-aws-darkblue text-white px-5 py-3 rounded-2xl shadow-xl z-50 text-xs sm:text-sm flex items-center space-x-3 border border-emerald-500/30 animate-fade-in";
             div.innerHTML = `<i class="fa-solid fa-circle-info text-aws-orange"></i><span>${msg}</span>`;
+            // phones have the quiz's buttons fixed along the bottom, so a toast in a quiz sits above them
+            const quizBar = innerWidth < 1024 && !document.getElementById('quizView').classList.contains('hidden');
+            div.style.bottom = innerWidth >= 1024 ? '1.25rem' : quizBar ? '6rem' : 'calc(1rem + env(safe-area-inset-bottom))';
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 3500);
         }
