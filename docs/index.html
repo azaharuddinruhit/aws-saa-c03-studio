@@ -326,7 +326,7 @@
         html:not(.dark) #overviewView, html:not(.dark) #dashboardView {
             --ov-surface: #ffffff; --ov-line: #059669; --ov-wash: rgba(5, 150, 105, .10);
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
-            --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0;
+            --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0; --ov-review: #d97706;
             --ov-lean-up: #0d9488; --ov-lean-down: #ea580c;
             --sec-0: #4e79a7; --sec-1: #e8771a; --sec-2: #d93f43; --sec-3: #4f9a94; --sec-4: #4a8f41;
             --sec-5: #c9a227; --sec-6: #9c5f8c; --sec-7: #e8748a; --sec-8: #8c6449; --sec-9: #8f8580;
@@ -334,7 +334,7 @@
         .dark #overviewView, .dark #dashboardView {
             --ov-surface: #101522; --ov-line: #14a874; --ov-wash: rgba(20, 168, 116, .12);
             --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
-            --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447;
+            --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447; --ov-review: #fbbf24;
             --ov-lean-up: #2dd4bf; --ov-lean-down: #fb923c;
             --sec-0: #6f9bd1; --sec-1: #f5a04f; --sec-2: #ef7476; --sec-3: #8fd0ca; --sec-4: #7cc26f;
             --sec-5: #f1d35c; --sec-6: #c595b6; --sec-7: #ffb0b8; --sec-8: #b58c74; --sec-9: #c9c0bb;
@@ -404,6 +404,7 @@
         #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
         .dy-badges { display: flex; flex-wrap: wrap; gap: .375rem; }
+        .ef-card { min-width: 0; padding: .625rem .75rem; border: 1px solid var(--ov-grid); border-radius: .875rem; }
         .dy-badge { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; font-size: 11px; font-weight: 600; color: var(--ov-line); background: var(--ov-wash); }
         .dy-icon { margin-right: .375rem; }
         .dy-review { display: inline-flex; align-items: center; gap: .375rem; padding: .3rem .7rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
@@ -422,10 +423,6 @@
         .ov-chart text.sc-strong { fill: var(--ov-ink); font-weight: 600; }
         .sc-dot { transition: opacity .15s; }
         .sc-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc-c); margin-right: .4rem; vertical-align: 1px; }
-        .td-bar { position: relative; height: 10px; border-radius: 9999px; background: var(--ov-grid); }
-        .td-bar > span { display: flex; gap: 2px; height: 100%; border-radius: inherit; overflow: hidden; }
-        .td-bar > span > b { display: block; height: 100%; }
-        .td-bar > i { position: absolute; top: -4px; bottom: -4px; margin-left: -1px; border-left: 2px solid var(--ov-ink); border-radius: 1px; }
         .fp-weak { margin-top: .25rem; font-size: 10px; color: var(--ov-missed); }
         .ws-row { position: relative; }
         .ws-row .ws-scroll { flex-wrap: nowrap; }
@@ -3205,7 +3202,8 @@
             withYear && opts.day && new Date(ts).getFullYear() !== new Date().getFullYear() ? { ...opts, year: 'numeric' } : opts);
         const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
         const levelTone = pct => pct >= 70 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400';
-        const perDay = v => (Math.abs(v) >= 10 ? Math.round(v) : Math.round(v * 10) / 10) + '/day';
+        // a rate a day, as "9.1" or "12"; the caller says what is counted ("done a day", "new questions a day")
+        const dayRate = v => String(Math.abs(v) >= 10 ? Math.round(v) : Math.round(v * 10) / 10);
 
         // Blocks at about each card's finished height, so the page does not jump when the content arrives
         function overviewPlaceholders() {
@@ -3287,20 +3285,25 @@
             const target = examAt === null ? null : addDays(examAt, -REVIEW_BUFFER_DAYS);
             const daysToExam = examAt === null ? null : daysBetween(now, examAt);
             const daysToTarget = target === null ? null : daysBetween(now, target);
-            let status = null, needed = null;
+            // the questions you need done a day, rounded up (a target is whole questions), and where each pace
+            // stands against it: 'plan' while there is time before the review week
+            let status = null, needed = null, statusShort = null, statusLong = null;
+            const against = p => (p >= needed ? 'on' : p >= TIGHT_SHARE * needed ? 'tight' : 'behind');
             if (left === 0) status = 'done';
             else if (examAt !== null) {
                 if (daysToExam < 0) status = 'past';
-                else if (daysToTarget <= 0) { status = 'review'; needed = left / Math.max(1, daysToExam); }
+                else if (daysToTarget <= 0) { status = 'review'; needed = Math.ceil(left / Math.max(1, daysToExam)); }
                 else {
-                    needed = left / daysToTarget;
-                    status = paceLong >= needed ? 'on' : paceLong >= TIGHT_SHARE * needed ? 'tight' : 'behind';
+                    status = 'plan';
+                    needed = Math.ceil(left / daysToTarget);
+                    statusShort = against(paceShort);
+                    statusLong = against(paceLong);
                 }
             }
             return {
                 now, today, total, right, missed, unseen: total - right - missed, left, perBank, days, first, latest, doneAt,
                 paceShort, paceLong, finishShort: finishAt(paceShort), finishLong: finishAt(paceLong),
-                exam, examAt, target, daysToExam, daysToTarget, status, needed
+                exam, examAt, target, daysToExam, daysToTarget, status, needed, statusShort, statusLong
             };
         }
 
@@ -3363,6 +3366,12 @@
             scoreHistory(banks, chart);
             const plan = forecastHorizon(banks);
             startForecast(chart, banks, chart.history, plan);
+            // the exam day at your last 7 days' rate of new questions too, for Progress, when it leads somewhere else
+            const week = scoreCharts['all:week'] || (scoreCharts['all:week'] = { scope: 'all:week', history: null, plan: null, forecast: null, run: 0, noBacktest: true, onForecast: () => renderExamForecast() });
+            week.history = chart.history;
+            const plan7 = forecastHorizon(banks, PACE_SHORT_DAYS);
+            if (examDate() && plan7.n !== plan.n) startForecast(week, banks, chart.history, plan7);
+            else week.plan = plan7;
             const rows = Object.entries(EXAM_DOMAINS).map(([id, dom]) => {
                 const level = s.levels[id];
                 const pct = level === null || level === undefined ? null : Math.round(level * 100);
@@ -3490,7 +3499,7 @@
         // questions, so recency treats them as real days would. Fixed seeds replay the same runs, so the
         // forecast moves only when your answers do (and, with an exam date, as the exam draws nearer). It takes
         // a few seconds, so it is worked out in slices after the chart draws, then drawn in.
-        const FORECAST_RUNS = 5, FORECAST_TREND = 100, FORECAST_MIN_TREND = 30;
+        const FORECAST_RUNS = 20, FORECAST_TREND = 100, FORECAST_MIN_TREND = 30;
         // each chart's forecast is { key, result } once worked out, its horizon is chart.plan, and chart.run lets
         // a newer forecast supersede one still running
 
@@ -3498,7 +3507,7 @@
         // many new questions as your PACE_LONG_DAYS-day pace fits in before the exam, whichever is fewer. The
         // pace counts first answers in the last PACE_LONG_DAYS days, the Progress card's window, so a break
         // or a stretch of retakes only gives a pace of zero: no new questions before the exam.
-        function forecastHorizon(banks) {
+        function forecastHorizon(banks, days = PACE_LONG_DAYS) {
             let unseen = 0;
             const firsts = [];
             for (const b of banks) for (const q of b.questions) {
@@ -3506,14 +3515,16 @@
                 if (!log || !log.length) { unseen++; continue; }
                 firsts.push(log[0][1]);
             }
-            const pace = firsts.filter(t => t > Date.now() - PACE_LONG_DAYS * DAY_MS).length / PACE_LONG_DAYS;   // new questions a day
+            // new questions a day over the window; a history shorter than it is divided by its own length, as the done rates are
+            const span = firsts.length ? Math.min(days, Math.max(1, (Date.now() - Math.min(...firsts)) / DAY_MS)) : days;
+            const pace = firsts.filter(t => t > Date.now() - span * DAY_MS).length / span;
             let n = unseen, limit = 'unseen';
             const exam = examDate();
             if (exam) {
                 const days = daysBetween(Date.now(), dateOf(exam));
                 if (days > 0 && Math.round(pace * days) < n) { n = Math.round(pace * days); limit = 'exam'; }
             }
-            return { n, limit, unseen, pace };
+            return { n, limit, unseen, pace, days };
         }
 
         // What your last FORECAST_TREND answers say about how fast your level is rising, in ability per
@@ -3651,7 +3662,7 @@
             const steps = Array.from({ length: N }, () => []);   // per future answer, the score in every run
             const crossAt = [];   // per run: the answer that first reaches the pass mark, or null
             const examChances = [];   // per run: the chance of passing on the exam day from where it ends
-            const test = backtestPlan(banks, h);
+            const test = chart.noBacktest ? null : backtestPlan(banks, h);
             const testSteps = test ? Array.from({ length: BACKTEST_ANSWERS }, () => []) : null;
             // every run and answer, as steps that can pause between any two answers
             function* work() {
@@ -3718,7 +3729,7 @@
                     result.backtest = { path, inside: inside / path.length, miss: Math.round(miss) };
                 }
                 chart.forecast = { key, result };
-                if (chart.history === h) drawScoreChart(chart);
+                if (chart.history === h) { drawScoreChart(chart); if (chart.onForecast) chart.onForecast(); }
             };
             nextSlice();
         }
@@ -3736,7 +3747,7 @@
         // The "Score over time" block: heading, chart, key and table, for the overview's card or a set's
         function scoreChartHtml(chart, plan) {
             const ahead = !plan.n ? '' : plan.limit === 'exam'
-                ? ` · a forecast to your exam, ${plural(plan.n, 'new question')} at your ${PACE_LONG_DAYS}-day pace`
+                ? ` · a forecast to your exam at your rate of new questions over the last ${PACE_LONG_DAYS} days`
                 : ` · a forecast through your ${plural(plan.n, 'unseen question')}`;
             return `
                 <div class="ov-rule">
@@ -3844,7 +3855,7 @@
             else if (daysBetween(Date.now(), examAt) <= 0) examLine = '';
             else if (!fc || !fc.exam) examLine = examSpan(`On exam day (${when}): working it out…`);
             else examLine = examSpan(`On exam day (${when}): <b class="${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</b>`,
-                `Your chance of reaching ${PASS_SCORE} in a sitting on ${fmtDate(examAt, DATE_LONG)}, ${!chart.plan.pace ? 'with no new questions before it, as in the last ' + PACE_LONG_DAYS + ' days' : 'if you keep answering new questions at your ' + PACE_LONG_DAYS + '-day pace' + (fc.trend === 'unknown' ? '' : ' and improving at your recent rate')}: the forecast's ${FORECAST_RUNS} runs up to the exam, each followed by the same sitting simulation as today's chance, with its allowance for any days without practice before it.`);
+                `Your chance of reaching ${PASS_SCORE} in a sitting on ${fmtDate(examAt, DATE_LONG)}, ${!chart.plan.pace ? 'with no new questions before it, as in the last ' + PACE_LONG_DAYS + ' days' : 'if you keep starting new questions at your rate over the last ' + PACE_LONG_DAYS + ' days' + (fc.trend === 'rising' ? ' and keep improving as you have lately' : '')}: the forecast's ${FORECAST_RUNS} runs up to the exam, each followed by the same sitting simulation as today's chance, with its allowance for any days without practice before it.`);
 
             // the overview's exam day is in the Progress card instead (renderExamForecast)
             if (chart.scope === 'all') { examLine = ''; renderExamForecast(); }
@@ -3867,7 +3878,7 @@
                     + examLine
                     + (bt ? `<span class="text-slate-500" style="flex-basis:100%">Tested on your history: your real score stayed inside the forecast's range for ${Math.round(bt.inside * 100)}% of your last ${bt.path.length} answers, off by ${plural(bt.miss, 'point')} on average.</span>` : '')
                     + (chart.plan && !N ? `<span class="text-slate-500">${!chart.plan.unseen ? "You've answered every question, so there's nothing left to forecast."
-                        : chart.plan.pace ? "At your pace there's no time for new questions before your exam, so there's no forecast."
+                        : chart.plan.pace ? `At your rate of new questions over the last ${PACE_LONG_DAYS} days, none fit in before your exam, so there's no forecast.`
                         : `You haven't started a new question in the last ${PACE_LONG_DAYS} days, so there's no forecast to your exam.`}</span>` : '');
             }
 
@@ -3923,35 +3934,39 @@
         }
 
         // The Progress card's exam day: the forecast score there (the middle of the forecast's runs, with the
-        // lowest and highest) and the chance of reaching the pass mark in a sitting that day, from the overview
-        // score chart's forecast. Redrawn when that forecast finishes, and whenever Progress is drawn.
+        // lowest and highest) and the chance of reaching the pass mark in a sitting that day, at your rate of new
+        // questions over the last 28 days (the overview score chart's forecast) and, when it leads somewhere
+        // else, over the last 7. Redrawn when either forecast finishes, and whenever Progress is drawn.
         function renderExamForecast() {
             const box = document.getElementById('ovExamForecast');
             if (!box) return;
             const chart = scoreCharts.all, exam = examDate(), examAt = exam ? dateOf(exam) : null;
             const pts = chart && chart.points;
             if (examAt === null || daysBetween(Date.now(), examAt) <= 0 || !pts || !pts.length) { box.innerHTML = ''; return; }
-            const fc = chart.forecast && chart.history && chart.plan && chart.forecast.key === forecastKey(chart.history, chart.plan) ? chart.forecast.result : null;
             const head = `<p class="mt-4 text-xs text-slate-400">On exam day, ${escapeHtml(fmtDate(examAt, DATE_LONG, false))}</p>`;
-            if (!fc || !fc.exam) { box.innerHTML = head + '<p class="mt-1 text-xs text-slate-500">Working out the forecast…</p>'; return; }
-            // with no new questions to forecast, the score on the day is today's
-            const end = fc.path.length ? fc.path[fc.path.length - 1] : null;
-            const score = end ? end.mid : pts[pts.length - 1].score;
-            const chance = Math.round(fc.exam.chance * 100);
-            const how = !chart.plan.pace ? `With no new questions, as in the last ${PACE_LONG_DAYS} days`
-                : `If you keep starting new questions at ${perDay(chart.plan.pace)}, your rate over the last ${PACE_LONG_DAYS} days${fc.trend === 'rising' ? ', and keep improving as you have lately' : ''}`;
+            // the scenarios: your rate of new questions over the last 28 days, and over the last 7 when it differs
+            const ready = c => c && c.forecast && c.history && c.plan && c.forecast.key === forecastKey(c.history, c.plan) ? c.forecast.result : null;
+            const week = scoreCharts['all:week'];
+            const charts = [chart].concat(week && week.plan && chart.plan && week.plan.n !== chart.plan.n ? [week] : []);
+            const results = charts.map(ready);
+            if (results.some(fc => !fc || !fc.exam)) { box.innerHTML = head + '<p class="mt-1 text-xs text-slate-500">Working out the forecast…</p>'; return; }
+            const card = (c, fc) => {
+                // with no new questions to forecast, the score on the day is today's
+                const end = fc.path.length ? fc.path[fc.path.length - 1] : null;
+                const score = end ? end.mid : pts[pts.length - 1].score;
+                const rate = c.plan.pace ? `${dayRate(c.plan.pace)} new questions a day` : 'no new questions';
+                return `
+                    <div class="ef-card">
+                        <p class="text-[11px] text-slate-400">At the last ${c.plan.days} days' rate</p>
+                        <p class="text-[11px] text-slate-500">${rate}</p>
+                        <p class="sc-figure mt-1.5"><span class="text-2xl font-semibold tracking-tight">${score}</span>${end ? `<span class="text-xs text-slate-500 whitespace-nowrap">${end.lo}–${end.hi}</span>` : ''}</p>
+                        <p class="text-xs text-slate-400"><b class="font-semibold ${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</b> chance of ${PASS_SCORE}</p>
+                    </div>`;
+            };
+            const rising = results[0].trend === 'rising';
             box.innerHTML = head + `
-                <div class="mt-1.5 grid grid-cols-2 gap-4 items-end" title="${escapeHtml(how + `: the middle, lowest and highest of ${FORECAST_RUNS} simulated runs up to the exam, and the chance of reaching ${PASS_SCORE} in a sitting that day, with an allowance for any days without practice before it.`)}">
-                    <div>
-                        <p class="text-[11px] text-slate-400">Forecast score</p>
-                        <p class="sc-figure"><span class="text-2xl font-semibold tracking-tight">${score}</span>${end ? `<span class="text-xs text-slate-500 whitespace-nowrap">(${end.lo}–${end.hi})</span>` : ''}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[11px] text-slate-400">Chance of ${PASS_SCORE}</p>
-                        <p class="text-2xl font-semibold ${estimateTone(fc.exam.chance).text}">${chance}%</p>
-                    </div>
-                </div>
-                <p class="mt-1.5 text-[11px] text-slate-500">${how}.</p>`;
+                <div class="mt-1.5 grid ${charts.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-3">${charts.map((c, i) => card(c, results[i])).join('')}</div>
+                <p class="mt-1.5 text-[11px] text-slate-500 leading-relaxed">${charts.length > 1 ? 'Each assumes you keep starting new questions at that rate' : 'Assumes you keep starting new questions at that rate'} until the exam${rising ? ', and keep improving as you have lately' : ''}. The score is the middle of ${FORECAST_RUNS} simulated runs, with the lowest and highest beside it, and the chance allows for any days without practice before the exam.</p>`;
         }
 
         // From a score card's "Set your exam date": the Progress card's date field, on the overview, focused.
@@ -4421,10 +4436,10 @@
 
         // ---- Time per question ----
         // Its own card, beside Speed and accuracy. From the seconds kept with each attempt. The headline is the
-        // median of your latest answers, so one slow question does not drag it. Below, each section is a row of
-        // dots, one per timed answer (green right, red wrong), with a tick at its typical (median) time, slowest
-        // first, so you can tell one slow outlier from slow every time.
-        const PACE_RECENT = 50;          // the headline figures use this many of the latest timed answers
+        // median of your timed first tries, so one slow question does not drag it. Below, each section is a row
+        // of dots, one per timed first try (green right, red wrong), with a tick at its typical (median) time,
+        // slowest first, so you can tell one slow outlier from slow every time. Repeats are left out, as in
+        // Speed and accuracy: a question reads faster once seen, and the exam is all first sightings.
         const PACE_MIN_ANSWERS = 3;      // a section needs this many timed answers for a row
         const PACE_SCALE = 180;          // the time axis runs at least this far, in seconds
         let pace = null;                 // what drawPace() draws: { rows, xHi }
@@ -4437,24 +4452,23 @@
         function renderPace(banks) {
             const box = document.getElementById('ovPace');
             const timed = [];   // { bank, q, seconds, right, first, ts }
+            // first tries only: a question reads faster once you've seen it, and the exam is all first sightings
             for (const b of banks) for (const q of b.questions) {
-                (b.log[q.id] || []).forEach((entry, i) => {
-                    const seconds = entry[3];
-                    if (typeof seconds === 'number' && seconds <= AWAY_SECONDS) {
-                        timed.push({ bank: b.key, q, seconds, right: !!entry[0], first: i === 0, ts: entry[1] });
-                    }
-                });
+                const entry = (b.log[q.id] || [])[0];
+                if (entry && typeof entry[3] === 'number' && entry[3] <= AWAY_SECONDS) timed.push({ bank: b.key, q, seconds: entry[3], right: !!entry[0], ts: entry[1] });
             }
+            const tries = n => `${n} timed first ${n === 1 ? 'try' : 'tries'}`;
             const target = formatDuration(TARGET_SECONDS * 1000);
             if (!timed.length) {
                 pace = null;
-                box.innerHTML = `<p class="text-sm text-slate-400">Each answer now records how long it took. Answer a few questions to see your pace against the ${target} target.</p>`;
+                box.innerHTML = `<p class="text-sm text-slate-400">Each answer now records how long it took. Answer a few new questions to see your time against the ${target} target.</p>`;
                 return;
             }
             timed.sort((a, b) => b.ts - a.ts);
-            const recent = timed.slice(0, PACE_RECENT).map(t => t.seconds);
-            const typical = median(recent);
-            const withinPct = Math.round(recent.filter(s => s <= TARGET_SECONDS).length / recent.length * 100);
+            // the headline and the dots use the same answers: every timed first try
+            const all = timed.map(t => t.seconds);
+            const typical = median(all);
+            const withinPct = Math.round(all.filter(s => s <= TARGET_SECONDS).length / all.length * 100);
             const fmt = s => formatDuration(s * 1000);
 
             // every timed answer, by section; a section with enough of them is a row, slowest typical time first
@@ -4484,15 +4498,16 @@
                         <p class="text-3xl font-semibold ${levelTone(withinPct)}">${withinPct}%</p>
                     </div>
                 </div>
-                <p class="mt-2 text-xs text-slate-400">From ${recent.length < PACE_RECENT ? 'all ' + plural(recent.length, 'timed answer') : 'your latest ' + PACE_RECENT + ' timed answers'}</p>
+                <p class="mt-2 text-xs text-slate-400">From ${all.length === 1 ? 'your one timed first try' : 'all ' + tries(all.length)}</p>
                 ${pace ? '<div id="ovPaceChart" class="ov-chart mt-5"></div>' : ''}
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <ul class="mt-2 space-y-1.5 text-[11px] text-slate-500 leading-relaxed list-disc pl-4">
-                        <li>Each dot is one timed answer, green if right and red if wrong, placed across by how long it took. Each row is a section, slowest first, and its tick is the section's typical (median) time.</li>
+                        <li>Each dot is the first time you answered a question, green if right and red if wrong, placed across by how long it took. Each row is a section, slowest first, and its tick is the section's typical (median) time.</li>
+                        <li>Repeats aren't counted: you read a question faster once you've seen it, and the exam is all first sightings. Speed and accuracy counts the same way.</li>
                         <li>The dashed line is the ${target} target, the exam's pace.${pace ? ` Answers longer than ${fmt(pace.xHi)} sit on the right edge as rings.` : ''}</li>
-                        <li>The figures at the top use your latest ${PACE_RECENT} timed answers; the chart uses all of them. Answers from before timing began have no time, and more than ${AWAY_SECONDS / 60} minutes on one question counts as a break.</li>
-                        ${thin.length ? `<li>Fewer than ${PACE_MIN_ANSWERS} timed answers yet: ${thin.map(escapeHtml).join(', ')}.</li>` : ''}
+                        <li>The figures at the top and the dots use the same answers. Answers from before timing began have no time, and more than ${AWAY_SECONDS / 60} minutes on one question counts as a break.</li>
+                        ${thin.length ? `<li>Fewer than ${tries(PACE_MIN_ANSWERS)} yet: ${thin.map(escapeHtml).join(', ')}.</li>` : ''}
                     </ul>
                 </details>`;
             drawPace();
@@ -4535,7 +4550,7 @@
             const tx = x(TARGET_SECONDS);
             parts.push(`<line x1="${tx}" x2="${tx}" y1="${m.top + LABEL}" y2="${bottom}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
             parts.push(`<text x="${tx}" y="${bottom + 14}" text-anchor="middle" class="sc-strong">${fmt(TARGET_SECONDS)} target</text>`);
-            const summary = 'Typical time per question by section, slowest first: ' + pace.rows.map(r => `${r.name} ${fmt(r.typical)} from ${plural(r.list.length, 'answer')}`).join(', ');
+            const summary = 'Typical time per question by section, slowest first: ' + pace.rows.map(r => `${r.name} ${fmt(r.typical)} from ${r.list.length} first ${r.list.length === 1 ? 'try' : 'tries'}`).join(', ');
             holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
 
             // hover, or tap on a phone, for an answer's time, result, date and question
@@ -4546,7 +4561,7 @@
                 for (const d of dots) { const g = Math.hypot(d.cx - px, d.cy - py); if (g < dist) { best = d; dist = g; } }
                 return best;
             };
-            const tip = (d, e) => showTip([[fmt(d.t.seconds), `· ${d.t.right ? 'right' : 'wrong'}, ${d.t.first ? 'first time' : 'seen before'}`],
+            const tip = (d, e) => showTip([[fmt(d.t.seconds), `· ${d.t.right ? 'right' : 'wrong'} first time`],
                 [null, `${fmtDate(d.t.ts, DATE_LONG, false)} · ${BANKS[d.t.bank].label}, question ${d.t.q.id}`]], e.clientX, e.clientY);
             const show = e => { const d = nearest(e); if (d) tip(d, e); else hideTip(); };
             svg.addEventListener('pointermove', show);
@@ -4889,8 +4904,8 @@
 
         // ---- Daily summary ----
         // Today, or yesterday before you've answered anything today, counted from the day's answers: the day's
-        // count against your average over the 7 days before it (the tick on its bar), the day's questions by
-        // where they ended it (the total done and its change are in Progress), bests, each section's first tries that day
+        // questions by where they ended it: newly done, right again on a review, or missed (the total done and its
+        // change are in Progress), bests, each section's first tries that day
         // and the streak, then what is due for review now.
         // The score's change is beside the Combined score.
         const DAILY_BEST_MIN = 10;   // new questions a day needs before its first-try rate can be a personal best
@@ -4916,23 +4931,25 @@
             }
             whenEl.innerText = (isToday ? 'Today' : 'Yesterday') + ' · ' + fmtDate(day, DATE_LONG, false);
             const start = day, end = addDays(day, 1);
-            const none = { answers: 0, firsts: 0, right: 0 };
             const D = days[day];
-            const week = Array.from({ length: 7 }, (_, k) => days[addDays(day, -1 - k)] || none);
-            const sum = k => week.reduce((a, d) => a + d[k], 0);
-            const avg = sum('answers') / 7;
             const dayWord = isToday ? 'today' : 'yesterday';
 
-            // every question answered during the day, by where it ended the day: done (its latest answer right)
-            // or missed; and per section the questions first seen during the day and how many were right
-            let doneDay = 0, missedDay = 0;
+            // every question answered during the day, by where it ended the day: newly done (right, and not done
+            // before the day), right again (right, and done already, so a review), or missed (of which slipped:
+            // done before the day); and per section the questions first seen during the day and how many were right
+            let newlyDone = 0, rightAgain = 0, missedDay = 0, slipped = 0;
             const sec = {};   // section -> { right, n }
             for (const b of banks) for (const q of b.questions) {
                 const log = b.log[q.id];
                 if (!log || !log.length) continue;
-                let last = null;
-                for (const e of log) if (e[1] >= start && e[1] < end) last = e;
-                if (last) { if (last[0]) doneDay++; else missedDay++; }
+                let before = null, last = null;
+                for (const e of log) { if (e[1] < start) before = e; else if (e[1] < end) last = e; }
+                if (last) {
+                    const wasDone = !!(before && before[0]);
+                    if (!last[0]) { missedDay++; if (wasDone) slipped++; }
+                    else if (wasDone) rightAgain++;
+                    else newlyDone++;
+                }
                 const f = log[0];
                 if (f[1] < start || f[1] >= end) continue;
                 const t = sec[q.domain || 'General AWS'] || (sec[q.domain || 'General AWS'] = { right: 0, n: 0 });
@@ -4946,14 +4963,12 @@
 
             let streak = 0;
             while (days[addDays(day, -streak)]) streak++;
-            // the streak and the exam plan, each as a plain sentence
+            // the streak, as a plain sentence
             const streakText = streak === 1
                 ? (isToday ? 'Streak: 1 day. Practise again tomorrow to start a run.' : 'Streak: 1 day, yesterday. Practise today to keep it going.')
                 : isToday ? `Streak: you've practised ${streak} days in a row, today included.`
                 : `Streak: you practised ${streak} days in a row up to yesterday. Practise today to keep it going.`;
-            const pace = tl.needed !== null && tl.status !== 'done' && tl.status !== 'past'
-                ? `Exam plan: to finish all ${tl.total} ${tl.status === 'review' ? 'before your exam' : 'a week before your exam'}, you need about ${plural(Math.ceil(tl.needed), 'question')} done a day.` : '';
-            const dayQs = doneDay + missedDay;
+            const dayQs = newlyDone + rightAgain + missedDay;
 
             // personal bests against every earlier day
             const earlier = Object.keys(days).map(Number).filter(d => d < start).map(d => days[d]);
@@ -4966,26 +4981,16 @@
             const highBefore = high(-Infinity, start), highDay = high(start, end);
             if (highBefore > -Infinity && highDay > highBefore) bests.push(`Highest score yet: ${highDay}`);
 
-            // the day's answers as one bar: new questions right, then wrong, first time, then reviews
-            const wrong = D.firsts - D.right, reviews = D.answers - D.firsts;
-            const parts = [[D.right, '--ov-right'], [wrong, '--ov-missed'], [reviews, '--ov-muted']]
-                .filter(([n]) => n > 0).map(([n, v]) => `<b style="flex:${n} 1 0;background:var(${v})"></b>`).join('');
+            // the day's questions as one bar: newly done (what the Progress chart counts), right again on a review, missed
+            const split = [[newlyDone, '--ov-right', `${newlyDone} newly done`, true],
+                [rightAgain, '--ov-review', `${rightAgain} right again on review`, false],
+                [missedDay, '--ov-missed', `${missedDay} missed${slipped ? ` (${slipped} slipped)` : ''}`, false]]
+                .filter(([n, , , always]) => n > 0 || always);
+            const bar = split.filter(([n]) => n > 0).map(([n, v]) => `<span style="flex:${n} 1 0;background:var(${v})"></span>`).join('');
             box.innerHTML = `
-                <div class="flex items-baseline justify-between gap-3 text-xs text-slate-400">
-                    <span>Answered ${dayWord}</span>
-                    <span class="shrink-0">${D.firsts ? `<span style="color:var(--ov-right)">${D.right} right</span> · <span style="color:var(--ov-missed)">${wrong} wrong</span>` : 'No new questions'}</span>
-                </div>
-                <div class="td-bar mt-1.5" role="img" aria-label="${D.answers} ${dayWord}: ${D.right} new right, ${wrong} new wrong, ${plural(reviews, 'review')}; your usual is ${perDay(avg)}">
-                    <span style="width:${(D.answers / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%">${parts}</span>
-                    ${avg >= 0.5 ? `<i style="left:${(avg / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%"></i>` : ''}
-                </div>
-                <p class="mt-1.5 text-[11px] text-slate-400">${D.firsts} new · ${plural(reviews, 'review')} · ${avg >= 0.5 ? `Your usual: ${perDay(avg)}, the average of the 7 days before${D.answers >= avg ? ' · past your usual' : ''}` : 'No practice in the 7 days before'}</p>
-                ${dayQs ? `
-                <div class="mt-4 flex items-baseline justify-between gap-3 text-xs text-slate-400">
-                    <span>Where ${dayWord}'s ${plural(dayQs, 'question')} ended</span>
-                    <span class="shrink-0"><span style="color:var(--ov-right)">${doneDay} done</span> · <span style="color:var(--ov-missed)">${missedDay} missed</span></span>
-                </div>
-                <div class="ov-stack mt-1.5" role="img" aria-label="${plural(dayQs, 'question')} answered ${dayWord}: ${doneDay} done, ${missedDay} missed">${stackSegments({ total: dayQs, right: doneDay, missed: missedDay })}</div>` : ''}
+                <p class="text-xs text-slate-400">Where ${dayWord}'s ${plural(dayQs, 'question')} ended</p>
+                <div class="ov-stack mt-1.5" role="img" aria-label="${plural(dayQs, 'question')} answered ${dayWord}: ${split.map(([, , t]) => t).join(', ')}">${bar}</div>
+                <p class="mt-1.5 text-[11px] text-slate-400">${split.map(([, v, t]) => `<span style="color:var(${v})">${t}</span>`).join(' · ')}</p>
                 ${bests.length ? `<div class="dy-badges mt-3">${bests.map(t => `<span class="dy-badge"><i class="fa-solid fa-trophy" aria-hidden="true"></i>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
                 ${practised.length ? `
                 <p class="mt-3 text-xs text-slate-400">Sections you practised ${dayWord}, right first time</p>
@@ -4993,16 +4998,14 @@
                     <div class="ws-scroll" role="group" aria-label="Sections you practised ${dayWord}, right first time">${practised.map(t => `<span class="fp-chip" data-v="${shade(t)}" title="${t.right} of ${plural(t.n, 'new question')} right first time ${dayWord}">${escapeHtml(t.name)} ${t.right}/${t.n}</span>`).join('')}</div>
                 </div>` : ''}
                 <p class="mt-3 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-fire dy-icon" aria-hidden="true"></i>${streakText}</p>
-                ${pace ? `<p class="mt-1.5 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-flag-checkered dy-icon" aria-hidden="true"></i>${pace}</p>` : ''}
                 ${reviewHtml(rq)}
                 ${flaggedHtml(fq)}
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
                         <li>${isToday ? 'Today so far, against the end of yesterday' : "Yesterday, as you haven't answered anything today yet"}.</li>
-                        <li>The answer count includes new questions and reviews (questions you'd seen before). On its bar, green and red are new questions right and wrong first time, and grey is reviews. The tick is your average over the 7 days before.</li>
                         <li>A question is done when your latest answer to it is right.</li>
-                        <li>The second bar splits the questions you answered that day by where they ended it: done (latest answer right) or missed. A question you got wrong and then right counts as done.</li>
+                        <li>The bar splits the questions you answered that day by where they ended it. Newly done: right, and not done before the day, which is what the Progress chart adds. Right again on review: right, and already done. Missed: wrong, and slipped if it was done before. A question you got wrong and then right the same day counts by its last answer.</li>
                         <li>Each section you practised shows how many of its new questions you got right first time, out of those you saw for the first time: green from ${Math.round(PASS_SHARE * 100)}% (the pass rate), amber from 50%, red below.</li>
                         <li>To redo: questions whose latest answer is wrong. Slipped ones are those you'd answered right before, so you've forgotten something you knew.</li>
                         <li>Due again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
@@ -5030,7 +5033,7 @@
             const data = tl.first === null ? null : chartData(tl);
             const lineKey = dashed => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="var(--ov-line)" stroke-width="2" stroke-linecap="round"${dashed ? ' stroke-dasharray="4 4"' : ''}/></svg>`;
 
-            // where every question stands, the finish date at your pace, and the exam date
+            // where every question stands, the finish date at your two rates, and the exam date
             const key = (v, text) => `<span class="flex items-center gap-1.5"><span class="ov-key" style="background:var(${v})"></span>${text}</span>`;
             let finish;
             if (tl.left === 0) {
@@ -5043,21 +5046,22 @@
                 const when = daysBetween(dates[0], last) <= 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + '–' + fmtDate(last);
                 finish = `<p class="text-sm text-slate-300">Finish all ${tl.total} <span class="font-semibold text-slate-200">≈ ${when}</span></p>`;
             }
-            const paceLine = tl.first === null ? '' : `<p class="mt-1 text-xs text-slate-400">Net pace: ${perDay(tl.paceShort)} over the last ${PACE_SHORT_DAYS} days · ${perDay(tl.paceLong)} over the last ${PACE_LONG_DAYS}</p>`;
+            const paceLine = tl.first === null ? '' : `<p class="mt-1 text-xs text-slate-400">Done a day: ${dayRate(tl.paceShort)} over the last ${PACE_SHORT_DAYS} days · ${dayRate(tl.paceLong)} over the last ${PACE_LONG_DAYS} days</p>`;
             const STATUS = {
                 on: { label: 'On track', chip: 'bg-emerald-500/10 text-emerald-400' },
                 tight: { label: 'Tight', chip: 'bg-amber-500/10 text-amber-400' },
                 behind: { label: 'Behind', chip: 'bg-rose-500/10 text-rose-400' }
             };
             let examLine;
-            if (!tl.exam) examLine = 'Set your exam date to see the pace you need.';
+            if (!tl.exam) examLine = 'Set your exam date to see how many you need done a day.';
             else if (tl.status === 'done') examLine = 'Every question is done; the time before the exam is for review and mock exams.';
             else if (tl.status === 'past') examLine = 'That date has passed; set your next exam date.';
-            else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left (${perDay(tl.needed)} to finish them first).`;
+            else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left, so ${tl.needed} done a day finishes them first.`;
             else {
-                const st = STATUS[tl.status];
-                examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam, needs ${perDay(tl.needed)}; your ${PACE_LONG_DAYS}-day pace is ${perDay(tl.paceLong)}
-                    <span class="inline-block ml-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${st.chip}">${st.label}</span>`;
+                // each of the two rates above against the one needed, by name rather than repeating its number
+                const chip = st => `<span class="inline-block ml-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS[st].chip}">${STATUS[st].label}</span>`;
+                examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam: needs <span class="text-slate-200 font-semibold">${tl.needed} done a day</span>.
+                    <span class="block mt-1.5">Last ${PACE_SHORT_DAYS} days${chip(tl.statusShort)} <span class="text-slate-500">·</span> last ${PACE_LONG_DAYS} days${chip(tl.statusLong)}</span>`;
             }
 
             // the done total's change since the end of yesterday; it falls when a question slips back to wrong
@@ -5083,18 +5087,18 @@
                 </div>
                 ${data ? `
                 <details class="ov-rule" id="ovChartFold"${progressChartOpen() ? ' open' : ''}>
-                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Questions done over time, and where your pace leads</summary>
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Questions done over time, and where your rates lead</summary>
                     <div id="ovChart" class="ov-chart mt-3"></div>
                     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400">
                         <span class="flex items-center gap-1.5">${lineKey(false)}Done so far</span>
-                        ${data.paces.length ? `<span class="flex items-center gap-1.5">${lineKey(true)}Projected at your ${PACE_SHORT_DAYS}- and ${PACE_LONG_DAYS}-day pace</span>` : ''}
+                        ${data.paces.length ? `<span class="flex items-center gap-1.5">${lineKey(true)}Projected at your rates over the last ${PACE_SHORT_DAYS} and ${PACE_LONG_DAYS} days</span>` : ''}
                     </div>
                     <details class="mt-2">
                         <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">Show as a table</summary>
                         <div class="mt-2">${chartTable(tl, data)}</div>
                     </details>
                 </details>` : ''}
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">A question is done when your latest answer to it is right; the finish date and pace are net, so a question that slips back to wrong counts against them.</p>`;
+                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">A question is done when your latest answer to it is right; the finish date and the done-a-day rates are net, so a question that slips back to wrong counts against them.</p>`;
             overviewChart = data ? { tl, data } : null;
             drawProgressChart();
             renderExamForecast();
@@ -5211,6 +5215,8 @@
         function hideTip() {
             document.getElementById('ovTip').hidden = true;
         }
+        // the tooltip is fixed to the window, so a scroll of the page (or of a chip row) would leave it behind
+        addEventListener('scroll', hideTip, { capture: true, passive: true });
 
         // The chart's span: from your first answer to past whichever comes last of the projected finish
         // and the exam date, at least a week ahead and at most a year.
@@ -5376,7 +5382,7 @@
             for (let i = data.days.length - 1; i >= 0 && rows.length < 12; i -= 7) {
                 rows.push(`<tr><td>${escapeHtml(fmtDate(data.days[i].day, DATE_LONG))}</td><td>${data.days[i].done}</td></tr>`);
             }
-            const finish = [['Projected finish, ' + PACE_SHORT_DAYS + '-day pace', tl.finishShort], ['Projected finish, ' + PACE_LONG_DAYS + '-day pace', tl.finishLong]]
+            const finish = [['Projected finish, at the last ' + PACE_SHORT_DAYS + " days' rate", tl.finishShort], ['Projected finish, at the last ' + PACE_LONG_DAYS + " days' rate", tl.finishLong]]
                 .map(([label, at]) => `<tr><td>${label}</td><td>${tl.left === 0 ? 'Done' : at ? escapeHtml(fmtDate(at, DATE_LONG)) : 'No projection'}</td></tr>`).join('');
             return `<table class="ov-table"><thead><tr><th>Day</th><th>Questions done</th></tr></thead><tbody>${rows.join('')}${finish}</tbody></table>`;
         }
