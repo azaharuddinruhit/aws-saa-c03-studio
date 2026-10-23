@@ -67,6 +67,15 @@ body.mm-page{display:flex;flex-direction:column;height:100vh;height:100dvh;overf
 .mm-on .mm-node[data-lv]:not([data-lv="none"]) .mm-score,.mm-panel [data-lv]:not([data-lv="none"]).mm-score{background:var(--lv-soft);color:var(--lv)}
 .mm-on .mm-k-svc[data-lv="none"] .mm-btn{opacity:.8}
 
+/* the top bar's refresh and menu buttons share the menu's grid cell */
+.mm-top-btns{grid-area:theme;justify-self:end;margin-left:auto;display:flex;gap:8px}
+.mm-refresh:hover{border-color:var(--accent)}
+.mm-refresh svg{stroke-linecap:round;stroke-linejoin:round}
+.mm-refresh.busy svg{animation:mmSpin .8s linear infinite}
+@keyframes mmSpin{to{transform:rotate(360deg)}}
+/* what a refresh brought in: bottom centre, clear of the zoom column on the right */
+.mm-toast{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));width:max-content;max-width:min(420px,calc(100vw - 120px));padding:10px 14px;border-radius:12px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 24px rgba(15,23,42,.18);font:500 13px/1.45 var(--sans);animation:mmFade .18s ease-out}
+
 /* floating controls */
 .mm-tb{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 13px var(--sans);box-shadow:var(--shadow);white-space:nowrap}
 .mm-tb:hover{border-color:var(--accent)}
@@ -154,8 +163,10 @@ button.mm-chip:hover,a.mm-chip:hover{border-color:var(--accent)}
 <header class="topbar nosub">
   <div class="topbar-in">
     <span class="brand"><a class="back-link" href="../index.html" aria-label="Back to the progress overview" title="Back to the progress overview"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></span><span class="brand-name">Mind Map</span></span>
-    <span style="margin-left:auto"></span>
-    <button type="button" class="theme-btn menu-btn" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="menuPanel" title="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <span class="mm-top-btns">
+      <button type="button" class="theme-btn mm-refresh" id="refreshBtn" aria-label="Refresh progress" title="Refresh progress: bring in answers from your other devices through GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg></button>
+      <button type="button" class="theme-btn menu-btn" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="menuPanel" title="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </span>
   </div>
 </header>
 
@@ -234,9 +245,26 @@ function questionsOf(n) {
 
 // ---------------------------------------------------------------- progress from the practice quizzes
 // each bank keeps {question id: [[1|0, time, flags], ...]} under its own prefix; the latest answer counts
+// once a refresh has read the gist, its answers are shown merged in (see the refresh button below)
 let attempts = [];
+let remoteBanks = null;
+const lastAt = l => (Array.isArray(l) && l.length ? l[l.length - 1][1] || 0 : 0);
 function readAttempts() {
-  attempts = DATA.banks.map(b => { try { return JSON.parse(localStorage.getItem(b.prefix + 'attempts')) || {}; } catch (e) { return {}; } });
+  attempts = DATA.banks.map(b => {
+    let mine = {}, resetAt = 0;
+    try {
+      mine = JSON.parse(localStorage.getItem(b.prefix + 'attempts')) || {};
+      resetAt = parseInt(localStorage.getItem(b.prefix + 'reset'), 10) || 0;
+    } catch (e) {}
+    const theirs = remoteBanks && remoteBanks[b.key];
+    if (!theirs) return mine;
+    // per question, the copy whose latest answer is newer, leaving out answers from before the latest reset
+    resetAt = Math.max(resetAt, theirs.resetAt || 0);
+    const out = {};
+    for (const [id, l] of Object.entries(mine)) if (lastAt(l) > resetAt) out[id] = l;
+    for (const [id, l] of Object.entries(theirs.attempts || {})) if (lastAt(l) > resetAt && lastAt(l) > lastAt(out[id])) out[id] = l;
+    return out;
+  });
 }
 function latest(qi) {
   const [bi, id] = DATA.questions[qi];
@@ -812,6 +840,72 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
   readAttempts();
   if (overlay) { paintOverlay(); relayout(); }
+});
+
+// ---------------------------------------------------------------- refresh: answers from other devices
+// With Sync with GitHub on (its token is kept in this browser by the Studio, never in a file), the button
+// reads the gist and shows its answers merged with this browser's (readAttempts). It writes nothing, so
+// the Studio's sync stays the one place that merges stored progress; the Studio brings these answers
+// into this browser at its next sync. Without the token it just re-reads this browser.
+const GIST_API = 'https://api.github.com/gists/3839dfa70132a8e1ab3636fdd3f39e16';
+async function fetchGistBanks(token) {
+  const res = await fetch(GIST_API, { cache: 'no-store', headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' } });
+  if (res.status === 401) throw new Error('GitHub rejected the token');
+  if (res.status === 404) throw new Error('gist not found, or the token lacks the gist scope');
+  if (!res.ok) throw new Error('GitHub answered HTTP ' + res.status);
+  const file = (await res.json()).files['progress.json'];
+  if (!file) return {};
+  let text = file.content;
+  if (file.truncated) text = await (await fetch(file.raw_url, { cache: 'no-store' })).text();
+  if (!text.trim()) return {};
+  let remote;
+  try { remote = JSON.parse(text); } catch (e) { throw new Error('progress.json in the gist is not valid JSON'); }
+  return remote && typeof remote.banks === 'object' && remote.banks ? remote.banks : {};
+}
+function toast(msg) {
+  document.querySelectorAll('.mm-toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'mm-toast';
+  t.setAttribute('role', 'status');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+let refreshing = false;
+$('refreshBtn').addEventListener('click', async () => {
+  if (refreshing) return;
+  refreshing = true;
+  const btn = $('refreshBtn');
+  btn.classList.add('busy');
+  btn.setAttribute('aria-busy', 'true');
+  // each question's latest answer, to count the questions a refresh brought newer answers for
+  const latestOf = () => attempts.map(a => Object.fromEntries(Object.entries(a).map(([id, l]) => [id, lastAt(l)])));
+  let note = "Progress refreshed. Turn on Sync with GitHub in the Studio's menu to bring in your other devices.";
+  try {
+    let token = '';
+    try { token = localStorage.getItem('saa_gist_token') || ''; } catch (e) {}
+    readAttempts();
+    const before = latestOf();
+    if (token) {
+      try {
+        remoteBanks = await fetchGistBanks(token);
+        readAttempts();
+        const after = latestOf();
+        const n = after.reduce((sum, a, bi) => sum + Object.keys(a).filter(id => a[id] !== before[bi][id]).length, 0);
+        note = n ? `Synced: ${n} question${n === 1 ? '' : 's'} answered on another device.` : 'Up to date.';
+      } catch (err) {
+        note = 'Sync failed: ' + err.message + '. Showing what this browser has.';
+      }
+    }
+    readAttempts();
+    if (overlay) { paintOverlay(); relayout(); }
+    if (panelFor) showPanel(panelFor);
+  } finally {
+    btn.classList.remove('busy');
+    btn.removeAttribute('aria-busy');
+    refreshing = false;
+  }
+  toast(note);
 });
 
 })();

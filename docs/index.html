@@ -78,22 +78,10 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: none; }
         }
-        /* Pull-to-refresh indicator. Parked above the viewport and moved down by the gesture
-           handler; it only ever appears on touch pulls, so it needs no breakpoint of its own. */
-        #pullIndicator {
-            position: fixed; top: 0; left: 50%; z-index: 60;
-            width: 2.25rem; height: 2.25rem;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 9999px; font-size: .8rem;
-            background: #10B981; color: #04121f;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
-            transform: translate(-50%, -100px); opacity: 0;
-            pointer-events: none;
-        }
-        #pullIndicator.settling { transition: transform .2s ease-out, opacity .2s ease-out; }
-        #pullIndicator.spinning i { animation: ptrSpin .8s linear infinite; }
         @keyframes ptrSpin { to { transform: rotate(360deg); } }
         #refreshBtn.refreshing i { animation: ptrSpin .8s linear infinite; }
+        /* no pull-to-refresh: pulling down at the top does nothing (the refresh button beside the menu syncs) */
+        html, body { overscroll-behavior-y: none; }
         /* keep an overscroll at the end of an inner scroller from rubber-banding the whole shell */
         main, #quizScroll, #optionsContainer { overscroll-behavior-y: contain; }
         /* manipulation keeps panning and pinch but drops the double-tap-to-zoom gesture, which
@@ -369,6 +357,8 @@
         .ov-stack { display: flex; gap: 2px; height: .625rem; border-radius: 9999px; overflow: hidden; }
         .ov-stack.thin { height: .375rem; }
         .ov-stack > span { display: block; height: 100%; }
+        .bk-rows { display: grid; grid-template-columns: max-content minmax(2rem, 1fr) max-content; column-gap: .75rem; row-gap: .625rem; align-items: center; }
+        .bk-row { display: contents; }
         .ov-key { display: inline-block; width: .625rem; height: .625rem; border-radius: 2px; flex-shrink: 0; }
         .ov-chart { position: relative; touch-action: pan-y; }
         .ov-chart svg { display: block; width: 100%; overflow: visible; }
@@ -442,7 +432,8 @@
         .sc-dot { transition: opacity .15s; }
         .sc-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sc-c); margin-right: .4rem; vertical-align: 1px; }
         .td-bar { position: relative; height: 10px; border-radius: 9999px; background: var(--ov-grid); }
-        .td-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--ov-line); }
+        .td-bar > span { display: flex; gap: 2px; height: 100%; border-radius: inherit; overflow: hidden; }
+        .td-bar > span > b { display: block; height: 100%; }
         .td-bar > i { position: absolute; top: -4px; bottom: -4px; margin-left: -1px; border-left: 2px solid var(--ov-ink); border-radius: 1px; }
         .fp-weak { margin-top: .25rem; font-size: 10px; color: var(--ov-missed); }
         .ws-row { position: relative; }
@@ -470,11 +461,15 @@
         .sc-chip:hover { border-color: var(--ov-muted); }
         .sc-chip[aria-pressed="true"] { border-color: var(--sc-c); background: color-mix(in srgb, var(--sc-c) 15%, transparent); }
         .sc-chip:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        /* the tooltip keeps a dark surface in both themes, like the toast */
-        .ov-tip { position: fixed; z-index: 70; pointer-events: none; background: #101522; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, .3);
-                  border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); white-space: nowrap; }
-        .ov-tip b { font-weight: 600; color: #ffffff; }
-        .ov-tip .muted { color: #94a3b8; }
+        /* the tooltips, the charts' (.ov-tip) and every title's (.title-tip), follow the theme; they sit
+           outside the views, so their colours are set on the page rather than read from the --ov- tokens */
+        html:not(.dark) { --tip-bg: #ffffff; --tip-ink: #334155; --tip-strong: #0f172a; --tip-muted: #64748b; --tip-line: #e2e8f0; --tip-shadow: 0 8px 24px rgba(15, 23, 42, .14); }
+        .dark { --tip-bg: #101522; --tip-ink: #e2e8f0; --tip-strong: #ffffff; --tip-muted: #94a3b8; --tip-line: rgba(16, 185, 129, .3); --tip-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+        .ov-tip, .title-tip { position: fixed; z-index: 70; pointer-events: none; background: var(--tip-bg); color: var(--tip-ink); border: 1px solid var(--tip-line);
+                  border-radius: .625rem; padding: .375rem .625rem; font-size: 11px; line-height: 1.45; box-shadow: var(--tip-shadow); white-space: nowrap; }
+        .ov-tip b { font-weight: 600; color: var(--tip-strong); }
+        .ov-tip .muted { color: var(--tip-muted); }
+        .title-tip { z-index: 80; font-size: 12px; white-space: pre-line; overflow-wrap: anywhere; max-width: min(280px, calc(100vw - 16px)); }
         .ov-table { width: 100%; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
         .ov-table th, .ov-table td { text-align: left; padding: .25rem .5rem .25rem 0; border-bottom: 1px solid var(--ov-grid); }
         .ov-table th { font-weight: 500; color: var(--ov-muted); }
@@ -509,10 +504,6 @@
     </script>
 </head>
 <body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex flex-col">
-    <!-- Stands in for the browser's own pull-to-refresh, which cannot fire while the shell keeps
-         the document at overflow: hidden. Driven by the handler at the end of the script. -->
-    <div id="pullIndicator" aria-hidden="true"><i class="fa-solid fa-arrow-rotate-right"></i></div>
-
     <!-- Stays visible on every screen, quizzes included, so the title, theme switch and menu are
          always reachable. The quiz view also has its own back arrow. -->
     <header class="bg-slate-900/60 border-b border-slate-800 shrink-0">
@@ -975,6 +966,7 @@
             delta: { label: 'Set Delta', symbol: 'δ', slug: 'set-delta', file: 'sets/delta.json', prefix: 'set_delta_' }
         };
         const BANK_DATA = ['mistakes', 'flagged', 'attempts'];   // what each bank stores
+        const ATTEMPTS_KEPT = 20;   // answers kept per question: the first and the latest 19
         let bankKey = 'alpha';
         const bankCounts = {};   // bank key -> question count, for the menu; filled as each file is read
         const bankQuestions = {};   // bank key -> its questions, kept once read so the overview can combine every bank
@@ -1028,9 +1020,14 @@
             }
             syncMenuLabel();
             renderAppVersion();
-            // pick up progress saved in other browsers first, but never wait long for GitHub
-            await Promise.race([syncNow(), new Promise(r => setTimeout(r, 5000))]);
+            // pick up progress saved in other browsers first, but never wait long for GitHub. A sync that
+            // finishes after the wait and replaced the active bank re-reads it, or this page would carry on
+            // from the copy it read before and save that over the pulled answers.
+            let waited = false;
+            const firstSync = syncNow();
+            await Promise.race([firstSync, new Promise(r => setTimeout(() => { waited = true; r(); }, 5000))]);
             loadPersistedData();
+            firstSync.then(pulledActive => { if (waited && pulledActive) reloadActiveBank(); });
             loadQuestionBank().then(() => {
                 if (practice && questions.length) {
                     // a new quiz, so any session this tab carried over is replaced rather than restored
@@ -1219,7 +1216,7 @@
             const get = (name, fallback) => {
                 try { const v = localStorage.getItem(p + name); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
             };
-            return { updatedAt: bankUpdated(key), mistakes: get('mistakes', []), flagged: get('flagged', []), attempts: get('attempts', {}) };
+            return { updatedAt: bankUpdated(key), resetAt: get('reset', 0), mistakes: get('mistakes', []), flagged: get('flagged', []), attempts: get('attempts', {}) };
         }
 
         function writeLocalBank(key, bank) {
@@ -1227,7 +1224,45 @@
             localStorage.setItem(p + 'mistakes', JSON.stringify(bank.mistakes || []));
             localStorage.setItem(p + 'flagged', JSON.stringify(bank.flagged || []));
             localStorage.setItem(p + 'attempts', JSON.stringify(bank.attempts || {}));
+            localStorage.setItem(p + 'reset', String(bank.resetAt || 0));
             localStorage.setItem(p + 'updated', String(bank.updatedAt));
+        }
+
+        // Two copies of a bank are merged so that no answer is lost: each question keeps the answers of
+        // both, matched by time, up to the same ATTEMPTS_KEPT as recordAttempt (the first and the latest).
+        // Answers from before the latest reset on either side are left out, so a reset still reaches every
+        // browser. The mistakes and flagged lists come from whichever copy changed last.
+        function mergeAttempts(a, b, resetAt) {
+            const out = {};
+            for (const id of new Set([...Object.keys(a), ...Object.keys(b)])) {
+                const byTime = new Map();
+                for (const e of [...(a[id] || []), ...(b[id] || [])]) {
+                    if (!Array.isArray(e) || (resetAt && !(e[1] > resetAt))) continue;
+                    byTime.set(e[1] + ':' + (e[0] ? 1 : 0), e);
+                }
+                if (!byTime.size) continue;
+                const list = [...byTime.values()].sort((x, y) => x[1] - y[1]);
+                if (list.length > ATTEMPTS_KEPT) list.splice(1, list.length - ATTEMPTS_KEPT);
+                out[id] = list;
+            }
+            return out;
+        }
+
+        function mergeBank(mine, theirs) {
+            const resetAt = Math.max(mine.resetAt || 0, theirs.resetAt || 0);
+            const newer = (theirs.updatedAt || 0) > (mine.updatedAt || 0) ? theirs : mine;
+            return {
+                updatedAt: Math.max(mine.updatedAt || 0, theirs.updatedAt || 0), resetAt,
+                mistakes: newer.mistakes || [], flagged: newer.flagged || [],
+                attempts: mergeAttempts(mine.attempts || {}, theirs.attempts || {}, resetAt)
+            };
+        }
+
+        // what a copy holds, to tell whether a merge changed it
+        function bankSignature(b) {
+            const a = b.attempts || {};
+            return [b.updatedAt || 0, b.resetAt || 0, JSON.stringify(b.mistakes || []), JSON.stringify(b.flagged || []),
+                Object.keys(a).sort().map(id => id + '=' + a[id].map(e => e[1] + (e[0] ? 'r' : 'w')).join(',')).join(';')].join('|');
         }
 
         function localBankHasData(key) {
@@ -1244,7 +1279,8 @@
         function scheduleSync() {
             if (!syncToken()) return;
             clearTimeout(syncTimer);
-            syncTimer = setTimeout(() => syncNow(), SYNC_DELAY);
+            // a sync that rewrote the active bank is followed by a re-read, as everywhere else
+            syncTimer = setTimeout(async () => { if (await syncNow()) reloadActiveBank(); }, SYNC_DELAY);
         }
 
         // Settings that follow you between browsers (for now just the exam date) travel in the gist's
@@ -1317,13 +1353,15 @@
             if (!res.ok) throw new Error('GitHub answered HTTP ' + res.status + ' while saving');
         }
 
-        // Pulls banks that are newer in the gist and pushes banks that are newer here. The active
-        // bank is only replaced while the dashboard is showing; mid-quiz this browser keeps going
-        // and, having changed since, wins at the next save.
+        // Merges each bank with the gist's copy (mergeBank): this browser takes the merge, and the gist does
+        // whenever it lacks something. The active bank is only rewritten here while no quiz needs it; mid-quiz
+        // the page keeps its own copy, and the gist still gets the merge, so the other device's answers
+        // come back here at a later sync.
         // quiet leaves a failure to the caller, which reads it from syncReport
         function syncNow(keepalive = false, quiet = false) {
             if (!syncToken()) return Promise.resolve(false);
             clearTimeout(syncTimer);
+            syncTimer = null;   // no save waiting now, so leaving the tab needn't sync again
             const run = (syncRunning || Promise.resolve()).then(async () => {
                 try {
                     const remote = await fetchRemote();
@@ -1333,17 +1371,19 @@
                     const activeFree = route === 'dashboard' || (route === 'overview' && !quizHoldsActiveBank());
                     for (const key of Object.keys(BANKS)) {
                         const theirs = remote.banks[key];
-                        const localAt = bankUpdated(key);
-                        const theirAt = theirs ? theirs.updatedAt || 0 : 0;
-                        if (theirs && theirAt > localAt) {
-                            if (key === bankKey && !activeFree) continue;
-                            writeLocalBank(key, theirs);
+                        const mine = readLocalBank(key);
+                        if (!theirs) {
+                            if (mine.updatedAt) { remote.banks[key] = mine; push = true; }
+                            continue;
+                        }
+                        const merged = mergeBank(mine, theirs);
+                        const sig = bankSignature(merged);
+                        if (sig !== bankSignature(mine) && (key !== bankKey || activeFree)) {
+                            writeLocalBank(key, merged);
                             pulled = true;
                             if (key === bankKey) pulledActive = true;
-                        } else if (localAt > theirAt) {
-                            remote.banks[key] = readLocalBank(key);
-                            push = true;
                         }
+                        if (sig !== bankSignature(theirs)) { remote.banks[key] = merged; push = true; }
                     }
                     const theirSettings = remote.settings && typeof remote.settings === 'object' ? remote.settings : null;
                     const theirSetAt = theirSettings ? theirSettings.updatedAt || 0 : 0;
@@ -1378,6 +1418,20 @@
             initApp();
             syncPulled();
         }
+
+        // Another Studio tab can change a bank, by answering or by syncing. The active bank is re-read so this
+        // page's copy can't overwrite those answers at its next save, unless a quiz in this tab is still
+        // writing it (as a sync here would leave it); the overview redraws for the others.
+        let storageTimer = null;
+        window.addEventListener('storage', e => {
+            const key = Object.keys(BANKS).find(k => e.key === BANKS[k].prefix + 'updated');
+            if (!key) return;
+            clearTimeout(storageTimer);
+            storageTimer = setTimeout(() => {
+                if (!quizHoldsActiveBank()) reloadActiveBank();
+                else syncPulled();
+            }, 100);
+        });
 
         function syncMenuLabel() {
             document.getElementById('syncToggleLabel').innerText = syncToken() ? 'Sync on · disconnect' : 'Sync with GitHub';
@@ -1423,7 +1477,7 @@
             }
             for (const key of Object.keys(BANKS)) {
                 try {
-                    if (remote.banks[key]) localStorage.setItem(BANKS[key].prefix + 'updated', '0');
+                    if (remote.banks[key]) writeLocalBank(key, remote.banks[key]);
                     else if (localBankHasData(key) && !bankUpdated(key)) localStorage.setItem(BANKS[key].prefix + 'updated', String(Date.now()));
                 } catch (e) {}
             }
@@ -1432,7 +1486,8 @@
                 else if (examDate() && !settingsUpdated()) localStorage.setItem(SETTINGS_UPDATED_KEY, String(Date.now()));
             } catch (e) {}
             syncMenuLabel();
-            if (await syncNow()) reloadActiveBank();
+            await syncNow();
+            reloadActiveBank();
             alertBox('Sync is on. Progress now follows you to any browser with the token.');
         }
 
@@ -1440,7 +1495,7 @@
         document.addEventListener('visibilitychange', async () => {
             if (!syncToken()) return;
             if (document.visibilityState === 'hidden') {
-                if (syncTimer) syncNow(true);
+                if (syncTimer) syncNow(true).then(pulledActive => { if (pulledActive) reloadActiveBank(); });
             } else if (await syncNow()) {
                 reloadActiveBank();
             }
@@ -1557,6 +1612,7 @@
                     `<button type="button" class="qmap-sq" data-s="${state}" data-qid="${q.id}" tabindex="${i ? -1 : 0}" aria-label="Question ${q.id}, ${QMAP_STATES[state].toLowerCase()}"></button>`).join('');
                 const item = document.createElement('div');
                 item.className = "db-sec p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 transition";
+                item.dataset.domain = domain;
                 const open = openSection === domain;
                 const mapId = 'qmap-' + Object.keys(domains).sort(compareDomains).indexOf(domain);
                 item.innerHTML = `
@@ -1612,12 +1668,13 @@
             const container = document.getElementById('domainListContainer');
             const main = document.querySelector('main');
             const card = btn => btn.closest('.db-sec');
-            const before = [...container.querySelectorAll('.db-dots-btn')].find(b => card(b).querySelector('.db-sec-head').title === 'Practice ' + domain);
+            // by data-domain: the tooltip lifts a title off while it shows
+            const before = [...container.querySelectorAll('.db-dots-btn')].find(b => card(b).dataset.domain === domain);
             const top = before ? card(before).getBoundingClientRect().top : null;
             openSection = openSection === domain ? null : domain;
             hideTip();
             renderDomainList();
-            const after = [...container.querySelectorAll('.db-dots-btn')].find(b => card(b).querySelector('.db-sec-head').title === 'Practice ' + domain);
+            const after = [...container.querySelectorAll('.db-dots-btn')].find(b => card(b).dataset.domain === domain);
             if (!after) return;
             if (top !== null) main.scrollTop += card(after).getBoundingClientRect().top - top;
             after.focus({ preventScroll: true });
@@ -2633,7 +2690,7 @@
             const entry = [isCorrect ? 1 : 0, Date.now(), flags];
             if (seconds !== null) entry.push(seconds);
             list.push(entry);
-            if (list.length > 20) list.splice(1, 1); // always keep the first attempt
+            if (list.length > ATTEMPTS_KEPT) list.splice(1, 1); // always keep the first attempt
         }
 
         // Well-Architected pillars: the `pillars` field, or the trailing "Pillar(s): ..." sentence of an older imported bank
@@ -3187,7 +3244,7 @@
             const answered = allBanksAnswered(banks);
             const tl = overviewTimeline(banks);
             renderVerdict(answered, tl);
-            renderOverviewScore(banks, answered);
+            renderOverviewScore(banks, answered, tl);
             renderProgress(tl);
             renderDaily(banks, tl);
             renderForest(banks, answered);
@@ -3250,7 +3307,7 @@
                 }
             }
             return {
-                now, today, total, right, missed, unseen: total - right - missed, left, days, first, latest, doneAt,
+                now, today, total, right, missed, unseen: total - right - missed, left, perBank, days, first, latest, doneAt,
                 paceShort, paceLong, finishShort: finishAt(paceShort), finishLong: finishAt(paceLong),
                 exam, examAt, target, daysToExam, daysToTarget, status, needed
             };
@@ -3287,20 +3344,23 @@
             else say('warn', 'Nearly ready', passText + (tl.unseen ? ', ' + plural(tl.unseen, 'question') + ' unseen' : ''));
         }
 
-        function renderOverviewScore(banks, answered) {
+        function renderOverviewScore(banks, answered, tl) {
             const box = document.getElementById('ovScore');
             const s = examScore(answered, 'all');
-            // each bank's own score beside it; a bank keeps its own cached estimate, shared with the dashboard
+            // each bank: a done / missed / unseen bar as in Progress, its done count, and its own score; a bank
+            // keeps its own cached estimate, shared with the dashboard
             const bankRows = banks.map(b => {
-                const own = answeredIn(b.questions, b.log);
-                const bs = examScore(own, b.key);
+                const bs = examScore(answeredIn(b.questions, b.log), b.key);
+                const c = tl.perBank[b.key];
+                const split = `${c.right} done, ${c.missed} missed, ${c.total - c.right - c.missed} unseen`;
                 return `
-                    <div class="flex items-center justify-between gap-2 text-xs">
-                        <span class="text-slate-300 truncate">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
-                        <span class="text-slate-500 shrink-0">${own.length}/${b.questions.length} answered · <span class="font-semibold ${bs.ready ? bs.tone.text : 'text-slate-500'}">${bs.ready ? bs.shown : '–'}</span></span>
+                    <div class="bk-row text-xs">
+                        <span class="text-slate-300">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
+                        <div class="ov-stack thin" role="img" aria-label="${split}" title="${split}">${stackSegments(c)}</div>
+                        <span class="text-slate-500"><span class="text-slate-300">${c.right} done</span> / ${c.total} · <span class="font-semibold ${bs.ready ? bs.tone.text : 'text-slate-500'}">${bs.ready ? bs.shown : '–'}</span></span>
                     </div>`;
             }).join('');
-            const bankBlock = `<div class="ov-rule space-y-2">${bankRows}</div>`;
+            const bankBlock = `<div class="ov-rule bk-rows">${bankRows}</div>`;
 
             if (!s.ready) {
                 const left = s.min - s.distinct;
@@ -3342,7 +3402,7 @@
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">${rows}</div>
                 ${scoreChartHtml(chart, plan)}
                 ${bankBlock}
-                <p class="mt-3 text-[11px] text-slate-500">All ${plural(s.distinct, 'answered question')} from every bank count toward one estimate, using the same rules as the dashboard. A bank with fewer than ${MIN_ANSWERED} answers has no score of its own yet.</p>`;
+                <p class="mt-3 text-[11px] text-slate-500">All ${plural(s.distinct, 'answered question')} from every bank count toward one estimate, using the same rules as the dashboard. Each bank's bar is done (latest answer right), missed and unseen, as in Progress; a bank with fewer than ${MIN_ANSWERED} answers has no score of its own yet.</p>`;
             drawScoreChart(chart);
         }
 
@@ -4830,16 +4890,20 @@
                     <p class="dy-sub">${line}</p>
                 </div>`;
 
+            // the day's answers as one bar: new questions right, then wrong, first time, then reviews
+            const wrong = D.firsts - D.right, reviews = D.answers - D.firsts;
+            const parts = [[D.right, '--ov-right'], [wrong, '--ov-missed'], [reviews, '--ov-muted']]
+                .filter(([n]) => n > 0).map(([n, v]) => `<b style="flex:${n} 1 0;background:var(${v})"></b>`).join('');
             box.innerHTML = `
                 <div class="flex items-baseline justify-between gap-3 text-xs text-slate-400">
                     <span>Answered ${dayWord}</span>
-                    <span class="shrink-0">${D.firsts} new · ${plural(D.answers - D.firsts, 'review')}</span>
+                    <span class="shrink-0">${D.firsts ? `<span style="color:var(--ov-right)">${D.right} right</span> · <span style="color:var(--ov-missed)">${wrong} wrong</span>` : 'No new questions'}</span>
                 </div>
-                <div class="td-bar mt-1.5" role="img" aria-label="${D.answers} ${dayWord} against your usual ${perDay(avg)}">
-                    <span style="width:${(D.answers / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%"></span>
+                <div class="td-bar mt-1.5" role="img" aria-label="${D.answers} ${dayWord}: ${D.right} new right, ${wrong} new wrong, ${plural(reviews, 'review')}; your usual is ${perDay(avg)}">
+                    <span style="width:${(D.answers / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%">${parts}</span>
                     ${avg >= 0.5 ? `<i style="left:${(avg / Math.max(D.answers, avg, 1) / 1.1 * 100).toFixed(1)}%"></i>` : ''}
                 </div>
-                <p class="mt-1.5 text-[11px] text-slate-400">${avg >= 0.5 ? `Your usual: ${perDay(avg)}, the average of the 7 days before${D.answers >= avg ? ' · past your usual' : ''}` : 'No practice in the 7 days before'}</p>
+                <p class="mt-1.5 text-[11px] text-slate-400">${D.firsts} new · ${plural(reviews, 'review')} · ${avg >= 0.5 ? `Your usual: ${perDay(avg)}, the average of the 7 days before${D.answers >= avg ? ' · past your usual' : ''}` : 'No practice in the 7 days before'}</p>
                 <div class="dy-tiles mt-4">
                     ${tile('Right first time', rate(D), D.firsts ? `${D.right} of ${plural(D.firsts, 'new question')}` : 'No new questions')}
                     ${tile('Seen', `${seen}<span class="dy-of">/${total}</span>`, `+${D.firsts} ${dayWord}`)}
@@ -4857,7 +4921,7 @@
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <ul class="mt-2 space-y-1.5 text-xs text-slate-400 leading-relaxed list-disc pl-4">
                         <li>${isToday ? 'Today so far, against the end of yesterday' : "Yesterday, as you haven't answered anything today yet"}.</li>
-                        <li>The answer count includes new questions and reviews (questions you'd seen before). The tick on its bar is your average over the 7 days before.</li>
+                        <li>The answer count includes new questions and reviews (questions you'd seen before). On its bar, green and red are new questions right and wrong first time, and grey is reviews. The tick is your average over the 7 days before.</li>
                         <li>Right first time counts only questions you saw for the first time.</li>
                         <li>A question is done when your latest answer to it is right.</li>
                         <li>Each section you practised shows how many of its new questions you got right first time, out of those you saw for the first time: green from ${Math.round(PASS_SHARE * 100)}% (the pass rate), amber from 50%, red below.</li>
@@ -4873,6 +4937,12 @@
         // ---- Progress ----
         // The long view, beside the score: where every question stands, when your pace finishes them and what
         // your exam date needs, and questions done over time with where your pace leads.
+        // the segments of an .ov-stack bar: done (latest answer right), missed, then unseen
+        function stackSegments(c) {
+            return [[c.right, '--ov-right'], [c.missed, '--ov-missed'], [c.total - c.right - c.missed, '--ov-unseen']]
+                .filter(([n]) => n > 0).map(([n, v]) => `<span style="flex:${n} 1 0;background:var(${v})"></span>`).join('');
+        }
+
         function renderProgress(tl) {
             const box = document.getElementById('ovProgress');
             hideTip();
@@ -4880,8 +4950,6 @@
             const lineKey = dashed => `<svg width="18" height="6" aria-hidden="true"><line x1="1" y1="3" x2="17" y2="3" stroke="var(--ov-line)" stroke-width="2" stroke-linecap="round"${dashed ? ' stroke-dasharray="4 4"' : ''}/></svg>`;
 
             // where every question stands, the finish date at your pace, and the exam date
-            const segments = c => [[c.right, '--ov-right'], [c.missed, '--ov-missed'], [c.total - c.right - c.missed, '--ov-unseen']]
-                .filter(([n]) => n > 0).map(([n, v]) => `<span style="flex:${n} 1 0;background:var(${v})"></span>`).join('');
             const key = (v, text) => `<span class="flex items-center gap-1.5"><span class="ov-key" style="background:var(${v})"></span>${text}</span>`;
             let finish;
             if (tl.left === 0) {
@@ -4914,7 +4982,7 @@
             box.innerHTML = `
                 <div>
                     <p class="text-3xl font-semibold tracking-tight">${tl.right}<span class="text-base text-slate-500 font-normal"> / ${tl.total} done</span></p>
-                    <div class="ov-stack mt-3" role="img" aria-label="${tl.right} right, ${tl.missed} missed, ${tl.unseen} unseen">${segments({ total: tl.total, right: tl.right, missed: tl.missed })}</div>
+                    <div class="ov-stack mt-3" role="img" aria-label="${tl.right} right, ${tl.missed} missed, ${tl.unseen} unseen">${stackSegments(tl)}</div>
                     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
                         ${key('--ov-right', tl.right + ' right')}${key('--ov-missed', tl.missed + ' missed')}${key('--ov-unseen', tl.unseen + ' unseen')}
                     </div>
@@ -5976,8 +6044,10 @@
             smartReasons = {};
             try {
                 BANK_DATA.forEach(k => localStorage.removeItem(storeKey(k)));
+                // a merge leaves out every answer from before this, so the reset reaches the other browsers too
+                localStorage.setItem(storeKey('reset'), String(Date.now()));
             } catch (e) {}
-            markBankChanged();   // the reset reaches the other browsers too
+            markBankChanged();
         }
 
         function alertBox(msg) {
@@ -6030,66 +6100,56 @@
             }
         }
 
-        // ===== Pull to refresh =====
-        // html/body are locked at overflow:hidden so the app fills the viewport, which means the
-        // document never overscrolls and the browser's own pull-to-refresh can never fire. This
-        // reproduces it on whichever inner pane the finger started in, and only when that pane is
-        // already scrolled to the very top.
+        // ===== Tooltips =====
+        // One themed tooltip for anything with a title, on mouse hover (after a moment) and keyboard focus,
+        // in place of the browser's own, as app.js draws on the cheat sheets. The title is lifted off while
+        // the tooltip shows, so the browser's doesn't show as well, and put back when it hides.
         (function () {
-            const TRIGGER = 72;                 // pull distance that commits to a reload
-            const TRAVEL = 108;                 // furthest the indicator will follow the finger
-            const el = document.getElementById('pullIndicator');
-            if (!('ontouchstart' in window)) return;
-            let startY = 0, dist = 0, pane = null, active = false;
-
-            function scrollPaneAt(node) {
-                for (let n = node; n && n !== document.documentElement; n = n.parentElement) {
-                    const oy = getComputedStyle(n).overflowY;
-                    if (oy === 'auto' || oy === 'scroll') return n;
-                }
-                return null;
+            const tip = document.createElement('div');
+            tip.className = 'title-tip';
+            tip.setAttribute('role', 'tooltip');
+            tip.hidden = true;
+            document.body.append(tip);
+            let on = null, text = '', timer = 0;
+            const place = () => {
+                const r = on.getBoundingClientRect(), t = tip.getBoundingClientRect(), gap = 8;
+                tip.style.left = Math.min(Math.max(8, r.left + r.width / 2 - t.width / 2), innerWidth - t.width - 8) + 'px';
+                // above, or below when there's no room
+                tip.style.top = (r.top - t.height - gap >= 8 ? r.top - t.height - gap : r.bottom + gap) + 'px';
+            };
+            const show = el => {
+                hide();
+                text = el.getAttribute('title');
+                if (!text || !text.trim()) return;
+                on = el;
+                el.removeAttribute('title');
+                tip.textContent = text;
+                tip.hidden = false;
+                place();
+            };
+            function hide() {
+                clearTimeout(timer);
+                if (!on) return;
+                if (!on.hasAttribute('title')) on.setAttribute('title', text);
+                on = null;
+                tip.hidden = true;
             }
-
-            function place(d, settle) {
-                el.classList.toggle('settling', !!settle);
-                el.style.transform = 'translate(-50%, ' + (d > 0 ? Math.min(d, TRAVEL) - 46 : -100) + 'px)';
-                el.style.opacity = d > 0 ? Math.min(1, d / TRIGGER) : 0;
-            }
-
-            document.addEventListener('touchstart', e => {
-                // the Services sheet covers the page, and pulling it down closes it rather than reloading
-                if (e.touches.length !== 1 || servicesOpen) { active = false; return; }
-                pane = scrollPaneAt(e.target);
-                active = !!pane && pane.scrollTop <= 0;
-                startY = e.touches[0].clientY;
-                dist = 0;
-                el.classList.remove('spinning');
-            }, { passive: true });
-
-            document.addEventListener('touchmove', e => {
-                if (!active) return;
-                // a pane that has scrolled away from the top cancels the pull
-                if (pane.scrollTop > 0) { active = false; place(0, true); return; }
-                dist = e.touches[0].clientY - startY;
-                place(dist, false);
-            }, { passive: true });
-
-            document.addEventListener('touchend', () => {
-                if (!active) return;
-                active = false;
-                if (dist >= TRIGGER) {
-                    el.classList.add('spinning');
-                    place(TRIGGER, true);
-                    location.reload();
-                } else {
-                    place(0, true);
-                }
-                dist = 0;
-            }, { passive: true });
-
-            document.addEventListener('touchcancel', () => {
-                active = false; dist = 0; place(0, true);
-            }, { passive: true });
+            document.addEventListener('pointerover', e => {
+                if (e.pointerType !== 'mouse') return;
+                const el = e.target.closest('[title]');
+                if (!el || el === on) return;
+                hide();
+                timer = setTimeout(() => { if (el.isConnected && el.matches(':hover')) show(el); }, 350);
+            });
+            document.addEventListener('pointerout', e => {
+                const to = e.relatedTarget;
+                if (on ? !(to && on.contains(to)) : true) hide();
+            });
+            document.addEventListener('focusin', e => { const el = e.target.closest('[title]'); if (el && el.matches(':focus-visible')) show(el); });
+            document.addEventListener('focusout', hide);
+            for (const ev of ['scroll', 'wheel', 'pointerdown', 'resize']) addEventListener(ev, hide, { capture: true, passive: true });
+            // any key: Escape dismisses it, and Enter or Space can re-render what it points at
+            document.addEventListener('keydown', hide, true);
         })();
 
         // The page this address asks for is shown before any data arrives: the overview with placeholder
