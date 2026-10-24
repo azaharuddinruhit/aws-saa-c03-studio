@@ -411,7 +411,11 @@
         #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
         .dy-badges { display: flex; flex-wrap: wrap; gap: .375rem; }
-        .ef-card { min-width: 0; padding: .625rem .75rem; border: 1px solid var(--ov-grid); border-radius: .875rem; }
+        /* Progress's windows: name, done a day, how far short, exam score, pass chance */
+        .rt-table { display: grid; grid-template-columns: max-content max-content 1fr max-content; column-gap: .5rem; row-gap: .5rem; align-items: baseline; font-variant-numeric: tabular-nums; }
+        .rt-table .rt-r { text-align: right; }
+        .rt-table .rt-h { font-size: 11px; color: var(--ov-muted); }
+        .rt-table .rt-fc[style*="span 2"] { align-self: center; }
         .dy-badge { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; font-size: 11px; font-weight: 600; color: var(--ov-line); background: var(--ov-wash); }
         .dy-icon { margin-right: .375rem; }
         .dy-review { display: inline-flex; align-items: center; gap: .375rem; padding: .3rem .7rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
@@ -3945,44 +3949,43 @@
         function renderExamForecast() {
             const box = document.getElementById('ovExamForecast');
             if (!box) return;
-            const slots = [...box.querySelectorAll('.rt-fc')], all = document.getElementById('ovRateFcAll'), note = document.getElementById('ovRateNote'), status = document.getElementById('ovRateStatus');
-            const clear = () => { slots.forEach(e => { e.innerHTML = ''; }); if (all) all.innerHTML = ''; if (note) note.innerHTML = ''; if (status) status.innerHTML = ''; if (note) note.hidden = true; };
+            const note = document.getElementById('ovRateNote');
+            const cell = (w, k) => box.querySelector(`.rt-fc[data-w="${w}"][data-k="${k}"]`);
+            const heads = [...box.querySelectorAll('.rt-fh')];
+            const clear = () => {
+                box.querySelectorAll('.rt-fc, .rt-fh').forEach(e => { e.innerHTML = ''; e.hidden = false; e.style.gridRow = ''; e.removeAttribute('title'); });
+                if (note) { note.innerHTML = ''; note.hidden = true; }
+            };
             const chart = scoreCharts.all, exam = examDate(), examAt = exam ? dateOf(exam) : null;
             const pts = chart && chart.points;
-            if (examAt === null || daysBetween(Date.now(), examAt) <= 0 || !pts || !pts.length) { clear(); return; }
+            clear();
+            if (examAt === null || daysBetween(Date.now(), examAt) <= 0 || !pts || !pts.length || !heads.length) return;
+            heads[0].innerText = 'Exam score';
+            heads[1].innerText = 'Pass';
             const ready = c => c && c.forecast && c.history && c.plan && c.forecast.key === forecastKey(c.history, c.plan) ? c.forecast.result : null;
             const week = scoreCharts['all:week'];
             // your last 28 days' rate of new questions is the overview chart's forecast, the last 7 days' its own
             const split = !!(week && week.plan && chart.plan && week.plan.n !== chart.plan.n);
-            const byWindow = { long: chart, short: split ? week : chart };
             const results = { long: ready(chart), short: split ? ready(week) : ready(chart) };
-            const when = escapeHtml(fmtDate(examAt, DATE_SHORT, false));
-            if (status) status.innerHTML = '';
-            if (!results.long || !results.long.exam || !results.short || !results.short.exam) {
-                clear();
-                if (status) status.innerText = 'Working out the exam-day forecast…';
-                return;
-            }
-            const figures = (c, fc) => {
+            const pending = !results.long || !results.long.exam || !results.short || !results.short.exam;
+            const fill = (w, fc, span) => {
+                const sc = cell(w, 'score'), pc = cell(w, 'pass');
+                if (span) { sc.style.gridRow = pc.style.gridRow = 'span 2'; }
+                if (!fc) { sc.innerHTML = pc.innerHTML = '<span class="text-slate-500" title="Working out the forecast">…</span>'; return; }
                 // with no new questions to forecast, the score on the day is today's
                 const end = fc.path.length ? fc.path[fc.path.length - 1] : null;
-                const score = end ? end.mid : pts[pts.length - 1].score;
-                return `<p class="sc-figure mt-1"><span class="text-xl font-semibold tracking-tight">${score}</span>${end ? `<span class="text-xs text-slate-500 whitespace-nowrap">${end.lo}–${end.hi}</span>` : ''}</p>
-                        <p class="text-xs text-slate-400"><b class="font-semibold ${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</b> chance of ${PASS_SCORE}</p>`;
+                sc.innerText = end ? end.mid : pts[pts.length - 1].score;
+                if (end) sc.title = `${end.lo}–${end.hi}: the lowest and highest of ${FORECAST_RUNS} simulated runs`;
+                pc.innerHTML = `<span class="${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</span>`;
             };
-            if (split) {
-                for (const slot of slots) {
-                    const w = slot.dataset.w, c = byWindow[w];
-                    slot.innerHTML = `<p class="mt-2.5 pt-2.5 text-[11px] text-slate-400 border-t border-slate-200 dark:border-slate-800">On exam day, ${when}</p>${figures(c, results[w])}`;
-                }
-                if (all) all.innerHTML = '';
-            } else {
-                slots.forEach(e => { e.innerHTML = ''; });
-                const c = chart;
-                if (all) all.innerHTML = `<div class="ef-card mt-3"><p class="text-[11px] text-slate-400">On exam day, ${when}, at either rate</p>${figures(c, results.long)}</div>`;
+            if (split) { fill('short', pending ? null : results.short); fill('long', pending ? null : results.long); }
+            else {
+                fill('short', pending ? null : results.long, true);
+                cell('long', 'score').hidden = cell('long', 'pass').hidden = true;
             }
+            if (pending) return;
             const rising = results.long.trend === 'rising';
-            if (note) { note.hidden = false; note.innerText = `${split ? "Each forecast assumes you keep starting new questions at that window's rate" : chart.plan.limit === 'unseen' ? "This assumes you work through the questions you haven't seen yet" : 'This assumes you keep starting new questions at that rate'}${!split && chart.plan.limit === 'unseen' ? '' : ' until the exam'}${rising ? ', and keep improving as you have lately' : ''}. The score is the middle of ${FORECAST_RUNS} simulated runs, with the lowest and highest beside it, and the chance allows for any days without practice before the exam.`; }
+            if (note) { note.hidden = false; note.innerText = `${split ? "The exam score and pass chance assume you keep starting new questions at each window's rate" : chart.plan.limit === 'unseen' ? "The exam score and pass chance are the same for both windows: they assume you work through the questions you haven't seen yet" : 'The exam score and pass chance assume you keep starting new questions at that rate'}${!split && chart.plan.limit === 'unseen' ? '' : ' until the exam'}${rising ? ', and keep improving as you have lately' : ''}. The score is the middle of ${FORECAST_RUNS} simulated runs (hover it for the lowest and highest), and the chance allows for any days without practice before the exam.`; }
         }
 
         // From a score card's "Set your exam date": the Progress card's date field, on the overview, focused.
@@ -4519,9 +4522,9 @@
                 <details class="mt-4">
                     <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
                     <ul class="mt-2 space-y-1.5 text-[11px] text-slate-500 leading-relaxed list-disc pl-4">
-                        <li>Each dot is the first time you answered a question, green if right and red if wrong, placed across by how long it took. Each row is a section, slowest first, and its tick is the section's typical (median) time.</li>
+                        <li>Each dot is the first time you answered a question, green if right and red if wrong, placed across by how long it took. Each row is a section, slowest first by its typical (median) time.</li>
                         <li>Repeats aren't counted: you read a question faster once you've seen it, and the exam is all first sightings. Speed and accuracy counts the same way.</li>
-                        <li>The dashed line is the ${target} target, the exam's pace.${pace ? ` Answers longer than ${fmt(pace.xHi)} sit on the right edge as rings.` : ''}</li>
+                        ${pace ? `<li>Answers longer than ${fmt(pace.xHi)} sit on the right edge as rings.</li>` : ''}
                         <li>The figures at the top and the dots use the same answers. Answers from before timing began have no time, and more than ${AWAY_SECONDS / 60} minutes on one question counts as a break.</li>
                         ${thin.length ? `<li>Fewer than ${tries(PACE_MIN_ANSWERS)} yet: ${thin.map(escapeHtml).join(', ')}.</li>` : ''}
                     </ul>
@@ -4545,12 +4548,11 @@
             const step = pace.xHi <= 240 ? 30 : pace.xHi <= 600 ? 60 : 120;
             for (let sec = 0; sec <= pace.xHi; sec += step) {
                 parts.push(`<line x1="${x(sec)}" x2="${x(sec)}" y1="${m.top + LABEL}" y2="${bottom}" stroke="var(--ov-grid)" stroke-width="1"/>`);
-                if (Math.abs(sec - TARGET_SECONDS) >= step && (W >= 500 || sec % 60 === 0)) parts.push(`<text x="${x(sec)}" y="${bottom + 14}" text-anchor="${sec ? (sec === pace.xHi ? 'end' : 'middle') : 'start'}">${fmt(sec)}</text>`);
+                if (W >= 500 || sec % 60 === 0) parts.push(`<text x="${x(sec)}" y="${bottom + 14}" text-anchor="${sec ? (sec === pace.xHi ? 'end' : 'middle') : 'start'}">${fmt(sec)}</text>`);
             }
             pace.rows.forEach((r, i) => {
                 const top = m.top + i * ROW, y0 = top + LABEL + 2, mid = y0 + STRIP / 2;
                 parts.push(`<text class="sc-name" x="${m.left}" y="${top + 10}">${escapeHtml(r.name)}</text>`);
-                parts.push(`<text x="${W - m.right}" y="${top + 10}" text-anchor="end"><tspan class="sc-strong">${fmt(r.typical)}</tspan> · ${r.list.length}</text>`);
                 parts.push(`<rect x="${m.left}" y="${y0}" width="${iw}" height="${STRIP}" rx="4" fill="var(--ov-grid)" fill-opacity=".35"/>`);
                 // right answers first, so the wrong ones stay visible on top
                 for (const t of r.list.slice().sort((a, b) => b.right - a.right)) {
@@ -4561,11 +4563,7 @@
                         : `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3.2" fill="${colour}" fill-opacity=".8"/>`);
                     dots.push({ t, cx, cy });
                 }
-                parts.push(`<line x1="${x(r.typical)}" x2="${x(r.typical)}" y1="${y0 - 2}" y2="${y0 + STRIP + 2}" stroke="var(--ov-ink)" stroke-width="2" stroke-linecap="round"/>`);
             });
-            const tx = x(TARGET_SECONDS);
-            parts.push(`<line x1="${tx}" x2="${tx}" y1="${m.top + LABEL}" y2="${bottom}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
-            parts.push(`<text x="${tx}" y="${bottom + 14}" text-anchor="middle" class="sc-strong">${fmt(TARGET_SECONDS)} target</text>`);
             const summary = 'Typical time per question by section, slowest first: ' + pace.rows.map(r => `${r.name} ${fmt(r.typical)} from ${r.list.length} first ${r.list.length === 1 ? 'try' : 'tries'}`).join(', ');
             holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
 
@@ -5062,32 +5060,26 @@
                 const when = daysBetween(dates[0], last) <= 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + '–' + fmtDate(last);
                 finish = `<p class="text-sm text-slate-300">Finish all ${tl.total} <span class="font-semibold text-slate-200">≈ ${when}</span></p>`;
             }
-            const STATUS = {
-                on: { label: 'On track', chip: 'bg-emerald-500/10 text-emerald-400' },
-                tight: { label: 'Tight', chip: 'bg-amber-500/10 text-amber-400' },
-                behind: { label: 'Behind', chip: 'bg-rose-500/10 text-rose-400' }
-            };
             let examLine;
             if (!tl.exam) examLine = 'Set your exam date to see how many you need done a day.';
             else if (tl.status === 'done') examLine = 'Every question is done; the time before the exam is for review and mock exams.';
             else if (tl.status === 'past') examLine = 'That date has passed; set your next exam date.';
             else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left, so ${tl.needed} done a day finishes them first.`;
-            else examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam: needs <span class="text-slate-200 font-semibold">${tl.needed} done a day</span>.`;
-            // a column for each window: its done rate, where that stands against the rate needed, and (filled in by
-            // renderExamForecast) the exam day at that window's rate of new questions
-            const chip = st => st ? `<span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS[st].chip}">${STATUS[st].label}</span>` : '';
-            const column = (w, days, rate, st) => `
-                    <div class="ef-card">
-                        <p class="text-[11px] text-slate-400">Last ${days} days</p>
-                        <p class="text-2xl font-semibold tracking-tight leading-tight">${rate < 0 ? '−' : ''}${dayRate(rate)}</p>
-                        <p class="text-[11px] text-slate-500">done a day</p>
-                        ${chip(st)}
-                        <div class="rt-fc" data-w="${w}"></div>
-                    </div>`;
+            else examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before your exam on ${fmtDate(tl.examAt)}: needs <span class="text-slate-200 font-semibold">${tl.needed} done a day</span>.`;
+            // a row for each window: its done rate and
+            // (filled in by renderExamForecast) the exam-day score and pass chance at that window's rate of new questions
+            const row = (w, days, rate, st) => `
+                        <span class="text-xs text-slate-400">Last ${days} days</span>
+                        <span class="rt-r text-base font-semibold text-slate-200">${rate < 0 ? '−' : ''}${dayRate(rate)}</span>
+                        <span class="rt-fc rt-r text-base font-semibold text-slate-200" data-w="${w}" data-k="score"></span>
+                        <span class="rt-fc rt-r text-sm font-semibold" data-w="${w}" data-k="pass"></span>`;
             const rates = tl.first === null ? '' : `
-                    <div class="grid grid-cols-2 gap-3 mt-3">${column('short', PACE_SHORT_DAYS, tl.paceShort, tl.statusShort)}${column('long', PACE_LONG_DAYS, tl.paceLong, tl.statusLong)}</div>
-                    <div id="ovRateFcAll"></div>
-                    <p id="ovRateStatus" class="mt-2 text-[11px] text-slate-500"></p>`;
+                    <div class="rt-table mt-3">
+                        <span></span>
+                        <span class="rt-h rt-r">Done a day</span>
+                        <span class="rt-fh rt-h rt-r"></span>
+                        <span class="rt-fh rt-h rt-r"></span>${row('short', PACE_SHORT_DAYS, tl.paceShort, tl.statusShort)}${row('long', PACE_LONG_DAYS, tl.paceLong, tl.statusLong)}
+                    </div>`;
 
             // the done total's change since the end of yesterday; it falls when a question slips back to wrong
             const moved = tl.right - tl.doneAt(tl.today - 1);
