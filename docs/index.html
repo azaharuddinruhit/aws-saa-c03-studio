@@ -3945,33 +3945,44 @@
         function renderExamForecast() {
             const box = document.getElementById('ovExamForecast');
             if (!box) return;
+            const slots = [...box.querySelectorAll('.rt-fc')], all = document.getElementById('ovRateFcAll'), note = document.getElementById('ovRateNote'), status = document.getElementById('ovRateStatus');
+            const clear = () => { slots.forEach(e => { e.innerHTML = ''; }); if (all) all.innerHTML = ''; if (note) note.innerHTML = ''; if (status) status.innerHTML = ''; if (note) note.hidden = true; };
             const chart = scoreCharts.all, exam = examDate(), examAt = exam ? dateOf(exam) : null;
             const pts = chart && chart.points;
-            if (examAt === null || daysBetween(Date.now(), examAt) <= 0 || !pts || !pts.length) { box.innerHTML = ''; return; }
-            const head = `<p class="mt-4 text-xs text-slate-400">On exam day, ${escapeHtml(fmtDate(examAt, DATE_LONG, false))}</p>`;
-            // the scenarios: your rate of new questions over the last 28 days, and over the last 7 when it differs
+            if (examAt === null || daysBetween(Date.now(), examAt) <= 0 || !pts || !pts.length) { clear(); return; }
             const ready = c => c && c.forecast && c.history && c.plan && c.forecast.key === forecastKey(c.history, c.plan) ? c.forecast.result : null;
             const week = scoreCharts['all:week'];
-            const charts = [chart].concat(week && week.plan && chart.plan && week.plan.n !== chart.plan.n ? [week] : []);
-            const results = charts.map(ready);
-            if (results.some(fc => !fc || !fc.exam)) { box.innerHTML = head + '<p class="mt-1 text-xs text-slate-500">Working out the forecast…</p>'; return; }
-            const card = (c, fc) => {
+            // your last 28 days' rate of new questions is the overview chart's forecast, the last 7 days' its own
+            const split = !!(week && week.plan && chart.plan && week.plan.n !== chart.plan.n);
+            const byWindow = { long: chart, short: split ? week : chart };
+            const results = { long: ready(chart), short: split ? ready(week) : ready(chart) };
+            const when = escapeHtml(fmtDate(examAt, DATE_SHORT, false));
+            if (status) status.innerHTML = '';
+            if (!results.long || !results.long.exam || !results.short || !results.short.exam) {
+                clear();
+                if (status) status.innerText = 'Working out the exam-day forecast…';
+                return;
+            }
+            const figures = (c, fc) => {
                 // with no new questions to forecast, the score on the day is today's
                 const end = fc.path.length ? fc.path[fc.path.length - 1] : null;
                 const score = end ? end.mid : pts[pts.length - 1].score;
-                const rate = c.plan.pace ? `${dayRate(c.plan.pace)} new questions a day` : 'no new questions';
-                return `
-                    <div class="ef-card">
-                        <p class="text-[11px] text-slate-400">At the last ${c.plan.days} days' rate</p>
-                        <p class="text-[11px] text-slate-500">${rate}</p>
-                        <p class="sc-figure mt-1.5"><span class="text-2xl font-semibold tracking-tight">${score}</span>${end ? `<span class="text-xs text-slate-500 whitespace-nowrap">${end.lo}–${end.hi}</span>` : ''}</p>
-                        <p class="text-xs text-slate-400"><b class="font-semibold ${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</b> chance of ${PASS_SCORE}</p>
-                    </div>`;
+                return `<p class="sc-figure mt-1"><span class="text-xl font-semibold tracking-tight">${score}</span>${end ? `<span class="text-xs text-slate-500 whitespace-nowrap">${end.lo}–${end.hi}</span>` : ''}</p>
+                        <p class="text-xs text-slate-400"><b class="font-semibold ${estimateTone(fc.exam.chance).text}">${Math.round(fc.exam.chance * 100)}%</b> chance of ${PASS_SCORE}</p>`;
             };
-            const rising = results[0].trend === 'rising';
-            box.innerHTML = head + `
-                <div class="mt-1.5 grid ${charts.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-3">${charts.map((c, i) => card(c, results[i])).join('')}</div>
-                <p class="mt-1.5 text-[11px] text-slate-500 leading-relaxed">${charts.length > 1 ? 'Each assumes you keep starting new questions at that rate' : 'Assumes you keep starting new questions at that rate'} until the exam${rising ? ', and keep improving as you have lately' : ''}. The score is the middle of ${FORECAST_RUNS} simulated runs, with the lowest and highest beside it, and the chance allows for any days without practice before the exam.</p>`;
+            if (split) {
+                for (const slot of slots) {
+                    const w = slot.dataset.w, c = byWindow[w];
+                    slot.innerHTML = `<p class="mt-2.5 pt-2.5 text-[11px] text-slate-400 border-t border-slate-200 dark:border-slate-800">On exam day, ${when}</p>${figures(c, results[w])}`;
+                }
+                if (all) all.innerHTML = '';
+            } else {
+                slots.forEach(e => { e.innerHTML = ''; });
+                const c = chart;
+                if (all) all.innerHTML = `<div class="ef-card mt-3"><p class="text-[11px] text-slate-400">On exam day, ${when}, at either rate</p>${figures(c, results.long)}</div>`;
+            }
+            const rising = results.long.trend === 'rising';
+            if (note) { note.hidden = false; note.innerText = `${split ? "Each forecast assumes you keep starting new questions at that window's rate" : chart.plan.limit === 'unseen' ? "This assumes you work through the questions you haven't seen yet" : 'This assumes you keep starting new questions at that rate'}${!split && chart.plan.limit === 'unseen' ? '' : ' until the exam'}${rising ? ', and keep improving as you have lately' : ''}. The score is the middle of ${FORECAST_RUNS} simulated runs, with the lowest and highest beside it, and the chance allows for any days without practice before the exam.`; }
         }
 
         // From a score card's "Set your exam date": the Progress card's date field, on the overview, focused.
@@ -5051,7 +5062,6 @@
                 const when = daysBetween(dates[0], last) <= 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + '–' + fmtDate(last);
                 finish = `<p class="text-sm text-slate-300">Finish all ${tl.total} <span class="font-semibold text-slate-200">≈ ${when}</span></p>`;
             }
-            const paceLine = tl.first === null ? '' : `<p class="mt-1 text-xs text-slate-400">Done a day: ${dayRate(tl.paceShort)} over the last ${PACE_SHORT_DAYS} days · ${dayRate(tl.paceLong)} over the last ${PACE_LONG_DAYS} days</p>`;
             const STATUS = {
                 on: { label: 'On track', chip: 'bg-emerald-500/10 text-emerald-400' },
                 tight: { label: 'Tight', chip: 'bg-amber-500/10 text-amber-400' },
@@ -5062,12 +5072,22 @@
             else if (tl.status === 'done') examLine = 'Every question is done; the time before the exam is for review and mock exams.';
             else if (tl.status === 'past') examLine = 'That date has passed; set your next exam date.';
             else if (tl.status === 'review') examLine = `Exam in ${plural(tl.daysToExam, 'day')}: review week has started with ${plural(tl.left, 'question')} left, so ${tl.needed} done a day finishes them first.`;
-            else {
-                // each of the two rates above against the one needed, by name rather than repeating its number
-                const chip = st => `<span class="inline-block ml-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS[st].chip}">${STATUS[st].label}</span>`;
-                examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam: needs <span class="text-slate-200 font-semibold">${tl.needed} done a day</span>.
-                    <span class="block mt-1.5">Last ${PACE_SHORT_DAYS} days${chip(tl.statusShort)} <span class="text-slate-500">·</span> last ${PACE_LONG_DAYS} days${chip(tl.statusLong)}</span>`;
-            }
+            else examLine = `To be done by <span class="text-slate-200 font-semibold">${fmtDate(tl.target)}</span>, a week before the exam: needs <span class="text-slate-200 font-semibold">${tl.needed} done a day</span>.`;
+            // a column for each window: its done rate, where that stands against the rate needed, and (filled in by
+            // renderExamForecast) the exam day at that window's rate of new questions
+            const chip = st => st ? `<span class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS[st].chip}">${STATUS[st].label}</span>` : '';
+            const column = (w, days, rate, st) => `
+                    <div class="ef-card">
+                        <p class="text-[11px] text-slate-400">Last ${days} days</p>
+                        <p class="text-2xl font-semibold tracking-tight leading-tight">${rate < 0 ? '−' : ''}${dayRate(rate)}</p>
+                        <p class="text-[11px] text-slate-500">done a day</p>
+                        ${chip(st)}
+                        <div class="rt-fc" data-w="${w}"></div>
+                    </div>`;
+            const rates = tl.first === null ? '' : `
+                    <div class="grid grid-cols-2 gap-3 mt-3">${column('short', PACE_SHORT_DAYS, tl.paceShort, tl.statusShort)}${column('long', PACE_LONG_DAYS, tl.paceLong, tl.statusLong)}</div>
+                    <div id="ovRateFcAll"></div>
+                    <p id="ovRateStatus" class="mt-2 text-[11px] text-slate-500"></p>`;
 
             // the done total's change since the end of yesterday; it falls when a question slips back to wrong
             const moved = tl.right - tl.doneAt(tl.today - 1);
@@ -5079,7 +5099,7 @@
                     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
                         ${key('--ov-right', tl.right + ' right')}${key('--ov-missed', tl.missed + ' missed')}${key('--ov-unseen', tl.unseen + ' unseen')}
                     </div>
-                    <div class="mt-3">${finish}${paceLine}</div>
+                    <div class="mt-3">${finish}</div>
                 </div>
                 <div class="ov-rule">
                     <label for="ovExamDate" class="text-xs text-slate-400">Exam date</label>
@@ -5088,7 +5108,7 @@
                         ${tl.exam ? '<button type="button" onclick="onExamDateChange(\'\')" class="text-xs text-slate-400 hover:text-slate-300 transition">Clear</button>' : ''}
                     </div>
                     <p class="mt-2 text-xs text-slate-400 leading-relaxed">${examLine}</p>
-                    <div id="ovExamForecast"></div>
+                    <div id="ovExamForecast">${rates}</div>
                 </div>
                 ${data ? `
                 <details class="ov-rule" id="ovChartFold"${progressChartOpen() ? ' open' : ''}>
@@ -5103,7 +5123,13 @@
                         <div class="mt-2">${chartTable(tl, data)}</div>
                     </details>
                 </details>` : ''}
-                <p class="mt-4 text-[11px] text-slate-500 leading-relaxed">A question is done when your latest answer to it is right; the finish date and the done-a-day rates are net, so a question that slips back to wrong counts against them.</p>`;
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
+                    <ul class="mt-2 space-y-1.5 text-[11px] text-slate-500 leading-relaxed list-disc pl-4">
+                        <li>A question is done when your latest answer to it is right; the finish date and the done-a-day rates are net, so a question that slips back to wrong counts against them.</li>
+                        <li id="ovRateNote"></li>
+                    </ul>
+                </details>`;
             overviewChart = data ? { tl, data } : null;
             drawProgressChart();
             renderExamForecast();
