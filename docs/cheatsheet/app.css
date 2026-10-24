@@ -1,6 +1,6 @@
 /* SAA-C03 cheat sheets: shared styles */
 :root{
-  --bg:#F4F7F6; --surface:#FFFFFF; --surface-2:#EAF0EE; --ink:#0F172A; --muted:#556170; --line:#D8E1DE;
+  --bg:#F4F7F6; --surface:#FFFFFF; --surface-2:#EAF0EE; --ink:#0F172A; --brand-ink:#1E293B; --brand-hover:#34D399; --muted:#556170; --line:#D8E1DE;
   --accent:#0B8F63; --accent-ink:#FFFFFF; --accent-soft:#D5F3E6; --aws:#C45A00; --aws-soft:#FDEBDB;
   --good:#067A55; --tree-no:#7C8896; --good-soft:#D7F4E7; --bad:#C62828; --bad-soft:#FBE1E1; --warn:#A15C00; --warn-soft:#FBEBCF;
   --shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.05);
@@ -10,7 +10,7 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0F172A; --surface:#1A222C; --surface-2:#232E3A; --ink:#E6EDF3; --muted:#9AA8B8; --line:#2E3A48;
+    --bg:#0F172A; --surface:#1A222C; --surface-2:#232E3A; --ink:#E6EDF3; --brand-ink:#F1F5F9; --brand-hover:#34D399; --muted:#9AA8B8; --line:#2E3A48;
     --accent:#10B981; --accent-ink:#06261B; --accent-soft:#113D31; --aws:#FF9A3C; --aws-soft:#3A2614;
     --good:#34D399; --tree-no:#7D8B9C; --good-soft:#0F3A2C; --bad:#F87171; --bad-soft:#3F1D1D; --warn:#FBBF24; --warn-soft:#3A2E12;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
@@ -18,7 +18,7 @@
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0F172A; --surface:#1A222C; --surface-2:#232E3A; --ink:#E6EDF3; --muted:#9AA8B8; --line:#2E3A48;
+  --bg:#0F172A; --surface:#1A222C; --surface-2:#232E3A; --ink:#E6EDF3; --brand-ink:#F1F5F9; --brand-hover:#34D399; --muted:#9AA8B8; --line:#2E3A48;
   --accent:#10B981; --accent-ink:#06261B; --accent-soft:#113D31; --aws:#FF9A3C; --aws-soft:#3A2614;
   --good:#34D399; --tree-no:#7D8B9C; --good-soft:#0F3A2C; --bad:#F87171; --bad-soft:#3F1D1D; --warn:#FBBF24; --warn-soft:#3A2E12;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
@@ -40,10 +40,17 @@ b,strong{font-weight:700}
 /* ---------- top bar: brand · modes · theme ---------- */
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .topbar-in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
-.brand{display:flex;align-items:center;gap:8px;font-weight:800;white-space:nowrap;color:var(--ink);font-size:14px;text-decoration:none}
-.brand-mark{width:26px;height:26px;flex:none;display:block}
+/* the title, as the Studio's: semibold, 16px (14px on phones), the 32px logo; "AWS SAA-C03 Studio" links to
+   the Studio, then "· <page>" in a lighter colour links to that page's hub */
+.brand{display:flex;align-items:center;gap:12px;min-width:0;white-space:nowrap;color:var(--brand-ink);font-size:16px;font-weight:600;letter-spacing:-.025em;line-height:1.25}
+.brand-title a{color:inherit;text-decoration:none}
+.brand-mark{width:32px;height:32px;flex:none;display:block}
 .brand-mark svg{width:100%;height:100%;display:block}
-@media (max-width:520px){.brand-name{display:none}}
+.brand-title{display:flex;align-items:baseline;min-width:0}
+.brand-app{flex:none;transition:color .15s}
+.brand .brand-page{color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
+.brand-page::before{content:"·";margin:0 .45em}
+a.brand-app:hover,a.brand-page:hover{color:var(--brand-hover)}
 .back-link{flex:none;width:26px;height:26px;margin-left:-6px;border-radius:7px;display:grid;place-items:center;color:var(--muted)}
 .back-link:hover{background:var(--surface-2);color:var(--ink)}
 .back-link svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -396,12 +403,12 @@ td:first-child{font-weight:600}
 
 /* ================= layout v2: sticky topic bar + phone-first tweaks ================= */
 :root{--head-h:112px}
-.topbar-in{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"brand modes theme" "sub sub sub";column-gap:12px;row-gap:0;padding-bottom:0}
+.topbar-in{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:56px auto;grid-template-areas:"brand modes theme" "sub sub sub";column-gap:12px;row-gap:0;padding-top:0;padding-bottom:0}
 .brand{grid-area:brand}
 .top-modes{grid-area:modes;justify-self:center;margin:0}
 .theme-btn{grid-area:theme}
 .topbar .subtabs{grid-area:sub;padding-block:8px 10px;position:relative;min-width:0}
-.topbar.nosub .topbar-in{padding-bottom:10px}
+.topbar.nosub .topbar-in{padding-bottom:0}
 .bottombar{display:none}
 .quiz-card,.rev-sec{scroll-margin-top:calc(var(--head-h) + 12px)}
 .q-nav{scroll-margin-bottom:24px}
@@ -411,11 +418,13 @@ td:first-child{font-weight:600}
 
 @media (max-width:640px){
   :root{--head-h:58px}
-  .topbar-in{grid-template-areas:"brand sub theme";padding-block:8px;column-gap:10px}
-  .topbar.nosub .topbar-in{padding-bottom:8px}
+  .topbar-in{grid-template-areas:"brand sub theme";grid-template-rows:56px;padding-block:0;column-gap:10px}
+  .topbar.nosub .topbar-in{padding-bottom:0}
   .top-modes{display:none}
-  .brand-name{display:none}
-  .topbar.nosub .brand-name{display:inline}
+  /* phones: the logo stands for the brand, so only the page's name shows, and not at all where a sheet's tabs need the room */
+  .brand{font-size:14px}
+  .brand-app,.brand-page::before{display:none}
+  .topbar:not(.nosub) .brand-title{display:none}
   .topbar .subtabs{padding-block:0;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 22px),transparent);padding-inline:6px 18px}
   .subtabs button{padding:5px 10px 5px 6px;font-size:12.5px}
   .subtabs button.noico{padding-left:10px}

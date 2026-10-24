@@ -475,7 +475,7 @@ function shellHTML(cfg){
       <button data-mode="revise" class="rev">${cls?'':ICON_SVG.revise}Revise</button></div>`;
   return {
     header: `<header class="topbar"><div class="topbar-in">
-      <a class="brand" href="index.html" title="All domains"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></span><span class="brand-name">${cfg.title}</span></a>
+      <span class="brand"><a class="brand-mark" href="../index.html" title="Progress overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></a><span class="brand-title"><a class="brand-app" href="../index.html" title="Progress overview">AWS SAA-C03 Studio</a><a class="brand-page" href="index.html" title="All cheat sheets">${cfg.title}</a></span></span>
       ${modes('top-modes')}
       ${MENU_BUTTON}
       <nav class="subtabs" id="subLearn" aria-label="Topics"></nav>

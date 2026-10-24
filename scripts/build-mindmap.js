@@ -46,7 +46,7 @@ for (const f of fs.readdirSync(SHEETS).filter(f => /^\d\d-.*\.html$/.test(f))) {
 }
 const sheetTitle = f => {
   const s = fs.readFileSync(path.join(SHEETS, f), 'utf8');
-  return (/<title>AWS SAA-C03 (.*?) Cheat Sheet<\/title>/.exec(s) || [, f])[1];
+  return (/<title>(.*?) Cheat Sheet · AWS SAA-C03 Studio<\/title>/.exec(s) || [, f])[1];
 };
 
 // the architecture diagrams: number, title and the icons each one draws
@@ -119,6 +119,12 @@ for (const name of order) {
   delete sv.fallback;
 }
 
+// a service no question is tagged with is left out of the map, and out of other services' twins, until one is
+const empty = order.filter(n => !services[n].q.length);
+for (const n of empty) delete services[n];
+order.splice(0, order.length, ...order.filter(n => services[n]));
+for (const sv of Object.values(services)) sv.twins = sv.twins.filter(t => services[t]);
+
 if (problems.length) {
   console.error(problems.map(p => '  ' + p).join('\n'));
   console.error(`build-mindmap: ${problems.length} problem(s), page not written`);
@@ -144,3 +150,4 @@ page = page.replace(/\r?\n/g, eol);
 fs.writeFileSync(PAGE, page);
 const placed = DOMAINS.map(d => `${d.short} ${order.filter(n => services[n].domain === d.n).length}`).join(', ');
 console.log(`wrote ${order.length} services and ${questions.length} questions to ${path.relative(process.cwd(), PAGE)} (${placed})`);
+if (empty.length) console.log(`left out, with no questions tagged: ${empty.join(', ')}`);

@@ -354,8 +354,13 @@
         .ov-stack { display: flex; gap: 2px; height: .625rem; border-radius: 9999px; overflow: hidden; }
         .ov-stack.thin { height: .375rem; }
         .ov-stack > span { display: block; height: 100%; }
-        .bk-rows { display: grid; grid-template-columns: max-content minmax(2rem, 1fr) max-content; column-gap: .75rem; row-gap: .625rem; align-items: center; }
+        /* name, bar, done, total and score each in a column of their own, so the figures line up from row to row */
+        .bk-rows { display: grid; grid-template-columns: max-content minmax(2rem, 1fr) max-content max-content max-content; column-gap: .5rem; row-gap: .625rem; align-items: center; }
         .bk-row { display: contents; }
+        .bk-row > .ov-stack { margin-inline: .25rem; }
+        .bk-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .bk-row > .bk-num:last-child { margin-left: .25rem; }
+        .bk-sym { display: inline-block; width: 1em; margin-right: .25rem; text-align: center; }
         .ov-key { display: inline-block; width: .625rem; height: .625rem; border-radius: 2px; flex-shrink: 0; }
         .ov-chart { position: relative; touch-action: pan-y; }
         .ov-chart svg { display: block; width: 100%; overflow: visible; }
@@ -379,7 +384,9 @@
         .fp-row[data-v="strong"], .fp-chip[data-v="strong"] { --fp-c: var(--ov-right); }
         .fp-row > summary { list-style: none; cursor: pointer; padding: .5rem .625rem; border-radius: calc(.875rem - 1px); transition: background-color .15s; }
         .fp-row > summary::-webkit-details-marker { display: none; }
-        .fp-row > summary:hover, .fp-row[open] > summary { background: color-mix(in srgb, var(--ov-grid) 45%, transparent); }
+        /* every section's line carries the open fold's tint, a little deeper under the mouse */
+        .fp-row > summary { background: color-mix(in srgb, var(--ov-grid) 45%, transparent); }
+        .fp-row > summary:hover { background: color-mix(in srgb, var(--ov-grid) 80%, transparent); }
         .fp-row > summary:focus-visible { outline: 2px solid var(--ov-line); outline-offset: -2px; }
         .fp-chev { font-size: 8px; margin-left: .375rem; color: var(--ov-muted); vertical-align: 1px; transition: transform .15s; }
         .fp-row[open] .fp-chev { transform: rotate(180deg); }
@@ -506,7 +513,7 @@
                     <span id="bankLabel" class="shrink-0 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap"></span>
                 </div>
             </button>
-            <!-- A single hamburger menu holds the bank switcher, theme, Export and Reset stats on every screen size. -->
+            <!-- A single hamburger menu holds the bank switcher, theme, sync and Reset stats on every screen size. -->
             <div class="relative shrink-0 flex items-center gap-2">
                 <!-- on the overview and Practice only: sync with GitHub, then recompute the page without reloading it -->
                 <button id="refreshBtn" type="button" onclick="refreshScores()" aria-label="Refresh scores" title="Refresh scores: sync with GitHub and recompute" class="hidden w-9 h-9 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 flex items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-aws-orange focus-visible:outline-offset-2">
@@ -538,10 +545,6 @@
                     </button>
                     <button onclick="toggleSync()" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-cloud w-4"></i><span id="syncToggleLabel">Sync with GitHub</span>
-                    </button>
-                    <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
-                    <button onclick="runHeaderAction('exportMistakesJSON')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
-                        <i class="fa-solid fa-file-arrow-down w-4"></i><span>Export</span>
                     </button>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
                     <button onclick="runHeaderAction('resetAllProgress')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-300 transition">
@@ -3349,9 +3352,11 @@
                 const split = `${c.right} done, ${c.missed} missed, ${c.total - c.right - c.missed} unseen`;
                 return `
                     <div class="bk-row text-xs">
-                        <span class="text-slate-300">${BANKS[b.key].symbol} ${BANKS[b.key].label}</span>
+                        <span class="text-slate-300"><span class="bk-sym" aria-hidden="true">${BANKS[b.key].symbol}</span>${BANKS[b.key].label}</span>
                         <div class="ov-stack thin" role="img" aria-label="${split}" title="${split}">${stackSegments(c)}</div>
-                        <span class="text-slate-500"><span class="text-slate-300">${c.right} done</span> / ${c.total} · <span class="font-semibold ${bs.ready ? bs.tone.text : 'text-slate-500'}">${bs.ready ? bs.shown : '–'}</span></span>
+                        <span class="bk-num text-slate-300">${c.right} done</span>
+                        <span class="bk-num text-slate-500">/ ${c.total}</span>
+                        <span class="bk-num font-semibold ${bs.ready ? bs.tone.text : 'text-slate-500'}" title="${BANKS[b.key].label}'s own readiness score">${bs.ready ? bs.shown : '–'}</span>
                     </div>`;
             }).join('');
             const bankBlock = `<div class="ov-rule bk-rows">${bankRows}</div>`;
@@ -6129,32 +6134,6 @@
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape' && !document.getElementById('confirmModal').classList.contains('hidden')) settleConfirm(false);
         });
-
-        async function exportMistakesJSON() {
-            if (!questions.length) {
-                alertBox('No question bank is loaded, so there is nothing to export.');
-                return;
-            }
-            const mistakeQuestions = questions.filter(q => mistakes.includes(q.id));
-            if (!mistakeQuestions.length) {
-                alertBox('No mistakes recorded yet, so there is nothing to export.');
-                return;
-            }
-            // asked after the guards above, so the dialog never appears only to report nothing to export
-            const n = mistakeQuestions.length;
-            const fileName = 'saa-c03-' + BANKS[bankKey].slug + '-mistakes.json';
-            const ok = await showConfirm(
-                'This downloads the ' + n + ' question' + (n === 1 ? '' : 's') + ' you answered incorrectly as ' + fileName + '.',
-                { title: 'Export mistakes?', confirmLabel: 'Export', tone: 'safe' });
-            if (!ok) return;
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mistakeQuestions, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", fileName);
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
-        }
 
         async function resetAllProgress() {
             if (await showConfirm('This cannot be undone.', { title: 'Reset all stats?', confirmLabel: 'Reset stats' })) {
