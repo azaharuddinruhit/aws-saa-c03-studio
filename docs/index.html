@@ -5012,8 +5012,8 @@
                         <li>A question is done when your latest answer to it is right.</li>
                         <li>The bar splits the questions you answered that day by where they ended it. Newly done: right, and not done before the day, which is what the Progress chart adds. Right again on review: right, and already done. Missed: wrong, and slipped if it was done before. A question you got wrong and then right the same day counts by its last answer.</li>
                         <li>Each section you practised shows how many of its new questions you got right first time, out of those you saw for the first time: green from ${Math.round(PASS_SHARE * 100)}% (the pass rate), amber from 50%, red below.</li>
-                        <li>To redo: questions whose latest answer is wrong. Slipped ones are those you'd answered right before, so you've forgotten something you knew.</li>
-                        <li>Due again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
+                        <li>Got wrong: questions whose latest answer is wrong. Ones that had been right before mean you've forgotten something you knew.</li>
+                        <li>To look at again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
                         <li>Each set's button starts a quiz of its questions to redo and due: today's misses first, then your other misses, latest first, then the most overdue.</li>
                         <li>Flagged: the questions you've flagged in a quiz. Each set's button starts them, the ones not right yet first, then the rest, the longest since answered first. They stay flagged until you unflag them.</li>
                     </ul>
@@ -5159,8 +5159,8 @@
                 <div class="dy-part">
                     <p class="text-sm font-semibold text-slate-200">Due for review</p>
                     <p class="mt-1 text-xs text-slate-400 leading-relaxed">${total
-                        ? `${plural(rq.redo, 'question')} to redo${rq.slipped ? ` (${rq.slipped} slipped after being right)` : ''} and ${rq.due} due again${rq.missedToday ? `; the ${rq.missedToday} you missed today come first while they're fresh` : ''}.`
-                        : 'Nothing to review right now: every question you’ve answered is right and not yet due again.'}</p>
+                        ? [rq.redo ? `${rq.redo} wrong` : '', rq.due ? `${rq.due} due for another look` : ''].filter(Boolean).join(' · ') + (rq.missedToday ? ` (today's ${rq.missedToday} first)` : '') + '.'
+                        : 'Nothing to review right now.'}</p>
                     ${buttons ? `<div class="ws-row mt-3" id="ovReviewRow"><div class="ws-scroll" role="group" aria-label="Review by set">${buttons}</div></div>` : ''}
                 </div>`;
         }
@@ -5169,30 +5169,31 @@
         // answered, then missed), then the ones right last time, the longest since answered first. The active
         // set's flags come from memory, which a quiz may have changed since they were saved.
         function flaggedQueue(banks) {
-            const out = { wrong: 0, right: 0, ids: {} };
+            const out = { wrong: 0, right: 0, unanswered: 0, ids: {} };
             for (const b of banks) {
                 const flagged = new Set((b.key === bankKey ? [...flaggedIds] : readLocalBank(b.key).flagged).map(String));
                 if (!flagged.size) continue;
                 const list = b.questions.filter(q => flagged.has(String(q.id))).map(q => {
                     const log = b.log[q.id] || [], last = log[log.length - 1];
-                    return { id: q.id, right: !!(last && last[0]), at: last ? last[1] : -1 };
+                    return { id: q.id, right: !!(last && last[0]), unanswered: !last, at: last ? last[1] : -1 };
                 });
                 list.sort((x, y) => x.right - y.right || x.at - y.at);
-                for (const f of list) f.right ? out.right++ : out.wrong++;
+                for (const f of list) f.right ? out.right++ : f.unanswered ? out.unanswered++ : out.wrong++;
                 if (list.length) out.ids[b.key] = list.map(f => f.id);
             }
             return out;
         }
 
         function flaggedHtml(fq) {
-            const total = fq.wrong + fq.right;
+            const total = fq.wrong + fq.right + fq.unanswered;
+            const parts = [[fq.wrong, 'still wrong'], [fq.unanswered, 'not answered yet'], [fq.right, 'right last time']].filter(([n]) => n).map(([n, t]) => n + ' ' + t);
             const buttons = Object.keys(BANKS).filter(key => fq.ids[key]).map(key =>
                 `<button type="button" class="dy-review" data-bank="${key}" data-ids="${escapeHtml(fq.ids[key].join(','))}" data-title="${FLAGGED_QUIZ_TITLE}" title="Practise the ${plural(fq.ids[key].length, 'flagged question')} in ${BANKS[key].label}, the ones not right yet first">${BANKS[key].symbol} ${BANKS[key].label} · ${fq.ids[key].length}<i class="fa-solid fa-play" aria-hidden="true"></i></button>`).join('');
             return `
                 <div class="dy-part">
                     <p class="text-sm font-semibold text-slate-200">Flagged</p>
                     <p class="mt-1 text-xs text-slate-400 leading-relaxed">${total
-                        ? `${plural(total, 'flagged question')}: ${fq.wrong} still wrong, ${fq.right} right last time.`
+                        ? `${plural(total, 'flagged question')}: ${parts.join(', ')}.`
                         : 'Nothing flagged. Flag a question in a quiz to come back to it here.'}</p>
                     ${buttons ? `<div class="ws-row mt-3" id="ovFlaggedRow"><div class="ws-scroll" role="group" aria-label="Flagged questions by set">${buttons}</div></div>` : ''}
                 </div>`;
