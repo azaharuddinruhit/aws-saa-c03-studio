@@ -411,11 +411,16 @@
         #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
         .dy-badges { display: flex; flex-wrap: wrap; gap: .375rem; }
+        /* What to do next: a numbered list of actions, each with its Practise button */
+        .nx-list { display: grid; gap: .75rem; }
+        .nx-item { display: flex; align-items: center; gap: .75rem; }
+        .nx-n { flex: none; width: 1.5rem; height: 1.5rem; border-radius: 9999px; display: grid; place-items: center; font-size: 11px; font-weight: 600; background: var(--ov-wash); color: var(--ov-line); }
         /* Progress's windows: name, done a day, how far short, exam score, pass chance */
-        .rt-table { display: grid; grid-template-columns: max-content max-content 1fr max-content; column-gap: .5rem; row-gap: .5rem; align-items: baseline; font-variant-numeric: tabular-nums; }
+        .rt-table { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, max-content); column-gap: 1.25rem; row-gap: .5rem; align-items: baseline; font-variant-numeric: tabular-nums; }
         .rt-table .rt-r { text-align: right; }
         .rt-table .rt-h { font-size: 11px; color: var(--ov-muted); }
-        .rt-table .rt-fc[style*="span 2"] { align-self: center; }
+        .rt-table > * { white-space: nowrap; }
+        @media (max-width: 360px) { .rt-table { column-gap: .625rem; } }
         .dy-badge { display: inline-flex; align-items: center; gap: .375rem; padding: .2rem .6rem; border-radius: 9999px; font-size: 11px; font-weight: 600; color: var(--ov-line); background: var(--ov-wash); }
         .dy-icon { margin-right: .375rem; }
         .dy-review { display: inline-flex; align-items: center; gap: .375rem; padding: .3rem .7rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
@@ -837,6 +842,13 @@
                     <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
                 </div>
                 <div id="ovScore" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-bold">What to do next</h3>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                </div>
+                <div id="ovNext" class="mt-4"></div>
             </section>
             <div class="ov-pair">
                 <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
@@ -3218,6 +3230,7 @@
             const block = (h, w = '100%') => '<div class="ov-skel" style="height:' + h + 'rem;width:' + w + '"></div>';
             document.getElementById('ovVerdict').innerHTML = block(1.25, '60%');
             document.getElementById('ovScore').innerHTML = block(24);
+            document.getElementById('ovNext').innerHTML = block(9);
             document.getElementById('ovProgress').innerHTML = block(32);
             document.getElementById('ovDaily').innerHTML = block(22);
             document.getElementById('ovForest').innerHTML = block(24);
@@ -3246,6 +3259,7 @@
             renderForest(banks, answered);
             renderScatter(banks);
             renderPace(banks);
+            renderNext(banks, tl);
             overviewPainted = true;
         }
 
@@ -3970,7 +3984,6 @@
             const pending = !results.long || !results.long.exam || !results.short || !results.short.exam;
             const fill = (w, fc, span) => {
                 const sc = cell(w, 'score'), pc = cell(w, 'pass');
-                if (span) { sc.style.gridRow = pc.style.gridRow = 'span 2'; }
                 if (!fc) { sc.innerHTML = pc.innerHTML = '<span class="text-slate-500" title="Working out the forecast">…</span>'; return; }
                 // with no new questions to forecast, the score on the day is today's
                 const end = fc.path.length ? fc.path[fc.path.length - 1] : null;
@@ -3980,8 +3993,9 @@
             };
             if (split) { fill('short', pending ? null : results.short); fill('long', pending ? null : results.long); }
             else {
-                fill('short', pending ? null : results.long, true);
-                cell('long', 'score').hidden = cell('long', 'pass').hidden = true;
+                fill('short', pending ? null : results.long);
+                const same = '<span class="text-xs font-normal text-slate-500" title="The same forecast: at either rate you answer every unseen question before the exam">same</span>';
+                cell('long', 'score').innerHTML = cell('long', 'pass').innerHTML = pending ? '' : same;
             }
             if (pending) return;
             const rising = results.long.trend === 'rising';
@@ -4100,6 +4114,7 @@
                 r.level = level[r.name];
                 r.share = examShare(r.name);
             }
+            forestRows = rows.slice().sort((x, y) => (y.gain || 0) - (x.gain || 0));
             const step = pc(PASS_GAIN_STEP);
             const pts = v => (v * 100).toFixed(1);
             const share = e => e.first / e.answered;
@@ -4451,6 +4466,93 @@
         // From the forest plot: that section's questions in that set, outstanding first, as the Practice page's sections start
         function practiseSection(key, domain) {
             return practiseIn(key, () => startQuizByDomain(domain));
+        }
+
+        // ---- What to do next ----
+        // The three most useful things to do now, ranked, each in words rather than repeating the cards' figures:
+        // practise the section where practice adds most to your pass chance (Where to focus's ranking), do more
+        // each day when neither rate reaches the one needed, clear the reviews waiting, try a section too little
+        // seen to judge, practise the next weakest section, answer before opening hints, and speed up. Then a
+        // plan for today.
+        let forestRows = null;        // Where to focus's sections, highest pass gain first (set by renderForest)
+        const NEXT_ITEMS = 3;         // actions shown
+        const NEXT_HINT_SHARE = 0.15; // hint use on first tries worth mentioning
+        const NEXT_WITHIN = 0.75;     // share of first tries within the target below which speed is worth mentioning
+        const NEXT_THIN_SEEN = 10;    // a section with fewer answers than this, and under a quarter seen, is too little seen
+
+        function renderNext(banks, tl) {
+            const box = document.getElementById('ovNext');
+            if (!box) return;
+            // first tries: hint use, time against the target, and each section's typical time
+            let firsts = 0, rightFirst = 0, hinted = 0;
+            const times = [], secTimes = {};
+            for (const b of banks) for (const q of b.questions) {
+                const f = (b.log[q.id] || [])[0];
+                if (!f) continue;
+                firsts++;
+                if (f[0]) rightFirst++;
+                if ((f[2] || 0) & FLAG_HINT) hinted++;
+                if (typeof f[3] === 'number' && f[3] <= AWAY_SECONDS) {
+                    const name = q.domain || 'General AWS';
+                    times.push(f[3]);
+                    (secTimes[name] = secTimes[name] || []).push(f[3]);
+                }
+            }
+            if (!firsts || !forestRows) {
+                box.innerHTML = '<p class="text-sm text-slate-400">Answer a few questions to get suggestions on what to practise next.</p>';
+                return;
+            }
+            const play = (bank, attrs, label) => `<button type="button" class="ov-practise" data-bank="${bank}" ${attrs} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
+            const sectionPlay = r => { const p = forestBank(r.sec.byBank); return p ? play(p.bank, `data-section="${escapeHtml(r.name)}"`, `Practise ${r.name} in ${BANKS[p.bank].label}`) : ''; };
+            const slow = name => secTimes[name] && secTimes[name].length >= PACE_MIN_ANSWERS && median(secTimes[name]) > TARGET_SECONDS;
+            const weak = forestRows.filter(r => r.sec.seen && r.gain > 0 && r.verdict !== 'strong' && r.verdict !== 'up');
+            const rq = reviewQueue(banks), waiting = rq.redo + rq.due;
+            const thin = forestRows.filter(r => r.sec.seen < NEXT_THIN_SEEN && r.sec.seen < r.sec.total / 4)
+                .sort((x, y) => x.sec.seen / x.sec.total - y.sec.seen / y.sec.total || compareDomains(x.name, y.name))[0];
+            const pct = v => Math.round(v * 100);
+            const candidates = [
+                weak[0] && { text: `Practise ${escapeHtml(weak[0].name)}`, why: `Practice here adds most to your pass chance${slow(weak[0].name) ? ", and it's one of your slowest sections" : ''}.`, button: sectionPlay(weak[0]) },
+                tl.status === 'plan' && tl.statusShort !== 'on' && tl.statusLong !== 'on' && { text: 'Do more each day', why: `Your exam date needs ${tl.needed} done a day, and neither your last ${PACE_SHORT_DAYS} nor your last ${PACE_LONG_DAYS} days reach it.` },
+                (rq.redo || waiting >= 10) && (() => {
+                    // the set with the most waiting, as its Due for review button would start them
+                    const key = Object.keys(rq.ids).sort((a, b) => rq.ids[b].length - rq.ids[a].length)[0];
+                    // the button starts as many as the action says, from the set with the most waiting, misses first
+                    const ids = key ? rq.ids[key].slice(0, 15) : [], n = Math.min(15, waiting);
+                    return { text: `Clear ${n >= 10 ? '10–15' : n} reviews`, why: `${rq.redo ? 'Redo the ones you got wrong first, then the' : 'The'} right answers from a while ago, before they fade.`,
+                        button: key ? play(key, `data-ids="${escapeHtml(ids.join(','))}"`, `Review ${plural(ids.length, 'question')} in ${BANKS[key].label}, misses first`) : '' };
+                })(),
+                thin && { text: `Try ${escapeHtml(thin.name)}`, why: `Only ${thin.sec.seen} of ${thin.sec.total} seen, too few to tell how you're doing there.`, button: sectionPlay(thin) },
+                weak[1] && { text: `Practise ${escapeHtml(weak[1].name)}`, why: `Your next biggest gain${slow(weak[1].name) ? ', and slow too' : ''}.`, button: sectionPlay(weak[1]) },
+                hinted / firsts > NEXT_HINT_SHARE && { text: 'Answer before opening the hint', why: `You used one on ${pct(hinted / firsts)}% of first tries, and a right answer after a hint counts for less.` },
+                times.length >= 10 && times.filter(t => t <= TARGET_SECONDS).length / times.length < NEXT_WITHIN && { text: `Aim for under ${formatDuration(TARGET_SECONDS * 1000)} a question`, why: `${pct(1 - times.filter(t => t <= TARGET_SECONDS).length / times.length)}% of your first tries take longer, which leaves no time to review flagged questions.` }
+            ];
+            const items = candidates.filter(Boolean).slice(0, NEXT_ITEMS);
+
+            // today: enough new questions for the rate needed at your first-try rate, and up to 15 reviews
+            const firstRate = Math.max(0.3, rightFirst / firsts);
+            const fresh = tl.status === 'plan' || tl.status === 'review' ? Math.min(40, Math.max(5, Math.ceil(tl.needed / firstRate))) : 10;
+            const focus = weak.slice(0, 2).map(r => escapeHtml(r.name));
+            const plan = tl.unseen || waiting
+                ? `Today: ${[tl.unseen ? `about ${plural(Math.min(fresh, tl.unseen), 'new question')}${focus.length ? `, mostly ${focus.join(' and ')}` : ''}` : '', waiting ? `${Math.min(15, waiting)} reviews` : ''].filter(Boolean).join(', and ')}.`
+                : '';
+            box.innerHTML = (items.length ? `
+                <ol class="nx-list">${items.map((it, i) => `
+                    <li class="nx-item">
+                        <span class="nx-n" aria-hidden="true">${i + 1}</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-slate-200">${it.text}</p>
+                            <p class="mt-0.5 text-xs text-slate-400 leading-relaxed">${it.why}</p>
+                        </div>
+                        ${it.button || ''}
+                    </li>`).join('')}
+                </ol>` : '<p class="text-sm text-slate-400">Nothing stands out: keep going as you are.</p>')
+                + (plan ? `<p class="mt-4 text-xs text-slate-400 leading-relaxed"><i class="fa-solid fa-calendar-day dy-icon" aria-hidden="true"></i>${plan}</p>` : '');
+            box.onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (!b) return;
+                if (b.dataset.section) practiseSection(b.dataset.bank, b.dataset.section);
+                else if (b.dataset.ids) practiseIn(b.dataset.bank, () => startQuizByIds(b.dataset.ids.split(','), DUE_QUIZ_TITLE));
+            };
         }
 
         // ---- Time per question ----
