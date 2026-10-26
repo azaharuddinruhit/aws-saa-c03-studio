@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <title>Question Priorities · AWS SAA-C03 Studio</title>
+  <script>
+    try {
+      let theme = localStorage.getItem('saa_theme');
+      if (!theme) {
+        const old = JSON.parse(localStorage.getItem('saa-theme') || 'null');
+        theme = old && old.isDark === false ? 'light' : 'dark';
+      }
+      document.documentElement.classList.toggle('dark', theme !== 'light');
+    } catch (_) {}
+  </script>
+  <style>
+    :root { color-scheme: light; --page:#f1f5f9; --card:#fff; --raised:#f8fafc; --border:#e2e8f0; --text:#1e293b; --muted:#64748b; --accent:#047857; --accent-bg:rgba(16,185,129,.1); --hover:#f1f5f9; }
+    html.dark { color-scheme:dark; --page:#050810; --card:#101522; --raised:#212739; --border:#191f30; --text:#e2e8f0; --muted:#94a3b8; --accent:#34d399; --accent-bg:rgba(16,185,129,.1); --hover:#212739; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--page); color:var(--text); font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; transition:background .2s,color .2s; }
+    a { color:inherit; text-decoration:none; }
+    button,input,select { font:inherit; color:inherit; }
+    .header { position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--card) 88%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(10px); }
+    .header-inner, main { width:min(1200px,100%);margin:auto;padding-left:24px;padding-right:24px; }
+    .header-inner { height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px; }
+    .brand { font-size:15px;font-weight:650;letter-spacing:-.02em; }
+    .nav { display:flex;align-items:center;gap:8px; }
+    .nav a,.theme-btn { border:1px solid var(--border);background:var(--raised);padding:7px 11px;border-radius:11px;font-size:12px; }
+    .nav a:hover,.theme-btn:hover { border-color:var(--accent);color:var(--accent); }
+    main { padding-top:32px;padding-bottom:48px; }
+    .intro { display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px; }
+    .eyebrow { color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase; }
+    h1 { margin:5px 0 4px;font-size:clamp(24px,4vw,34px);line-height:1.15;letter-spacing:-.04em; }
+    .sub { color:var(--muted);max-width:650px; }
+    .count { padding:8px 12px;border:1px solid var(--border);border-radius:13px;background:var(--card);white-space:nowrap;color:var(--muted);font-size:12px; }
+    .panel { border:1px solid var(--border);border-radius:20px;background:var(--card);overflow:hidden;box-shadow:0 5px 20px rgba(2,6,23,.05); }
+    .controls { display:flex;flex-wrap:wrap;gap:10px;padding:15px;border-bottom:1px solid var(--border); }
+    .controls input,.controls select { min-height:38px;border:1px solid var(--border);border-radius:10px;background:var(--raised);padding:7px 10px;outline:none; }
+    .controls input:focus,.controls select:focus { border-color:var(--accent); }
+    .controls input { flex:1 1 220px; }
+    .controls select { flex:0 1 auto;min-width:135px; }
+    .table-wrap { overflow-x:auto; }
+    table { border-collapse:collapse;width:100%;min-width:760px;text-align:left;font-variant-numeric:tabular-nums; }
+    thead { position:sticky;top:0;z-index:2;background:var(--raised); }
+    th { color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700; }
+    th,td { padding:11px 15px;border-bottom:1px solid var(--border); }
+    tbody tr:hover { background:var(--hover); }
+    td:first-child,td:nth-child(2),td:nth-child(3) { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .serial { color:var(--muted); }
+    .priority { color:var(--accent);font-weight:700; }
+    .badge { display:inline-flex;padding:3px 8px;border-radius:999px;background:var(--accent-bg);color:var(--accent);font-size:11px;white-space:nowrap; }
+    .difficulty { text-transform:capitalize; }
+    .done { color:var(--accent);font-weight:650; }
+    .not-done { color:var(--muted); }
+    .status { padding:24px;text-align:center;color:var(--muted); }
+    @media(max-width:640px) { .header-inner,main{padding-left:14px;padding-right:14px}.header-inner{height:52px}.brand{font-size:13px}.nav a{display:none}.intro{align-items:flex-start;flex-direction:column;gap:12px}main{padding-top:22px}.table-wrap{max-height:calc(100vh - 300px)}th,td{padding:10px 11px} }
+  </style>
+</head>
+<body>
+  <header class="header"><div class="header-inner">
+    <a class="brand" href="index.html">AWS SAA-C03 Studio</a>
+    <nav class="nav" aria-label="Page navigation">
+      <a href="index.html">Practice</a>
+      <a href="cheatsheet/index.html">Cheat sheets</a>
+      <button class="theme-btn" id="themeToggle" type="button">Light mode</button>
+    </nav>
+  </div></header>
+  <main>
+    <section class="intro">
+      <div><div class="eyebrow">Study planner</div><h1>Question priorities</h1><p class="sub">Work from the highest-impact questions first. This updated order blends both workbook rankings with SAA-C03 domain weighting, task relevance, and foundational AWS services. Difficulty does not directly determine exam importance.</p></div>
+      <div class="count" id="countLabel">Loading questions…</div>
+    </section>
+    <section class="panel" aria-label="Question priority table">
+      <div class="controls">
+        <input id="search" type="search" placeholder="Search domains, banks, or services…" aria-label="Search questions">
+        <select id="bankFilter" aria-label="Filter by question bank"><option value="">All banks</option></select>
+        <select id="domainFilter" aria-label="Filter by domain"><option value="">All domains</option></select>
+        <select id="difficultyFilter" aria-label="Filter by difficulty"><option value="">All difficulties</option><option>easy</option><option>medium</option><option>hard</option></select>
+        <select id="doneFilter" aria-label="Filter by done status"><option value="">Done and not done</option><option value="done">Done</option><option value="todo">Not done</option></select>
+        <select id="sizeFilter" aria-label="Filter by priority list size"><option value="50">Top 50</option><option value="100">Top 100</option><option value="200">Top 200</option><option value="300" selected>Top 300</option><option value="all">All 600</option></select>
+      </div>
+      <div class="table-wrap"><table aria-label="Question priorities">
+        <thead><tr><th scope="col">Serial no.</th><th scope="col">Question number</th><th scope="col">Priority</th><th scope="col">Question bank</th><th scope="col">Domain</th><th scope="col">Difficulty</th><th scope="col">Done</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="7" class="status">Loading question list…</td></tr></tbody>
+      </table></div>
+    </section>
+  </main>
+  <script>
+    const rowsEl = document.getElementById('rows');
+    let questions = [];
+    function currentDone(q) {
+      if (q.doneFromProgress) return true;
+      try {
+        const saved = localStorage.getItem('set_' + q.bank + '_attempts');
+        return saved ? Object.prototype.hasOwnProperty.call(JSON.parse(saved), String(q.id)) : false;
+      } catch (_) { return false; }
+    }
+    function render() {
+      const query = document.getElementById('search').value.trim().toLowerCase();
+      const bank = document.getElementById('bankFilter').value;
+      const domain = document.getElementById('domainFilter').value;
+      const difficulty = document.getElementById('difficultyFilter').value;
+      const done = document.getElementById('doneFilter').value;
+      const size = document.getElementById('sizeFilter').value;
+      const limit = size === 'all' ? Infinity : Number(size);
+      const shown = questions.filter(q => q.priority <= limit).filter(q => {
+        const isDone = currentDone(q);
+        const searchable = [q.bankLabel,q.domain,q.difficulty,...q.services].join(' ').toLowerCase();
+        return (!query || searchable.includes(query)) && (!bank || q.bank === bank) && (!domain || q.domain === domain)
+          && (!difficulty || q.difficulty === difficulty) && (!done || (done === 'done') === isDone);
+      });
+      rowsEl.innerHTML = shown.length
+        ? shown.map((q,index) => {
+          const isDone = currentDone(q);
+          return `<tr><td class="serial">${index + 1}</td><td>${q.id}</td><td class="priority">${q.priority}</td><td><span class="badge">${q.bankLabel}</span></td><td>${q.domain}</td><td class="difficulty">${q.difficulty}</td><td class="${isDone ? 'done' : 'not-done'}">${isDone ? 'Done' : '—'}</td></tr>`;
+        }).join('')
+        : '<tr><td colspan="7" class="status">No questions match these filters.</td></tr>';
+      const sizeLabel = size === 'all' ? 'all priorities' : `top ${limit} priorities`;
+      document.getElementById('countLabel').textContent = `${shown.length} of ${sizeLabel}`;
+    }
+    async function load() {
+      try {
+        const response = await fetch('question-priorities.json', { cache: 'no-cache' });
+        if (!response.ok) throw new Error('Question priorities could not be loaded.');
+        const data = await response.json();
+        questions = data.questions;
+        const banks = new Map(questions.map(q => [q.bank, q.bankLabel]));
+        for (const [key,label] of banks) document.getElementById('bankFilter').insertAdjacentHTML('beforeend', `<option value="${key}">${label}</option>`);
+        for (const domain of [...new Set(questions.map(q => q.domain))].sort()) document.getElementById('domainFilter').insertAdjacentHTML('beforeend', `<option>${domain}</option>`);
+        render();
+      } catch (error) {
+        const message = `${error.message} Open this page through the same local web server as the practice app.`;
+        rowsEl.innerHTML = `<tr><td colspan="7" class="status">${message}</td></tr>`;
+        document.getElementById('countLabel').textContent = 'Unavailable';
+      }
+    }
+    ['search','bankFilter','domainFilter','difficultyFilter','doneFilter','sizeFilter'].forEach(id => document.getElementById(id).addEventListener('input', render));
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      document.getElementById('themeToggle').textContent = dark ? 'Light mode' : 'Dark mode';
+      try { localStorage.setItem('saa_theme', dark ? 'dark' : 'light'); } catch (_) {}
+    });
+    document.getElementById('themeToggle').textContent = document.documentElement.classList.contains('dark') ? 'Light mode' : 'Dark mode';
+    window.addEventListener('storage', event => {
+      if (event.key === 'saa_theme') location.reload();
+      else if (event.key && event.key.startsWith('set_') && event.key.endsWith('_attempts')) render();
+    });
+    load();
+  </script>
+</body>
+</html>
