@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Top 200 · AWS SAA-C03 Studio</title>
+<title>Top 150 · AWS SAA-C03 Studio</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2310B981%22%2F%3E%3Crect%20x%3D%226.5%22%20y%3D%226.5%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222.5%22%20fill%3D%22%23A7F3D0%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%2213.5%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222.5%22%20fill%3D%22%23A7F3D0%22%2F%3E%3Cpath%20d%3D%22M13.5%2016a2.5%202.5%200%200%201%202.5-2.5h2.5V16a2.5%202.5%200%200%201-2.5%202.5h-2.5Z%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="app.css">
 <style>
-/* Top 200: the 200 questions ranked highest in ../sets/priority-map.json, with where each stands in this
+/* Top 150: the 150 questions ranked highest in ../sets/priority-map.json, with where each stands in this
    browser's practice (the latest answer, as the Studio counts it). The table scrolls inside its panel, so
    the page itself never scrolls sideways on a phone. */
 .t2-head{margin:24px 0 14px}
@@ -61,7 +61,7 @@
 <body>
 <header class="topbar nosub">
   <div class="topbar-in">
-    <span class="brand"><a class="back-link" href="../index.html" aria-label="Back to the progress overview" title="Back to the progress overview"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><a class="brand-mark" href="../index.html" title="Progress overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></a><span class="brand-title"><a class="brand-app" href="../index.html" title="Progress overview">AWS SAA-C03 Studio</a><a class="brand-page" href="top-200.html" title="The top 200 questions">Top 200</a></span></span>
+    <span class="brand"><a class="back-link" href="../index.html" aria-label="Back to the progress overview" title="Back to the progress overview"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><a class="brand-mark" href="../index.html" title="Progress overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></a><span class="brand-title"><a class="brand-app" href="../index.html" title="Progress overview">AWS SAA-C03 Studio</a><a class="brand-page" href="top-200.html" title="The top 150 questions">Top 150</a></span></span>
     <span style="margin-left:auto"></span>
     <button type="button" class="theme-btn menu-btn" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="menuPanel" title="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   </div>
@@ -69,8 +69,8 @@
 
 <main class="wrap">
   <div class="t2-head">
-    <h1>Top 200 questions</h1>
-    <p>Your 200 highest-priority questions, and where each stands in your practice.</p>
+    <h1>Top 150 questions</h1>
+    <p>Your 150 highest-priority questions, and where each stands in your practice.</p>
   </div>
   <div class="t2-tools">
     <div class="t2-filter"><span id="bankFilterLabel">Set</span><div class="t2-dd" id="bankFilter"></div></div>
@@ -83,7 +83,7 @@
     <div class="t2-scroll">
       <table class="t2-table">
         <thead><tr id="heads"></tr></thead>
-        <tbody id="rows"><tr><td class="t2-note" colspan="10">Loading the top 200…</td></tr></tbody>
+        <tbody id="rows"><tr><td class="t2-note" colspan="10">Loading the top 150…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -208,7 +208,7 @@ addEventListener('pageshow', e => { if (e.persisted) render(); });
 (async function load() {
   try {
     const map = await (await fetch('../sets/priority-map.json', { cache: 'no-cache' })).json();
-    const top = map.questions.filter(e => e.priority <= 200).sort((a, b) => a.priority - b.priority);
+    const top = map.questions.filter(e => e.priority <= 150).sort((a, b) => a.priority - b.priority);
     const sets = {};
     for (const bank of [...new Set(top.map(e => e.bank))]) {
       sets[bank] = await (await fetch('../sets/' + bank + '.json', { cache: 'no-cache' })).json();
@@ -228,7 +228,7 @@ addEventListener('pageshow', e => { if (e.persisted) render(); });
       .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b)).map(name => [name, name])]);
     render();
   } catch (err) {
-    $('rows').innerHTML = `<tr><td class="t2-note" colspan="${COLUMNS.length}">The top 200 couldn't be read (${esc(err.message)}). Open this page from the same web server as the Studio.</td></tr>`;
+    $('rows').innerHTML = `<tr><td class="t2-note" colspan="${COLUMNS.length}">The top 150 couldn't be read (${esc(err.message)}). Open this page from the same web server as the Studio.</td></tr>`;
   }
 })();
 })();

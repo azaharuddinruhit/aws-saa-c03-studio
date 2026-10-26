@@ -17,8 +17,8 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 |---|---|
 | `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, score estimators, Gist sync. |
 | `docs/sets/{alpha,beta,gamma,delta}.json` | Question banks: an array of questions. The file name is the bank key in `BANKS`. |
-| `docs/sets/priority-map.json` | The study order: `{ bank, id, priority }` for every question. The overview's ★ Top 200 card reads it. |
-| `docs/cheatsheet/top-200.html` | The top 200 questions of the priority map in a table: priority, set and number (α63), your status, question, section with its exam domain, difficulty, and when you last answered it. Filters by set, status, section (in the cheat sheets' order) and difficulty; every column sorts. Opened from the Top 200 card's View list link. |
+| `docs/sets/priority-map.json` | The study order: `{ bank, id, priority }` for every question. The overview's ★ Top 150 card reads it. |
+| `docs/cheatsheet/top-200.html` | The top 150 questions of the priority map in a table: priority, set and number (α63), your status, question, section with its exam domain, difficulty, and when you last answered it. Filters by set, status, section (in the cheat sheets' order) and difficulty; every column sorts. Opened from the Top 150 card's View list link. |
 | `docs/cheatsheet/index.html` | Cheat sheet hub. |
 | `docs/cheatsheet/01-…10-*.html` | Domain pages. Each one loads `icons.js` and `app.js`, then calls `App.start(config)`. |
 | `docs/cheatsheet/app.css` | Shared styles and colour tokens (`--accent`, `--aws`, `--ink`, `--muted`, `--line`, `--surface`…), with light and dark values. |
@@ -87,7 +87,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **Tags:** `services` holds 1–4 tags from `scripts/tag-vocabulary.json`, either `"Service"` or `"Service › Feature"`, joined by ` › `. Its `rules` say what to tag: what the correct answer depends on, most decisive first.
 - **After a question or its tags change,** run `check-tags.js`.
 - **Review rule** (`standingOf` in `index.html`, one rule for the Due for review list, the Smart quiz and subject quizzes): a question whose latest answer is wrong is to redo now; one right once falls due from the start of the `REVIEW_DAYS` (3) calendar day after that answer; one whose latest two answers are right, whenever given, is retired from review until it is next got wrong. The Smart quiz picks retired ones only when nothing else is left. "Done" (latest answer right) is a separate measure and doesn't use this rule.
-- **Top 200:** the overview's ★ Top 200 card, after What to do next, shows where the 200 questions ranked highest in `priority-map.json` stand: all banks together, then a full-width done / missed / unseen bar per bank. Each bank's ▶ starts its Top 200 quiz: those not done yet first, each part in priority order (done means the latest answer is right). The quiz runs in the set itself, so its answers count there like any other. The card stays hidden if the file can't be read.
+- **Top 150:** the overview's ★ Top 150 card, after What to do next, shows where the 150 questions ranked highest in `priority-map.json` stand: all banks together, then a full-width done / missed / unseen bar per bank. Each bank's ▶ starts its Top 150 quiz: those not done yet first, each part in priority order (done means the latest answer is right). The quiz runs in the set itself, so its answers count there like any other. The card stays hidden if the file can't be read.
 
 ## Services glossary
 

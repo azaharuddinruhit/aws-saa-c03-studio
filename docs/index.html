@@ -852,8 +852,8 @@
             </section>
             <section id="ovTopCard" class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center justify-between gap-3">
-                    <h3 class="text-lg font-bold">★ Top 200</h3>
-                    <a href="cheatsheet/top-200.html" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 whitespace-nowrap" title="The 200 questions in a table, with your status for each">View list →</a>
+                    <h3 class="text-lg font-bold">★ Top 150</h3>
+                    <a href="cheatsheet/top-200.html" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 whitespace-nowrap" title="The 150 questions in a table, with your status for each">View list →</a>
                 </div>
                 <div id="ovTop" class="mt-4"></div>
             </section>
@@ -4564,10 +4564,10 @@
             };
         }
 
-        // ---- Top 200 ----
-        // Its own card, after What to do next: where the 200 questions ranked highest in priority-map.json
+        // ---- Top 150 ----
+        // Its own card, after What to do next: where the 150 questions ranked highest in priority-map.json
         // ({ bank, id, priority }, read once) stand, all banks together and then bank by bank, in Progress's colours.
-        // A bank's ▶ starts its Top 200 quiz: the ones not done yet first, then the done ones, each in priority order.
+        // A bank's ▶ starts its Top 150 quiz: the ones not done yet first, then the done ones, each in priority order.
         // The card stays hidden if the file can't be read.
         let topIds = null, topLoad = null;   // bank key -> question ids in priority order, once read
         function renderTop(banks) {
@@ -4575,7 +4575,7 @@
                 topLoad = topLoad || fetch('./sets/priority-map.json', { cache: 'no-cache' }).then(res => res.json())
                     .then(data => {
                         topIds = {};
-                        for (const e of data.questions.filter(e => e.priority <= 200).sort((a, b) => a.priority - b.priority)) (topIds[e.bank] = topIds[e.bank] || []).push(e.id);
+                        for (const e of data.questions.filter(e => e.priority <= 150).sort((a, b) => a.priority - b.priority)) (topIds[e.bank] = topIds[e.bank] || []).push(e.id);
                     })
                     .catch(() => { topIds = {}; });
                 topLoad.then(() => { if (parseRoute().name === 'overview') renderTop(loadedBanks()); });
@@ -4603,7 +4603,7 @@
                     ${key('--ov-right', all.right + ' right')}${key('--ov-missed', all.missed + ' missed')}${key('--ov-unseen', (all.total - all.right - all.missed) + ' unseen')}
                 </div>
                 <div class="ov-rule bk-rows">${rows.map(({ key: bank, c }) => {
-                    const label = `Practise ${BANKS[bank].label}'s ${plural(c.total, 'Top 200 question')}, not done yet first`;
+                    const label = `Practise ${BANKS[bank].label}'s ${plural(c.total, 'Top 150 question')}, not done yet first`;
                     return `
                     <div class="bk-row text-xs">
                         <span class="text-slate-300"><span class="bk-sym" aria-hidden="true">${BANKS[bank].symbol}</span>${BANKS[bank].label}</span>
@@ -4622,7 +4622,7 @@
         function startTopQuiz() {
             const ids = topIds[bankKey] || [];
             const done = id => { const log = attemptLog[id]; return !!(log && log.length && log[log.length - 1][0] === 1); };
-            startQuizByIds([...ids.filter(id => !done(id)), ...ids.filter(done)], 'Top 200');
+            startQuizByIds([...ids.filter(id => !done(id)), ...ids.filter(done)], 'Top 150');
         }
 
         // ---- Time per question ----
