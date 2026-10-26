@@ -149,7 +149,7 @@
     <h2>More infographics</h2>
     <nav class="ig-more" id="igMore" aria-label="More infographics"></nav>
   </section>
-  <p class="ig-foot">CloudFront, Global Accelerator and Route 53 are tagged on 50 of the 600 questions in your banks.</p>
+  <p class="ig-foot">CloudFront, Global Accelerator and Route 53 are tagged on 50 of the 603 questions in your banks.</p>
 </main>
 
 <script src="icons.js"></script>
@@ -185,7 +185,7 @@ document.getElementById('igMore').innerHTML = App.INFOGRAPHICS.filter(([file]) =
 (function(){
   var box = document.getElementById('igPracs');
   if (!box) return;
-  var BANKS = ["alpha","beta","gamma","delta"], sec = box.closest('.ig-sec');
+  var BANKS = ["alpha","beta","gamma","delta","epsilon"], sec = box.closest('.ig-sec');
   function apply(){
     var off = App.banksOff(BANKS), any = false;
     box.querySelectorAll('.ig-prac').forEach(function(row){

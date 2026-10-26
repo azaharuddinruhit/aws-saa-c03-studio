@@ -200,7 +200,7 @@
     <h2>More infographics</h2>
     <nav class="ig-more" id="igMore" aria-label="More infographics"></nav>
   </section>
-  <p class="ig-foot">S3 is tagged on 71 of the 600 questions in your banks, more than any other service, and EBS, EFS and FSx on 43.</p>
+  <p class="ig-foot">S3 is tagged on 71 of the 603 questions in your banks, more than any other service, and EBS, EFS and FSx on 43.</p>
 </main>
 
 <script src="icons.js"></script>
@@ -236,7 +236,7 @@ document.getElementById('igMore').innerHTML = App.INFOGRAPHICS.filter(([file]) =
 (function(){
   var box = document.getElementById('igPracs');
   if (!box) return;
-  var BANKS = ["alpha","beta","gamma","delta"], sec = box.closest('.ig-sec');
+  var BANKS = ["alpha","beta","gamma","delta","epsilon"], sec = box.closest('.ig-sec');
   function apply(){
     var off = App.banksOff(BANKS), any = false;
     box.querySelectorAll('.ig-prac').forEach(function(row){

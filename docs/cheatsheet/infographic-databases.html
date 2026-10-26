@@ -157,7 +157,7 @@
     <h2>More infographics</h2>
     <nav class="ig-more" id="igMore" aria-label="More infographics"></nav>
   </section>
-  <p class="ig-foot">RDS, Aurora and DynamoDB are tagged on 91 of the 600 questions in your banks. RDS Multi-AZ and read replicas are among the most-tagged features.</p>
+  <p class="ig-foot">RDS, Aurora and DynamoDB are tagged on 91 of the 603 questions in your banks. RDS Multi-AZ and read replicas are among the most-tagged features.</p>
 </main>
 
 <script src="icons.js"></script>
@@ -193,7 +193,7 @@ document.getElementById('igMore').innerHTML = App.INFOGRAPHICS.filter(([file]) =
 (function(){
   var box = document.getElementById('igPracs');
   if (!box) return;
-  var BANKS = ["alpha","beta","gamma","delta"], sec = box.closest('.ig-sec');
+  var BANKS = ["alpha","beta","gamma","delta","epsilon"], sec = box.closest('.ig-sec');
   function apply(){
     var off = App.banksOff(BANKS), any = false;
     box.querySelectorAll('.ig-prac').forEach(function(row){
