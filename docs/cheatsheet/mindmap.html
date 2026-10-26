@@ -698,7 +698,7 @@ function practiceHTML(name) {
   if (!perBank.length) return '';
   return `<div><h3>Practise ${esc(name)}</h3><div class="mm-chips">${perBank.map(({ b, c }) =>
     `<a class="mm-chip noico mm-practice" href="../index.html#/practice/${esc(b.key)}/${encodeURIComponent(name)}" target="_blank" rel="noopener" title="Opens the Studio in a new tab and selects ${esc(b.label)}"><b>${esc(b.symbol)}</b> ${esc(b.label)} <span class="n">${c}</span></a>`).join('')}</div>
-    <p class="mm-note" style="margin-top:8px">Opens a quiz in a new tab: unseen and missed questions first, then any due for review; ones you've mastered wait until they're due, unless nothing else is left.</p></div>`;
+    <p class="mm-note" style="margin-top:8px">Opens a quiz in a new tab: unseen and missed questions first, then any due for review; ones not due yet, or right twice in a row, only if nothing else is left.</p></div>`;
 }
 function serviceHTML(n) {
   const s = S[n.name];

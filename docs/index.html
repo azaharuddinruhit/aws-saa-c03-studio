@@ -2358,10 +2358,10 @@
         }
 
         // The order for a quiz on one subject (a section, or a service from the mind map).
-        // Questions you answered correctly and are not yet due to revisit are skipped, so a
-        // return visit goes straight to what is left. "Not yet due" comes from the same
-        // spacing ladder the Smart quiz uses, so a mastered question does come back, just
-        // later each time. What remains is ordered: never seen, then missed, then due again.
+        // Questions you answered correctly and are not yet due to revisit, or are retired from
+        // review, are skipped, so a return visit goes straight to what is left. Both come from
+        // the review rule the Smart quiz uses (standingOf). What remains is ordered: never seen,
+        // then missed, then due again.
         // 'solid' is last so that the fallback below still has somewhere to put those
         // questions; in the normal path they have already been filtered out of the pool.
         function outstandingFirst(list) {
@@ -5194,7 +5194,7 @@
                         <li>The bar splits the questions you answered that day by where they ended it. Newly done: right, and not done before the day, which is what the Progress chart adds. Right again on review: right, and already done. Missed: wrong, and slipped if it was done before. A question you got wrong and then right the same day counts by its last answer.</li>
                         <li>Each section you practised shows how many of its new questions you got right first time, out of those you saw for the first time: green from ${Math.round(PASS_SHARE * 100)}% (the pass rate), amber from 50%, red below.</li>
                         <li>Got wrong: questions whose latest answer is wrong. Ones that had been right before mean you've forgotten something you knew.</li>
-                        <li>To look at again: questions you've got right, after a gap that grows with each right answer in a row: ${SPACING_DAYS.slice(0, -1).join(', ')} and then ${SPACING_DAYS[SPACING_DAYS.length - 1]} days. It's the same rule the Smart quiz uses to pick reviews.</li>
+                        <li>To look at again: a question you've got right once comes back ${REVIEW_DAYS} days later. Right twice in a row, at any time, and it leaves review until you next get it wrong. It's the same rule the Smart quiz uses to pick reviews.</li>
                         <li>Each set's button starts a quiz of its questions to redo and due: today's misses first, then your other misses, latest first, then the most overdue.</li>
                         <li>Flagged: the questions you've flagged in a quiz. Each set's button starts them, the ones not right yet first, then the rest, the longest since answered first. They stay flagged until you unflag them.</li>
                     </ul>
@@ -5307,8 +5307,8 @@
 
         // ---- Due for review ----
         // The Daily summary's review part. Across the four sets, by the Smart quiz's own rule (standingOf): a
-        // question whose latest answer is wrong is to redo, and one you've got right falls due again once
-        // SPACING_DAYS has passed for its run of right answers. Slipped are those to redo that you'd got right
+        // question whose latest answer is wrong is to redo, one you've got right once falls due REVIEW_DAYS calendar
+        // days later, and one right twice in a row is retired from review. Slipped are those to redo that you'd got right
         // before. Each set's button starts a quiz of its questions to redo and due: today's misses first while
         // they're fresh, then the rest of the misses, latest first, then the most overdue.
         const DUE_QUIZ_TITLE = 'Due for review';
@@ -5598,12 +5598,14 @@
         // and questions that are due for review (spaced repetition), weighted toward your weakest exam domains.
         const SMART_SIZE = 15;
         const EXAM_SIZE = 65;   // the real SAA-C03 is 65 questions in one sitting
-        const SPACING_DAYS = [10, 20, 30];      // review interval grows with each consecutive correct answer, then stays at the last
+        const REVIEW_DAYS = 3;                   // a question right once comes back on the third calendar day after
         let smartReasons = {};                   // question id -> why it was picked (shown as a chip in the quiz)
 
-        // Where a question stands, from its answers: new, missed (latest answer wrong), or right and either due
-        // again (SPACING_DAYS for its run of right answers has passed) or not yet, with when it falls due.
-        // The Smart quiz picks by it, and the overview's Due for review card counts by it across the sets.
+        // Where a question stands, from its answers: new; missed (latest answer wrong); retired (its latest two
+        // answers are right, whenever they were given), which leaves review until it is next got wrong; or right
+        // once, which falls due from the start of the REVIEW_DAYS-th calendar day after that answer. The Smart quiz
+        // picks by it (retired ones last of all), the overview's Due for review card counts by it across the sets,
+        // and subject quizzes order by it (outstandingFirst).
         function questionStanding(q, now) {
             return standingOf(attemptLog[q.id], now);
         }
@@ -5612,11 +5614,10 @@
             const last = log[log.length - 1];
             const days = Math.max(0, now - last[1]) / DAY_MS;
             if (!last[0]) return { kind: 'missed', base: 1 + 0.2 * Math.pow(0.5, days / 7), reason: 'Missed last time' };
-            let streak = 0;
-            for (let i = log.length - 1; i >= 0 && log[i][0]; i--) streak++;
-            const interval = SPACING_DAYS[Math.min(streak, SPACING_DAYS.length) - 1];
-            const ratio = days / interval;
-            return { kind: ratio >= 1 ? 'due' : 'solid', base: 0.5 * Math.min(1.2, ratio), reason: ratio >= 1 ? 'Due for review' : 'Refresher', ratio, dueAt: last[1] + interval * DAY_MS };
+            if (log.length > 1 && log[log.length - 2][0]) return { kind: 'solid', retired: true, base: -1, reason: 'Retired from review' };
+            const dueAt = addDays(dayStart(last[1]), REVIEW_DAYS);
+            const ratio = Math.max(0, now - last[1]) / (dueAt - last[1]);   // 1 when it falls due; past 1, how overdue
+            return { kind: ratio >= 1 ? 'due' : 'solid', base: 0.5 * Math.min(1.2, ratio), reason: ratio >= 1 ? 'Due for review' : 'Refresher', ratio, dueAt };
         }
 
         function selectSmartQuestions(size) {

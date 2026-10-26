@@ -86,6 +86,7 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
   - answer: `correct_answer`, `explanation`, `tldr`, `wrong_reasons`.
 - **Tags:** `services` holds 1–4 tags from `scripts/tag-vocabulary.json`, either `"Service"` or `"Service › Feature"`, joined by ` › `. Its `rules` say what to tag: what the correct answer depends on, most decisive first.
 - **After a question or its tags change,** run `check-tags.js`.
+- **Review rule** (`standingOf` in `index.html`, one rule for the Due for review list, the Smart quiz and subject quizzes): a question whose latest answer is wrong is to redo now; one right once falls due from the start of the `REVIEW_DAYS` (3) calendar day after that answer; one whose latest two answers are right, whenever given, is retired from review until it is next got wrong. The Smart quiz picks retired ones only when nothing else is left. "Done" (latest answer right) is a separate measure and doesn't use this rule.
 - **Top 200:** the overview's ★ Top 200 card, after What to do next, shows where the 200 questions ranked highest in `priority-map.json` stand: all banks together, then a full-width done / missed / unseen bar per bank. Each bank's ▶ starts its Top 200 quiz: those not done yet first, each part in priority order (done means the latest answer is right). The quiz runs in the set itself, so its answers count there like any other. The card stays hidden if the file can't be read.
 
 ## Services glossary
