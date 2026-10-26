@@ -1,10 +1,10 @@
-# Publishes docs/ to GitHub Pages on every push to develop, stamping the app version and
+# Publishes docs/ to GitHub Pages on every push to bank-switches, stamping the app version and
 # deployment time into index.html on the way (the committed file keeps its placeholders).
 name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [develop]
+    branches: [bank-switches]
   workflow_dispatch:
 
 permissions:
