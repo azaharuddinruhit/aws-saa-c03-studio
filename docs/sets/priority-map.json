@@ -1,76 +1,76 @@
 {
-  "generatedAt": "2026-10-26T11:14:23.345790Z",
+  "generatedAt": "2026-10-26T13:24:52.940Z",
   "count": 600,
-  "rankingMethod": "Priorities are interleaved by official SAA-C03 domain weights (30/26/24/20). Within each domain, tasks are interleaved by their share of this question bank as a coverage proxy (AWS does not publish task-level weights); within each task, the workbook-informed order is preserved.",
+  "rankingMethod": "Each position goes to the exam domain furthest behind the SAA-C03 weights (30/26/24/20), then to the set furthest behind its share (Set Alpha 20%; Beta, Gamma and Delta the other 80% by their size), then to the question in that domain and set worth most: a service or task statement not covered yet first, then how often the banks test its services and features, each counting less every time it has come up, so repeats spread out. AWS does not publish how likely any one question is.",
   "questions": [
     {
-      "bank": "alpha",
-      "id": 63,
+      "bank": "gamma",
+      "id": 106,
       "priority": 1
     },
     {
-      "bank": "alpha",
-      "id": 102,
+      "bank": "delta",
+      "id": 12,
       "priority": 2
     },
     {
-      "bank": "alpha",
-      "id": 69,
+      "bank": "beta",
+      "id": 11,
       "priority": 3
     },
     {
-      "bank": "delta",
-      "id": 40,
+      "bank": "alpha",
+      "id": 184,
       "priority": 4
     },
     {
-      "bank": "alpha",
-      "id": 77,
+      "bank": "gamma",
+      "id": 59,
       "priority": 5
     },
     {
-      "bank": "alpha",
-      "id": 162,
+      "bank": "delta",
+      "id": 77,
       "priority": 6
     },
     {
-      "bank": "alpha",
-      "id": 53,
+      "bank": "gamma",
+      "id": 187,
       "priority": 7
     },
     {
-      "bank": "gamma",
-      "id": 15,
+      "bank": "beta",
+      "id": 30,
       "priority": 8
     },
     {
       "bank": "alpha",
-      "id": 177,
+      "id": 49,
       "priority": 9
     },
     {
-      "bank": "alpha",
-      "id": 2,
+      "bank": "gamma",
+      "id": 117,
       "priority": 10
     },
     {
-      "bank": "alpha",
-      "id": 27,
+      "bank": "delta",
+      "id": 26,
       "priority": 11
     },
     {
       "bank": "gamma",
-      "id": 106,
+      "id": 105,
       "priority": 12
     },
     {
-      "bank": "alpha",
-      "id": 204,
+      "bank": "beta",
+      "id": 86,
       "priority": 13
     },
     {
       "bank": "alpha",
-      "id": 199,
+      "id": 144,
       "priority": 14
     },
     {
@@ -79,183 +79,183 @@
       "priority": 15
     },
     {
-      "bank": "gamma",
-      "id": 4,
+      "bank": "delta",
+      "id": 92,
       "priority": 16
     },
     {
-      "bank": "delta",
-      "id": 77,
+      "bank": "beta",
+      "id": 5,
       "priority": 17
     },
     {
       "bank": "gamma",
-      "id": 66,
+      "id": 60,
       "priority": 18
     },
     {
       "bank": "alpha",
-      "id": 193,
+      "id": 3,
       "priority": 19
     },
     {
-      "bank": "alpha",
-      "id": 24,
+      "bank": "gamma",
+      "id": 26,
       "priority": 20
     },
     {
       "bank": "delta",
-      "id": 97,
+      "id": 6,
       "priority": 21
     },
     {
-      "bank": "delta",
-      "id": 49,
+      "bank": "beta",
+      "id": 1,
       "priority": 22
     },
     {
-      "bank": "alpha",
-      "id": 1,
+      "bank": "gamma",
+      "id": 100,
       "priority": 23
     },
     {
       "bank": "alpha",
-      "id": 23,
+      "id": 118,
       "priority": 24
     },
     {
-      "bank": "alpha",
-      "id": 32,
+      "bank": "delta",
+      "id": 11,
       "priority": 25
     },
     {
-      "bank": "alpha",
-      "id": 83,
+      "bank": "gamma",
+      "id": 95,
       "priority": 26
     },
     {
-      "bank": "alpha",
-      "id": 200,
+      "bank": "beta",
+      "id": 31,
       "priority": 27
     },
     {
-      "bank": "beta",
-      "id": 81,
+      "bank": "alpha",
+      "id": 72,
       "priority": 28
     },
     {
-      "bank": "alpha",
-      "id": 157,
+      "bank": "gamma",
+      "id": 89,
       "priority": 29
     },
     {
       "bank": "delta",
-      "id": 2,
+      "id": 18,
       "priority": 30
     },
     {
-      "bank": "delta",
-      "id": 28,
+      "bank": "gamma",
+      "id": 37,
       "priority": 31
     },
     {
-      "bank": "alpha",
-      "id": 195,
+      "bank": "beta",
+      "id": 98,
       "priority": 32
     },
     {
       "bank": "alpha",
-      "id": 137,
+      "id": 92,
       "priority": 33
     },
     {
       "bank": "gamma",
-      "id": 99,
+      "id": 46,
       "priority": 34
     },
     {
       "bank": "delta",
-      "id": 91,
+      "id": 49,
       "priority": 35
     },
     {
-      "bank": "alpha",
-      "id": 87,
+      "bank": "gamma",
+      "id": 16,
       "priority": 36
     },
     {
-      "bank": "alpha",
-      "id": 165,
+      "bank": "beta",
+      "id": 64,
       "priority": 37
     },
     {
       "bank": "alpha",
-      "id": 40,
+      "id": 186,
       "priority": 38
     },
     {
       "bank": "gamma",
-      "id": 61,
+      "id": 186,
       "priority": 39
     },
     {
-      "bank": "alpha",
-      "id": 171,
+      "bank": "delta",
+      "id": 60,
       "priority": 40
     },
     {
-      "bank": "alpha",
-      "id": 124,
+      "bank": "gamma",
+      "id": 99,
       "priority": 41
     },
     {
-      "bank": "alpha",
-      "id": 153,
+      "bank": "beta",
+      "id": 91,
       "priority": 42
     },
     {
       "bank": "alpha",
-      "id": 184,
+      "id": 91,
       "priority": 43
     },
     {
       "bank": "gamma",
-      "id": 21,
+      "id": 116,
       "priority": 44
     },
     {
       "bank": "delta",
-      "id": 100,
+      "id": 102,
       "priority": 45
     },
     {
-      "bank": "alpha",
-      "id": 31,
+      "bank": "beta",
+      "id": 65,
       "priority": 46
     },
     {
-      "bank": "alpha",
-      "id": 203,
+      "bank": "gamma",
+      "id": 97,
       "priority": 47
     },
     {
       "bank": "alpha",
-      "id": 7,
+      "id": 88,
       "priority": 48
     },
     {
-      "bank": "alpha",
-      "id": 139,
+      "bank": "delta",
+      "id": 2,
       "priority": 49
     },
     {
-      "bank": "alpha",
-      "id": 29,
+      "bank": "gamma",
+      "id": 151,
       "priority": 50
     },
     {
-      "bank": "alpha",
-      "id": 154,
+      "bank": "beta",
+      "id": 40,
       "priority": 51
     },
     {
@@ -264,513 +264,513 @@
       "priority": 52
     },
     {
-      "bank": "gamma",
-      "id": 181,
+      "bank": "alpha",
+      "id": 21,
       "priority": 53
     },
     {
       "bank": "delta",
-      "id": 78,
+      "id": 8,
       "priority": 54
     },
     {
       "bank": "gamma",
-      "id": 43,
+      "id": 183,
       "priority": 55
     },
     {
-      "bank": "delta",
-      "id": 72,
+      "bank": "beta",
+      "id": 7,
       "priority": 56
     },
     {
       "bank": "gamma",
-      "id": 12,
+      "id": 163,
       "priority": 57
     },
     {
-      "bank": "alpha",
-      "id": 187,
+      "bank": "delta",
+      "id": 71,
       "priority": 58
     },
     {
-      "bank": "gamma",
-      "id": 185,
+      "bank": "alpha",
+      "id": 111,
       "priority": 59
     },
     {
-      "bank": "beta",
-      "id": 14,
+      "bank": "gamma",
+      "id": 9,
       "priority": 60
     },
     {
-      "bank": "gamma",
-      "id": 11,
+      "bank": "beta",
+      "id": 36,
       "priority": 61
     },
     {
-      "bank": "alpha",
-      "id": 194,
+      "bank": "delta",
+      "id": 1,
       "priority": 62
     },
     {
-      "bank": "alpha",
-      "id": 10,
+      "bank": "gamma",
+      "id": 129,
       "priority": 63
     },
     {
       "bank": "alpha",
-      "id": 114,
+      "id": 100,
       "priority": 64
     },
     {
-      "bank": "delta",
-      "id": 55,
+      "bank": "gamma",
+      "id": 101,
       "priority": 65
     },
     {
-      "bank": "alpha",
-      "id": 160,
+      "bank": "beta",
+      "id": 97,
       "priority": 66
-    },
-    {
-      "bank": "alpha",
-      "id": 144,
-      "priority": 67
-    },
-    {
-      "bank": "gamma",
-      "id": 122,
-      "priority": 68
-    },
-    {
-      "bank": "alpha",
-      "id": 75,
-      "priority": 69
-    },
-    {
-      "bank": "alpha",
-      "id": 107,
-      "priority": 70
-    },
-    {
-      "bank": "delta",
-      "id": 104,
-      "priority": 71
-    },
-    {
-      "bank": "gamma",
-      "id": 78,
-      "priority": 72
-    },
-    {
-      "bank": "delta",
-      "id": 29,
-      "priority": 73
-    },
-    {
-      "bank": "delta",
-      "id": 60,
-      "priority": 74
-    },
-    {
-      "bank": "beta",
-      "id": 25,
-      "priority": 75
-    },
-    {
-      "bank": "beta",
-      "id": 59,
-      "priority": 76
-    },
-    {
-      "bank": "alpha",
-      "id": 38,
-      "priority": 77
-    },
-    {
-      "bank": "alpha",
-      "id": 117,
-      "priority": 78
-    },
-    {
-      "bank": "gamma",
-      "id": 133,
-      "priority": 79
-    },
-    {
-      "bank": "beta",
-      "id": 8,
-      "priority": 80
-    },
-    {
-      "bank": "alpha",
-      "id": 202,
-      "priority": 81
-    },
-    {
-      "bank": "alpha",
-      "id": 176,
-      "priority": 82
-    },
-    {
-      "bank": "gamma",
-      "id": 52,
-      "priority": 83
-    },
-    {
-      "bank": "alpha",
-      "id": 183,
-      "priority": 84
-    },
-    {
-      "bank": "beta",
-      "id": 90,
-      "priority": 85
-    },
-    {
-      "bank": "beta",
-      "id": 93,
-      "priority": 86
-    },
-    {
-      "bank": "alpha",
-      "id": 50,
-      "priority": 87
-    },
-    {
-      "bank": "gamma",
-      "id": 148,
-      "priority": 88
-    },
-    {
-      "bank": "alpha",
-      "id": 132,
-      "priority": 89
-    },
-    {
-      "bank": "gamma",
-      "id": 182,
-      "priority": 90
     },
     {
       "bank": "delta",
       "id": 9,
-      "priority": 91
+      "priority": 67
+    },
+    {
+      "bank": "gamma",
+      "id": 66,
+      "priority": 68
     },
     {
       "bank": "alpha",
-      "id": 94,
-      "priority": 92
+      "id": 97,
+      "priority": 69
     },
     {
       "bank": "gamma",
-      "id": 14,
-      "priority": 93
-    },
-    {
-      "bank": "gamma",
-      "id": 72,
-      "priority": 94
-    },
-    {
-      "bank": "alpha",
-      "id": 141,
-      "priority": 95
-    },
-    {
-      "bank": "gamma",
-      "id": 153,
-      "priority": 96
-    },
-    {
-      "bank": "gamma",
-      "id": 160,
-      "priority": 97
-    },
-    {
-      "bank": "alpha",
-      "id": 121,
-      "priority": 98
-    },
-    {
-      "bank": "gamma",
-      "id": 117,
-      "priority": 99
-    },
-    {
-      "bank": "alpha",
-      "id": 12,
-      "priority": 100
-    },
-    {
-      "bank": "delta",
       "id": 64,
-      "priority": 101
-    },
-    {
-      "bank": "alpha",
-      "id": 57,
-      "priority": 102
-    },
-    {
-      "bank": "alpha",
-      "id": 134,
-      "priority": 103
-    },
-    {
-      "bank": "beta",
-      "id": 86,
-      "priority": 104
-    },
-    {
-      "bank": "alpha",
-      "id": 13,
-      "priority": 105
+      "priority": 70
     },
     {
       "bank": "delta",
-      "id": 7,
-      "priority": 106
-    },
-    {
-      "bank": "delta",
-      "id": 26,
-      "priority": 107
-    },
-    {
-      "bank": "alpha",
-      "id": 43,
-      "priority": 108
-    },
-    {
-      "bank": "alpha",
-      "id": 73,
-      "priority": 109
+      "id": 38,
+      "priority": 71
     },
     {
       "bank": "beta",
-      "id": 43,
-      "priority": 110
+      "id": 25,
+      "priority": 72
+    },
+    {
+      "bank": "alpha",
+      "id": 149,
+      "priority": 73
+    },
+    {
+      "bank": "gamma",
+      "id": 69,
+      "priority": 74
+    },
+    {
+      "bank": "delta",
+      "id": 14,
+      "priority": 75
+    },
+    {
+      "bank": "gamma",
+      "id": 33,
+      "priority": 76
     },
     {
       "bank": "beta",
       "id": 92,
-      "priority": 111
-    },
-    {
-      "bank": "beta",
-      "id": 67,
-      "priority": 112
+      "priority": 77
     },
     {
       "bank": "alpha",
-      "id": 92,
-      "priority": 113
+      "id": 1,
+      "priority": 78
     },
     {
-      "bank": "alpha",
-      "id": 18,
-      "priority": 114
-    },
-    {
-      "bank": "alpha",
-      "id": 105,
-      "priority": 115
+      "bank": "gamma",
+      "id": 4,
+      "priority": 79
     },
     {
       "bank": "delta",
-      "id": 11,
-      "priority": 116
+      "id": 107,
+      "priority": 80
+    },
+    {
+      "bank": "gamma",
+      "id": 74,
+      "priority": 81
+    },
+    {
+      "bank": "beta",
+      "id": 46,
+      "priority": 82
+    },
+    {
+      "bank": "alpha",
+      "id": 41,
+      "priority": 83
+    },
+    {
+      "bank": "gamma",
+      "id": 25,
+      "priority": 84
+    },
+    {
+      "bank": "delta",
+      "id": 42,
+      "priority": 85
+    },
+    {
+      "bank": "beta",
+      "id": 3,
+      "priority": 86
     },
     {
       "bank": "gamma",
       "id": 107,
-      "priority": 117
+      "priority": 87
+    },
+    {
+      "bank": "alpha",
+      "id": 187,
+      "priority": 88
+    },
+    {
+      "bank": "gamma",
+      "id": 123,
+      "priority": 89
     },
     {
       "bank": "delta",
+      "id": 28,
+      "priority": 90
+    },
+    {
+      "bank": "beta",
+      "id": 14,
+      "priority": 91
+    },
+    {
+      "bank": "gamma",
+      "id": 177,
+      "priority": 92
+    },
+    {
+      "bank": "alpha",
+      "id": 189,
+      "priority": 93
+    },
+    {
+      "bank": "gamma",
+      "id": 141,
+      "priority": 94
+    },
+    {
+      "bank": "delta",
+      "id": 57,
+      "priority": 95
+    },
+    {
+      "bank": "beta",
+      "id": 79,
+      "priority": 96
+    },
+    {
+      "bank": "gamma",
+      "id": 15,
+      "priority": 97
+    },
+    {
+      "bank": "alpha",
+      "id": 142,
+      "priority": 98
+    },
+    {
+      "bank": "delta",
+      "id": 95,
+      "priority": 99
+    },
+    {
+      "bank": "gamma",
+      "id": 185,
+      "priority": 100
+    },
+    {
+      "bank": "beta",
+      "id": 90,
+      "priority": 101
+    },
+    {
+      "bank": "gamma",
+      "id": 104,
+      "priority": 102
+    },
+    {
+      "bank": "alpha",
+      "id": 115,
+      "priority": 103
+    },
+    {
+      "bank": "delta",
+      "id": 15,
+      "priority": 104
+    },
+    {
+      "bank": "gamma",
+      "id": 133,
+      "priority": 105
+    },
+    {
+      "bank": "beta",
+      "id": 19,
+      "priority": 106
+    },
+    {
+      "bank": "gamma",
+      "id": 120,
+      "priority": 107
+    },
+    {
+      "bank": "alpha",
+      "id": 137,
+      "priority": 108
+    },
+    {
+      "bank": "delta",
+      "id": 91,
+      "priority": 109
+    },
+    {
+      "bank": "gamma",
+      "id": 110,
+      "priority": 110
+    },
+    {
+      "bank": "beta",
+      "id": 62,
+      "priority": 111
+    },
+    {
+      "bank": "delta",
+      "id": 96,
+      "priority": 112
+    },
+    {
+      "bank": "gamma",
+      "id": 140,
+      "priority": 113
+    },
+    {
+      "bank": "alpha",
+      "id": 150,
+      "priority": 114
+    },
+    {
+      "bank": "beta",
+      "id": 55,
+      "priority": 115
+    },
+    {
+      "bank": "gamma",
+      "id": 78,
+      "priority": 116
+    },
+    {
+      "bank": "delta",
+      "id": 63,
+      "priority": 117
+    },
+    {
+      "bank": "alpha",
       "id": 10,
       "priority": 118
     },
     {
       "bank": "gamma",
-      "id": 174,
+      "id": 184,
       "priority": 119
     },
     {
-      "bank": "delta",
-      "id": 25,
+      "bank": "beta",
+      "id": 93,
       "priority": 120
     },
     {
       "bank": "gamma",
-      "id": 9,
+      "id": 119,
       "priority": 121
     },
     {
-      "bank": "alpha",
-      "id": 96,
+      "bank": "delta",
+      "id": 5,
       "priority": 122
     },
     {
-      "bank": "beta",
-      "id": 24,
+      "bank": "alpha",
+      "id": 191,
       "priority": 123
     },
     {
-      "bank": "beta",
-      "id": 62,
+      "bank": "gamma",
+      "id": 180,
       "priority": 124
     },
     {
-      "bank": "gamma",
-      "id": 155,
+      "bank": "beta",
+      "id": 57,
       "priority": 125
     },
     {
-      "bank": "alpha",
-      "id": 180,
+      "bank": "gamma",
+      "id": 171,
       "priority": 126
     },
     {
-      "bank": "gamma",
-      "id": 98,
+      "bank": "delta",
+      "id": 4,
       "priority": 127
     },
     {
-      "bank": "beta",
-      "id": 35,
+      "bank": "alpha",
+      "id": 110,
       "priority": 128
     },
     {
-      "bank": "delta",
-      "id": 35,
+      "bank": "gamma",
+      "id": 70,
       "priority": 129
     },
     {
-      "bank": "delta",
-      "id": 12,
+      "bank": "beta",
+      "id": 77,
       "priority": 130
     },
     {
-      "bank": "beta",
-      "id": 11,
+      "bank": "delta",
+      "id": 55,
       "priority": 131
     },
     {
-      "bank": "alpha",
-      "id": 4,
+      "bank": "gamma",
+      "id": 31,
       "priority": 132
     },
     {
-      "bank": "gamma",
-      "id": 125,
+      "bank": "alpha",
+      "id": 204,
       "priority": 133
     },
     {
-      "bank": "alpha",
-      "id": 163,
+      "bank": "gamma",
+      "id": 150,
       "priority": 134
     },
     {
       "bank": "beta",
-      "id": 46,
+      "id": 21,
       "priority": 135
     },
     {
-      "bank": "alpha",
-      "id": 118,
+      "bank": "delta",
+      "id": 67,
       "priority": 136
     },
     {
-      "bank": "beta",
-      "id": 15,
+      "bank": "gamma",
+      "id": 158,
       "priority": 137
     },
     {
-      "bank": "gamma",
-      "id": 166,
+      "bank": "alpha",
+      "id": 44,
       "priority": 138
     },
     {
       "bank": "gamma",
-      "id": 183,
+      "id": 153,
       "priority": 139
     },
     {
-      "bank": "gamma",
-      "id": 143,
+      "bank": "beta",
+      "id": 22,
       "priority": 140
     },
     {
-      "bank": "alpha",
-      "id": 80,
+      "bank": "delta",
+      "id": 100,
       "priority": 141
-    },
-    {
-      "bank": "alpha",
-      "id": 97,
-      "priority": 142
-    },
-    {
-      "bank": "alpha",
-      "id": 189,
-      "priority": 143
-    },
-    {
-      "bank": "alpha",
-      "id": 170,
-      "priority": 144
-    },
-    {
-      "bank": "delta",
-      "id": 63,
-      "priority": 145
-    },
-    {
-      "bank": "gamma",
-      "id": 123,
-      "priority": 146
-    },
-    {
-      "bank": "beta",
-      "id": 4,
-      "priority": 147
-    },
-    {
-      "bank": "delta",
-      "id": 4,
-      "priority": 148
-    },
-    {
-      "bank": "delta",
-      "id": 95,
-      "priority": 149
-    },
-    {
-      "bank": "gamma",
-      "id": 28,
-      "priority": 150
     },
     {
       "bank": "gamma",
       "id": 79,
-      "priority": 151
+      "priority": 142
     },
     {
       "bank": "alpha",
-      "id": 130,
-      "priority": 152
+      "id": 42,
+      "priority": 143
+    },
+    {
+      "bank": "delta",
+      "id": 89,
+      "priority": 144
     },
     {
       "bank": "gamma",
-      "id": 63,
-      "priority": 153
+      "id": 81,
+      "priority": 145
     },
     {
       "bank": "beta",
-      "id": 12,
+      "id": 47,
+      "priority": 146
+    },
+    {
+      "bank": "gamma",
+      "id": 148,
+      "priority": 147
+    },
+    {
+      "bank": "alpha",
+      "id": 151,
+      "priority": 148
+    },
+    {
+      "bank": "delta",
+      "id": 90,
+      "priority": 149
+    },
+    {
+      "bank": "gamma",
+      "id": 86,
+      "priority": 150
+    },
+    {
+      "bank": "beta",
+      "id": 66,
+      "priority": 151
+    },
+    {
+      "bank": "gamma",
+      "id": 109,
+      "priority": 152
+    },
+    {
+      "bank": "alpha",
+      "id": 145,
+      "priority": 153
+    },
+    {
+      "bank": "delta",
+      "id": 34,
       "priority": 154
     },
     {
@@ -779,1378 +779,1378 @@
       "priority": 155
     },
     {
-      "bank": "beta",
-      "id": 45,
+      "bank": "gamma",
+      "id": 27,
       "priority": 156
     },
     {
       "bank": "alpha",
-      "id": 120,
+      "id": 24,
       "priority": 157
     },
     {
       "bank": "gamma",
-      "id": 111,
+      "id": 52,
       "priority": 158
     },
     {
-      "bank": "alpha",
-      "id": 3,
+      "bank": "delta",
+      "id": 31,
       "priority": 159
     },
     {
-      "bank": "gamma",
-      "id": 110,
+      "bank": "beta",
+      "id": 75,
       "priority": 160
     },
     {
-      "bank": "alpha",
-      "id": 85,
+      "bank": "gamma",
+      "id": 98,
       "priority": 161
-    },
-    {
-      "bank": "beta",
-      "id": 29,
-      "priority": 162
-    },
-    {
-      "bank": "alpha",
-      "id": 122,
-      "priority": 163
-    },
-    {
-      "bank": "beta",
-      "id": 19,
-      "priority": 164
-    },
-    {
-      "bank": "beta",
-      "id": 17,
-      "priority": 165
-    },
-    {
-      "bank": "beta",
-      "id": 79,
-      "priority": 166
-    },
-    {
-      "bank": "delta",
-      "id": 57,
-      "priority": 167
-    },
-    {
-      "bank": "delta",
-      "id": 71,
-      "priority": 168
-    },
-    {
-      "bank": "alpha",
-      "id": 76,
-      "priority": 169
-    },
-    {
-      "bank": "gamma",
-      "id": 178,
-      "priority": 170
-    },
-    {
-      "bank": "alpha",
-      "id": 81,
-      "priority": 171
-    },
-    {
-      "bank": "delta",
-      "id": 69,
-      "priority": 172
-    },
-    {
-      "bank": "gamma",
-      "id": 179,
-      "priority": 173
-    },
-    {
-      "bank": "alpha",
-      "id": 70,
-      "priority": 174
-    },
-    {
-      "bank": "beta",
-      "id": 77,
-      "priority": 175
-    },
-    {
-      "bank": "alpha",
-      "id": 158,
-      "priority": 176
-    },
-    {
-      "bank": "delta",
-      "id": 89,
-      "priority": 177
-    },
-    {
-      "bank": "alpha",
-      "id": 173,
-      "priority": 178
-    },
-    {
-      "bank": "gamma",
-      "id": 6,
-      "priority": 179
-    },
-    {
-      "bank": "delta",
-      "id": 74,
-      "priority": 180
-    },
-    {
-      "bank": "gamma",
-      "id": 65,
-      "priority": 181
-    },
-    {
-      "bank": "alpha",
-      "id": 26,
-      "priority": 182
-    },
-    {
-      "bank": "gamma",
-      "id": 62,
-      "priority": 183
-    },
-    {
-      "bank": "beta",
-      "id": 89,
-      "priority": 184
-    },
-    {
-      "bank": "gamma",
-      "id": 184,
-      "priority": 185
-    },
-    {
-      "bank": "gamma",
-      "id": 44,
-      "priority": 186
-    },
-    {
-      "bank": "gamma",
-      "id": 46,
-      "priority": 187
-    },
-    {
-      "bank": "alpha",
-      "id": 42,
-      "priority": 188
-    },
-    {
-      "bank": "delta",
-      "id": 42,
-      "priority": 189
-    },
-    {
-      "bank": "delta",
-      "id": 39,
-      "priority": 190
-    },
-    {
-      "bank": "beta",
-      "id": 44,
-      "priority": 191
-    },
-    {
-      "bank": "beta",
-      "id": 98,
-      "priority": 192
-    },
-    {
-      "bank": "delta",
-      "id": 15,
-      "priority": 193
-    },
-    {
-      "bank": "alpha",
-      "id": 169,
-      "priority": 194
-    },
-    {
-      "bank": "alpha",
-      "id": 126,
-      "priority": 195
-    },
-    {
-      "bank": "gamma",
-      "id": 38,
-      "priority": 196
-    },
-    {
-      "bank": "alpha",
-      "id": 185,
-      "priority": 197
-    },
-    {
-      "bank": "alpha",
-      "id": 166,
-      "priority": 198
-    },
-    {
-      "bank": "alpha",
-      "id": 178,
-      "priority": 199
-    },
-    {
-      "bank": "alpha",
-      "id": 136,
-      "priority": 200
-    },
-    {
-      "bank": "beta",
-      "id": 6,
-      "priority": 201
-    },
-    {
-      "bank": "gamma",
-      "id": 158,
-      "priority": 202
-    },
-    {
-      "bank": "beta",
-      "id": 55,
-      "priority": 203
-    },
-    {
-      "bank": "delta",
-      "id": 87,
-      "priority": 204
-    },
-    {
-      "bank": "gamma",
-      "id": 89,
-      "priority": 205
-    },
-    {
-      "bank": "alpha",
-      "id": 164,
-      "priority": 206
-    },
-    {
-      "bank": "delta",
-      "id": 98,
-      "priority": 207
-    },
-    {
-      "bank": "gamma",
-      "id": 140,
-      "priority": 208
-    },
-    {
-      "bank": "delta",
-      "id": 45,
-      "priority": 209
-    },
-    {
-      "bank": "gamma",
-      "id": 171,
-      "priority": 210
-    },
-    {
-      "bank": "alpha",
-      "id": 108,
-      "priority": 211
-    },
-    {
-      "bank": "delta",
-      "id": 50,
-      "priority": 212
-    },
-    {
-      "bank": "gamma",
-      "id": 129,
-      "priority": 213
-    },
-    {
-      "bank": "delta",
-      "id": 107,
-      "priority": 214
-    },
-    {
-      "bank": "gamma",
-      "id": 187,
-      "priority": 215
-    },
-    {
-      "bank": "beta",
-      "id": 72,
-      "priority": 216
-    },
-    {
-      "bank": "gamma",
-      "id": 152,
-      "priority": 217
-    },
-    {
-      "bank": "delta",
-      "id": 47,
-      "priority": 218
-    },
-    {
-      "bank": "gamma",
-      "id": 36,
-      "priority": 219
-    },
-    {
-      "bank": "beta",
-      "id": 9,
-      "priority": 220
-    },
-    {
-      "bank": "alpha",
-      "id": 17,
-      "priority": 221
-    },
-    {
-      "bank": "beta",
-      "id": 66,
-      "priority": 222
-    },
-    {
-      "bank": "alpha",
-      "id": 72,
-      "priority": 223
-    },
-    {
-      "bank": "alpha",
-      "id": 123,
-      "priority": 224
-    },
-    {
-      "bank": "gamma",
-      "id": 164,
-      "priority": 225
-    },
-    {
-      "bank": "delta",
-      "id": 105,
-      "priority": 226
-    },
-    {
-      "bank": "delta",
-      "id": 99,
-      "priority": 227
-    },
-    {
-      "bank": "gamma",
-      "id": 34,
-      "priority": 228
-    },
-    {
-      "bank": "alpha",
-      "id": 14,
-      "priority": 229
-    },
-    {
-      "bank": "delta",
-      "id": 90,
-      "priority": 230
-    },
-    {
-      "bank": "alpha",
-      "id": 167,
-      "priority": 231
-    },
-    {
-      "bank": "beta",
-      "id": 34,
-      "priority": 232
-    },
-    {
-      "bank": "beta",
-      "id": 30,
-      "priority": 233
-    },
-    {
-      "bank": "alpha",
-      "id": 68,
-      "priority": 234
-    },
-    {
-      "bank": "alpha",
-      "id": 33,
-      "priority": 235
-    },
-    {
-      "bank": "beta",
-      "id": 87,
-      "priority": 236
-    },
-    {
-      "bank": "gamma",
-      "id": 104,
-      "priority": 237
-    },
-    {
-      "bank": "beta",
-      "id": 48,
-      "priority": 238
-    },
-    {
-      "bank": "delta",
-      "id": 65,
-      "priority": 239
-    },
-    {
-      "bank": "alpha",
-      "id": 133,
-      "priority": 240
-    },
-    {
-      "bank": "alpha",
-      "id": 66,
-      "priority": 241
-    },
-    {
-      "bank": "alpha",
-      "id": 111,
-      "priority": 242
-    },
-    {
-      "bank": "beta",
-      "id": 28,
-      "priority": 243
-    },
-    {
-      "bank": "gamma",
-      "id": 159,
-      "priority": 244
-    },
-    {
-      "bank": "beta",
-      "id": 33,
-      "priority": 245
-    },
-    {
-      "bank": "beta",
-      "id": 69,
-      "priority": 246
-    },
-    {
-      "bank": "alpha",
-      "id": 186,
-      "priority": 247
-    },
-    {
-      "bank": "gamma",
-      "id": 131,
-      "priority": 248
-    },
-    {
-      "bank": "alpha",
-      "id": 11,
-      "priority": 249
-    },
-    {
-      "bank": "alpha",
-      "id": 127,
-      "priority": 250
     },
     {
       "bank": "alpha",
       "id": 64,
-      "priority": 251
+      "priority": 162
+    },
+    {
+      "bank": "gamma",
+      "id": 111,
+      "priority": 163
+    },
+    {
+      "bank": "delta",
+      "id": 7,
+      "priority": 164
     },
     {
       "bank": "beta",
-      "id": 49,
-      "priority": 252
-    },
-    {
-      "bank": "gamma",
-      "id": 141,
-      "priority": 253
-    },
-    {
-      "bank": "gamma",
-      "id": 55,
-      "priority": 254
-    },
-    {
-      "bank": "delta",
-      "id": 83,
-      "priority": 255
-    },
-    {
-      "bank": "alpha",
-      "id": 25,
-      "priority": 256
-    },
-    {
-      "bank": "alpha",
-      "id": 106,
-      "priority": 257
-    },
-    {
-      "bank": "delta",
-      "id": 101,
-      "priority": 258
-    },
-    {
-      "bank": "alpha",
-      "id": 147,
-      "priority": 259
-    },
-    {
-      "bank": "alpha",
-      "id": 20,
-      "priority": 260
-    },
-    {
-      "bank": "delta",
-      "id": 62,
-      "priority": 261
-    },
-    {
-      "bank": "gamma",
-      "id": 170,
-      "priority": 262
-    },
-    {
-      "bank": "delta",
-      "id": 52,
-      "priority": 263
-    },
-    {
-      "bank": "alpha",
-      "id": 16,
-      "priority": 264
-    },
-    {
-      "bank": "delta",
-      "id": 41,
-      "priority": 265
-    },
-    {
-      "bank": "alpha",
-      "id": 196,
-      "priority": 266
-    },
-    {
-      "bank": "gamma",
-      "id": 25,
-      "priority": 267
-    },
-    {
-      "bank": "alpha",
-      "id": 6,
-      "priority": 268
-    },
-    {
-      "bank": "beta",
-      "id": 84,
-      "priority": 269
-    },
-    {
-      "bank": "gamma",
-      "id": 84,
-      "priority": 270
-    },
-    {
-      "bank": "delta",
-      "id": 85,
-      "priority": 271
-    },
-    {
-      "bank": "alpha",
-      "id": 156,
-      "priority": 272
-    },
-    {
-      "bank": "delta",
-      "id": 93,
-      "priority": 273
-    },
-    {
-      "bank": "delta",
-      "id": 61,
-      "priority": 274
-    },
-    {
-      "bank": "beta",
-      "id": 85,
-      "priority": 275
-    },
-    {
-      "bank": "alpha",
-      "id": 49,
-      "priority": 276
-    },
-    {
-      "bank": "alpha",
-      "id": 152,
-      "priority": 277
-    },
-    {
-      "bank": "gamma",
-      "id": 57,
-      "priority": 278
-    },
-    {
-      "bank": "alpha",
       "id": 95,
-      "priority": 279
-    },
-    {
-      "bank": "alpha",
-      "id": 113,
-      "priority": 280
+      "priority": 165
     },
     {
       "bank": "gamma",
-      "id": 2,
-      "priority": 281
-    },
-    {
-      "bank": "beta",
-      "id": 52,
-      "priority": 282
-    },
-    {
-      "bank": "gamma",
-      "id": 3,
-      "priority": 283
-    },
-    {
-      "bank": "gamma",
-      "id": 33,
-      "priority": 284
-    },
-    {
-      "bank": "beta",
-      "id": 91,
-      "priority": 285
-    },
-    {
-      "bank": "gamma",
-      "id": 173,
-      "priority": 286
-    },
-    {
-      "bank": "gamma",
-      "id": 22,
-      "priority": 287
+      "id": 155,
+      "priority": 166
     },
     {
       "bank": "delta",
-      "id": 80,
-      "priority": 288
-    },
-    {
-      "bank": "beta",
-      "id": 82,
-      "priority": 289
-    },
-    {
-      "bank": "delta",
-      "id": 3,
-      "priority": 290
-    },
-    {
-      "bank": "beta",
-      "id": 68,
-      "priority": 291
+      "id": 97,
+      "priority": 167
     },
     {
       "bank": "alpha",
-      "id": 138,
-      "priority": 292
-    },
-    {
-      "bank": "delta",
-      "id": 23,
-      "priority": 293
-    },
-    {
-      "bank": "beta",
-      "id": 60,
-      "priority": 294
-    },
-    {
-      "bank": "beta",
-      "id": 88,
-      "priority": 295
-    },
-    {
-      "bank": "beta",
-      "id": 101,
-      "priority": 296
-    },
-    {
-      "bank": "alpha",
-      "id": 172,
-      "priority": 297
+      "id": 190,
+      "priority": 168
     },
     {
       "bank": "gamma",
-      "id": 37,
-      "priority": 298
-    },
-    {
-      "bank": "alpha",
-      "id": 197,
-      "priority": 299
-    },
-    {
-      "bank": "alpha",
-      "id": 62,
-      "priority": 300
-    },
-    {
-      "bank": "delta",
-      "id": 92,
-      "priority": 301
-    },
-    {
-      "bank": "gamma",
-      "id": 27,
-      "priority": 302
-    },
-    {
-      "bank": "beta",
-      "id": 13,
-      "priority": 303
-    },
-    {
-      "bank": "gamma",
-      "id": 68,
-      "priority": 304
-    },
-    {
-      "bank": "beta",
-      "id": 63,
-      "priority": 305
-    },
-    {
-      "bank": "beta",
-      "id": 75,
-      "priority": 306
-    },
-    {
-      "bank": "alpha",
-      "id": 201,
-      "priority": 307
-    },
-    {
-      "bank": "beta",
-      "id": 73,
-      "priority": 308
-    },
-    {
-      "bank": "beta",
-      "id": 96,
-      "priority": 309
-    },
-    {
-      "bank": "alpha",
-      "id": 161,
-      "priority": 310
-    },
-    {
-      "bank": "delta",
-      "id": 67,
-      "priority": 311
-    },
-    {
-      "bank": "alpha",
-      "id": 135,
-      "priority": 312
-    },
-    {
-      "bank": "beta",
-      "id": 53,
-      "priority": 313
-    },
-    {
-      "bank": "delta",
-      "id": 103,
-      "priority": 314
-    },
-    {
-      "bank": "gamma",
-      "id": 67,
-      "priority": 315
-    },
-    {
-      "bank": "gamma",
-      "id": 71,
-      "priority": 316
-    },
-    {
-      "bank": "alpha",
-      "id": 19,
-      "priority": 317
-    },
-    {
-      "bank": "beta",
-      "id": 80,
-      "priority": 318
-    },
-    {
-      "bank": "alpha",
-      "id": 56,
-      "priority": 319
-    },
-    {
-      "bank": "gamma",
-      "id": 101,
-      "priority": 320
-    },
-    {
-      "bank": "alpha",
-      "id": 181,
-      "priority": 321
-    },
-    {
-      "bank": "alpha",
-      "id": 131,
-      "priority": 322
-    },
-    {
-      "bank": "alpha",
-      "id": 71,
-      "priority": 323
-    },
-    {
-      "bank": "gamma",
-      "id": 120,
-      "priority": 324
-    },
-    {
-      "bank": "gamma",
-      "id": 87,
-      "priority": 325
-    },
-    {
-      "bank": "alpha",
-      "id": 198,
-      "priority": 326
-    },
-    {
-      "bank": "alpha",
-      "id": 125,
-      "priority": 327
-    },
-    {
-      "bank": "gamma",
-      "id": 29,
-      "priority": 328
-    },
-    {
-      "bank": "gamma",
-      "id": 113,
-      "priority": 329
-    },
-    {
-      "bank": "gamma",
-      "id": 112,
-      "priority": 330
-    },
-    {
-      "bank": "beta",
-      "id": 23,
-      "priority": 331
-    },
-    {
-      "bank": "alpha",
-      "id": 48,
-      "priority": 332
-    },
-    {
-      "bank": "alpha",
-      "id": 192,
-      "priority": 333
-    },
-    {
-      "bank": "alpha",
-      "id": 22,
-      "priority": 334
-    },
-    {
-      "bank": "gamma",
-      "id": 53,
-      "priority": 335
-    },
-    {
-      "bank": "gamma",
-      "id": 74,
-      "priority": 336
-    },
-    {
-      "bank": "alpha",
-      "id": 67,
-      "priority": 337
-    },
-    {
-      "bank": "alpha",
-      "id": 39,
-      "priority": 338
-    },
-    {
-      "bank": "gamma",
-      "id": 88,
-      "priority": 339
-    },
-    {
-      "bank": "alpha",
-      "id": 37,
-      "priority": 340
-    },
-    {
-      "bank": "gamma",
-      "id": 41,
-      "priority": 341
-    },
-    {
-      "bank": "beta",
-      "id": 47,
-      "priority": 342
-    },
-    {
-      "bank": "beta",
-      "id": 99,
-      "priority": 343
-    },
-    {
-      "bank": "alpha",
-      "id": 116,
-      "priority": 344
-    },
-    {
-      "bank": "beta",
-      "id": 100,
-      "priority": 345
-    },
-    {
-      "bank": "alpha",
-      "id": 35,
-      "priority": 346
-    },
-    {
-      "bank": "gamma",
-      "id": 30,
-      "priority": 347
-    },
-    {
-      "bank": "delta",
-      "id": 75,
-      "priority": 348
-    },
-    {
-      "bank": "delta",
-      "id": 18,
-      "priority": 349
-    },
-    {
-      "bank": "delta",
-      "id": 33,
-      "priority": 350
-    },
-    {
-      "bank": "delta",
-      "id": 5,
-      "priority": 351
-    },
-    {
-      "bank": "delta",
-      "id": 102,
-      "priority": 352
-    },
-    {
-      "bank": "delta",
-      "id": 68,
-      "priority": 353
-    },
-    {
-      "bank": "alpha",
-      "id": 109,
-      "priority": 354
-    },
-    {
-      "bank": "delta",
-      "id": 30,
-      "priority": 355
-    },
-    {
-      "bank": "alpha",
-      "id": 182,
-      "priority": 356
-    },
-    {
-      "bank": "beta",
-      "id": 3,
-      "priority": 357
-    },
-    {
-      "bank": "alpha",
-      "id": 59,
-      "priority": 358
-    },
-    {
-      "bank": "gamma",
-      "id": 80,
-      "priority": 359
-    },
-    {
-      "bank": "beta",
-      "id": 54,
-      "priority": 360
-    },
-    {
-      "bank": "alpha",
-      "id": 151,
-      "priority": 361
-    },
-    {
-      "bank": "gamma",
-      "id": 177,
-      "priority": 362
-    },
-    {
-      "bank": "alpha",
-      "id": 110,
-      "priority": 363
-    },
-    {
-      "bank": "gamma",
-      "id": 156,
-      "priority": 364
-    },
-    {
-      "bank": "gamma",
-      "id": 17,
-      "priority": 365
-    },
-    {
-      "bank": "gamma",
-      "id": 149,
-      "priority": 366
-    },
-    {
-      "bank": "gamma",
-      "id": 76,
-      "priority": 367
-    },
-    {
-      "bank": "gamma",
-      "id": 92,
-      "priority": 368
-    },
-    {
-      "bank": "gamma",
-      "id": 169,
-      "priority": 369
-    },
-    {
-      "bank": "beta",
-      "id": 27,
-      "priority": 370
-    },
-    {
-      "bank": "gamma",
-      "id": 150,
-      "priority": 371
-    },
-    {
-      "bank": "gamma",
-      "id": 70,
-      "priority": 372
-    },
-    {
-      "bank": "gamma",
-      "id": 82,
-      "priority": 373
-    },
-    {
-      "bank": "beta",
-      "id": 41,
-      "priority": 374
-    },
-    {
-      "bank": "alpha",
-      "id": 60,
-      "priority": 375
-    },
-    {
-      "bank": "gamma",
-      "id": 146,
-      "priority": 376
-    },
-    {
-      "bank": "delta",
-      "id": 22,
-      "priority": 377
-    },
-    {
-      "bank": "alpha",
-      "id": 44,
-      "priority": 378
-    },
-    {
-      "bank": "delta",
-      "id": 66,
-      "priority": 379
-    },
-    {
-      "bank": "gamma",
-      "id": 147,
-      "priority": 380
-    },
-    {
-      "bank": "gamma",
-      "id": 26,
-      "priority": 381
-    },
-    {
-      "bank": "delta",
-      "id": 82,
-      "priority": 382
-    },
-    {
-      "bank": "gamma",
-      "id": 8,
-      "priority": 383
-    },
-    {
-      "bank": "gamma",
-      "id": 45,
-      "priority": 384
-    },
-    {
-      "bank": "alpha",
-      "id": 146,
-      "priority": 385
-    },
-    {
-      "bank": "alpha",
-      "id": 8,
-      "priority": 386
-    },
-    {
-      "bank": "gamma",
-      "id": 81,
-      "priority": 387
-    },
-    {
-      "bank": "gamma",
-      "id": 135,
-      "priority": 388
-    },
-    {
-      "bank": "gamma",
-      "id": 86,
-      "priority": 389
-    },
-    {
-      "bank": "gamma",
-      "id": 102,
-      "priority": 390
-    },
-    {
-      "bank": "gamma",
-      "id": 126,
-      "priority": 391
-    },
-    {
-      "bank": "gamma",
-      "id": 136,
-      "priority": 392
-    },
-    {
-      "bank": "gamma",
-      "id": 157,
-      "priority": 393
+      "id": 61,
+      "priority": 169
     },
     {
       "bank": "beta",
       "id": 70,
-      "priority": 394
+      "priority": 170
     },
     {
       "bank": "gamma",
-      "id": 168,
-      "priority": 395
+      "id": 146,
+      "priority": 171
     },
     {
       "bank": "delta",
       "id": 21,
-      "priority": 396
-    },
-    {
-      "bank": "gamma",
-      "id": 97,
-      "priority": 397
-    },
-    {
-      "bank": "delta",
-      "id": 88,
-      "priority": 398
-    },
-    {
-      "bank": "gamma",
-      "id": 172,
-      "priority": 399
-    },
-    {
-      "bank": "beta",
-      "id": 50,
-      "priority": 400
-    },
-    {
-      "bank": "delta",
-      "id": 56,
-      "priority": 401
-    },
-    {
-      "bank": "gamma",
-      "id": 109,
-      "priority": 402
-    },
-    {
-      "bank": "gamma",
-      "id": 48,
-      "priority": 403
-    },
-    {
-      "bank": "gamma",
-      "id": 115,
-      "priority": 404
-    },
-    {
-      "bank": "delta",
-      "id": 70,
-      "priority": 405
+      "priority": 172
     },
     {
       "bank": "alpha",
-      "id": 28,
-      "priority": 406
+      "id": 90,
+      "priority": 173
     },
     {
       "bank": "gamma",
-      "id": 83,
-      "priority": 407
+      "id": 44,
+      "priority": 174
     },
     {
-      "bank": "delta",
-      "id": 86,
-      "priority": 408
-    },
-    {
-      "bank": "delta",
-      "id": 43,
-      "priority": 409
+      "bank": "beta",
+      "id": 69,
+      "priority": 175
     },
     {
       "bank": "gamma",
-      "id": 5,
-      "priority": 410
+      "id": 132,
+      "priority": 176
+    },
+    {
+      "bank": "delta",
+      "id": 39,
+      "priority": 177
+    },
+    {
+      "bank": "alpha",
+      "id": 174,
+      "priority": 178
+    },
+    {
+      "bank": "gamma",
+      "id": 91,
+      "priority": 179
     },
     {
       "bank": "beta",
-      "id": 18,
-      "priority": 411
+      "id": 15,
+      "priority": 180
+    },
+    {
+      "bank": "delta",
+      "id": 75,
+      "priority": 181
+    },
+    {
+      "bank": "gamma",
+      "id": 136,
+      "priority": 182
+    },
+    {
+      "bank": "alpha",
+      "id": 40,
+      "priority": 183
     },
     {
       "bank": "beta",
-      "id": 57,
-      "priority": 412
+      "id": 33,
+      "priority": 184
+    },
+    {
+      "bank": "gamma",
+      "id": 36,
+      "priority": 185
+    },
+    {
+      "bank": "delta",
+      "id": 3,
+      "priority": 186
+    },
+    {
+      "bank": "gamma",
+      "id": 42,
+      "priority": 187
     },
     {
       "bank": "alpha",
       "id": 188,
-      "priority": 413
-    },
-    {
-      "bank": "gamma",
-      "id": 119,
-      "priority": 414
+      "priority": 188
     },
     {
       "bank": "beta",
-      "id": 83,
-      "priority": 415
+      "id": 74,
+      "priority": 189
     },
     {
-      "bank": "alpha",
-      "id": 112,
-      "priority": 416
-    },
-    {
-      "bank": "delta",
-      "id": 38,
-      "priority": 417
-    },
-    {
-      "bank": "delta",
+      "bank": "gamma",
       "id": 19,
-      "priority": 418
+      "priority": 190
     },
     {
-      "bank": "alpha",
-      "id": 159,
-      "priority": 419
+      "bank": "delta",
+      "id": 104,
+      "priority": 191
     },
     {
       "bank": "gamma",
-      "id": 167,
-      "priority": 420
+      "id": 43,
+      "priority": 192
+    },
+    {
+      "bank": "alpha",
+      "id": 43,
+      "priority": 193
     },
     {
       "bank": "beta",
-      "id": 7,
-      "priority": 421
-    },
-    {
-      "bank": "delta",
-      "id": 96,
-      "priority": 422
-    },
-    {
-      "bank": "delta",
-      "id": 34,
-      "priority": 423
+      "id": 17,
+      "priority": 194
     },
     {
       "bank": "gamma",
-      "id": 85,
-      "priority": 424
+      "id": 168,
+      "priority": 195
+    },
+    {
+      "bank": "delta",
+      "id": 36,
+      "priority": 196
+    },
+    {
+      "bank": "gamma",
+      "id": 160,
+      "priority": 197
     },
     {
       "bank": "alpha",
-      "id": 128,
-      "priority": 425
+      "id": 53,
+      "priority": 198
+    },
+    {
+      "bank": "beta",
+      "id": 43,
+      "priority": 199
+    },
+    {
+      "bank": "delta",
+      "id": 65,
+      "priority": 200
+    },
+    {
+      "bank": "gamma",
+      "id": 38,
+      "priority": 201
+    },
+    {
+      "bank": "alpha",
+      "id": 143,
+      "priority": 202
+    },
+    {
+      "bank": "gamma",
+      "id": 67,
+      "priority": 203
+    },
+    {
+      "bank": "beta",
+      "id": 73,
+      "priority": 204
+    },
+    {
+      "bank": "delta",
+      "id": 83,
+      "priority": 205
+    },
+    {
+      "bank": "gamma",
+      "id": 156,
+      "priority": 206
+    },
+    {
+      "bank": "alpha",
+      "id": 134,
+      "priority": 207
+    },
+    {
+      "bank": "gamma",
+      "id": 179,
+      "priority": 208
+    },
+    {
+      "bank": "beta",
+      "id": 34,
+      "priority": 209
+    },
+    {
+      "bank": "delta",
+      "id": 85,
+      "priority": 210
+    },
+    {
+      "bank": "gamma",
+      "id": 161,
+      "priority": 211
+    },
+    {
+      "bank": "alpha",
+      "id": 74,
+      "priority": 212
+    },
+    {
+      "bank": "delta",
+      "id": 40,
+      "priority": 213
+    },
+    {
+      "bank": "gamma",
+      "id": 76,
+      "priority": 214
+    },
+    {
+      "bank": "beta",
+      "id": 38,
+      "priority": 215
+    },
+    {
+      "bank": "gamma",
+      "id": 71,
+      "priority": 216
+    },
+    {
+      "bank": "alpha",
+      "id": 2,
+      "priority": 217
+    },
+    {
+      "bank": "delta",
+      "id": 87,
+      "priority": 218
+    },
+    {
+      "bank": "gamma",
+      "id": 88,
+      "priority": 219
+    },
+    {
+      "bank": "beta",
+      "id": 27,
+      "priority": 220
+    },
+    {
+      "bank": "gamma",
+      "id": 41,
+      "priority": 221
+    },
+    {
+      "bank": "delta",
+      "id": 70,
+      "priority": 222
+    },
+    {
+      "bank": "alpha",
+      "id": 203,
+      "priority": 223
+    },
+    {
+      "bank": "beta",
+      "id": 60,
+      "priority": 224
+    },
+    {
+      "bank": "gamma",
+      "id": 6,
+      "priority": 225
+    },
+    {
+      "bank": "gamma",
+      "id": 126,
+      "priority": 226
+    },
+    {
+      "bank": "delta",
+      "id": 62,
+      "priority": 227
+    },
+    {
+      "bank": "alpha",
+      "id": 122,
+      "priority": 228
+    },
+    {
+      "bank": "beta",
+      "id": 37,
+      "priority": 229
+    },
+    {
+      "bank": "gamma",
+      "id": 147,
+      "priority": 230
+    },
+    {
+      "bank": "delta",
+      "id": 22,
+      "priority": 231
+    },
+    {
+      "bank": "gamma",
+      "id": 53,
+      "priority": 232
+    },
+    {
+      "bank": "alpha",
+      "id": 175,
+      "priority": 233
+    },
+    {
+      "bank": "beta",
+      "id": 8,
+      "priority": 234
+    },
+    {
+      "bank": "gamma",
+      "id": 18,
+      "priority": 235
+    },
+    {
+      "bank": "delta",
+      "id": 61,
+      "priority": 236
+    },
+    {
+      "bank": "gamma",
+      "id": 172,
+      "priority": 237
+    },
+    {
+      "bank": "alpha",
+      "id": 6,
+      "priority": 238
+    },
+    {
+      "bank": "beta",
+      "id": 50,
+      "priority": 239
+    },
+    {
+      "bank": "gamma",
+      "id": 65,
+      "priority": 240
+    },
+    {
+      "bank": "delta",
+      "id": 72,
+      "priority": 241
+    },
+    {
+      "bank": "gamma",
+      "id": 28,
+      "priority": 242
+    },
+    {
+      "bank": "alpha",
+      "id": 192,
+      "priority": 243
+    },
+    {
+      "bank": "beta",
+      "id": 9,
+      "priority": 244
+    },
+    {
+      "bank": "gamma",
+      "id": 152,
+      "priority": 245
+    },
+    {
+      "bank": "delta",
+      "id": 64,
+      "priority": 246
+    },
+    {
+      "bank": "alpha",
+      "id": 59,
+      "priority": 247
+    },
+    {
+      "bank": "gamma",
+      "id": 21,
+      "priority": 248
+    },
+    {
+      "bank": "beta",
+      "id": 54,
+      "priority": 249
+    },
+    {
+      "bank": "delta",
+      "id": 79,
+      "priority": 250
+    },
+    {
+      "bank": "gamma",
+      "id": 80,
+      "priority": 251
+    },
+    {
+      "bank": "beta",
+      "id": 45,
+      "priority": 252
+    },
+    {
+      "bank": "alpha",
+      "id": 36,
+      "priority": 253
+    },
+    {
+      "bank": "gamma",
+      "id": 62,
+      "priority": 254
+    },
+    {
+      "bank": "delta",
+      "id": 35,
+      "priority": 255
     },
     {
       "bank": "gamma",
       "id": 75,
-      "priority": 426
-    },
-    {
-      "bank": "alpha",
-      "id": 86,
-      "priority": 427
-    },
-    {
-      "bank": "delta",
-      "id": 8,
-      "priority": 428
+      "priority": 256
     },
     {
       "bank": "beta",
-      "id": 40,
-      "priority": 429
+      "id": 71,
+      "priority": 257
+    },
+    {
+      "bank": "alpha",
+      "id": 45,
+      "priority": 258
+    },
+    {
+      "bank": "gamma",
+      "id": 149,
+      "priority": 259
+    },
+    {
+      "bank": "delta",
+      "id": 105,
+      "priority": 260
+    },
+    {
+      "bank": "gamma",
+      "id": 50,
+      "priority": 261
+    },
+    {
+      "bank": "beta",
+      "id": 51,
+      "priority": 262
+    },
+    {
+      "bank": "alpha",
+      "id": 173,
+      "priority": 263
+    },
+    {
+      "bank": "gamma",
+      "id": 22,
+      "priority": 264
+    },
+    {
+      "bank": "delta",
+      "id": 27,
+      "priority": 265
+    },
+    {
+      "bank": "gamma",
+      "id": 87,
+      "priority": 266
+    },
+    {
+      "bank": "beta",
+      "id": 44,
+      "priority": 267
+    },
+    {
+      "bank": "alpha",
+      "id": 109,
+      "priority": 268
+    },
+    {
+      "bank": "delta",
+      "id": 45,
+      "priority": 269
+    },
+    {
+      "bank": "gamma",
+      "id": 137,
+      "priority": 270
+    },
+    {
+      "bank": "gamma",
+      "id": 45,
+      "priority": 271
+    },
+    {
+      "bank": "beta",
+      "id": 52,
+      "priority": 272
+    },
+    {
+      "bank": "alpha",
+      "id": 172,
+      "priority": 273
+    },
+    {
+      "bank": "delta",
+      "id": 81,
+      "priority": 274
+    },
+    {
+      "bank": "gamma",
+      "id": 35,
+      "priority": 275
+    },
+    {
+      "bank": "beta",
+      "id": 89,
+      "priority": 276
+    },
+    {
+      "bank": "gamma",
+      "id": 159,
+      "priority": 277
+    },
+    {
+      "bank": "delta",
+      "id": 84,
+      "priority": 278
+    },
+    {
+      "bank": "alpha",
+      "id": 128,
+      "priority": 279
+    },
+    {
+      "bank": "gamma",
+      "id": 112,
+      "priority": 280
+    },
+    {
+      "bank": "beta",
+      "id": 83,
+      "priority": 281
+    },
+    {
+      "bank": "gamma",
+      "id": 164,
+      "priority": 282
+    },
+    {
+      "bank": "delta",
+      "id": 23,
+      "priority": 283
+    },
+    {
+      "bank": "alpha",
+      "id": 162,
+      "priority": 284
+    },
+    {
+      "bank": "gamma",
+      "id": 23,
+      "priority": 285
+    },
+    {
+      "bank": "delta",
+      "id": 88,
+      "priority": 286
+    },
+    {
+      "bank": "beta",
+      "id": 68,
+      "priority": 287
+    },
+    {
+      "bank": "gamma",
+      "id": 122,
+      "priority": 288
+    },
+    {
+      "bank": "alpha",
+      "id": 129,
+      "priority": 289
+    },
+    {
+      "bank": "gamma",
+      "id": 1,
+      "priority": 290
     },
     {
       "bank": "delta",
       "id": 106,
+      "priority": 291
+    },
+    {
+      "bank": "beta",
+      "id": 84,
+      "priority": 292
+    },
+    {
+      "bank": "gamma",
+      "id": 14,
+      "priority": 293
+    },
+    {
+      "bank": "alpha",
+      "id": 7,
+      "priority": 294
+    },
+    {
+      "bank": "gamma",
+      "id": 5,
+      "priority": 295
+    },
+    {
+      "bank": "delta",
+      "id": 56,
+      "priority": 296
+    },
+    {
+      "bank": "beta",
+      "id": 78,
+      "priority": 297
+    },
+    {
+      "bank": "alpha",
+      "id": 201,
+      "priority": 298
+    },
+    {
+      "bank": "gamma",
+      "id": 130,
+      "priority": 299
+    },
+    {
+      "bank": "delta",
+      "id": 44,
+      "priority": 300
+    },
+    {
+      "bank": "gamma",
+      "id": 113,
+      "priority": 301
+    },
+    {
+      "bank": "beta",
+      "id": 59,
+      "priority": 302
+    },
+    {
+      "bank": "alpha",
+      "id": 70,
+      "priority": 303
+    },
+    {
+      "bank": "gamma",
+      "id": 57,
+      "priority": 304
+    },
+    {
+      "bank": "delta",
+      "id": 50,
+      "priority": 305
+    },
+    {
+      "bank": "beta",
+      "id": 16,
+      "priority": 306
+    },
+    {
+      "bank": "gamma",
+      "id": 93,
+      "priority": 307
+    },
+    {
+      "bank": "alpha",
+      "id": 46,
+      "priority": 308
+    },
+    {
+      "bank": "gamma",
+      "id": 169,
+      "priority": 309
+    },
+    {
+      "bank": "delta",
+      "id": 108,
+      "priority": 310
+    },
+    {
+      "bank": "gamma",
+      "id": 143,
+      "priority": 311
+    },
+    {
+      "bank": "beta",
+      "id": 96,
+      "priority": 312
+    },
+    {
+      "bank": "alpha",
+      "id": 117,
+      "priority": 313
+    },
+    {
+      "bank": "delta",
+      "id": 17,
+      "priority": 314
+    },
+    {
+      "bank": "gamma",
+      "id": 178,
+      "priority": 315
+    },
+    {
+      "bank": "beta",
+      "id": 94,
+      "priority": 316
+    },
+    {
+      "bank": "alpha",
+      "id": 163,
+      "priority": 317
+    },
+    {
+      "bank": "gamma",
+      "id": 125,
+      "priority": 318
+    },
+    {
+      "bank": "delta",
+      "id": 82,
+      "priority": 319
+    },
+    {
+      "bank": "gamma",
+      "id": 142,
+      "priority": 320
+    },
+    {
+      "bank": "beta",
+      "id": 49,
+      "priority": 321
+    },
+    {
+      "bank": "gamma",
+      "id": 58,
+      "priority": 322
+    },
+    {
+      "bank": "alpha",
+      "id": 39,
+      "priority": 323
+    },
+    {
+      "bank": "delta",
+      "id": 25,
+      "priority": 324
+    },
+    {
+      "bank": "gamma",
+      "id": 170,
+      "priority": 325
+    },
+    {
+      "bank": "beta",
+      "id": 100,
+      "priority": 326
+    },
+    {
+      "bank": "gamma",
+      "id": 72,
+      "priority": 327
+    },
+    {
+      "bank": "alpha",
+      "id": 71,
+      "priority": 328
+    },
+    {
+      "bank": "delta",
+      "id": 69,
+      "priority": 329
+    },
+    {
+      "bank": "beta",
+      "id": 85,
+      "priority": 330
+    },
+    {
+      "bank": "gamma",
+      "id": 108,
+      "priority": 331
+    },
+    {
+      "bank": "delta",
+      "id": 37,
+      "priority": 332
+    },
+    {
+      "bank": "gamma",
+      "id": 34,
+      "priority": 333
+    },
+    {
+      "bank": "alpha",
+      "id": 199,
+      "priority": 334
+    },
+    {
+      "bank": "gamma",
+      "id": 174,
+      "priority": 335
+    },
+    {
+      "bank": "beta",
+      "id": 18,
+      "priority": 336
+    },
+    {
+      "bank": "delta",
+      "id": 103,
+      "priority": 337
+    },
+    {
+      "bank": "gamma",
+      "id": 166,
+      "priority": 338
+    },
+    {
+      "bank": "alpha",
+      "id": 13,
+      "priority": 339
+    },
+    {
+      "bank": "gamma",
+      "id": 12,
+      "priority": 340
+    },
+    {
+      "bank": "beta",
+      "id": 10,
+      "priority": 341
+    },
+    {
+      "bank": "delta",
+      "id": 33,
+      "priority": 342
+    },
+    {
+      "bank": "alpha",
+      "id": 185,
+      "priority": 343
+    },
+    {
+      "bank": "gamma",
+      "id": 131,
+      "priority": 344
+    },
+    {
+      "bank": "beta",
+      "id": 88,
+      "priority": 345
+    },
+    {
+      "bank": "gamma",
+      "id": 73,
+      "priority": 346
+    },
+    {
+      "bank": "delta",
+      "id": 13,
+      "priority": 347
+    },
+    {
+      "bank": "alpha",
+      "id": 200,
+      "priority": 348
+    },
+    {
+      "bank": "delta",
+      "id": 73,
+      "priority": 349
+    },
+    {
+      "bank": "gamma",
+      "id": 154,
+      "priority": 350
+    },
+    {
+      "bank": "beta",
+      "id": 72,
+      "priority": 351
+    },
+    {
+      "bank": "alpha",
+      "id": 179,
+      "priority": 352
+    },
+    {
+      "bank": "gamma",
+      "id": 11,
+      "priority": 353
+    },
+    {
+      "bank": "gamma",
+      "id": 162,
+      "priority": 354
+    },
+    {
+      "bank": "delta",
+      "id": 66,
+      "priority": 355
+    },
+    {
+      "bank": "alpha",
+      "id": 65,
+      "priority": 356
+    },
+    {
+      "bank": "gamma",
+      "id": 145,
+      "priority": 357
+    },
+    {
+      "bank": "beta",
+      "id": 81,
+      "priority": 358
+    },
+    {
+      "bank": "gamma",
+      "id": 138,
+      "priority": 359
+    },
+    {
+      "bank": "delta",
+      "id": 74,
+      "priority": 360
+    },
+    {
+      "bank": "beta",
+      "id": 58,
+      "priority": 361
+    },
+    {
+      "bank": "gamma",
+      "id": 96,
+      "priority": 362
+    },
+    {
+      "bank": "alpha",
+      "id": 89,
+      "priority": 363
+    },
+    {
+      "bank": "alpha",
+      "id": 165,
+      "priority": 364
+    },
+    {
+      "bank": "gamma",
+      "id": 124,
+      "priority": 365
+    },
+    {
+      "bank": "delta",
+      "id": 54,
+      "priority": 366
+    },
+    {
+      "bank": "alpha",
+      "id": 102,
+      "priority": 367
+    },
+    {
+      "bank": "beta",
+      "id": 99,
+      "priority": 368
+    },
+    {
+      "bank": "gamma",
+      "id": 54,
+      "priority": 369
+    },
+    {
+      "bank": "gamma",
+      "id": 48,
+      "priority": 370
+    },
+    {
+      "bank": "alpha",
+      "id": 5,
+      "priority": 371
+    },
+    {
+      "bank": "delta",
+      "id": 30,
+      "priority": 372
+    },
+    {
+      "bank": "beta",
+      "id": 20,
+      "priority": 373
+    },
+    {
+      "bank": "gamma",
+      "id": 102,
+      "priority": 374
+    },
+    {
+      "bank": "delta",
+      "id": 53,
+      "priority": 375
+    },
+    {
+      "bank": "alpha",
+      "id": 126,
+      "priority": 376
+    },
+    {
+      "bank": "gamma",
+      "id": 2,
+      "priority": 377
+    },
+    {
+      "bank": "beta",
+      "id": 24,
+      "priority": 378
+    },
+    {
+      "bank": "gamma",
+      "id": 13,
+      "priority": 379
+    },
+    {
+      "bank": "alpha",
+      "id": 181,
+      "priority": 380
+    },
+    {
+      "bank": "delta",
+      "id": 20,
+      "priority": 381
+    },
+    {
+      "bank": "beta",
+      "id": 101,
+      "priority": 382
+    },
+    {
+      "bank": "gamma",
+      "id": 139,
+      "priority": 383
+    },
+    {
+      "bank": "alpha",
+      "id": 161,
+      "priority": 384
+    },
+    {
+      "bank": "delta",
+      "id": 43,
+      "priority": 385
+    },
+    {
+      "bank": "gamma",
+      "id": 173,
+      "priority": 386
+    },
+    {
+      "bank": "alpha",
+      "id": 141,
+      "priority": 387
+    },
+    {
+      "bank": "gamma",
+      "id": 118,
+      "priority": 388
+    },
+    {
+      "bank": "beta",
+      "id": 29,
+      "priority": 389
+    },
+    {
+      "bank": "gamma",
+      "id": 47,
+      "priority": 390
+    },
+    {
+      "bank": "alpha",
+      "id": 68,
+      "priority": 391
+    },
+    {
+      "bank": "beta",
+      "id": 6,
+      "priority": 392
+    },
+    {
+      "bank": "delta",
+      "id": 80,
+      "priority": 393
+    },
+    {
+      "bank": "gamma",
+      "id": 85,
+      "priority": 394
+    },
+    {
+      "bank": "alpha",
+      "id": 50,
+      "priority": 395
+    },
+    {
+      "bank": "beta",
+      "id": 63,
+      "priority": 396
+    },
+    {
+      "bank": "gamma",
+      "id": 24,
+      "priority": 397
+    },
+    {
+      "bank": "delta",
+      "id": 41,
+      "priority": 398
+    },
+    {
+      "bank": "alpha",
+      "id": 25,
+      "priority": 399
+    },
+    {
+      "bank": "beta",
+      "id": 67,
+      "priority": 400
+    },
+    {
+      "bank": "beta",
+      "id": 82,
+      "priority": 401
+    },
+    {
+      "bank": "alpha",
+      "id": 54,
+      "priority": 402
+    },
+    {
+      "bank": "gamma",
+      "id": 114,
+      "priority": 403
+    },
+    {
+      "bank": "gamma",
+      "id": 30,
+      "priority": 404
+    },
+    {
+      "bank": "beta",
+      "id": 42,
+      "priority": 405
+    },
+    {
+      "bank": "alpha",
+      "id": 139,
+      "priority": 406
+    },
+    {
+      "bank": "delta",
+      "id": 48,
+      "priority": 407
+    },
+    {
+      "bank": "gamma",
+      "id": 82,
+      "priority": 408
+    },
+    {
+      "bank": "alpha",
+      "id": 29,
+      "priority": 409
+    },
+    {
+      "bank": "alpha",
+      "id": 197,
+      "priority": 410
+    },
+    {
+      "bank": "gamma",
+      "id": 63,
+      "priority": 411
+    },
+    {
+      "bank": "alpha",
+      "id": 63,
+      "priority": 412
+    },
+    {
+      "bank": "delta",
+      "id": 78,
+      "priority": 413
+    },
+    {
+      "bank": "alpha",
+      "id": 178,
+      "priority": 414
+    },
+    {
+      "bank": "gamma",
+      "id": 84,
+      "priority": 415
+    },
+    {
+      "bank": "alpha",
+      "id": 14,
+      "priority": 416
+    },
+    {
+      "bank": "alpha",
+      "id": 11,
+      "priority": 417
+    },
+    {
+      "bank": "gamma",
+      "id": 134,
+      "priority": 418
+    },
+    {
+      "bank": "alpha",
+      "id": 76,
+      "priority": 419
+    },
+    {
+      "bank": "gamma",
+      "id": 121,
+      "priority": 420
+    },
+    {
+      "bank": "alpha",
+      "id": 82,
+      "priority": 421
+    },
+    {
+      "bank": "alpha",
+      "id": 136,
+      "priority": 422
+    },
+    {
+      "bank": "delta",
+      "id": 29,
+      "priority": 423
+    },
+    {
+      "bank": "gamma",
+      "id": 127,
+      "priority": 424
+    },
+    {
+      "bank": "alpha",
+      "id": 26,
+      "priority": 425
+    },
+    {
+      "bank": "alpha",
+      "id": 28,
+      "priority": 426
+    },
+    {
+      "bank": "gamma",
+      "id": 49,
+      "priority": 427
+    },
+    {
+      "bank": "delta",
+      "id": 10,
+      "priority": 428
+    },
+    {
+      "bank": "alpha",
+      "id": 160,
+      "priority": 429
+    },
+    {
+      "bank": "alpha",
+      "id": 18,
       "priority": 430
     },
     {
@@ -2159,218 +2159,218 @@
       "priority": 431
     },
     {
-      "bank": "delta",
-      "id": 54,
+      "bank": "alpha",
+      "id": 154,
       "priority": 432
     },
     {
-      "bank": "delta",
-      "id": 13,
+      "bank": "gamma",
+      "id": 56,
       "priority": 433
     },
     {
       "bank": "alpha",
-      "id": 54,
+      "id": 164,
       "priority": 434
     },
     {
-      "bank": "delta",
-      "id": 79,
+      "bank": "alpha",
+      "id": 153,
       "priority": 435
     },
     {
-      "bank": "alpha",
-      "id": 119,
+      "bank": "delta",
+      "id": 94,
       "priority": 436
     },
     {
-      "bank": "gamma",
-      "id": 132,
+      "bank": "alpha",
+      "id": 114,
       "priority": 437
     },
     {
-      "bank": "alpha",
-      "id": 175,
+      "bank": "gamma",
+      "id": 77,
       "priority": 438
     },
     {
       "bank": "alpha",
-      "id": 34,
+      "id": 157,
       "priority": 439
     },
     {
-      "bank": "delta",
-      "id": 81,
+      "bank": "beta",
+      "id": 13,
       "priority": 440
     },
     {
       "bank": "alpha",
-      "id": 179,
+      "id": 51,
       "priority": 441
-    },
-    {
-      "bank": "beta",
-      "id": 21,
-      "priority": 442
-    },
-    {
-      "bank": "gamma",
-      "id": 162,
-      "priority": 443
-    },
-    {
-      "bank": "gamma",
-      "id": 64,
-      "priority": 444
-    },
-    {
-      "bank": "delta",
-      "id": 108,
-      "priority": 445
-    },
-    {
-      "bank": "alpha",
-      "id": 129,
-      "priority": 446
-    },
-    {
-      "bank": "alpha",
-      "id": 190,
-      "priority": 447
-    },
-    {
-      "bank": "alpha",
-      "id": 88,
-      "priority": 448
-    },
-    {
-      "bank": "alpha",
-      "id": 79,
-      "priority": 449
-    },
-    {
-      "bank": "delta",
-      "id": 31,
-      "priority": 450
-    },
-    {
-      "bank": "beta",
-      "id": 1,
-      "priority": 451
-    },
-    {
-      "bank": "alpha",
-      "id": 150,
-      "priority": 452
-    },
-    {
-      "bank": "beta",
-      "id": 95,
-      "priority": 453
-    },
-    {
-      "bank": "gamma",
-      "id": 94,
-      "priority": 454
-    },
-    {
-      "bank": "delta",
-      "id": 53,
-      "priority": 455
-    },
-    {
-      "bank": "gamma",
-      "id": 130,
-      "priority": 456
-    },
-    {
-      "bank": "delta",
-      "id": 48,
-      "priority": 457
-    },
-    {
-      "bank": "gamma",
-      "id": 176,
-      "priority": 458
-    },
-    {
-      "bank": "alpha",
-      "id": 74,
-      "priority": 459
-    },
-    {
-      "bank": "alpha",
-      "id": 100,
-      "priority": 460
-    },
-    {
-      "bank": "gamma",
-      "id": 163,
-      "priority": 461
-    },
-    {
-      "bank": "beta",
-      "id": 37,
-      "priority": 462
-    },
-    {
-      "bank": "gamma",
-      "id": 103,
-      "priority": 463
-    },
-    {
-      "bank": "gamma",
-      "id": 95,
-      "priority": 464
-    },
-    {
-      "bank": "gamma",
-      "id": 69,
-      "priority": 465
     },
     {
       "bank": "alpha",
       "id": 15,
+      "priority": 442
+    },
+    {
+      "bank": "gamma",
+      "id": 135,
+      "priority": 443
+    },
+    {
+      "bank": "delta",
+      "id": 24,
+      "priority": 444
+    },
+    {
+      "bank": "alpha",
+      "id": 57,
+      "priority": 445
+    },
+    {
+      "bank": "alpha",
+      "id": 132,
+      "priority": 446
+    },
+    {
+      "bank": "gamma",
+      "id": 115,
+      "priority": 447
+    },
+    {
+      "bank": "beta",
+      "id": 23,
+      "priority": 448
+    },
+    {
+      "bank": "alpha",
+      "id": 22,
+      "priority": 449
+    },
+    {
+      "bank": "alpha",
+      "id": 60,
+      "priority": 450
+    },
+    {
+      "bank": "alpha",
+      "id": 176,
+      "priority": 451
+    },
+    {
+      "bank": "alpha",
+      "id": 83,
+      "priority": 452
+    },
+    {
+      "bank": "gamma",
+      "id": 182,
+      "priority": 453
+    },
+    {
+      "bank": "gamma",
+      "id": 55,
+      "priority": 454
+    },
+    {
+      "bank": "alpha",
+      "id": 159,
+      "priority": 455
+    },
+    {
+      "bank": "alpha",
+      "id": 113,
+      "priority": 456
+    },
+    {
+      "bank": "delta",
+      "id": 98,
+      "priority": 457
+    },
+    {
+      "bank": "gamma",
+      "id": 94,
+      "priority": 458
+    },
+    {
+      "bank": "alpha",
+      "id": 12,
+      "priority": 459
+    },
+    {
+      "bank": "alpha",
+      "id": 80,
+      "priority": 460
+    },
+    {
+      "bank": "gamma",
+      "id": 181,
+      "priority": 461
+    },
+    {
+      "bank": "alpha",
+      "id": 94,
+      "priority": 462
+    },
+    {
+      "bank": "beta",
+      "id": 2,
+      "priority": 463
+    },
+    {
+      "bank": "alpha",
+      "id": 67,
+      "priority": 464
+    },
+    {
+      "bank": "gamma",
+      "id": 90,
+      "priority": 465
+    },
+    {
+      "bank": "alpha",
+      "id": 158,
       "priority": 466
     },
     {
       "bank": "alpha",
-      "id": 99,
+      "id": 130,
       "priority": 467
     },
     {
       "bank": "delta",
-      "id": 58,
+      "id": 101,
       "priority": 468
     },
     {
-      "bank": "beta",
-      "id": 94,
+      "bank": "alpha",
+      "id": 193,
       "priority": 469
     },
     {
-      "bank": "alpha",
-      "id": 47,
+      "bank": "gamma",
+      "id": 144,
       "priority": 470
     },
     {
       "bank": "alpha",
-      "id": 51,
+      "id": 182,
       "priority": 471
     },
     {
-      "bank": "gamma",
-      "id": 31,
+      "bank": "alpha",
+      "id": 147,
       "priority": 472
     },
     {
-      "bank": "delta",
-      "id": 51,
+      "bank": "gamma",
+      "id": 92,
       "priority": 473
     },
     {
       "bank": "beta",
-      "id": 58,
+      "id": 56,
       "priority": 474
     },
     {
@@ -2380,537 +2380,537 @@
     },
     {
       "bank": "alpha",
-      "id": 65,
+      "id": 81,
       "priority": 476
     },
     {
-      "bank": "alpha",
-      "id": 9,
+      "bank": "gamma",
+      "id": 51,
       "priority": 477
     },
     {
-      "bank": "alpha",
-      "id": 41,
+      "bank": "delta",
+      "id": 51,
       "priority": 478
     },
     {
-      "bank": "gamma",
-      "id": 18,
+      "bank": "alpha",
+      "id": 4,
       "priority": 479
-    },
-    {
-      "bank": "delta",
-      "id": 17,
-      "priority": 480
-    },
-    {
-      "bank": "alpha",
-      "id": 52,
-      "priority": 481
-    },
-    {
-      "bank": "gamma",
-      "id": 23,
-      "priority": 482
-    },
-    {
-      "bank": "delta",
-      "id": 46,
-      "priority": 483
-    },
-    {
-      "bank": "alpha",
-      "id": 5,
-      "priority": 484
-    },
-    {
-      "bank": "beta",
-      "id": 74,
-      "priority": 485
-    },
-    {
-      "bank": "alpha",
-      "id": 36,
-      "priority": 486
-    },
-    {
-      "bank": "beta",
-      "id": 5,
-      "priority": 487
-    },
-    {
-      "bank": "beta",
-      "id": 20,
-      "priority": 488
-    },
-    {
-      "bank": "alpha",
-      "id": 55,
-      "priority": 489
-    },
-    {
-      "bank": "alpha",
-      "id": 140,
-      "priority": 490
     },
     {
       "bank": "alpha",
       "id": 103,
-      "priority": 491
+      "priority": 480
+    },
+    {
+      "bank": "gamma",
+      "id": 167,
+      "priority": 481
+    },
+    {
+      "bank": "alpha",
+      "id": 75,
+      "priority": 482
     },
     {
       "bank": "beta",
-      "id": 42,
-      "priority": 492
+      "id": 53,
+      "priority": 483
     },
     {
       "bank": "alpha",
-      "id": 174,
-      "priority": 493
-    },
-    {
-      "bank": "gamma",
-      "id": 1,
-      "priority": 494
-    },
-    {
-      "bank": "gamma",
-      "id": 42,
-      "priority": 495
-    },
-    {
-      "bank": "alpha",
-      "id": 98,
-      "priority": 496
-    },
-    {
-      "bank": "delta",
-      "id": 32,
-      "priority": 497
-    },
-    {
-      "bank": "gamma",
-      "id": 145,
-      "priority": 498
-    },
-    {
-      "bank": "delta",
-      "id": 73,
-      "priority": 499
-    },
-    {
-      "bank": "gamma",
-      "id": 58,
-      "priority": 500
-    },
-    {
-      "bank": "gamma",
-      "id": 59,
-      "priority": 501
-    },
-    {
-      "bank": "alpha",
-      "id": 82,
-      "priority": 502
-    },
-    {
-      "bank": "beta",
-      "id": 36,
-      "priority": 503
-    },
-    {
-      "bank": "alpha",
-      "id": 89,
-      "priority": 504
-    },
-    {
-      "bank": "alpha",
-      "id": 61,
-      "priority": 505
-    },
-    {
-      "bank": "alpha",
-      "id": 101,
-      "priority": 506
-    },
-    {
-      "bank": "alpha",
-      "id": 58,
-      "priority": 507
-    },
-    {
-      "bank": "gamma",
-      "id": 139,
-      "priority": 508
-    },
-    {
-      "bank": "gamma",
-      "id": 54,
-      "priority": 509
-    },
-    {
-      "bank": "delta",
-      "id": 6,
-      "priority": 510
-    },
-    {
-      "bank": "alpha",
-      "id": 145,
-      "priority": 511
-    },
-    {
-      "bank": "delta",
-      "id": 36,
-      "priority": 512
-    },
-    {
-      "bank": "alpha",
-      "id": 90,
-      "priority": 513
-    },
-    {
-      "bank": "beta",
-      "id": 10,
-      "priority": 514
-    },
-    {
-      "bank": "delta",
-      "id": 24,
-      "priority": 515
-    },
-    {
-      "bank": "gamma",
-      "id": 186,
-      "priority": 516
-    },
-    {
-      "bank": "beta",
-      "id": 16,
-      "priority": 517
-    },
-    {
-      "bank": "beta",
-      "id": 32,
-      "priority": 518
-    },
-    {
-      "bank": "gamma",
-      "id": 105,
-      "priority": 519
-    },
-    {
-      "bank": "gamma",
-      "id": 90,
-      "priority": 520
-    },
-    {
-      "bank": "alpha",
-      "id": 143,
-      "priority": 521
-    },
-    {
-      "bank": "beta",
-      "id": 51,
-      "priority": 522
-    },
-    {
-      "bank": "gamma",
-      "id": 39,
-      "priority": 523
-    },
-    {
-      "bank": "gamma",
-      "id": 51,
-      "priority": 524
-    },
-    {
-      "bank": "gamma",
-      "id": 73,
-      "priority": 525
-    },
-    {
-      "bank": "beta",
-      "id": 64,
-      "priority": 526
-    },
-    {
-      "bank": "gamma",
-      "id": 121,
-      "priority": 527
-    },
-    {
-      "bank": "gamma",
-      "id": 7,
-      "priority": 528
-    },
-    {
-      "bank": "alpha",
-      "id": 78,
-      "priority": 529
-    },
-    {
-      "bank": "gamma",
-      "id": 40,
-      "priority": 530
-    },
-    {
-      "bank": "alpha",
-      "id": 93,
-      "priority": 531
-    },
-    {
-      "bank": "alpha",
-      "id": 45,
-      "priority": 532
-    },
-    {
-      "bank": "gamma",
-      "id": 180,
-      "priority": 533
-    },
-    {
-      "bank": "delta",
-      "id": 1,
-      "priority": 534
-    },
-    {
-      "bank": "delta",
-      "id": 84,
-      "priority": 535
-    },
-    {
-      "bank": "beta",
-      "id": 65,
-      "priority": 536
-    },
-    {
-      "bank": "beta",
-      "id": 22,
-      "priority": 537
-    },
-    {
-      "bank": "gamma",
-      "id": 134,
-      "priority": 538
-    },
-    {
-      "bank": "gamma",
-      "id": 13,
-      "priority": 539
-    },
-    {
-      "bank": "gamma",
-      "id": 19,
-      "priority": 540
-    },
-    {
-      "bank": "alpha",
-      "id": 148,
-      "priority": 541
-    },
-    {
-      "bank": "alpha",
-      "id": 46,
-      "priority": 542
-    },
-    {
-      "bank": "delta",
       "id": 20,
-      "priority": 543
-    },
-    {
-      "bank": "beta",
-      "id": 97,
-      "priority": 544
-    },
-    {
-      "bank": "beta",
-      "id": 61,
-      "priority": 545
-    },
-    {
-      "bank": "gamma",
-      "id": 116,
-      "priority": 546
-    },
-    {
-      "bank": "gamma",
-      "id": 138,
-      "priority": 547
-    },
-    {
-      "bank": "gamma",
-      "id": 77,
-      "priority": 548
-    },
-    {
-      "bank": "beta",
-      "id": 31,
-      "priority": 549
+      "priority": 484
     },
     {
       "bank": "alpha",
-      "id": 155,
-      "priority": 550
-    },
-    {
-      "bank": "delta",
-      "id": 44,
-      "priority": 551
-    },
-    {
-      "bank": "gamma",
-      "id": 50,
-      "priority": 552
-    },
-    {
-      "bank": "beta",
-      "id": 2,
-      "priority": 553
-    },
-    {
-      "bank": "gamma",
-      "id": 91,
-      "priority": 554
-    },
-    {
-      "bank": "gamma",
-      "id": 108,
-      "priority": 555
-    },
-    {
-      "bank": "gamma",
-      "id": 20,
-      "priority": 556
-    },
-    {
-      "bank": "gamma",
-      "id": 35,
-      "priority": 557
-    },
-    {
-      "bank": "alpha",
-      "id": 21,
-      "priority": 558
-    },
-    {
-      "bank": "gamma",
-      "id": 56,
-      "priority": 559
-    },
-    {
-      "bank": "gamma",
-      "id": 96,
-      "priority": 560
-    },
-    {
-      "bank": "delta",
-      "id": 27,
-      "priority": 561
-    },
-    {
-      "bank": "gamma",
-      "id": 151,
-      "priority": 562
-    },
-    {
-      "bank": "gamma",
-      "id": 24,
-      "priority": 563
-    },
-    {
-      "bank": "beta",
-      "id": 38,
-      "priority": 564
-    },
-    {
-      "bank": "delta",
-      "id": 14,
-      "priority": 565
-    },
-    {
-      "bank": "alpha",
-      "id": 191,
-      "priority": 566
-    },
-    {
-      "bank": "delta",
-      "id": 37,
-      "priority": 567
-    },
-    {
-      "bank": "gamma",
-      "id": 16,
-      "priority": 568
-    },
-    {
-      "bank": "beta",
-      "id": 78,
-      "priority": 569
-    },
-    {
-      "bank": "gamma",
-      "id": 154,
-      "priority": 570
-    },
-    {
-      "bank": "beta",
-      "id": 39,
-      "priority": 571
-    },
-    {
-      "bank": "alpha",
-      "id": 91,
-      "priority": 572
-    },
-    {
-      "bank": "alpha",
-      "id": 168,
-      "priority": 573
-    },
-    {
-      "bank": "alpha",
-      "id": 149,
-      "priority": 574
-    },
-    {
-      "bank": "gamma",
-      "id": 124,
-      "priority": 575
-    },
-    {
-      "bank": "gamma",
-      "id": 93,
-      "priority": 576
-    },
-    {
-      "bank": "gamma",
-      "id": 118,
-      "priority": 577
-    },
-    {
-      "bank": "gamma",
-      "id": 47,
-      "priority": 578
-    },
-    {
-      "bank": "gamma",
-      "id": 175,
-      "priority": 579
+      "id": 32,
+      "priority": 485
     },
     {
       "bank": "gamma",
       "id": 165,
-      "priority": 580
+      "priority": 486
+    },
+    {
+      "bank": "alpha",
+      "id": 183,
+      "priority": 487
+    },
+    {
+      "bank": "delta",
+      "id": 16,
+      "priority": 488
+    },
+    {
+      "bank": "alpha",
+      "id": 77,
+      "priority": 489
     },
     {
       "bank": "gamma",
-      "id": 60,
+      "id": 83,
+      "priority": 490
+    },
+    {
+      "bank": "alpha",
+      "id": 16,
+      "priority": 491
+    },
+    {
+      "bank": "alpha",
+      "id": 35,
+      "priority": 492
+    },
+    {
+      "bank": "gamma",
+      "id": 68,
+      "priority": 493
+    },
+    {
+      "bank": "beta",
+      "id": 39,
+      "priority": 494
+    },
+    {
+      "bank": "alpha",
+      "id": 99,
+      "priority": 495
+    },
+    {
+      "bank": "alpha",
+      "id": 78,
+      "priority": 496
+    },
+    {
+      "bank": "gamma",
+      "id": 176,
+      "priority": 497
+    },
+    {
+      "bank": "delta",
+      "id": 68,
+      "priority": 498
+    },
+    {
+      "bank": "alpha",
+      "id": 124,
+      "priority": 499
+    },
+    {
+      "bank": "alpha",
+      "id": 31,
+      "priority": 500
+    },
+    {
+      "bank": "alpha",
+      "id": 177,
+      "priority": 501
+    },
+    {
+      "bank": "alpha",
+      "id": 180,
+      "priority": 502
+    },
+    {
+      "bank": "gamma",
+      "id": 17,
+      "priority": 503
+    },
+    {
+      "bank": "gamma",
+      "id": 7,
+      "priority": 504
+    },
+    {
+      "bank": "alpha",
+      "id": 34,
+      "priority": 505
+    },
+    {
+      "bank": "alpha",
+      "id": 17,
+      "priority": 506
+    },
+    {
+      "bank": "delta",
+      "id": 99,
+      "priority": 507
+    },
+    {
+      "bank": "gamma",
+      "id": 8,
+      "priority": 508
+    },
+    {
+      "bank": "alpha",
+      "id": 56,
+      "priority": 509
+    },
+    {
+      "bank": "alpha",
+      "id": 19,
+      "priority": 510
+    },
+    {
+      "bank": "beta",
+      "id": 26,
+      "priority": 511
+    },
+    {
+      "bank": "alpha",
+      "id": 96,
+      "priority": 512
+    },
+    {
+      "bank": "gamma",
+      "id": 157,
+      "priority": 513
+    },
+    {
+      "bank": "alpha",
+      "id": 66,
+      "priority": 514
+    },
+    {
+      "bank": "gamma",
+      "id": 40,
+      "priority": 515
+    },
+    {
+      "bank": "alpha",
+      "id": 194,
+      "priority": 516
+    },
+    {
+      "bank": "alpha",
+      "id": 101,
+      "priority": 517
+    },
+    {
+      "bank": "delta",
+      "id": 47,
+      "priority": 518
+    },
+    {
+      "bank": "alpha",
+      "id": 138,
+      "priority": 519
+    },
+    {
+      "bank": "beta",
+      "id": 87,
+      "priority": 520
+    },
+    {
+      "bank": "alpha",
+      "id": 79,
+      "priority": 521
+    },
+    {
+      "bank": "alpha",
+      "id": 135,
+      "priority": 522
+    },
+    {
+      "bank": "gamma",
+      "id": 3,
+      "priority": 523
+    },
+    {
+      "bank": "delta",
+      "id": 59,
+      "priority": 524
+    },
+    {
+      "bank": "alpha",
+      "id": 195,
+      "priority": 525
+    },
+    {
+      "bank": "alpha",
+      "id": 198,
+      "priority": 526
+    },
+    {
+      "bank": "beta",
+      "id": 41,
+      "priority": 527
+    },
+    {
+      "bank": "gamma",
+      "id": 29,
+      "priority": 528
+    },
+    {
+      "bank": "alpha",
+      "id": 73,
+      "priority": 529
+    },
+    {
+      "bank": "alpha",
+      "id": 8,
+      "priority": 530
+    },
+    {
+      "bank": "alpha",
+      "id": 156,
+      "priority": 531
+    },
+    {
+      "bank": "gamma",
+      "id": 39,
+      "priority": 532
+    },
+    {
+      "bank": "alpha",
+      "id": 166,
+      "priority": 533
+    },
+    {
+      "bank": "alpha",
+      "id": 61,
+      "priority": 534
+    },
+    {
+      "bank": "gamma",
+      "id": 103,
+      "priority": 535
+    },
+    {
+      "bank": "alpha",
+      "id": 131,
+      "priority": 536
+    },
+    {
+      "bank": "alpha",
+      "id": 86,
+      "priority": 537
+    },
+    {
+      "bank": "gamma",
+      "id": 20,
+      "priority": 538
+    },
+    {
+      "bank": "alpha",
+      "id": 33,
+      "priority": 539
+    },
+    {
+      "bank": "alpha",
+      "id": 52,
+      "priority": 540
+    },
+    {
+      "bank": "alpha",
+      "id": 62,
+      "priority": 541
+    },
+    {
+      "bank": "gamma",
+      "id": 175,
+      "priority": 542
+    },
+    {
+      "bank": "alpha",
+      "id": 170,
+      "priority": 543
+    },
+    {
+      "bank": "alpha",
+      "id": 95,
+      "priority": 544
+    },
+    {
+      "bank": "delta",
+      "id": 46,
+      "priority": 545
+    },
+    {
+      "bank": "alpha",
+      "id": 69,
+      "priority": 546
+    },
+    {
+      "bank": "alpha",
+      "id": 127,
+      "priority": 547
+    },
+    {
+      "bank": "beta",
+      "id": 4,
+      "priority": 548
+    },
+    {
+      "bank": "alpha",
+      "id": 121,
+      "priority": 549
+    },
+    {
+      "bank": "alpha",
+      "id": 98,
+      "priority": 550
+    },
+    {
+      "bank": "alpha",
+      "id": 146,
+      "priority": 551
+    },
+    {
+      "bank": "alpha",
+      "id": 37,
+      "priority": 552
+    },
+    {
+      "bank": "delta",
+      "id": 58,
+      "priority": 553
+    },
+    {
+      "bank": "alpha",
+      "id": 55,
+      "priority": 554
+    },
+    {
+      "bank": "alpha",
+      "id": 23,
+      "priority": 555
+    },
+    {
+      "bank": "beta",
+      "id": 61,
+      "priority": 556
+    },
+    {
+      "bank": "alpha",
+      "id": 93,
+      "priority": 557
+    },
+    {
+      "bank": "alpha",
+      "id": 47,
+      "priority": 558
+    },
+    {
+      "bank": "delta",
+      "id": 86,
+      "priority": 559
+    },
+    {
+      "bank": "alpha",
+      "id": 148,
+      "priority": 560
+    },
+    {
+      "bank": "alpha",
+      "id": 108,
+      "priority": 561
+    },
+    {
+      "bank": "alpha",
+      "id": 48,
+      "priority": 562
+    },
+    {
+      "bank": "beta",
+      "id": 12,
+      "priority": 563
+    },
+    {
+      "bank": "alpha",
+      "id": 87,
+      "priority": 564
+    },
+    {
+      "bank": "alpha",
+      "id": 112,
+      "priority": 565
+    },
+    {
+      "bank": "delta",
+      "id": 93,
+      "priority": 566
+    },
+    {
+      "bank": "alpha",
+      "id": 155,
+      "priority": 567
+    },
+    {
+      "bank": "alpha",
+      "id": 107,
+      "priority": 568
+    },
+    {
+      "bank": "delta",
+      "id": 19,
+      "priority": 569
+    },
+    {
+      "bank": "alpha",
+      "id": 196,
+      "priority": 570
+    },
+    {
+      "bank": "alpha",
+      "id": 85,
+      "priority": 571
+    },
+    {
+      "bank": "beta",
+      "id": 35,
+      "priority": 572
+    },
+    {
+      "bank": "alpha",
+      "id": 171,
+      "priority": 573
+    },
+    {
+      "bank": "delta",
+      "id": 32,
+      "priority": 574
+    },
+    {
+      "bank": "alpha",
+      "id": 58,
+      "priority": 575
+    },
+    {
+      "bank": "alpha",
+      "id": 152,
+      "priority": 576
+    },
+    {
+      "bank": "beta",
+      "id": 48,
+      "priority": 577
+    },
+    {
+      "bank": "alpha",
+      "id": 9,
+      "priority": 578
+    },
+    {
+      "bank": "delta",
+      "id": 52,
+      "priority": 579
+    },
+    {
+      "bank": "alpha",
+      "id": 125,
+      "priority": 580
+    },
+    {
+      "bank": "beta",
+      "id": 28,
       "priority": 581
     },
     {
       "bank": "alpha",
-      "id": 84,
+      "id": 116,
       "priority": 582
     },
     {
@@ -2919,88 +2919,88 @@
       "priority": 583
     },
     {
-      "bank": "gamma",
-      "id": 161,
+      "bank": "alpha",
+      "id": 133,
       "priority": 584
     },
     {
-      "bank": "delta",
-      "id": 16,
+      "bank": "beta",
+      "id": 32,
       "priority": 585
     },
     {
-      "bank": "gamma",
-      "id": 49,
+      "bank": "alpha",
+      "id": 167,
       "priority": 586
     },
     {
-      "bank": "gamma",
-      "id": 100,
+      "bank": "beta",
+      "id": 80,
       "priority": 587
     },
     {
-      "bank": "gamma",
-      "id": 137,
+      "bank": "alpha",
+      "id": 38,
       "priority": 588
     },
     {
       "bank": "alpha",
-      "id": 142,
+      "id": 120,
       "priority": 589
     },
     {
       "bank": "alpha",
-      "id": 115,
+      "id": 202,
       "priority": 590
     },
     {
-      "bank": "gamma",
-      "id": 142,
+      "bank": "alpha",
+      "id": 168,
       "priority": 591
     },
     {
-      "bank": "beta",
-      "id": 26,
+      "bank": "alpha",
+      "id": 123,
       "priority": 592
     },
     {
-      "bank": "gamma",
-      "id": 127,
+      "bank": "alpha",
+      "id": 140,
       "priority": 593
     },
     {
-      "bank": "gamma",
-      "id": 114,
+      "bank": "alpha",
+      "id": 27,
       "priority": 594
     },
     {
-      "bank": "beta",
-      "id": 71,
+      "bank": "alpha",
+      "id": 105,
       "priority": 595
     },
     {
-      "bank": "delta",
-      "id": 94,
+      "bank": "alpha",
+      "id": 106,
       "priority": 596
     },
     {
-      "bank": "gamma",
-      "id": 144,
+      "bank": "alpha",
+      "id": 84,
       "priority": 597
-    },
-    {
-      "bank": "delta",
-      "id": 59,
-      "priority": 598
-    },
-    {
-      "bank": "beta",
-      "id": 56,
-      "priority": 599
     },
     {
       "bank": "alpha",
       "id": 104,
+      "priority": 598
+    },
+    {
+      "bank": "alpha",
+      "id": 119,
+      "priority": 599
+    },
+    {
+      "bank": "alpha",
+      "id": 169,
       "priority": 600
     }
   ]
