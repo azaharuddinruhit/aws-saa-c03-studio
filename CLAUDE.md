@@ -18,6 +18,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 | `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, score estimators, Gist sync. |
 | `docs/sets/{alpha,beta,gamma,delta}.json` | Question banks: an array of questions. The file name is the bank key in `BANKS`. |
 | `docs/sets/priority-map.json` | The study order: `{ bank, id, priority }` for every question. The overview's ★ Top 200 card reads it. |
+| `docs/cheatsheet/top-200.html` | The top 200 questions of the priority map in a table: priority, set and number (α63), your status, question, section with its exam domain, difficulty, and when you last answered it. Filters by set, status, section (in the cheat sheets' order) and difficulty; every column sorts. Opened from the Top 200 card's View list link. |
 | `docs/cheatsheet/index.html` | Cheat sheet hub. |
 | `docs/cheatsheet/01-…10-*.html` | Domain pages. Each one loads `icons.js` and `app.js`, then calls `App.start(config)`. |
 | `docs/cheatsheet/app.css` | Shared styles and colour tokens (`--accent`, `--aws`, `--ink`, `--muted`, `--line`, `--surface`…), with light and dark values. |
