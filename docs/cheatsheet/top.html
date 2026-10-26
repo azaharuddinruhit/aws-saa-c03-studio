@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Top 100 · AWS SAA-C03 Studio</title>
+<script>
+// The data, asked for at once and all together, before the fonts and scripts below can hold the page up;
+// the list's script at the end of the page reads it. A failed file is reported there, not here.
+var T2_DATA = ['priority-map', 'alpha', 'beta', 'gamma', 'delta'].reduce(function (all, name) {
+  all[name] = fetch('../sets/' + name + '.json', { cache: 'no-cache' })
+    .then(function (res) { if (!res.ok) throw new Error(name + '.json: HTTP ' + res.status); return res.json(); });
+  all[name].catch(function () {});
+  return all;
+}, {});
+</script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2310B981%22%2F%3E%3Crect%20x%3D%226.5%22%20y%3D%226.5%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222.5%22%20fill%3D%22%23A7F3D0%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%2213.5%22%20width%3D%2212%22%20height%3D%2212%22%20rx%3D%222.5%22%20fill%3D%22%23A7F3D0%22%2F%3E%3Cpath%20d%3D%22M13.5%2016a2.5%202.5%200%200%201%202.5-2.5h2.5V16a2.5%202.5%200%200%201-2.5%202.5h-2.5Z%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Top questions: the questions ranked highest in ../sets/priority-map.json (its top says how many), one card each, with where each
+   stands in this browser's practice (the latest answer, as the Studio counts it) and its answer in a fold.
+   The page takes the Studio quiz's colours: app.css's tokens are set to the Studio's values, in both themes,
+   so the top bar, the menu and the dropdowns follow too. */
+:root{
+  --bg:#f1f5f9; --surface:#ffffff; --surface-2:#e2e8f0; --line:#e2e8f0; --ink:#1e293b; --muted:#64748b; --accent:#047857;
+  --good:#047857; --good-soft:rgba(16,185,129,.1); --bad:#be123c; --bad-soft:rgba(244,63,94,.1);
+  --q-ink:#0f172a; --q-kw:#b45309; --q-tint:rgba(241,245,249,.8); --q-chip-ink:#334155; --q-medium:#b45309; --q-medium-soft:rgba(245,158,11,.1);
+  --shadow:0 1px 2px rgba(15,23,42,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#020617; --surface:#101522; --surface-2:#212739; --line:#191f30; --ink:#f1f5f9; --muted:#94a3b8; --accent:#10b981;
+    --good:#34d399; --bad:#fb7185; --good-soft:rgba(16,185,129,.1); --bad-soft:rgba(244,63,94,.1); --q-medium-soft:rgba(245,158,11,.1);
+    --q-ink:#ffffff; --q-kw:#fcd34d; --q-tint:rgba(33,39,57,.4); --q-chip-ink:#cbd5e1; --q-medium:#fbbf24;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#020617; --surface:#101522; --surface-2:#212739; --line:#191f30; --ink:#f1f5f9; --muted:#94a3b8; --accent:#10b981;
+  --good:#34d399; --bad:#fb7185; --good-soft:rgba(16,185,129,.1); --bad-soft:rgba(244,63,94,.1); --q-medium-soft:rgba(245,158,11,.1);
+  --q-ink:#ffffff; --q-kw:#fcd34d; --q-tint:rgba(33,39,57,.4); --q-chip-ink:#cbd5e1; --q-medium:#fbbf24;
+  --shadow:none;
+}
+body{background:var(--bg)}
+.t2-head{margin:24px 0 14px}
+.t2-head h1{margin:0;font-size:clamp(24px,4vw,30px);letter-spacing:-.02em;color:var(--q-ink)}
+.t2-head p{margin:4px 0 0;color:var(--muted)}
+.t2-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:12px}
+.t2-filter{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+/* themed dropdowns in place of <select>, whose open list the system draws in its own colours */
+.t2-dd{position:relative}
+.t2-dd-btn{font:inherit;font-size:13px;color:var(--ink);background-color:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 28px 5px 10px;cursor:pointer;text-align:left;white-space:nowrap;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.t2-dd-btn:hover,.t2-dd-btn[aria-expanded="true"]{border-color:var(--accent)}
+.t2-dd-btn:focus-visible,.t2-btn:focus-visible,.t2-chip-x:focus-visible,.t2-choice:focus-visible,.t2-link:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.t2-dd-list{position:absolute;z-index:30;top:calc(100% + 4px);left:0;min-width:100%;width:max-content;max-width:min(340px,calc(100vw - 32px));max-height:min(320px,60vh);overflow-y:auto;
+  margin:0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,.25);outline:none}
+.t2-dd-list li{position:relative;padding:6px 10px 6px 26px;border-radius:6px;font-size:13px;color:var(--ink);cursor:pointer}
+.t2-dd-list li:hover,.t2-dd-list li.active{background:var(--surface-2)}
+.t2-dd-list li[aria-selected="true"]{color:var(--accent);font-weight:600}
+.t2-dd-list li[aria-selected="true"]::before{content:"✓";position:absolute;left:9px}
+/* the sort direction, the Show answers switch and the phone's Filters button, in the dropdowns' look */
+.t2-btn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.t2-btn:hover{border-color:var(--accent)}
+.t2-knob{position:relative;width:26px;height:15px;border-radius:999px;background:var(--surface-2);transition:background-color .15s;flex:none}
+.t2-knob::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.3);transition:transform .15s}
+.t2-btn[aria-pressed="true"] .t2-knob{background:var(--accent)}
+.t2-btn[aria-pressed="true"] .t2-knob::after{transform:translateX(11px)}
+.t2-count{margin-left:auto;font:600 12px var(--mono);color:var(--muted)}
+.t2-phone,.t2-narrow{display:none}
+/* the cards, as the quiz's question card */
+.t2-cards{display:grid;gap:12px;margin-bottom:24px}
+.t2-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px;min-width:0}
+.t2-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted)}
+.t2-ref b{font:700 13px var(--mono);color:var(--q-ink)}
+.t2-ref span{font-family:var(--mono)}
+.t2-stem{margin:8px 0 12px;font-size:16px;line-height:1.625;color:var(--q-ink);overflow-wrap:anywhere;white-space:pre-line}
+.kw{background:none;color:var(--q-kw);font-weight:600}
+.t2-tldr{margin:0 0 12px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--q-tint);font-size:13.5px;line-height:1.5;color:var(--ink);overflow-wrap:anywhere}
+.t2-tldr b{margin-right:6px;font-size:11px;letter-spacing:.04em;color:var(--accent)}
+.t2-card-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;font-size:12px;color:var(--muted)}
+.t2-chips{display:flex;flex-wrap:wrap;gap:6px}
+.t2-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;background:var(--surface-2);color:var(--q-chip-ink)}
+.t2-chip.easy{font-weight:600;background:var(--good-soft);color:var(--good)}
+.t2-chip.medium{font-weight:600;background:var(--q-medium-soft);color:var(--q-medium)}
+.t2-chip.hard{font-weight:600;background:var(--bad-soft);color:var(--bad)}
+.t2-pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.t2-done{background:var(--good-soft);color:var(--good)}
+.t2-missed{background:var(--bad-soft);color:var(--bad)}
+.t2-unseen{background:var(--surface-2);color:var(--muted)}
+.t2-ans{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.t2-ans summary{display:inline-flex;align-items:center;gap:6px;list-style:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);border-radius:4px}
+.t2-ans summary::-webkit-details-marker{display:none}
+.t2-ans summary::before{content:"▸";transition:transform .15s}
+.t2-ans[open] summary::before{transform:rotate(90deg)}
+.t2-ans summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.t2-ans ul{display:grid;gap:4px;margin:8px 0 0;padding:0;list-style:none;font-size:14px;line-height:1.5;color:var(--ink)}
+.t2-ans li{display:flex;gap:8px;overflow-wrap:anywhere}
+.t2-ans li b{flex:none;font-family:var(--mono);color:var(--good)}
+.t2-note{padding:24px;text-align:center;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:16px;margin:0}
+/* phones: the four filters move into a bottom sheet behind one Filters button, with the active ones as chips */
+.t2-active{display:none}
+.t2-chip-x{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12px;font-weight:600;color:var(--accent);background:var(--good-soft);border:0;border-radius:999px;padding:4px 10px;cursor:pointer}
+.t2-back{position:fixed;inset:0;z-index:59;background:rgba(2,6,23,.5)}
+.t2-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;max-height:72vh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;padding:0 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(2,6,23,.35);transition:transform .2s ease-out;outline:none}
+.t2-handle{display:block;width:100%;padding:10px 0 6px;background:none;border:0;cursor:pointer}
+.t2-handle::before{content:"";display:block;width:40px;height:4px;margin:0 auto;border-radius:999px;background:var(--surface-2)}
+.t2-sheet-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.t2-sheet-head h2{margin:0;font-size:16px;color:var(--q-ink)}
+.t2-sheet-head span{font:600 12px var(--mono);color:var(--muted)}
+.t2-link{margin-left:auto;font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:none;border:0;padding:4px;cursor:pointer;border-radius:4px}
+.t2-group h3{margin:12px 0 6px;font-size:12px;font-weight:600;color:var(--muted)}
+.t2-choices{display:flex;flex-wrap:wrap;gap:6px}
+.t2-choice{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.t2-choice[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--good-soft);font-weight:600}
+@media (max-width:640px){
+  .t2-card{padding:16px}
+  .t2-tools .t2-f,#sortByLabel,.t2-wide{display:none}
+  .t2-phone{display:inline-flex}
+  .t2-narrow{display:inline}
+  .t2-active{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+  .t2-active:empty{display:none}
+  .t2-count{flex-basis:100%;margin-left:0}
+}
+@media (min-width:641px){.t2-sheet,.t2-back{display:none!important}}
+@media (prefers-reduced-motion: reduce){.t2-knob,.t2-knob::after,.t2-ans summary::before,.t2-sheet{transition:none}}
+</style>
+</head>
+<body>
+<header class="topbar nosub">
+  <div class="topbar-in">
+    <span class="brand"><a class="back-link" href="../index.html" aria-label="Back to the progress overview" title="Back to the progress overview"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a><a class="brand-mark" href="../index.html" title="Progress overview"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#10B981"/><rect x="6.5" y="6.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><rect x="13.5" y="13.5" width="12" height="12" rx="2.5" fill="#A7F3D0"/><path d="M13.5 16a2.5 2.5 0 0 1 2.5-2.5h2.5V16a2.5 2.5 0 0 1-2.5 2.5h-2.5Z" fill="#FFFFFF"/></svg></a><span class="brand-title"><a class="brand-app" href="../index.html" title="Progress overview">AWS SAA-C03 Studio</a><a class="brand-page" href="top.html" title="The top questions" id="t2Brand">Top 100</a></span></span>
+    <span style="margin-left:auto"></span>
+    <button type="button" class="theme-btn menu-btn" id="menuBtn" aria-label="Menu" aria-expanded="false" aria-controls="menuPanel" title="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="t2-head">
+    <h1 id="t2Title">Top 100 questions</h1>
+    <p id="t2Lede">Your 100 highest-priority questions, and where each stands in your practice.</p>
+  </div>
+  <div class="t2-tools">
+    <button type="button" class="t2-btn t2-phone" id="filtersBtn" aria-haspopup="dialog" aria-controls="sheet" aria-expanded="false">Filters</button>
+    <div class="t2-filter t2-f"><span id="bankFilterLabel">Set</span><div class="t2-dd" id="bankFilter"></div></div>
+    <div class="t2-filter t2-f"><span id="statusFilterLabel">Status</span><div class="t2-dd" id="statusFilter"></div></div>
+    <div class="t2-filter t2-f"><span id="sectionFilterLabel">Section</span><div class="t2-dd" id="sectionFilter"></div></div>
+    <div class="t2-filter t2-f"><span id="difficultyFilterLabel">Difficulty</span><div class="t2-dd" id="difficultyFilter"></div></div>
+    <div class="t2-filter"><span id="sortByLabel">Sort</span><div class="t2-dd" id="sortBy"></div><button type="button" class="t2-btn" id="sortDir"></button></div>
+    <button type="button" class="t2-btn" id="answersBtn" aria-pressed="false"><span class="t2-knob" aria-hidden="true"></span><span class="t2-wide">Show answers</span><span class="t2-narrow">Answers</span></button>
+    <span class="t2-count" id="count" aria-live="polite"></span>
+  </div>
+  <div class="t2-active" id="activeChips"></div>
+  <div class="t2-cards" id="cards"><p class="t2-note">Loading the top questions…</p></div>
+</main>
+<div class="t2-back" id="sheetBack" hidden></div>
+<section class="t2-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1" hidden>
+  <button type="button" class="t2-handle" id="sheetHandle" aria-label="Close filters"></button>
+  <div class="t2-sheet-head"><h2 id="sheetTitle">Filters</h2><span id="sheetCount"></span><button type="button" class="t2-link" id="sheetClear">Clear all</button></div>
+  <div id="sheetBody"></div>
+</section>
+
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+'use strict';
+// the sets, as BANKS in ../index.html names them (the map's keys); T2_DATA in the head fetches the same ones
+const BANKS = { alpha: ['Set Alpha', 'α'], beta: ['Set Beta', 'β'], gamma: ['Set Gamma', 'γ'], delta: ['Set Delta', 'δ'] };
+const BANK_ORDER = Object.keys(BANKS);
+let TOP = 100;   // how many, from priority-map.json's top once it is read
+const DOMAINS = { 1: 'Secure', 2: 'Resilient', 3: 'High-performing', 4: 'Cost-optimized' };
+const DIFFICULTY = { easy: 0, medium: 1, hard: 2 };
+const STATUS = { missed: [0, 'Missed'], unseen: [1, 'Unseen'], done: [2, 'Done'] };
+const FILTERS = [['bankFilter', 'Set'], ['statusFilter', 'Status'], ['sectionFilter', 'Section'], ['difficultyFilter', 'Difficulty']];
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const $ = id => document.getElementById(id);
+const keyOf = r => r.bank + '#' + r.id;
+
+// key phrases in a question, highlighted as the Studio's quiz does (highlightKeywords in ../index.html): the
+// question's own keywords, longest first, or else the usual emphasis words
+const DEFAULT_KEYWORDS = /\b(MOST|LEAST|LOWEST|HIGHEST|BEST|TWO|THREE|NOT|ONLY|EXCEPT)\b/g;
+function highlight(text, keywords) {
+  const safe = esc(text), wrap = m => '<mark class="kw">' + m + '</mark>';
+  if (Array.isArray(keywords) && keywords.length) {
+    const pattern = keywords.map(k => esc(k).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length).join('|');
+    return safe.replace(new RegExp(pattern, 'gi'), wrap);
+  }
+  return safe.replace(DEFAULT_KEYWORDS, wrap);
+}
+
+// what each sort orders by; ties keep priority order. Section & domain sorts by exam domain, then section.
+const SORTS = {
+  priority: ['Priority', r => r.priority],
+  ref: ['No.', r => BANK_ORDER.indexOf(r.bank) * 10000 + r.id],
+  status: ['Status', r => STATUS[r.status][0]],
+  section: ['Section & domain', r => (r.domain || 9) + ' ' + r.section],
+  difficulty: ['Difficulty', r => DIFFICULTY[r.difficulty] ?? 9],
+  last: ['Last answered', r => r.last || 0]
+};
+
+// A themed dropdown: a button that opens a list of choices ([value, text]). Like a select, it keeps .value and fires
+// change. Arrow keys, Home and End move; Enter or Space chooses; Escape, Tab or a click elsewhere closes.
+function dropdown(id, choices, initial = '') {
+  const root = $(id);
+  let value = initial, active = 0;
+  root.innerHTML = `<button type="button" class="t2-dd-btn" id="${id}Btn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="${id}Label ${id}Btn"></button><ul class="t2-dd-list" role="listbox" tabindex="-1" aria-labelledby="${id}Label" hidden></ul>`;
+  const btn = root.firstChild, list = root.lastChild;
+  function paint() {
+    btn.textContent = (choices.find(c => c[0] === value) || choices[0])[1];
+    list.innerHTML = choices.map(([v, t], i) => `<li role="option" id="${id}-${i}" data-i="${i}" aria-selected="${v === value}"${i === active ? ' class="active"' : ''}>${esc(t)}</li>`).join('');
+    list.setAttribute('aria-activedescendant', id + '-' + active);
+    const li = list.children[active];
+    if (li && !list.hidden) li.scrollIntoView({ block: 'nearest' });
+  }
+  function show(open, refocus) {
+    if (open) document.querySelectorAll('.t2-dd').forEach(d => d !== root && d.close());
+    list.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) { active = Math.max(0, choices.findIndex(c => c[0] === value)); paint(); list.focus(); }
+    else if (refocus) btn.focus();
+  }
+  function set(v) {
+    value = v;
+    paint();
+    root.dispatchEvent(new Event('change'));
+  }
+  btn.addEventListener('click', () => show(list.hidden));
+  btn.addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); show(true); } });
+  list.addEventListener('click', e => { const li = e.target.closest('li'); if (li) { show(false, true); set(choices[Number(li.dataset.i)][0]); } });
+  list.addEventListener('keydown', e => {
+    const last = choices.length - 1;
+    const to = { ArrowDown: Math.min(active + 1, last), ArrowUp: Math.max(active - 1, 0), Home: 0, End: last }[e.key];
+    if (to !== undefined) { e.preventDefault(); active = to; paint(); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(false, true); set(choices[active][0]); }
+    else if (e.key === 'Escape') { e.preventDefault(); show(false, true); }
+    else if (e.key === 'Tab') show(false);
+  });
+  document.addEventListener('pointerdown', e => { if (!root.contains(e.target)) show(false); });
+  root.close = () => { if (!list.hidden) show(false); };
+  root.setChoices = c => { choices = c; paint(); };
+  root.setValue = set;   // the phone's filter sheet and chips set it too
+  Object.defineProperty(root, 'value', { get: () => value });
+  Object.defineProperty(root, 'choices', { get: () => choices });
+  paint();
+}
+dropdown('bankFilter', [['', 'All sets']]);
+dropdown('statusFilter', [['', 'Any status'], ['todo', 'Not done'], ['done', 'Done'], ['missed', 'Missed'], ['unseen', 'Unseen']]);
+dropdown('sectionFilter', [['', 'All sections']]);
+dropdown('difficultyFilter', [['', 'Any difficulty'], ['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]);
+dropdown('sortBy', Object.entries(SORTS).map(([k, [label]]) => [k, label]), 'priority');
+
+let sortDir = 1;   // ascending to start with; the sort, the filters and the switch aren't saved
+let rows = [];
+const open = new Set();   // the cards whose answer fold is open, so a filter or sort keeps them open
+
+// where a question stands, from the Studio's answers in this browser: [[1|0, time, flags], ...] per question
+function standing(logs, bank, id) {
+  if (!(bank in logs)) { try { logs[bank] = JSON.parse(localStorage.getItem('set_' + bank + '_attempts')) || {}; } catch (e) { logs[bank] = {}; } }
+  const log = logs[bank][id];
+  if (!Array.isArray(log) || !log.length) return { status: 'unseen', last: 0 };
+  const latest = log[log.length - 1];
+  return { status: latest[0] ? 'done' : 'missed', last: latest[1] || 0 };
+}
+
+function card(r) {
+  const last = r.last ? 'Last answered ' + new Date(r.last).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'Not answered yet';
+  const chips = (r.difficulty ? `<span class="t2-chip ${esc(r.difficulty)}">${esc(r.difficulty[0].toUpperCase() + r.difficulty.slice(1))}</span>` : '')
+    + (DOMAINS[r.domain] ? `<span class="t2-chip">${r.domain} · ${DOMAINS[r.domain]}</span>` : '')
+    + (r.section ? `<span class="t2-chip">${esc(r.section)}</span>` : '');
+  return `<article class="t2-card">
+    <div class="t2-card-head"><span class="t2-ref"><b>#${r.priority}</b> · <span title="${esc(r.bankLabel)}, question ${r.id}">${esc(r.symbol)}${r.id}</span></span><span class="t2-pill t2-${r.status}">${STATUS[r.status][1]}</span></div>
+    <p class="t2-stem">${highlight(r.stem, r.keywords)}</p>
+    ${r.tldr ? `<p class="t2-tldr"><b>TL;DR</b>${esc(r.tldr)}</p>` : ''}
+    <div class="t2-card-foot"><span class="t2-chips">${chips}</span><span>${last}</span></div>
+    <details class="t2-ans" data-key="${esc(keyOf(r))}"${open.has(keyOf(r)) ? ' open' : ''}><summary>Show answer</summary>
+      <ul>${r.answers.map(([letter, text]) => `<li><b>✓ ${esc(letter)}</b><span>${esc(text)}</span></li>`).join('')}</ul></details>
+  </article>`;
+}
+
+function render() {
+  const bank = $('bankFilter').value, status = $('statusFilter').value, section = $('sectionFilter').value, difficulty = $('difficultyFilter').value;
+  const by = SORTS[$('sortBy').value][1];
+  const logs = {};   // each set's answers, read once per drawing
+  const shown = rows.map(r => Object.assign(r, standing(logs, r.bank, r.id)))
+    .filter(r => (!bank || r.bank === bank) && (!status || (status === 'todo' ? r.status !== 'done' : r.status === status)) && (!section || r.section === section) && (!difficulty || r.difficulty === difficulty))
+    .sort((a, b) => { const x = by(a), y = by(b); return (x < y ? -1 : x > y ? 1 : 0) * sortDir || a.priority - b.priority; });
+  $('cards').innerHTML = shown.length ? shown.map(card).join('') : '<p class="t2-note">No questions match these filters.</p>';
+  const done = rows.filter(r => r.status === 'done').length;
+  $('count').textContent = `${shown.length} shown · ${done} of ${rows.length} done`;
+  $('sheetCount').textContent = `${shown.length} shown`;
+  const dir = $('sortDir');
+  dir.textContent = sortDir > 0 ? '↑' : '↓';
+  dir.title = (sortDir > 0 ? 'Ascending' : 'Descending') + ': reverse the order';
+  dir.setAttribute('aria-label', dir.title);
+  paintFilters();
+}
+
+// the phone's Filters button, its sheet's choices and the active filters as chips; on wide screens only the dropdowns show
+function paintFilters() {
+  const active = FILTERS.filter(([id]) => $(id).value);
+  $('filtersBtn').textContent = active.length ? `Filters · ${active.length}` : 'Filters';
+  $('activeChips').innerHTML = active.map(([id, label]) => {
+    const text = $(id).choices.find(c => c[0] === $(id).value)[1];
+    return `<button type="button" class="t2-chip-x" data-f="${id}" aria-label="Remove the ${label.toLowerCase()} filter: ${esc(text)}">${esc(text)}<span aria-hidden="true">✕</span></button>`;
+  }).join('');
+  $('sheetBody').innerHTML = FILTERS.map(([id, label]) => `<div class="t2-group"><h3>${label}</h3><div class="t2-choices">${$(id).choices.map(([v, t]) =>
+    `<button type="button" class="t2-choice" data-f="${id}" data-v="${esc(v)}" aria-pressed="${$(id).value === v}">${esc(t)}</button>`).join('')}</div></div>`).join('');
+}
+
+FILTERS.forEach(([id]) => $(id).addEventListener('change', render));
+$('sortBy').addEventListener('change', () => { sortDir = 1; render(); });
+$('sortDir').addEventListener('click', () => { sortDir = -sortDir; render(); });
+// Show answers opens or closes every fold, the hidden ones included
+$('answersBtn').addEventListener('click', () => {
+  const on = $('answersBtn').getAttribute('aria-pressed') !== 'true';
+  $('answersBtn').setAttribute('aria-pressed', String(on));
+  open.clear();
+  if (on) rows.forEach(r => open.add(keyOf(r)));
+  render();
+});
+// a fold opened or closed by hand (toggle doesn't bubble, so it's caught on the way down)
+$('cards').addEventListener('toggle', e => {
+  const d = e.target;
+  if (!d.matches || !d.matches('details[data-key]')) return;
+  if (d.open) open.add(d.dataset.key); else open.delete(d.dataset.key);
+}, true);
+$('activeChips').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) $(b.dataset.f).setValue(''); });
+
+// ---- the phone's filter sheet. It closes like the Studio's other phone sheets: a tap on the backdrop or the
+// handle, a drag down, or Escape. Each choice applies at once, so the count above shows what it leaves.
+const sheet = $('sheet'), back = $('sheetBack');
+function showSheet(on) {
+  sheet.hidden = back.hidden = !on;
+  sheet.style.transform = '';
+  $('filtersBtn').setAttribute('aria-expanded', String(on));
+  if (on) sheet.focus({ preventScroll: true }); else $('filtersBtn').focus({ preventScroll: true });
+}
+$('filtersBtn').addEventListener('click', () => showSheet(true));
+back.addEventListener('click', () => showSheet(false));
+$('sheetHandle').addEventListener('click', () => showSheet(false));
+$('sheetClear').addEventListener('click', () => FILTERS.forEach(([id]) => { if ($(id).value) $(id).setValue(''); }));
+$('sheetBody').addEventListener('click', e => {
+  const b = e.target.closest('.t2-choice');
+  if (!b) return;
+  const f = b.dataset.f;
+  $(f).setValue(b.dataset.v);
+  const again = $('sheetBody').querySelector(`.t2-choice[data-f="${f}"][data-v="${CSS.escape(b.dataset.v)}"]`);
+  if (again) again.focus({ preventScroll: true });   // the sheet was redrawn; keep the keyboard where it was
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.hidden) showSheet(false); });
+let drag = null;
+sheet.addEventListener('touchstart', e => {
+  if (e.touches.length !== 1 || (sheet.scrollTop > 0 && !e.target.closest('.t2-handle'))) return;
+  drag = { y: e.touches[0].clientY, dy: 0, t: e.timeStamp };
+}, { passive: true });
+sheet.addEventListener('touchmove', e => {
+  if (!drag) return;
+  const dy = e.touches[0].clientY - drag.y;
+  if (dy < 0 && !drag.dy) { drag = null; return; }   // starting upwards is an ordinary scroll
+  if (e.cancelable) e.preventDefault();
+  drag.dy = Math.max(0, dy);
+  sheet.style.transition = 'none';
+  sheet.style.transform = `translateY(${drag.dy}px)`;
+}, { passive: false });
+function release(e) {
+  if (!drag) return;
+  const { dy, t } = drag;
+  drag = null;
+  sheet.style.transition = '';
+  if (dy > Math.min(120, sheet.offsetHeight / 3) || (dy > 30 && dy / Math.max(16, e.timeStamp - t) > 0.5)) showSheet(false);
+  else sheet.style.transform = '';
+}
+sheet.addEventListener('touchend', release);
+sheet.addEventListener('touchcancel', release);
+// a sheet left open while the window widens would sit there unseen, so it closes
+matchMedia('(min-width:641px)').addEventListener('change', e => { if (e.matches && !sheet.hidden) { sheet.hidden = back.hidden = true; $('filtersBtn').setAttribute('aria-expanded', 'false'); } });
+
+// answers saved in another tab (the Studio, or its sync), or Back from the Studio restoring this page
+addEventListener('storage', e => { if (!e.key || /^set_[a-z]+_attempts$/.test(e.key)) render(); });
+addEventListener('pageshow', e => { if (e.persisted) render(); });
+
+(async function load() {
+  try {
+    const map = await T2_DATA['priority-map'];
+    if (Number.isInteger(map.top) && map.top > 0) TOP = map.top;
+    document.title = `Top ${TOP} · AWS SAA-C03 Studio`;
+    $('t2Brand').textContent = `Top ${TOP}`;
+    $('t2Title').textContent = `Top ${TOP} questions`;
+    $('t2Lede').textContent = `Your ${TOP} highest-priority questions, and where each stands in your practice.`;
+    const top = map.questions.filter(e => e.priority <= TOP).sort((a, b) => a.priority - b.priority);
+    const sets = {};
+    for (const bank of new Set(top.map(e => e.bank))) {
+      if (!T2_DATA[bank]) throw new Error('unknown set "' + bank + '" in priority-map.json');
+      sets[bank] = await T2_DATA[bank];
+    }
+    rows = top.map(e => {
+      const q = sets[e.bank].find(x => x.id === e.id);
+      if (!q) return null;
+      const right = Array.isArray(q.correct_answer) ? q.correct_answer : String(q.correct_answer || '').split(/[\s,]+/).filter(Boolean);
+      return { priority: e.priority, bank: e.bank, bankLabel: BANKS[e.bank][0], symbol: BANKS[e.bank][1], id: e.id,
+        stem: q.question.trim(), keywords: q.keywords, tldr: (q.tldr || '').trim(),
+        section: q.domain || '', domain: q.exam_domain, difficulty: q.difficulty,
+        answers: right.map(letter => [letter, (q.options || {})[letter] || '']) };
+    }).filter(Boolean);
+    $('bankFilter').setChoices([['', 'All sets'], ...BANK_ORDER.filter(k => rows.some(r => r.bank === k)).map(k => [k, BANKS[k][1] + ' ' + BANKS[k][0]])]);
+    const order = App.SHEETS.map(([, , name]) => name);
+    const rank = name => (order.includes(name) ? order.indexOf(name) : order.length);
+    $('sectionFilter').setChoices([['', 'All sections'], ...[...new Set(rows.map(r => r.section).filter(Boolean))]
+      .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b)).map(name => [name, name])]);
+    render();
+  } catch (err) {
+    $('cards').innerHTML = `<p class="t2-note">The top questions couldn't be read (${esc(err.message)}). Open this page from the same web server as the Studio.</p>`;
+  }
+})();
+})();
+</script>
+</body>
+</html>

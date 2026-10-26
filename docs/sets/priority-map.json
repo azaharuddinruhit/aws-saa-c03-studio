@@ -1,6 +1,7 @@
 {
   "generatedAt": "2026-10-26T13:24:52.940Z",
   "count": 600,
+  "top": 100,
   "rankingMethod": "Each position goes to the exam domain furthest behind the SAA-C03 weights (30/26/24/20), then to the set furthest behind its share (Set Alpha 20%; Beta, Gamma and Delta the other 80% by their size), then to the question in that domain and set worth most: a service or task statement not covered yet first, then how often the banks test its services and features, each counting less every time it has come up, so repeats spread out. AWS does not publish how likely any one question is.",
   "questions": [
     {
