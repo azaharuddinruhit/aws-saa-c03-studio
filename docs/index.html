@@ -850,6 +850,13 @@
                 </div>
                 <div id="ovNext" class="mt-4"></div>
             </section>
+            <section id="ovTopCard" class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-bold">★ Top 200</h3>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                </div>
+                <div id="ovTop" class="mt-4"></div>
+            </section>
             <div class="ov-pair">
                 <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                     <div class="flex items-center justify-between gap-3">
@@ -3231,6 +3238,7 @@
             document.getElementById('ovVerdict').innerHTML = block(1.25, '60%');
             document.getElementById('ovScore').innerHTML = block(24);
             document.getElementById('ovNext').innerHTML = block(9);
+            document.getElementById('ovTop').innerHTML = block(12);
             document.getElementById('ovProgress').innerHTML = block(32);
             document.getElementById('ovDaily').innerHTML = block(22);
             document.getElementById('ovForest').innerHTML = block(24);
@@ -3260,6 +3268,7 @@
             renderScatter(banks);
             renderPace(banks);
             renderNext(banks, tl);
+            renderTop(banks);
             overviewPainted = true;
         }
 
@@ -4553,6 +4562,67 @@
                 if (b.dataset.section) practiseSection(b.dataset.bank, b.dataset.section);
                 else if (b.dataset.ids) practiseIn(b.dataset.bank, () => startQuizByIds(b.dataset.ids.split(','), DUE_QUIZ_TITLE));
             };
+        }
+
+        // ---- Top 200 ----
+        // Its own card, after What to do next: where the 200 questions ranked highest in priority-map.json
+        // ({ bank, id, priority }, read once) stand, all banks together and then bank by bank, in Progress's colours.
+        // A bank's ▶ starts its Top 200 quiz: the ones not done yet first, then the done ones, each in priority order.
+        // The card stays hidden if the file can't be read.
+        let topIds = null, topLoad = null;   // bank key -> question ids in priority order, once read
+        function renderTop(banks) {
+            if (!topIds) {
+                topLoad = topLoad || fetch('./sets/priority-map.json', { cache: 'no-cache' }).then(res => res.json())
+                    .then(data => {
+                        topIds = {};
+                        for (const e of data.questions.filter(e => e.priority <= 200).sort((a, b) => a.priority - b.priority)) (topIds[e.bank] = topIds[e.bank] || []).push(e.id);
+                    })
+                    .catch(() => { topIds = {}; });
+                topLoad.then(() => { if (parseRoute().name === 'overview') renderTop(loadedBanks()); });
+                return;
+            }
+            const rows = banks.map(b => {
+                const c = { total: 0, right: 0, missed: 0 };
+                for (const id of (topIds[b.key] || []).filter(id => b.questions.some(q => q.id === id))) {
+                    const log = b.log[id];
+                    c.total++;
+                    if (log && log.length) log[log.length - 1][0] === 1 ? c.right++ : c.missed++;
+                }
+                return { key: b.key, c };
+            }).filter(r => r.c.total);
+            document.getElementById('ovTopCard').classList.toggle('hidden', !rows.length);
+            if (!rows.length) return;
+            const all = rows.reduce((t, r) => ({ total: t.total + r.c.total, right: t.right + r.c.right, missed: t.missed + r.c.missed }), { total: 0, right: 0, missed: 0 });
+            const split = c => `${c.right} right, ${c.missed} missed, ${c.total - c.right - c.missed} unseen`;
+            const key = (v, text) => `<span class="flex items-center gap-1.5"><span class="ov-key" style="background:var(${v})"></span>${text}</span>`;
+            const box = document.getElementById('ovTop');
+            box.innerHTML = `
+                <p class="sc-figure"><span class="text-3xl font-semibold tracking-tight">${all.right}</span><span class="text-base text-slate-500">/ ${all.total} done</span></p>
+                <div class="ov-stack mt-3" role="img" aria-label="${split(all)}">${stackSegments(all)}</div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
+                    ${key('--ov-right', all.right + ' right')}${key('--ov-missed', all.missed + ' missed')}${key('--ov-unseen', (all.total - all.right - all.missed) + ' unseen')}
+                </div>
+                <div class="ov-rule bk-rows">${rows.map(({ key: bank, c }) => {
+                    const label = `Practise ${BANKS[bank].label}'s ${plural(c.total, 'Top 200 question')}, not done yet first`;
+                    return `
+                    <div class="bk-row text-xs">
+                        <span class="text-slate-300"><span class="bk-sym" aria-hidden="true">${BANKS[bank].symbol}</span>${BANKS[bank].label}</span>
+                        <div class="ov-stack thin" role="img" aria-label="${split(c)}" title="${split(c)}">${stackSegments(c)}</div>
+                        <span class="bk-num text-slate-300">${c.right} done</span>
+                        <span class="bk-num text-slate-500">/ ${c.total}</span>
+                        <button type="button" class="ov-practise" data-bank="${bank}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>
+                    </div>`;
+                }).join('')}</div>`;
+            box.onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (b) practiseIn(b.dataset.bank, startTopQuiz);
+            };
+        }
+
+        function startTopQuiz() {
+            const ids = topIds[bankKey] || [];
+            const done = id => { const log = attemptLog[id]; return !!(log && log.length && log[log.length - 1][0] === 1); };
+            startQuizByIds([...ids.filter(id => !done(id)), ...ids.filter(done)], 'Top 200');
         }
 
         // ---- Time per question ----

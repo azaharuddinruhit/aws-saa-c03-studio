@@ -17,7 +17,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 |---|---|
 | `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, score estimators, Gist sync. |
 | `docs/sets/{alpha,beta,gamma,delta}.json` | Question banks: an array of questions. The file name is the bank key in `BANKS`. |
-| `docs/sets/notebooklm/<bank>.md` | Markdown copies of the banks for NotebookLM. They must carry the same `services` tags as the JSON. |
+| `docs/sets/priority-map.json` | The study order: `{ bank, id, priority }` for every question. The overview's ★ Top 200 card reads it. |
 | `docs/cheatsheet/index.html` | Cheat sheet hub. |
 | `docs/cheatsheet/01-…10-*.html` | Domain pages. Each one loads `icons.js` and `app.js`, then calls `App.start(config)`. |
 | `docs/cheatsheet/app.css` | Shared styles and colour tokens (`--accent`, `--aws`, `--ink`, `--muted`, `--line`, `--surface`…), with light and dark values. |
@@ -84,7 +84,8 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
   - question text: `question`, `hint`, `keywords`, `options`;
   - answer: `correct_answer`, `explanation`, `tldr`, `wrong_reasons`.
 - **Tags:** `services` holds 1–4 tags from `scripts/tag-vocabulary.json`, either `"Service"` or `"Service › Feature"`, joined by ` › `. Its `rules` say what to tag: what the correct answer depends on, most decisive first.
-- **Keep the copies in sync:** when a question or its tags change, update the matching `docs/sets/notebooklm/<bank>.md` entry too, then run `check-tags.js`.
+- **After a question or its tags change,** run `check-tags.js`.
+- **Top 200:** the overview's ★ Top 200 card, after What to do next, shows where the 200 questions ranked highest in `priority-map.json` stand: all banks together, then a full-width done / missed / unseen bar per bank. Each bank's ▶ starts its Top 200 quiz: those not done yet first, each part in priority order (done means the latest answer is right). The quiz runs in the set itself, so its answers count there like any other. The card stays hidden if the file can't be read.
 
 ## Services glossary
 

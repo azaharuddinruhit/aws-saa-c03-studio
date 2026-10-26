@@ -1,11 +1,11 @@
-// Checks every question's `services` tags against tag-vocabulary.json, and that the NotebookLM
-// copies carry the same tags. Exits non-zero on any problem, so the deploy workflow stops.
+// Checks every question's `services` tags against tag-vocabulary.json. Exits non-zero on any problem,
+// so the deploy workflow stops.
 // Usage: node scripts/check-tags.js
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const SETS = path.join(ROOT, 'docs', 'sets');   // <bank>.json, with NotebookLM copies in notebooklm/<bank>.md
+const SETS = path.join(ROOT, 'docs', 'sets');   // <bank>.json
 const MIN_TAGS = 1;
 const MAX_TAGS = 4;
 
@@ -44,27 +44,6 @@ for (const file of fs.readdirSync(SETS).filter(f => /^[a-z]+\.json$/.test(f))) {
       if (tag !== service && tags.includes(service)) {
         problems.push(label(q.id) + ': has both "' + service + '" and "' + tag + '"');
       }
-    }
-  }
-
-  // The Markdown copy lists the same tags on a **Services:** line under each question heading.
-  const mdPath = path.join(SETS, 'notebooklm', bank + '.md');
-  if (!fs.existsSync(mdPath)) {
-    problems.push(bank + ': no NotebookLM copy at ' + path.relative(ROOT, mdPath));
-    continue;
-  }
-  const mdTags = {};
-  let current = null;
-  for (const line of fs.readFileSync(mdPath, 'utf8').split(/\r?\n/)) {
-    const heading = /^## [A-Z]+-(\d+):/.exec(line);
-    if (heading) current = parseInt(heading[1], 10);
-    const services = /^\*\*Services:\*\* (.*)$/.exec(line);
-    if (services && current !== null) mdTags[current] = services[1];
-  }
-  for (const q of questions) {
-    const expected = (q.services || []).join(', ');
-    if (mdTags[q.id] !== expected) {
-      problems.push(path.basename(mdPath) + ' ' + label(q.id) + ': Services line does not match the JSON');
     }
   }
 }
