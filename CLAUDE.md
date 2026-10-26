@@ -69,11 +69,15 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **localStorage keys:**
   - `saa_` prefixes app-wide keys;
   - each bank has its own prefix (`set_alpha_`, …);
-  - the theme key is `saa_theme`.
+  - the theme key is `saa_theme`;
+  - `saa_banks_off` lists the banks turned off (see below);
+  - `saa_exam_date_updated` and `saa_banks_off_updated` hold when each synced setting last changed.
+- **Banks on and off:** each bank in the Studio's menu has a switch. A bank that is off is left out of everything the Studio shows (the overview's combined figures, its bank rows, every practice button) and can't be selected; its answers stay saved and keep syncing. The last bank on can't be turned off. Turning off the active bank ends a quiz from it first, with the usual confirmation, and the first bank still on becomes active; when another device turns it off, a quiz in this tab keeps it until that quiz ends (`leaveOffBank`). A practice link to a bank that is off asks to turn it back on. The mind map leaves its questions out of every count, list, % done and exam domain, and the infographics hide its practice links and recount each row; both read the list through `App.banksOff` in `app.js` and catch up on a storage event or Back.
 - **Gist sync:**
   - **Answers are merged, never replaced** (`mergeBank` in `index.html`). Each question keeps the answers of both copies, matched by time, up to `ATTEMPTS_KEPT` (the first and the latest 19, as `recordAttempt` keeps them). So two devices can practise the same bank without losing answers.
   - **Resets:** a reset stores its time in `<prefix>reset`, and a merge leaves out every answer from before the latest reset on either side.
-  - **Newest-wins:** the mistakes and flagged lists, and the settings section, come from whichever copy changed last. When adding a setting that should sync, add it to that settings section.
+  - **Newest-wins:** the mistakes and flagged lists come from whichever copy changed last.
+  - **Settings:** the settings section holds the exam date and `banksOff`, each with its own change time (`examDateAt`, `banksOffAt`). `mergeSettings` takes each setting from the copy that changed it last, so changing one on a device never undoes the other changed elsewhere. `updatedAt` is the latest of them, for older copies of the page, and a copy without `banksOff` never decides it. When adding a setting that should sync, give it a time in `SETTING_TIMES` and add it to `mergeSettings`.
   - **The active bank:** a sync rewrites it only while no quiz needs it, and every caller of `syncNow` re-reads it (`reloadActiveBank`) when that happens. Otherwise the page would save its old copy over the merge.
   - **First connection** still replaces this browser's copy of each bank the gist already has, as its dialog says.
 

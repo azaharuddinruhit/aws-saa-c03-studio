@@ -12,8 +12,12 @@ const SHEETS = path.join(ROOT, 'docs', 'cheatsheet');
 const MODULES = path.join(__dirname, 'infographics');
 
 // ---- the banks, for counts and the worked example ----
-const BANKS = ['alpha', 'beta', 'gamma', 'delta'];
-const bank = Object.fromEntries(BANKS.map(b => [b, JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'sets', b + '.json'), 'utf8'))]));
+// their keys, labels and symbols, read from the BANKS table in the quiz app as build-mindmap.js does
+const indexHtml = fs.readFileSync(path.join(ROOT, 'docs', 'index.html'), 'utf8');
+const BANK_INFO = Object.fromEntries([...indexHtml.matchAll(/(\w+): \{ label: '([^']+)', symbol: '([^']+)'/g)].map(([, key, label, symbol]) => [key, { label, symbol }]));
+const BANKS = Object.keys(BANK_INFO);
+if (!BANKS.includes('alpha')) throw new Error('could not read the BANKS table from docs/index.html');
+const bank =Object.fromEntries(BANKS.map(b => [b, JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'sets', b + '.json'), 'utf8'))]));
 const questions = BANKS.flatMap(b => bank[b]);
 // questions tagged with any of these services (a feature tag counts for its service)
 const VOCAB = new Set(require('./tag-vocabulary.json').categories.flatMap(c => c.services.map(s => s.name)));
@@ -25,10 +29,6 @@ const tagged = services => {
 // the vocabulary's tags, "Service" or "Service › Feature", for the practice links
 const TAGS = new Set(require('./tag-vocabulary.json').categories.flatMap(c => c.services.flatMap(s => [s.name, ...(s.features || []).map(f => s.name + ' › ' + f)])));
 const tagsOf = q => new Set((q.services || []).flatMap(t => [t, t.split(' › ')[0]]));
-// the banks' labels and symbols, read from the quiz app as build-mindmap.js does
-const indexHtml = fs.readFileSync(path.join(ROOT, 'docs', 'index.html'), 'utf8');
-const BANK_INFO = Object.fromEntries([...indexHtml.matchAll(/(\w+): \{ label: '([^']+)', symbol: '([^']+)'/g)].map(([, key, label, symbol]) => [key, { label, symbol }]));
-for (const b of BANKS) if (!BANK_INFO[b]) throw new Error('bank ' + b + ' not found in the BANKS table of docs/index.html');
 // a service's icon, from the mind map's cues
 const CUES = require('./mindmap-cues.json').services;
 
@@ -78,13 +78,41 @@ function practice(key, list) {
     if (!per.length) throw new Error(key + ': no questions are tagged "' + tag + '"');
     const total = per.reduce((a, [, n]) => a + n, 0);
     return `
-      <div class="ig-prac">${cue && cue.icon ? img(cue.icon) : ''}<div class="ig-prac-name"><b>${esc(tag)}</b><span>${total} question${total === 1 ? '' : 's'}</span></div>
-        <div class="ig-prac-sets">${per.map(([b, n]) => `<a href="../index.html#/practice/${b}/${encodeURIComponent(tag)}" target="_blank" rel="noopener" title="Opens a quiz in ${BANK_INFO[b].label} in a new tab"><b>${BANK_INFO[b].symbol}</b>${n}</a>`).join('')}</div>
+      <div class="ig-prac">${cue && cue.icon ? img(cue.icon) : ''}<div class="ig-prac-name"><b>${esc(tag)}</b><span class="ig-prac-n">${total} question${total === 1 ? '' : 's'}</span></div>
+        <div class="ig-prac-sets">${per.map(([b, n]) => `<a href="../index.html#/practice/${b}/${encodeURIComponent(tag)}" data-bank="${b}" data-n="${n}" target="_blank" rel="noopener" title="Opens a quiz in ${BANK_INFO[b].label} in a new tab"><b>${BANK_INFO[b].symbol}</b>${n}</a>`).join('')}</div>
       </div>`;
   }).join('');
-  return section('Practise this page', `<div class="ig-pracs">${rows}
+  return section('Practise this page', `<div class="ig-pracs" id="igPracs">${rows}
     </div>`, 'Each link opens a quiz of those questions in a new tab, one set at a time: unseen and missed questions first.');
 }
+
+// A bank turned off in the Studio's menu loses its links, and each row's total counts only the banks still on;
+// a row left with none goes, and so does the section. Another tab changing the banks redraws it, and so does
+// coming back to the page with Back, which may restore it as it was.
+const PRACTICE = `(function(){
+  var box = document.getElementById('igPracs');
+  if (!box) return;
+  var BANKS = ${JSON.stringify(BANKS)}, sec = box.closest('.ig-sec');
+  function apply(){
+    var off = App.banksOff(BANKS), any = false;
+    box.querySelectorAll('.ig-prac').forEach(function(row){
+      var total = 0;
+      row.querySelectorAll('a[data-bank]').forEach(function(a){
+        var on = off.indexOf(a.dataset.bank) < 0;
+        a.hidden = !on;
+        if (on) total += Number(a.dataset.n);
+      });
+      row.hidden = !total;
+      if (total) any = true;
+      row.querySelector('.ig-prac-n').textContent = total + ' question' + (total === 1 ? '' : 's');
+    });
+    sec.hidden = !any;
+  }
+  apply();
+  addEventListener('storage', function(e){ if (e.key === null || e.key === App.BANKS_OFF_KEY) apply(); });
+  addEventListener('pageshow', function(e){ if (e.persisted) apply(); });
+})();
+`;
 
 // ---- the page list in app.js ----
 const appJs = fs.readFileSync(path.join(SHEETS, 'app.js'), 'utf8');
@@ -180,7 +208,7 @@ ${p.body}${p.practice ? practice(key, p.practice) : ''}
 document.querySelectorAll('[data-ico]').forEach(el => el.setAttribute(el.tagName === 'IMG' ? 'src' : 'href', App.iconURL(el.dataset.ico)));
 document.getElementById('igMore').innerHTML = App.INFOGRAPHICS.filter(([file]) => file !== 'infographic-${key}')
   .map(([file, name, icon]) => '<a href="' + file + '.html">' + App.img(icon, '', '') + '<span>' + name + '</span></a>').join('');
-${QUIZ}${p.script || ''}</script>
+${QUIZ}${p.practice ? PRACTICE : ''}${p.script || ''}</script>
 </body>
 </html>
 `;

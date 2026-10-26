@@ -17,6 +17,17 @@ const store = {
   set(k, v){ try{ localStorage.setItem(prefix+k, JSON.stringify(v)); }catch(e){} }
 };
 
+/* the question banks turned off with their switches in the Studio's menu, out of `keys` (every bank the page
+   knows), read as the Studio reads them: only known banks, and never all of them. The mind map and the
+   infographics leave these banks out. The Studio keeps the list in sync through the gist; `list` checks a
+   copy read from there instead of this browser's. */
+const BANKS_OFF_KEY = 'saa_banks_off';
+function banksOff(keys, list){
+  if (list === undefined) try{ list = JSON.parse(localStorage.getItem(BANKS_OFF_KEY)); }catch(e){}
+  const off = Array.isArray(list) ? keys.filter(k => list.includes(k)) : [];
+  return off.length < keys.length ? off : [];
+}
+
 /* theme: applied before first paint. One key for the Studio and every sheet: 'dark' or 'light', and
    nothing saved means follow the system. A choice saved under the sheets' older keys moves to it once. */
 const THEME_KEY = 'saa_theme', OLD_THEME_KEYS = ['saa-theme', 'saa-compute-theme'];
@@ -773,5 +784,5 @@ function start(cfg){
   show(location.hash.slice(1) || lastIn.learn || LEARN[0][0], false);
 }
 
-window.App = {start, img, iconURL, $, $$, shuffle, SHEETS, INFOGRAPHICS};
+window.App = {start, img, iconURL, $, $$, shuffle, SHEETS, INFOGRAPHICS, banksOff, BANKS_OFF_KEY};
 })();

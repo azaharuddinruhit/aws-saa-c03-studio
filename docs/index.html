@@ -361,6 +361,25 @@
         .bk-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .bk-row > .bk-num:last-child { margin-left: .25rem; }
         .bk-sym { display: inline-block; width: 1em; margin-right: .25rem; text-align: center; }
+        /* the header menu's banks: a row picks its bank, and the switch at its end turns the bank on or off */
+        #headerMenu { width: 16rem; }
+        html:not(.dark) #headerMenu { --bk-hover: #e2e8f0; --bk-track: #cbd5e1; --bk-on: #059669; --bk-knob: #ffffff; }
+        .dark #headerMenu { --bk-hover: #1e293b; --bk-track: #334155; --bk-on: #10b981; --bk-knob: #f1f5f9; }
+        .bank-row { display: flex; align-items: stretch; transition: background-color .15s; }
+        .bank-row:hover { background-color: var(--bk-hover); }
+        .bank-pick { flex: 1; min-width: 0; padding-right: .5rem; text-align: left; }
+        .bank-row.bank-off .bank-pick { cursor: default; }
+        .bank-switch { flex: none; display: flex; align-items: center; padding: 0 1rem 0 .5rem; }
+        .bank-switch[aria-disabled="true"] { cursor: not-allowed; }
+        .bank-switch:focus-visible { outline: none; }
+        .bank-switch:focus-visible .bank-track { outline: 2px solid var(--bk-on); outline-offset: 2px; }
+        .bank-track { position: relative; width: 1.75rem; height: 1rem; border-radius: 9999px; background: var(--bk-track); transition: background-color .15s; }
+        .bank-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: .75rem; height: .75rem; border-radius: 9999px;
+            background: var(--bk-knob); box-shadow: 0 1px 2px rgba(15, 23, 42, .3); transition: transform .15s; }
+        .bank-switch[aria-checked="true"] .bank-track { background: var(--bk-on); }
+        .bank-switch[aria-checked="true"] .bank-track::after { transform: translateX(.75rem); }
+        .bank-switch[aria-disabled="true"] .bank-track { opacity: .5; }
+        @media (prefers-reduced-motion: reduce) { .bank-track, .bank-track::after { transition: none; } }
         .ov-key { display: inline-block; width: .625rem; height: .625rem; border-radius: 2px; flex-shrink: 0; }
         .ov-chart { position: relative; touch-action: pan-y; }
         .ov-chart svg { display: block; width: 100%; overflow: visible; }
@@ -531,7 +550,7 @@
                 <button id="headerMenuBtn" onclick="toggleHeaderMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Menu" class="w-9 h-9 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 flex items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-aws-orange focus-visible:outline-offset-2">
                     <i id="headerMenuIcon" class="fa-solid fa-bars"></i>
                 </button>
-                <div id="headerMenu" class="hidden absolute right-0 top-11 w-56 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
+                <div id="headerMenu" class="hidden absolute right-0 top-11 rounded-2xl border border-slate-800 bg-slate-900 shadow-xl py-1.5 z-50 animate-fade-in">
                     <p class="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Question bank</p>
                     <div id="bankMenuItems" role="group" aria-label="Question bank"><!-- Populated via JS --></div>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
@@ -982,6 +1001,29 @@
             return BANKS[bankKey].prefix + name;
         }
 
+        // Banks can be turned off with their switches in the menu. A bank that is off is left out of everything
+        // the Studio shows and can't be selected, but its answers stay saved and keep syncing, so turning it back
+        // on brings it all back. The list travels in the gist's settings section; one bank always stays on.
+        // The mind map and the infographics read the same key (App.banksOff in cheatsheet/app.js).
+        const BANKS_OFF_KEY = 'saa_banks_off';
+
+        // only known banks, and never every bank
+        function validBanksOff(list) {
+            const off = Array.isArray(list) ? Object.keys(BANKS).filter(key => list.includes(key)) : [];
+            return off.length < Object.keys(BANKS).length ? off : [];
+        }
+
+        function banksOff() {
+            try { return validBanksOff(JSON.parse(localStorage.getItem(BANKS_OFF_KEY))); } catch (e) { return []; }
+        }
+
+        function enabledBanks() {
+            const off = banksOff();
+            return Object.keys(BANKS).filter(key => !off.includes(key));
+        }
+
+        const bankOn = key => !banksOff().includes(key);
+
         // One-time move of progress saved before the banks were renamed (main -> alpha, saved as
         // saa_mistakes etc.; setA -> beta, saved as saa_setA_mistakes etc.). It only acts while old
         // keys remain, and never overwrites newer data. Safe to delete once every browser in use
@@ -1020,7 +1062,8 @@
                 if (BANKS[savedBank]) bankKey = savedBank;
             } catch (e) {}
             // a practice link from the mind map picks its bank the way the menu does, so it stays selected
-            const practice = parsePractice();
+            let practice = parsePractice();
+            const savedBank = bankKey;
             if (practice) {
                 bankKey = practice.bank;
                 try { localStorage.setItem('saa_bank', bankKey); } catch (e) {}
@@ -1033,6 +1076,27 @@
             let waited = false;
             const firstSync = syncNow();
             await Promise.race([firstSync, new Promise(r => setTimeout(() => { waited = true; r(); }, 5000))]);
+            // A practice link (an old one, or from a page that read the banks before one was turned off) may
+            // name a bank that is off: it offers to turn it on, and otherwise opens the overview.
+            if (practice && !bankOn(practice.bank)) {
+                const label = BANKS[practice.bank].label;
+                if (await showConfirm(label + ' is turned off, so the Studio leaves it out. Turn it back on to practise ' + practice.tag + ' in it? Its saved answers come back with it.',
+                    { title: 'Turn on ' + label + '?', confirmLabel: 'Turn on and practise', tone: 'safe', icon: 'fa-toggle-on' })) {
+                    setBanksOff(banksOff().filter(k => k !== practice.bank));
+                } else {
+                    practice = null;
+                    bankKey = savedBank;
+                    try { localStorage.setItem('saa_bank', bankKey); } catch (e) {}
+                    history.replaceState(null, '', routeUrl({ name: 'overview' }));
+                }
+            }
+            // the bank saved here may have been turned off, here or on another device; a quiz from it waiting in
+            // this tab keeps it until the quiz ends
+            if (!bankOn(bankKey) && sessionBank() !== bankKey) {
+                bankKey = enabledBanks()[0];
+                try { localStorage.setItem('saa_bank', bankKey); } catch (e) {}
+            }
+            banksShown = enabledBanks().join();
             loadPersistedData();
             firstSync.then(pulledActive => { if (waited && pulledActive) reloadActiveBank(); });
             loadQuestionBank().then(() => {
@@ -1055,6 +1119,9 @@
                 // Back first closes the Services drawer, which opened as a history step of its own
                 window.addEventListener('popstate', () => { if (servicesOpen) hideServices(); else renderRoute(); });
                 loadOtherBanks();
+                // a sync that finished after the wait above may have turned the active bank off
+                appReady = true;
+                leaveOffBank();
             });
         });
 
@@ -1102,17 +1169,20 @@
             return bankFetches[key];
         }
 
+        // A switch made while this one was reading supersedes it, so a slower read never lands in the newer bank.
         async function loadQuestionBank() {
-            const file = BANKS[bankKey].file;
+            const key = bankKey, file = BANKS[key].file;
             try {
-                const parsed = await fetchBank(bankKey);
+                const parsed = await fetchBank(key);
+                if (key !== bankKey) return;
                 if (!Array.isArray(parsed) || parsed.length === 0) {
                     throw new Error(file + ' must be a non-empty array of questions.');
                 }
                 questions = parsed;
-                bankQuestions[bankKey] = parsed;
-                bankCounts[bankKey] = parsed.length;
+                bankQuestions[key] = parsed;
+                bankCounts[key] = parsed.length;
             } catch (err) {
+                if (key !== bankKey) return;
                 questions = [];
                 document.getElementById('bankErrorDetail').innerText = file + ' could not be read from this folder (' + err.message + ').';
             }
@@ -1123,15 +1193,17 @@
         // first (with the same confirmation as the back arrow), since its questions belong to the old bank.
         async function selectBank(key) {
             closeHeaderMenu();
-            if (key === bankKey || !BANKS[key]) return;
+            if (key === bankKey || !BANKS[key] || !bankOn(key)) return;
             if (!(await leaveSession('Switch to ' + BANKS[key].label + '?', 'Switch'))) return;
             useBank(key);
         }
 
-        // Makes `key` the active bank and loads it; the caller has already ended any quiz
+        // Makes `key` the active bank and loads it; the caller has already ended any quiz. A bank already read
+        // takes over at once, so nothing drawn before the load finishes mixes one bank's questions with another's answers.
         function useBank(key) {
             bankKey = key;
             try { localStorage.setItem('saa_bank', key); } catch (e) {}
+            if (bankQuestions[key]) questions = bankQuestions[key];
             mistakes = [];
             flaggedIds = new Set();
             attemptLog = {};
@@ -1144,13 +1216,17 @@
             document.getElementById('bankLabel').innerText = BANKS[bankKey].label;
             const items = document.getElementById('bankMenuItems');
             items.innerHTML = '';
+            const on = enabledBanks();
             for (const [key, bank] of Object.entries(BANKS)) {
-                const active = key === bankKey;
+                const active = key === bankKey, enabled = on.includes(key);
+                const row = document.createElement('div');
+                row.className = 'bank-row' + (enabled ? '' : ' bank-off');
                 const btn = document.createElement('button');
+                btn.type = 'button';
                 btn.setAttribute('role', 'menuitemradio');
                 btn.setAttribute('aria-checked', String(active));
-                btn.className = 'w-full flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-800 hover:text-emerald-400 transition '
-                    + (active ? 'text-emerald-400 font-medium' : 'text-slate-300');
+                btn.className = 'bank-pick flex items-center gap-2.5 pl-4 py-2.5 text-sm transition '
+                    + (active ? 'text-emerald-400 font-medium' : enabled ? 'text-slate-300 hover:text-emerald-400' : 'text-slate-500');
                 // each bank is marked by its Greek letter; only one bank is active, marked by colour and a trailing check.
                 // The check keeps its width when hidden so the question counts line up.
                 const count = key in bankCounts
@@ -1159,10 +1235,103 @@
                 btn.innerHTML = '<span class="w-4 text-center text-base font-semibold leading-tight" aria-hidden="true">' + bank.symbol + '</span><span>' + escapeHtml(bank.label) + '</span>'
                     + '<span class="flex items-center gap-2" style="margin-left:auto">' + count
                     + '<i class="fa-solid fa-check text-xs w-4"' + (active ? '' : ' style="visibility:hidden"') + '></i></span>';
-                btn.title = key in bankCounts ? bankCounts[key] + ' questions' : '';
-                btn.onclick = () => selectBank(key);
-                items.appendChild(btn);
+                const size = key in bankCounts ? bankCounts[key] + ' questions' : '';
+                if (enabled) btn.title = size;
+                else {
+                    // aria-disabled rather than disabled, so it still shows why
+                    btn.setAttribute('aria-disabled', 'true');
+                    btn.title = bank.label + ' is turned off' + (size ? ' (' + size + ')' : '') + '. Turn it on with its switch to practise it.';
+                }
+                // a phone shows no tooltip, so a tap on a bank that is off says why nothing happens
+                btn.onclick = () => { if (enabled) selectBank(key); else alertBox(escapeHtml(bank.label) + ' is turned off. Turn it on with its switch to practise it.'); };
+                // the switch: a quiz from the active bank ends first, and the last bank on stays on
+                const last = enabled && on.length === 1;
+                const sw = document.createElement('button');
+                sw.type = 'button';
+                sw.className = 'bank-switch';
+                sw.dataset.bank = key;
+                sw.setAttribute('role', 'switch');
+                sw.setAttribute('aria-checked', String(enabled));
+                sw.setAttribute('aria-label', bank.label);
+                if (last) sw.setAttribute('aria-disabled', 'true');
+                sw.title = last ? 'At least one bank stays on'
+                    : enabled ? 'Turn off ' + bank.label + ': it is left out of the Studio, the mind map and the infographics, and its answers stay saved'
+                    : 'Turn on ' + bank.label;
+                sw.innerHTML = '<span class="bank-track" aria-hidden="true"></span>';
+                // a click inside the menu keeps it open, though this row is redrawn before the click reaches the page
+                sw.onclick = event => { event.stopPropagation(); if (!last) toggleBank(key); };
+                row.append(btn, sw);
+                items.appendChild(row);
             }
+        }
+
+        // The switch beside each bank in the menu. Turning off the active bank ends a quiz from it first, with the
+        // same confirmation as switching banks, and the first bank still on becomes the active one. The overview
+        // stays on screen; from anywhere else the Practice page of the new bank follows, as when switching.
+        let togglingBank = false;
+        async function toggleBank(key) {
+            if (togglingBank) return;
+            togglingBank = true;
+            try {
+                if (!bankOn(key)) {
+                    setBanksOff(banksOff().filter(k => k !== key));
+                } else {
+                    if (enabledBanks().length < 2) return;
+                    if (key === bankKey) {
+                        const stay = parseRoute().name === 'overview';
+                        if (!(await leaveSession('Turn off ' + BANKS[key].label + '?', 'Turn off', stay))) return;
+                        if (stay) renderPageTabs('overview');   // Resume quiz goes with the quiz
+                        // a sync during the confirmation may have turned the others off; this one then stays on
+                        if (!enabledBanks().some(k => k !== key)) {
+                            if (!stay) initApp();   // the quiz has ended, and the Practice page shows
+                            renderBankMenu();
+                            return;
+                        }
+                    }
+                    setBanksOff([...banksOff(), key]);
+                }
+                banksChanged();
+                // keep the keyboard on the redrawn switch
+                const sw = document.querySelector('#bankMenuItems .bank-switch[data-bank="' + key + '"]');
+                if (sw && !document.getElementById('headerMenu').classList.contains('hidden')) sw.focus({ preventScroll: true });
+            } finally {
+                togglingBank = false;
+            }
+        }
+
+        function setBanksOff(list) {
+            const now = Date.now();
+            try { writeLocalSettings({ ...readLocalSettings(), banksOff: list, banksOffAt: now, updatedAt: now }); } catch (e) {}
+            scheduleSync();
+        }
+
+        // Which banks are on changed, here, in another tab or on another device: the menu, the active bank and
+        // the overview follow. Charts that combine every bank start over, since their answers changed.
+        let banksShown = enabledBanks().join();   // the banks on when the page last caught up, so nothing is redrawn for no change
+        function banksChanged() {
+            const now = enabledBanks().join();
+            if (now === banksShown) return false;
+            banksShown = now;
+            for (const [scope, chart] of Object.entries(scoreCharts)) {
+                if (scope !== 'all' && !scope.startsWith('all:')) continue;
+                chart.history = null;
+                chart.forecast = null;
+                chart.run++;   // a forecast still being worked out is dropped
+            }
+            for (const scope of Object.keys(estimateCache)) if (scope === 'all' || scope.startsWith('all:')) delete estimateCache[scope];
+            renderBankMenu();
+            leaveOffBank();
+            if (parseRoute().name === 'overview') renderOverview();
+            return true;
+        }
+
+        // The active bank was turned off: the first bank still on takes its place, unless a quiz in this tab is
+        // still using it (one waiting to resume included). Then the switch waits until that quiz ends.
+        let appReady = false;   // start-up makes its own choice, and calls this once it is done
+        function leaveOffBank() {
+            if (!appReady || bankOn(bankKey) || quizHoldsActiveBank()) return false;
+            useBank(enabledBanks()[0]);
+            return true;
         }
 
         function loadPersistedData() {
@@ -1290,9 +1459,9 @@
             syncTimer = setTimeout(async () => { if (await syncNow()) reloadActiveBank(); }, SYNC_DELAY);
         }
 
-        // Settings that follow you between browsers (for now just the exam date) travel in the gist's
-        // settings section, newer side wins as with the banks. Older copies of the page push back the
-        // gist they read, so they carry the section along untouched.
+        // Settings that follow you between browsers (the exam date and the banks turned off) travel in the
+        // gist's settings section. Older copies of the page push back the gist they read, so they carry the
+        // section along untouched, but one that saves an exam date writes a section without the banks turned off.
         const EXAM_DATE_KEY = 'saa_exam_date';
         const SETTINGS_UPDATED_KEY = 'saa_settings_updated';
 
@@ -1308,19 +1477,63 @@
             } catch (e) { return null; }
         }
 
+        // Each setting also keeps the time it last changed, so a sync takes each one from the copy that changed
+        // it last: changing the exam date on one device never undoes a bank switch made on another. The
+        // section's updatedAt is the latest of them, which is all an older copy of the page reads.
+        const SETTING_TIMES = { examDate: 'saa_exam_date_updated', banksOff: 'saa_banks_off_updated' };
+
         function readLocalSettings() {
-            return { updatedAt: settingsUpdated(), examDate: examDate() };
+            const at = settingsUpdated();
+            const time = key => { try { return parseInt(localStorage.getItem(key), 10) || 0; } catch (e) { return 0; } };
+            // an exam date saved before the times existed takes the section's time
+            return { updatedAt: at, examDate: examDate(), examDateAt: time(SETTING_TIMES.examDate) || at,
+                banksOff: banksOff(), banksOffAt: time(SETTING_TIMES.banksOff) };
         }
 
+        // settings: a whole copy, as readLocalSettings and mergeSettings make
         function writeLocalSettings(settings) {
             const date = /^\d{4}-\d{2}-\d{2}$/.test(settings.examDate || '') ? settings.examDate : null;
             if (date) localStorage.setItem(EXAM_DATE_KEY, date);
             else localStorage.removeItem(EXAM_DATE_KEY);
-            localStorage.setItem(SETTINGS_UPDATED_KEY, String(settings.updatedAt));
+            const off = validBanksOff(settings.banksOff);
+            if (off.length) localStorage.setItem(BANKS_OFF_KEY, JSON.stringify(off));
+            else localStorage.removeItem(BANKS_OFF_KEY);
+            localStorage.setItem(SETTING_TIMES.examDate, String(settings.examDateAt || 0));
+            localStorage.setItem(SETTING_TIMES.banksOff, String(settings.banksOffAt || 0));
+            localStorage.setItem(SETTINGS_UPDATED_KEY, String(settings.updatedAt || 0));
         }
 
+        // When a copy last changed one setting. A copy from an older page has only the section's time, and no
+        // banks turned off at all, so it can't decide those.
+        function settingTime(settings, name) {
+            if (typeof settings[name + 'At'] === 'number') return settings[name + 'At'];
+            if (name === 'banksOff' && !Array.isArray(settings.banksOff)) return 0;
+            return settings.updatedAt || 0;
+        }
+
+        // Each setting from whichever copy changed it last, never from a copy that doesn't have it (an older
+        // page's has no banks turned off). A tie goes to the larger value, so whichever side merges, two
+        // devices settle on the same copy.
+        function mergeSettings(mine, theirs) {
+            const out = {};
+            for (const name of ['examDate', 'banksOff']) {
+                const a = settingTime(mine, name), b = settingTime(theirs, name);
+                const theirsHas = name !== 'banksOff' || Array.isArray(theirs.banksOff);
+                const fromTheirs = theirsHas && (b > a || (b === a && JSON.stringify(theirs[name] ?? null) > JSON.stringify(mine[name] ?? null)));
+                const src = fromTheirs ? theirs : mine;
+                out[name] = name === 'banksOff' ? validBanksOff(src.banksOff) : src.examDate ?? null;
+                out[name + 'At'] = Math.max(a, b);
+            }
+            out.updatedAt = Math.max(mine.updatedAt || 0, theirs.updatedAt || 0, out.examDateAt, out.banksOffAt);
+            return out;
+        }
+
+        const settingsValues = s => JSON.stringify([s.examDate ?? null, validBanksOff(s.banksOff)]);
+        const settingsSignature = s => settingsValues(s) + '|' + [s.examDateAt, s.banksOffAt, s.updatedAt].map(t => t || 0).join();
+
         function setExamDate(date) {
-            try { writeLocalSettings({ examDate: date, updatedAt: Date.now() }); } catch (e) {}
+            const now = Date.now();
+            try { writeLocalSettings({ ...readLocalSettings(), examDate: date, examDateAt: now, updatedAt: now }); } catch (e) {}
             scheduleSync();
         }
 
@@ -1392,13 +1605,16 @@
                         }
                         if (sig !== bankSignature(theirs)) { remote.banks[key] = merged; push = true; }
                     }
+                    // the settings, one by one (mergeSettings)
+                    const mySettings = readLocalSettings();
                     const theirSettings = remote.settings && typeof remote.settings === 'object' ? remote.settings : null;
-                    const theirSetAt = theirSettings ? theirSettings.updatedAt || 0 : 0;
-                    if (theirSettings && theirSetAt > settingsUpdated()) {
-                        writeLocalSettings(theirSettings);
-                        pulled = true;
-                    } else if (settingsUpdated() > theirSetAt) {
-                        remote.settings = readLocalSettings();
+                    const settings = theirSettings ? mergeSettings(mySettings, theirSettings) : mySettings;
+                    if (settingsSignature(settings) !== settingsSignature(mySettings)) {
+                        writeLocalSettings(settings);
+                        if (settingsValues(settings) !== settingsValues(mySettings)) pulled = true;
+                    }
+                    if (settings.updatedAt && (!theirSettings || settingsSignature(settings) !== settingsSignature(theirSettings))) {
+                        remote.settings = settings;
                         push = true;
                     }
                     if (push) await pushRemote(remote, keepalive);
@@ -1431,6 +1647,7 @@
         // writing it (as a sync here would leave it); the overview redraws for the others.
         let storageTimer = null;
         window.addEventListener('storage', e => {
+            if (e.key === BANKS_OFF_KEY) { banksChanged(); return; }
             const key = Object.keys(BANKS).find(k => e.key === BANKS[k].prefix + 'updated');
             if (!key) return;
             clearTimeout(storageTimer);
@@ -1489,8 +1706,16 @@
                 } catch (e) {}
             }
             try {
-                if (remote.settings) localStorage.setItem(SETTINGS_UPDATED_KEY, '0');
-                else if (examDate() && !settingsUpdated()) localStorage.setItem(SETTINGS_UPDATED_KEY, String(Date.now()));
+                // the gist's settings replace this browser's (its banks turned off only when it has them), so
+                // this browser's count as never changed; with none in the gist, this browser's go up
+                if (remote.settings) {
+                    for (const key of [SETTINGS_UPDATED_KEY, ...Object.values(SETTING_TIMES)]) localStorage.setItem(key, '0');
+                } else {
+                    const now = String(Date.now());
+                    if (examDate() && !readLocalSettings().examDateAt) localStorage.setItem(SETTING_TIMES.examDate, now);
+                    if (banksOff().length && !readLocalSettings().banksOffAt) localStorage.setItem(SETTING_TIMES.banksOff, now);
+                    if ((examDate() || banksOff().length) && !settingsUpdated()) localStorage.setItem(SETTINGS_UPDATED_KEY, now);
+                }
             } catch (e) {}
             syncMenuLabel();
             await syncNow();
@@ -2004,6 +2229,11 @@
             try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
         }
 
+        // the bank of the quiz saved in this tab, or null when there is none
+        function sessionBank() {
+            try { const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY)); return saved && saved.bank || null; } catch (e) { return null; }
+        }
+
         // Puts a saved session back into memory; renderRoute() then decides what to show.
         function restoreSession() {
             let saved = null;
@@ -2116,6 +2346,7 @@
             if (route.name === 'overview') {
                 const fromQuiz = !document.getElementById('quizView').classList.contains('hidden') || !document.getElementById('summaryView').classList.contains('hidden');
                 const spot = fromQuiz ? quizReturn() : null;
+                leaveOffBank();
                 showOverviewView();
                 renderOverview().then(() => { if (spot && parseRoute().name === 'overview') restoreOverviewSpot(spot); });
                 return;
@@ -2129,10 +2360,11 @@
                     return;
                 }
                 showDashboardView();
-                initApp();
+                if (!leaveOffBank()) initApp();   // a switch draws the new bank's dashboard itself
                 return;
             }
             if (!active) {
+                leaveOffBank();
                 setRoute({ name: 'overview' }, true);
                 showOverviewView();
                 renderOverview();
@@ -2757,13 +2989,15 @@
             return bankQs.filter(q => log[q.id] && log[q.id].length).map(q => ({ q, log: log[q.id] }));
         }
 
-        // Every bank whose questions have been read, with this browser's answers to them. The active bank's
-        // answers come from memory, which may be ahead of storage mid-quiz; the others come from storage,
+        // Every bank turned on whose questions have been read, with this browser's answers to them. The active
+        // bank's answers come from memory, which may be ahead of storage mid-quiz; the others come from storage,
         // where sync keeps them current.
         function loadedBanks() {
-            return Object.keys(BANKS).filter(key => bankQuestions[key]).map(key => ({
-                key, questions: bankQuestions[key], log: key === bankKey ? attemptLog : readLocalBank(key).attempts
-            }));
+            return enabledBanks().filter(key => bankQuestions[key]).map(loadedBank);
+        }
+
+        function loadedBank(key) {
+            return { key, questions: bankQuestions[key], log: key === bankKey ? attemptLog : readLocalBank(key).attempts };
         }
 
         function allBanksAnswered(banks = loadedBanks()) {
@@ -3085,7 +3319,8 @@
             // this set's score over time and its forecast, worked out only while the card is open
             let bankChart = null, bankPlan = null;
             if (!estimateCollapsed) {
-                const own = loadedBanks().filter(b => b.key === bankKey);
+                // the active bank even while it is turned off, as it is while a quiz from it carries on
+                const own = bankQuestions[bankKey] ? [loadedBank(bankKey)] : [];
                 bankChart = scoreChartOf(bankKey);
                 scoreHistory(own, bankChart);
                 bankPlan = forecastHorizon(own);
@@ -3205,8 +3440,10 @@
             renderPageTabs('overview');
         }
 
-        // Another browser's progress or settings arrived; the overview reads every bank, so it redraws.
+        // Another browser's progress or settings arrived; the overview reads every bank, so it redraws (which
+        // banksChanged does itself when the banks turned on changed).
         function syncPulled() {
+            if (banksChanged()) return;
             if (parseRoute().name === 'overview') renderOverview();
         }
 
@@ -3246,7 +3483,7 @@
                 if (run !== overviewRun || parseRoute().name !== 'overview') return;
             }
             const banks = loadedBanks();
-            const missing = Object.keys(BANKS).filter(key => !bankQuestions[key]).map(key => BANKS[key].label);
+            const missing = enabledBanks().filter(key => !bankQuestions[key]).map(key => BANKS[key].label);
             const note = document.getElementById('ovNote');
             note.classList.toggle('hidden', !missing.length);
             note.innerText = missing.length ? missing.join(' and ') + " couldn't be read, so " + (missing.length === 1 ? 'it is' : 'they are') + ' left out of everything below.' : '';
@@ -4396,7 +4633,7 @@
             try {
                 // started from the overview: no Practice page in between, and the spot to come back to
                 const spot = parseRoute().name === 'overview' ? overviewSpot() : null;
-                if (!BANKS[key] || !(await leaveSession('Start a new quiz?', 'Start', !!spot))) return;
+                if (!BANKS[key] || !bankOn(key) || !(await leaveSession('Start a new quiz?', 'Start', !!spot))) return;
                 if (key !== bankKey) await useBank(key);
                 start();
                 if (spot && currentQuizQuestions.length) {
@@ -4453,6 +4690,7 @@
             const spot = quizReturn();
             if (!spot) { returnToDashboard(); return; }
             if (!(await leaveSession('Leave this session?', 'Leave', true))) return;
+            leaveOffBank();
             setRoute({ name: 'overview' }, true);
             showOverviewView();
             await renderOverview();
@@ -6189,7 +6427,7 @@
         }
 
         async function returnToDashboard() {
-            if (await leaveSession('Leave this session?', 'Leave')) initApp();
+            if (await leaveSession('Leave this session?', 'Leave') && !leaveOffBank()) initApp();
         }
 
         // ---- Header menu ----
@@ -6299,7 +6537,9 @@
             const btn = document.getElementById('refreshBtn');
             btn.classList.add('refreshing');
             btn.setAttribute('aria-busy', 'true');
-            const answers = () => Object.keys(BANKS).reduce((n, key) => {
+            // the banks on before the sync, so a bank the sync turns on or off doesn't count as answers gained or lost
+            const counted = enabledBanks();
+            const answers = () => counted.reduce((n, key) => {
                 const log = key === bankKey ? attemptLog : readLocalBank(key).attempts;
                 return n + Object.values(log).reduce((a, l) => a + l.length, 0);
             }, 0);

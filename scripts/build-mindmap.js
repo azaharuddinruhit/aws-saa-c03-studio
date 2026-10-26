@@ -110,13 +110,15 @@ BANKS.forEach((bank, bi) => {
   }
 });
 
-// a service sits under the domain most of its questions belong to; a tie or no questions uses the cue's domain
+// a service sits under the domain most of its questions belong to; a tie or no questions uses the cue's domain.
+// The cue's domain (fallback) stays in the data: the page works the domain out again, the same way, when banks
+// are turned off in the Studio's menu.
 for (const name of order) {
   const sv = services[name];
   const top = Math.max(...sv.perDomain);
   const leaders = sv.perDomain.map((c, i) => (c === top ? i + 1 : 0)).filter(Boolean);
   sv.domain = top > 0 && leaders.length === 1 ? leaders[0] : sv.fallback;
-  delete sv.fallback;
+  delete sv.perDomain;
 }
 
 // a service no question is tagged with is left out of the map, and out of other services' twins, until one is
