@@ -323,7 +323,7 @@
         .db-dots-btn:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
         html:not(.dark) #dashboardView { --qmap-edge: #94a3b8; --db-sec-hover: #e2e8f0; }
         .dark #dashboardView { --qmap-edge: #64748b; --db-sec-hover: #1e293b; }
-        html:not(.dark) #overviewView, html:not(.dark) #dashboardView {
+        html:not(.dark) #overviewView, html:not(.dark) #dashboardView, html:not(.dark) #examView, html:not(.dark) #examResultView {
             --ov-surface: #ffffff; --ov-line: #059669; --ov-wash: rgba(5, 150, 105, .10);
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
             --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0; --ov-review: #d97706;
@@ -331,7 +331,7 @@
             --sec-0: #4e79a7; --sec-1: #e8771a; --sec-2: #d93f43; --sec-3: #4f9a94; --sec-4: #4a8f41;
             --sec-5: #c9a227; --sec-6: #9c5f8c; --sec-7: #e8748a; --sec-8: #8c6449; --sec-9: #8f8580;
         }
-        .dark #overviewView, .dark #dashboardView {
+        .dark #overviewView, .dark #dashboardView, .dark #examView, .dark #examResultView {
             --ov-surface: #101522; --ov-line: #14a874; --ov-wash: rgba(20, 168, 116, .12);
             --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
             --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447; --ov-review: #fbbf24;
@@ -408,7 +408,119 @@
         .fp-key-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ov-muted); }
         .fp-key-bar { width: 18px; height: 8px; border-radius: 9999px; background: color-mix(in srgb, var(--ov-muted) 35%, transparent); }
         .fp-key-pass { height: 12px; border-left: 1.5px dashed var(--ov-muted); }
-        #overviewView, #dashboardView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
+        #overviewView, #dashboardView, #examView, #examResultView { --dom-1: var(--sec-0); --dom-2: var(--sec-6); --dom-3: var(--sec-1); --dom-4: var(--sec-3); }
+        /* ===== Practice exam =====
+           The review grid shows only what the exam itself shows, answered or not and flagged; right and
+           wrong wait for the result. Flags take the amber the overview uses for questions due for review. */
+        .ex-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+        .ex-tools { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+        .ex-meter { height: 4px; border-radius: 9999px; background: var(--ov-grid); overflow: hidden; }
+        .ex-meter > span { display: block; height: 100%; background: var(--ov-line); transition: width .3s; }
+        #examClock.ex-low { color: var(--ov-review); }   /* by id, so it beats the light theme's .text-slate-400 */
+        .ex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr)); gap: .5rem; }
+        .ex-sq { position: relative; height: 2.5rem; border-radius: .625rem; border: 1px solid var(--ov-grid); font-size: 12px; font-weight: 600;
+            color: var(--ov-muted); font-variant-numeric: tabular-nums; transition: border-color .15s, background-color .15s, opacity .15s; }
+        .ex-sq[data-s="answered"] { background: var(--ov-wash); border-color: color-mix(in srgb, var(--ov-line) 45%, transparent); color: var(--ov-line); }
+        .ex-sq[data-flag]::after { content: ""; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--ov-review); }
+        .ex-sq[aria-current="true"] { box-shadow: 0 0 0 2px var(--ov-ink); }
+        .ex-sq:hover { border-color: var(--ov-line); }
+        .ex-sq:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
+        .ex-sq.ex-dim { opacity: .25; }
+        .ex-key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--ov-grid); flex: none; }
+        .ex-key[data-s="answered"] { background: var(--ov-wash); border-color: var(--ov-line); }
+        .ex-key[data-s="flag"] { border: none; border-radius: 50%; width: 8px; height: 8px; background: var(--ov-review); }
+        .ex-flag-on { color: var(--ov-review); }
+        /* The exam view fades in without the shared slide: a transform, even the identity one the slide leaves
+           behind, would pin the phone's fixed Previous / Next bar to the view's foot instead of the screen's */
+        @keyframes exFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #examView.animate-fade-in { animation-name: exFadeIn; }
+        @media (prefers-reduced-motion: reduce) { #examView.animate-fade-in { animation: none; } }
+        /* Results: four figures in a row (two on a phone), then one fold per question, opened for its answer */
+        .exr-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+        @media (min-width: 640px) { .exr-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .exr-stat { border: 1px solid var(--ov-grid); border-radius: .875rem; padding: .625rem .75rem; min-width: 0; }
+        .exr-stat .exr-num { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .exr-list { display: grid; gap: .5rem; }
+        .exr-q { border: 1px solid var(--ov-grid); border-radius: .875rem; }
+        .exr-q > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .625rem; align-items: start;
+            padding: .625rem .75rem; border-radius: calc(.875rem - 1px); transition: background-color .15s; }
+        .exr-q > summary::-webkit-details-marker { display: none; }
+        .exr-q > summary:hover { background: color-mix(in srgb, var(--ov-grid) 45%, transparent); }
+        .exr-q > summary:focus-visible { outline: 2px solid var(--ov-line); outline-offset: -2px; }
+        .exr-mark { width: 1.5rem; height: 1.5rem; border-radius: 9999px; display: grid; place-items: center; font-size: 11px; }
+        .exr-mark[data-r="right"] { background: color-mix(in srgb, var(--ov-right) 15%, transparent); color: var(--ov-right); }
+        .exr-mark[data-r="wrong"] { background: color-mix(in srgb, var(--ov-missed) 15%, transparent); color: var(--ov-missed); }
+        .exr-mark[data-r="open"] { background: var(--ov-grid); color: var(--ov-muted); }
+        .exr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .625rem; font-size: 11px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
+        .exr-meta b { color: var(--ov-ink); font-weight: 600; }
+        .exr-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: .25rem; font-size: 13px; line-height: 1.5; color: var(--ov-ink); }
+        .exr-q[open] .exr-text { display: block; overflow: visible; }
+        .exr-chip { display: inline-flex; align-items: center; gap: .25rem; padding: 0 .45rem; border-radius: 9999px; font-size: 10px; font-weight: 600; }
+        .exr-chip[data-k="flag"] { color: var(--ov-review); background: color-mix(in srgb, var(--ov-review) 14%, transparent); }
+        .exr-chip[data-k="changed"] { color: var(--ov-line); background: var(--ov-wash); }
+        .exr-chev { font-size: 9px; margin-top: .375rem; color: var(--ov-muted); transition: transform .15s; }
+        .exr-q[open] .exr-chev { transform: rotate(180deg); }
+        .exr-body { display: grid; gap: .625rem; padding: 0 .75rem .75rem 2.875rem; }
+        @media (max-width: 639px) { .exr-body { padding-left: .75rem; } }
+        .exr-verdict { font-size: 12px; font-weight: 600; }
+        /* The results' cards sit 1.5rem apart, as the overview's do */
+        #exrPane { gap: 1.5rem; }
+        /* Share-right bars: a track, a fill coloured by the Studio's pass steps, and a dashed tick at the pass line */
+        .exs-list { display: grid; gap: .75rem; }
+        .exs-top { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; font-size: 12px; }
+        .exs-name { color: var(--ov-ink); min-width: 0; }
+        .exs-val { color: var(--ov-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .exs-track { position: relative; height: 6px; margin-top: .375rem; border-radius: 9999px; background: var(--ov-grid); }
+        .exs-track > span { display: block; height: 100%; border-radius: 9999px; }
+        .exs-track::after { content: ""; position: absolute; left: var(--pass); top: -3px; bottom: -3px; border-left: 1.5px dashed var(--ov-muted); }
+        .exs-head { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ov-muted); }
+        .exs-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+        .exs-stats > div { border: 1px solid var(--ov-grid); border-radius: .75rem; padding: .5rem .625rem; min-width: 0; }
+        .exs-stats b { display: block; font-size: 1.125rem; font-weight: 600; color: var(--ov-ink); }
+        .exs-stats span { font-size: 11px; color: var(--ov-muted); }
+        /* chart keys and the line under a chart */
+        .exc-key { display: flex; flex-wrap: wrap; gap: .375rem 1rem; font-size: 11px; color: var(--ov-muted); }
+        .exc-key > span { display: inline-flex; align-items: center; gap: .375rem; }
+        .exc-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex: none; }
+        .exc-key i.exc-pass { width: 14px; height: 0; border-radius: 0; border-top: 1.5px dashed var(--ov-muted); }
+        .exc-note { font-size: 12px; color: var(--ov-muted); line-height: 1.6; }
+        .exc-note b { color: var(--ov-ink); font-weight: 600; }
+        /* Strengths and what to work on: two lists side by side on a wide screen */
+        .exa-cols { display: grid; gap: 1.25rem; }
+        @media (min-width: 1024px) { .exa-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+        .exa-list { display: grid; gap: .875rem; }
+        .exa-item { display: flex; align-items: flex-start; gap: .75rem; }
+        .exa-dot { flex: none; width: 1.5rem; height: 1.5rem; border-radius: 9999px; display: grid; place-items: center; font-size: 10px; }
+        .exa-dot[data-k="good"] { background: color-mix(in srgb, var(--ov-right) 15%, transparent); color: var(--ov-right); }
+        .exa-dot[data-k="work"] { background: color-mix(in srgb, var(--ov-review) 15%, transparent); color: var(--ov-review); }
+        .exa-text { flex: 1; min-width: 0; font-size: 13px; line-height: 1.55; color: var(--ov-ink); }
+        .exa-text b { font-weight: 600; }
+        .exa-actions { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .5rem; }
+        /* Every exam taken: one row each, newest first, opening its results */
+        .exl-list { display: grid; gap: .5rem; }
+        .exl-row { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .75rem; align-items: center; text-align: left;
+            padding: .75rem .875rem; border: 1px solid var(--ov-grid); border-radius: .875rem; transition: background-color .15s, border-color .15s; }
+        .exl-row:hover { border-color: var(--ov-line); background: var(--ov-wash); }
+        .exl-row:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
+        .exl-date { display: block; font-size: 14px; font-weight: 600; color: var(--ov-ink); }
+        .exl-sub { display: block; font-size: 12px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
+        .exl-score { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .exl-score b { display: block; font-size: 1.25rem; font-weight: 600; line-height: 1.2; }
+        .exl-score small { font-size: 11px; color: var(--ov-muted); }
+        .exl-chev { font-size: 10px; color: var(--ov-muted); }
+        /* phones: the exam's top bar (back, position, clock, Flag, Review, meter) stays put while the question
+           scrolls under it, on the page's own colour. The negative margin takes it up over main's top padding and
+           its own padding fills that band; top is minus that padding too, because a sticky box's top counts from
+           inside its scroller's padding, which would leave a strip of scrolling text above the bar. */
+        @media (max-width: 1023px) {
+            .ex-bar { position: sticky; top: -1rem; z-index: 15; margin: -1rem -1rem 0; padding: 1rem 1rem .5rem; }
+        }
+        /* phones: the same larger options and question text as a quiz's */
+        @media (max-width: 1023px) {
+            #examOptions button { padding: 0.85rem; font-size: 0.9375rem; min-height: 3rem; }
+            #examOptions button:active { transform: scale(0.99); }
+            #examQuestionText { font-size: 0.9375rem; line-height: 1.55; }
+        }
         span.sc-chip:hover { border-color: var(--ov-grid); }   /* a key, not a control */
         .dy-badges { display: flex; flex-wrap: wrap; gap: .375rem; }
         /* What to do next: a numbered list of actions, each with its Practise button */
@@ -535,6 +647,10 @@
                     <p class="px-4 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Question bank</p>
                     <div id="bankMenuItems" role="group" aria-label="Question bank"><!-- Populated via JS --></div>
                     <div class="my-1 border-t border-slate-800" aria-hidden="true"></div>
+                    <!-- every practice exam taken, synced like the answers; each opens its results -->
+                    <button onclick="runHeaderAction('openExamList')" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
+                        <i class="fa-solid fa-clipboard-check w-4"></i><span>Practice exams</span>
+                    </button>
                     <!-- The cheat sheet hub lists every domain; a quiz in progress lives in sessionStorage, so Back resumes it -->
                     <a href="cheatsheet/index.html" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition">
                         <i class="fa-solid fa-book-open w-4"></i><span>Cheat sheets</span>
@@ -779,6 +895,149 @@
             </div>
         </div>
 
+        <!-- PRACTICE EXAM: one question at a time, or the review grid before Submit. Filled by the exam code. -->
+        <div id="examView" class="hidden w-full max-w-6xl mx-auto flex flex-col gap-3 animate-fade-in">
+            <!-- on phones this bar stays at the top while the question scrolls (.ex-bar) -->
+            <div class="ex-bar flex flex-col gap-2 max-lg:bg-slate-950">
+                <div class="ex-head">
+                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <button type="button" onclick="goHome()" aria-label="Leave the exam" title="Leave the exam. The clock stops until you come back." class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-aws-lightblue leading-tight">Practice exam</p>
+                            <p id="examPosition" class="text-xs text-slate-400 whitespace-nowrap"></p>
+                        </div>
+                    </div>
+                    <div class="ex-tools">
+                        <span id="examClock" class="ex-clock timer-chip inline-flex items-center rounded-full bg-slate-800 py-1 text-sm font-semibold text-slate-400 whitespace-nowrap" title="Time left. The clock stops while you are away from the exam."><i class="fa-regular fa-clock text-xs"></i><span id="examClockText">00:00</span></span>
+                        <button id="examFlagBtn" type="button" onclick="toggleExamFlag()" class="h-9 min-w-9 px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center justify-center gap-1.5">
+                            <i id="examFlagIcon" class="fa-regular fa-flag"></i>
+                            <span id="examFlagText" class="hidden sm:inline">Flag</span>
+                        </button>
+                        <button id="examReviewBtn" type="button" onclick="openExamReview()" title="See every question, then submit" class="h-9 min-w-9 px-2.5 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-table-cells"></i>
+                            <span class="hidden sm:inline">Review</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="ex-meter" role="progressbar" aria-label="Questions answered" aria-valuemin="0" id="examMeter"><span id="examMeterFill" style="width:0%"></span></div>
+            </div>
+
+            <!-- one question: the question on the left on desktop, the options and Previous / Next on the right -->
+            <div id="examQuestionPane" class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-3 lg:gap-4 max-lg:pb-24">
+                <section class="p-4 lg:p-5 rounded-2xl border border-slate-800 bg-slate-900 min-w-0">
+                    <h2 id="examQuestionText" class="text-sm leading-relaxed text-slate-200"></h2>
+                </section>
+                <section class="flex flex-col gap-3 min-w-0">
+                    <p id="examMultiNote" class="hidden text-xs font-semibold text-emerald-400 -mb-1"></p>
+                    <div id="examOptions" class="space-y-2"></div>
+                    <div class="shrink-0 flex justify-end gap-2 max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-20 max-lg:p-3 max-lg:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:bg-slate-950 max-lg:border-t max-lg:border-slate-800">
+                        <button id="examPrevBtn" type="button" onclick="stepExam(-1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-2.5 max-lg:py-3.5 max-lg:w-full justify-center rounded-xl transition flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>Previous</span>
+                        </button>
+                        <button id="examNextBtn" type="button" onclick="stepExam(1)" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-6 py-2.5 max-lg:py-3.5 max-lg:w-full max-lg:justify-center rounded-xl transition flex items-center gap-2 text-sm">
+                            <span id="examNextText">Next</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- the review before Submit: every question as a square, and the counts that matter at the end -->
+            <section id="examReviewPane" class="hidden p-4 sm:p-6 rounded-3xl border border-slate-800 bg-slate-900 flex flex-col gap-4">
+                <div>
+                    <h2 class="text-lg font-bold">Review your answers</h2>
+                    <p id="examReviewSummary" class="mt-1 text-sm text-slate-400"></p>
+                </div>
+                <div class="sc-key" role="group" aria-label="Show">
+                    <button type="button" class="sc-chip" data-filter="all" aria-pressed="true" style="--sc-c:var(--ov-line)">All</button>
+                    <button type="button" class="sc-chip" data-filter="open" aria-pressed="false" style="--sc-c:var(--ov-muted)"><i></i>Unanswered</button>
+                    <button type="button" class="sc-chip" data-filter="flag" aria-pressed="false" style="--sc-c:var(--ov-review)"><i></i>Flagged</button>
+                </div>
+                <div id="examGrid" class="ex-grid"></div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
+                    <span class="flex items-center gap-1.5"><span class="ex-key" data-s="answered"></span>Answered</span>
+                    <span class="flex items-center gap-1.5"><span class="ex-key"></span>Unanswered</span>
+                    <span class="flex items-center gap-1.5"><span class="ex-key" data-s="flag"></span>Flagged</span>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 pt-2">
+                    <button id="examBackToQuestion" type="button" onclick="backToExamQuestion()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-2.5 rounded-xl transition flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span id="examBackText">Back to question</span>
+                    </button>
+                    <button type="button" onclick="confirmSubmitExam()" class="bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-6 py-2.5 rounded-xl transition flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-flag-checkered"></i>
+                        <span>Submit exam</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- PRACTICE EXAMS: every exam taken (#/exams), or one exam's results (#/exams/<id>): the figures kept
+             with its record, then every question with its answer -->
+        <div id="examResultView" class="hidden w-full max-w-6xl mx-auto flex flex-col gap-4 animate-fade-in">
+            <div class="ex-head">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button type="button" onclick="goHome()" aria-label="Back to the overview" title="Back to the overview" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition shrink-0">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div class="min-w-0">
+                        <p id="exrTitle" class="text-sm font-semibold text-aws-lightblue leading-tight">Practice exam results</p>
+                        <p id="exrWhen" class="text-xs text-slate-400"></p>
+                    </div>
+                </div>
+                <button id="exrAllBtn" type="button" onclick="openExamList()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 whitespace-nowrap" title="Every practice exam you have taken">All exams →</button>
+            </div>
+            <div id="exrPane" class="flex flex-col gap-4">
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div id="exrScore"></div>
+                </section>
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Strengths and what to work on</h3>
+                    <div id="exrAdvice" class="mt-4"></div>
+                </section>
+                <div class="ov-pair">
+                    <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="text-lg font-bold">By domain</h3>
+                        <div id="exrDomains" class="mt-4"></div>
+                    </section>
+                    <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="text-lg font-bold">Pace</h3>
+                        <div id="exrPace" class="mt-4"></div>
+                    </section>
+                </div>
+                <div class="ov-pair">
+                    <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="text-lg font-bold">Task statements</h3>
+                        <div id="exrTasks" class="mt-4"></div>
+                    </section>
+                    <div class="ov-col">
+                        <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                            <h3 class="text-lg font-bold">Difficulty and question type</h3>
+                            <div id="exrKinds" class="mt-4"></div>
+                        </section>
+                        <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                            <h3 class="text-lg font-bold">Flags and changed answers</h3>
+                            <div id="exrFlags" class="mt-4"></div>
+                        </section>
+                    </div>
+                </div>
+                <section id="exrTrendCard" class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Your exams over time</h3>
+                    <div id="exrTrend" class="mt-4"></div>
+                </section>
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Questions</h3>
+                    <div id="exrReview" class="mt-4"></div>
+                </section>
+            </div>
+            <section id="exlPane" class="hidden bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div id="exlList"></div>
+            </section>
+        </div>
+
         <!-- VIEW 3: SUMMARY SCREEN -->
         <div id="summaryView" class="hidden w-full space-y-6 animate-fade-in max-w-2xl mx-auto text-center">
             <div class="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
@@ -849,6 +1108,15 @@
                     <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
                 </div>
                 <div id="ovNext" class="mt-4"></div>
+            </section>
+            <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-bold">Practice exam</h3>
+                    <span id="ovExamMeta" class="text-[10px] font-mono uppercase tracking-wider text-slate-400">All banks</span>
+                    <button id="ovExamAll" type="button" onclick="openExamList()" class="hidden text-xs font-semibold text-emerald-400 hover:text-emerald-300 whitespace-nowrap" title="Every practice exam you have taken">All exams →</button>
+                </div>
+                <!-- filled by renderExamCard(): start, or resume the sitting in progress, and the last result -->
+                <div id="ovExam" class="mt-4"></div>
             </section>
             <section id="ovTopCard" class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                 <div class="flex items-center justify-between gap-3">
@@ -1408,6 +1676,13 @@
                         remote.settings = readLocalSettings();
                         push = true;
                     }
+                    // practice exam records: both copies kept, joined by exam id (mergeExamRecords), never replaced
+                    const theirExams = Array.isArray(remote.exams) ? remote.exams : [];
+                    const myExams = readExamRecords();
+                    const allExams = mergeExamRecords(myExams, theirExams);
+                    const examsSig = examRecordsSignature(allExams);
+                    if (examsSig !== examRecordsSignature(myExams)) { writeExamRecords(allExams); pulled = true; }
+                    if (examsSig !== examRecordsSignature(theirExams)) { remote.exams = allExams; push = true; }
                     if (push) await pushRemote(remote, keepalive);
                     if (pulled && !pulledActive) syncPulled();
                     syncReport = { pulled, pushed: push };
@@ -2076,12 +2351,22 @@
         //   #/summary    the finished session's summary
         //   #/practice/<bank>/<tag>  a link from the mind map: selects that bank and starts a quiz of
         //                the questions tagged with that service; the address becomes #/quiz/1
+        //   #/exam/<n>   question n of the practice exam in progress
+        //   #/exam/review  the practice exam's review grid, before Submit
+        //   #/exams      every practice exam taken, synced with the answers
+        //   #/exams/<id>   a submitted practice exam's results, from its record in this browser
         // The address only says where you are. What the session contains (its questions, their
         // order, your answers) lives in sessionStorage, so an address with no session behind it
-        // falls back to the overview.
+        // falls back to the overview. The practice exam lives in localStorage instead (EXAM_SESSION_KEY).
         function parseRoute() {
             const quiz = /^#\/quiz\/(\d+)$/.exec(location.hash);
             if (quiz) return { name: 'quiz', n: parseInt(quiz[1], 10) };
+            const examQ = /^#\/exam\/(\d+)$/.exec(location.hash);
+            if (examQ) return { name: 'exam', n: parseInt(examQ[1], 10) };
+            if (location.hash === '#/exam/review') return { name: 'exam-review' };
+            const examR = /^#\/exams\/(\d+)$/.exec(location.hash);
+            if (examR) return { name: 'exam-result', id: parseInt(examR[1], 10) };
+            if (location.hash === '#/exams') return { name: 'exams' };
             if (location.hash === '#/summary') return { name: 'summary' };
             if (location.hash === '#/dashboard') return { name: 'dashboard' };
             return { name: 'overview' };
@@ -2096,6 +2381,10 @@
 
         function routeUrl(route) {
             if (route.name === 'quiz') return '#/quiz/' + route.n;
+            if (route.name === 'exam') return '#/exam/' + route.n;
+            if (route.name === 'exam-review') return '#/exam/review';
+            if (route.name === 'exam-result') return '#/exams/' + route.id;
+            if (route.name === 'exams') return '#/exams';
             if (route.name === 'summary') return '#/summary';
             if (route.name === 'dashboard') return '#/dashboard';
             return location.pathname + location.search;
@@ -2118,13 +2407,33 @@
             const active = currentQuizQuestions.length > 0;
             pauseQuestionClock();   // showQuestionAt() starts it again if the live question comes back
 
+            // The practice exam has screens of its own and leaves the quiz in this tab alone
+            if (route.name === 'exam' || route.name === 'exam-review') {
+                await showExamRoute(route);
+                return;
+            }
+            if (route.name === 'exam-result') {
+                await showExamResult(route.id);
+                return;
+            }
+            if (route.name === 'exams') {
+                await showExamList();
+                return;
+            }
+
             // The overview sits beside a quiz rather than ending it: Back returns to the question. Coming back
             // from a quiz started on the overview, the page returns to the card it was started from.
             if (route.name === 'overview') {
                 const fromQuiz = !document.getElementById('quizView').classList.contains('hidden') || !document.getElementById('summaryView').classList.contains('hidden');
                 const spot = fromQuiz ? quizReturn() : null;
+                // leaving the practice exam or its results lands on its card, where Resume and the last result are
+                const fromExam = ['examView', 'examResultView'].some(id => !document.getElementById(id).classList.contains('hidden'));
                 showOverviewView();
-                renderOverview().then(() => { if (spot && parseRoute().name === 'overview') restoreOverviewSpot(spot); });
+                renderOverview().then(() => {
+                    if (parseRoute().name !== 'overview') return;
+                    if (spot) restoreOverviewSpot(spot);
+                    else if (fromExam) document.getElementById('ovExam').closest('section').scrollIntoView({ block: 'start' });
+                });
                 return;
             }
 
@@ -2174,6 +2483,7 @@
         }
 
         function showDashboardView() {
+            hideExamView();
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');
@@ -2200,6 +2510,7 @@
         }
 
         function showQuizView() {
+            hideExamView();
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('summaryView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');
@@ -2499,7 +2810,7 @@
         let attemptLog = {};           // question id -> [[1|0, timestamp, flags, seconds?], ...]
         let estimateCollapsed = true;   // collapsed until the reader opens it
         const SCORING_NAME = 'Intelligent Scoring';
-        const FLAG_HINT = 1, FLAG_DRILL = 2;
+        const FLAG_HINT = 1, FLAG_DRILL = 2, FLAG_EXAM = 4;   // FLAG_EXAM: answered in a practice exam
         let hintUsedThisQuestion = false;
         let currentQuizMode = 'all';
         let quizTag = null;   // the service a 'service' quiz practises, the task statement a 'task' quiz does, or a 'list' quiz's title
@@ -3207,6 +3518,7 @@
         }
 
         function showOverviewView() {
+            hideExamView();
             for (const id of ['dashboardView', 'quizView', 'summaryView']) document.getElementById(id).classList.add('hidden');
             document.getElementById('overviewView').classList.remove('hidden');
             renderPageTabs('overview');
@@ -3215,6 +3527,7 @@
         // Another browser's progress or settings arrived; the overview reads every bank, so it redraws.
         function syncPulled() {
             if (parseRoute().name === 'overview') renderOverview();
+            else if (parseRoute().name === 'exams') renderExamList();   // exams taken in another browser
         }
 
         // Local calendar days, so "today" follows the reader's own midnight.
@@ -3249,6 +3562,7 @@
         async function renderOverview() {
             const run = ++overviewRun;
             overviewPlaceholders();
+            renderExamCard();   // from this browser's storage alone, so it needs no bank to be read first
             if (Object.keys(BANKS).some(key => !bankQuestions[key])) {
                 await loadOtherBanks();
                 if (run !== overviewRun || parseRoute().name !== 'overview') return;
@@ -4627,6 +4941,1156 @@
             const done = id => { const log = attemptLog[id]; return !!(log && log.length && log[log.length - 1][0] === 1); };
             startQuizByIds([...ids.filter(id => !done(id)), ...ids.filter(done)], 'Top ' + topSize);
         }
+
+        // ===== Practice exam =====
+        // A full-length sitting under exam conditions, drawn from every set: EXAM_SIZE questions in the exam
+        // guide's domain weights (EXAM_DOMAINS), two minutes a question on one clock that submits the exam at
+        // zero, nothing right or wrong shown until it is submitted, free movement between questions, and flags
+        // of its own that never touch a set's Flagged list. The sitting is kept in localStorage, so it outlasts
+        // closing the tab, and its clock runs only while the exam is on screen. Only at submit do its answers
+        // join each question's own set, like any other answer; the sitting is then kept as a record in
+        // EXAMS_KEY. The quizzes and their session in this tab are left as they are.
+        const EXAM_SESSION_KEY = 'saa_exam_session';
+        const EXAMS_KEY = 'saa_exams';
+        const EXAM_PAUSE_MS = 60 * 1000;       // away from the exam at least this long counts as a pause
+        const EXAM_LOW_MS = 10 * 60 * 1000;    // the clock turns amber with this much time left
+        const EXAM_TAB = Math.random().toString(36).slice(2);   // tells this tab's hold on the exam from another's
+
+        let exam = null;           // the sitting in progress, as stored
+        let examIndex = 0;         // the question on screen
+        let examPane = null;       // 'question' or 'review' while the exam is on screen, otherwise null
+        let examSince = null;      // when the clock last started, or null while it is stopped
+        let examTicker = null;
+        let examFilter = 'all';    // the review grid's filter: all, open (unanswered) or flag
+        let examStarting = false;
+
+        const examLimitMs = () => EXAM_SIZE * SECONDS_PER_QUESTION * 1000;
+        const examKey = item => item.b + ':' + item.id;
+        const examIsAnswered = item => item.sel.length === item.n;
+        const examQuestionOf = item => (bankQuestions[item.b] || []).find(q => q.id === item.id) || null;
+
+        function readExamSession() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(EXAM_SESSION_KEY));
+                return saved && Array.isArray(saved.items) && saved.items.length ? saved : null;
+            } catch (e) { return null; }
+        }
+
+        function saveExam() {
+            if (!exam) return;
+            try { localStorage.setItem(EXAM_SESSION_KEY, JSON.stringify(exam)); } catch (e) {}
+        }
+
+        function readExamRecords() {
+            try {
+                const list = JSON.parse(localStorage.getItem(EXAMS_KEY));
+                return Array.isArray(list) ? list : [];
+            } catch (e) { return []; }
+        }
+
+        function writeExamRecords(list) {
+            try { localStorage.setItem(EXAMS_KEY, JSON.stringify(list)); } catch (e) {}
+        }
+
+        function latestExamRecord() {
+            return readExamRecords().reduce((a, r) => (!a || r.submittedAt > a.submittedAt ? r : a), null);
+        }
+
+        // Exam records sync like answers: merged, never replaced. A record doesn't change once kept, so the two
+        // copies are joined by exam id, oldest first; of two copies of one record, one with its score figures wins.
+        function mergeExamRecords(a, b) {
+            const byId = new Map();
+            for (const r of [...a, ...b]) {
+                if (!r || typeof r.id !== 'number' || !Array.isArray(r.items)) continue;
+                const had = byId.get(r.id);
+                if (!had || (!had.scores && r.scores)) byId.set(r.id, r);
+            }
+            return [...byId.values()].sort((x, y) => x.submittedAt - y.submittedAt);
+        }
+
+        // what a list of records holds, to tell whether a merge changed it
+        const examRecordsSignature = list => list.map(r => r.id + (r.scores ? 's' : '')).sort().join(',');
+
+        // ---- The clock ----
+        // The time used is stored, and the stretch since the clock last started is added to it (and to the
+        // question on screen) every second, so a closed tab loses at most a second of it.
+        function examUsedMs() {
+            return exam.usedMs + (examSince === null ? 0 : Date.now() - examSince);
+        }
+
+        function foldExamClock() {
+            if (!exam || examSince === null) return;
+            const now = Date.now(), d = Math.max(0, now - examSince);
+            exam.usedMs += d;
+            if (examPane === 'question') exam.items[examIndex].ms += d;
+            examSince = now;
+        }
+
+        function startExamClock() {
+            if (!exam || examSince !== null || document.visibilityState === 'hidden') return;
+            const now = Date.now();
+            if (exam.awayAt && now - exam.awayAt >= EXAM_PAUSE_MS) exam.pauses++;
+            exam.awayAt = null;
+            exam.tab = EXAM_TAB;
+            examSince = now;
+            saveExam();
+            clearInterval(examTicker);
+            examTicker = setInterval(tickExam, 1000);
+            renderExamClock();
+        }
+
+        function stopExamClock() {
+            clearInterval(examTicker);
+            examTicker = null;
+            if (!exam || examSince === null) return;
+            foldExamClock();
+            examSince = null;
+            exam.awayAt = Date.now();
+            saveExam();
+        }
+
+        function tickExam() {
+            if (!exam || examSince === null) return;
+            foldExamClock();
+            saveExam();
+            if (examUsedMs() >= examLimitMs()) { submitExam(true); return; }
+            renderExamClock();
+        }
+
+        function renderExamClock() {
+            if (!exam) return;
+            const left = Math.max(0, examLimitMs() - examUsedMs());
+            document.getElementById('examClockText').innerText = formatDuration(left);
+            document.getElementById('examClock').classList.toggle('ex-low', left <= EXAM_LOW_MS);
+        }
+
+        // ---- Choosing the questions ----
+        // Each domain's share of the exam in whole questions, by largest remainder: 19, 17, 16 and 13 of 65
+        function examQuotas() {
+            const ids = Object.keys(EXAM_DOMAINS);
+            const raw = ids.map(id => EXAM_DOMAINS[id].w * EXAM_SIZE);
+            const quota = raw.map(Math.floor);
+            const rest = EXAM_SIZE - quota.reduce((a, b) => a + b, 0);
+            ids.map((id, i) => i).sort((a, b) => (raw[b] - quota[b]) - (raw[a] - quota[a])).slice(0, rest).forEach(i => quota[i]++);
+            return ids.map((id, i) => [id, quota[i]]);
+        }
+
+        // Within each domain's quota: questions never answered first, then those answered longest ago, and the
+        // last exam's questions only when nothing else is left. Ties fall at random, and the picks are shuffled
+        // together, so the domains come mixed as they do in the exam.
+        function pickExamQuestions(banks, avoid) {
+            const picked = [];
+            for (const [domain, quota] of examQuotas()) {
+                const pool = shuffled(banks.flatMap(b => b.questions
+                    .filter(q => String(examDomainOf(q)) === domain && q.options && Object.keys(q.options).length)
+                    .map(q => {
+                        const log = b.log[q.id];
+                        return { b: b.key, q, avoid: avoid.has(b.key + ':' + q.id) ? 1 : 0, seen: log && log.length ? log[log.length - 1][1] : 0 };
+                    })));
+                pool.sort((x, y) => (x.avoid - y.avoid) || (x.seen - y.seen));
+                picked.push(...pool.slice(0, quota));
+            }
+            return shuffled(picked);
+        }
+
+        // Start exam on the overview card, or Resume: back to the question you were on
+        async function startExam() {
+            if (examStarting) return;
+            examStarting = true;
+            try {
+                const saved = readExamSession();
+                if (saved) { go({ name: 'exam', n: (saved.at || 0) + 1 }); return; }
+                await loadOtherBanks();
+                const last = latestExamRecord();
+                const list = pickExamQuestions(loadedBanks(), new Set(last ? last.items.map(examKey) : []));
+                if (list.length < EXAM_SIZE) {
+                    alertBox("Not enough questions could be read for a full exam. Check your connection and try again.");
+                    return;
+                }
+                const now = Date.now();
+                exam = {
+                    v: 1, id: now, startedAt: now, usedMs: 0, pauses: 0, awayAt: null, at: 0, tab: EXAM_TAB,
+                    // each question: its set and id, how many answers it takes, the current choice, the first full
+                    // answer, when the answer was last set, the time spent on it, and the exam's own flag
+                    items: list.map(({ b, q }) => ({ b, id: q.id, n: correctKeysOf(q).length, sel: [], first: null, at: 0, ms: 0, flag: false }))
+                };
+                examFilter = 'all';
+                saveExam();
+                go({ name: 'exam', n: 1 });
+            } finally {
+                examStarting = false;
+            }
+        }
+
+        async function abandonExam() {
+            const saved = readExamSession();
+            if (!saved) return;
+            const done = saved.items.filter(examIsAnswered).length;
+            const ok = await showConfirm((done ? 'Its ' + plural(done, 'answer') + ' will not be recorded, and it' : 'It')
+                + ' cannot be resumed.', { title: 'Abandon the practice exam?', confirmLabel: 'Abandon' });
+            if (!ok) return;
+            clearInterval(examTicker);
+            examTicker = null;
+            examSince = null;
+            exam = null;
+            try { localStorage.removeItem(EXAM_SESSION_KEY); } catch (e) {}
+            renderExamCard();
+        }
+
+        // ---- The overview card ----
+        // Start, or Resume and Abandon for the sitting waiting in this browser, then the last result
+        function renderExamCard() {
+            const box = document.getElementById('ovExam');
+            const saved = examSince !== null ? exam : readExamSession();
+            const last = latestExamRecord();
+            const primary = 'bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm';
+            const secondary = 'border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm';
+            let html;
+            if (saved) {
+                const done = saved.items.filter(examIsAnswered).length;
+                const left = Math.max(0, examLimitMs() - saved.usedMs);
+                html = `
+                    <p class="text-sm text-slate-300">In progress: <span class="font-semibold">${done} of ${saved.items.length}</span> answered, <span class="font-semibold">${formatDuration(left)}</span> left. The clock is stopped until you go back to it.</p>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button type="button" data-act="start" class="${primary}"><i class="fa-solid fa-play text-xs"></i><span>Resume exam</span></button>
+                        <button type="button" data-act="abandon" class="${secondary}"><i class="fa-solid fa-xmark text-xs"></i><span>Abandon</span></button>
+                    </div>`;
+            } else {
+                html = `
+                    <p class="text-sm text-slate-300">${EXAM_SIZE} questions in ${Math.round(examLimitMs() / 60000)} minutes, drawn from every set in the exam's domain mix, starting with ones you haven't answered. Nothing is marked right or wrong until you submit, and the clock stops while you're away.</p>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button type="button" data-act="start" class="${primary}"><i class="fa-solid fa-play text-xs"></i><span>Start exam</span></button>
+                    </div>`;
+            }
+            if (last) {
+                const right = last.items.filter(it => it.r).length;
+                const s = last.scores && last.scores.exam;
+                html += `
+                    <div class="ov-rule flex items-center justify-between gap-3">
+                        <p class="text-sm text-slate-400 min-w-0">Last exam, ${fmtDate(last.submittedAt)}: ${s ? `projected <span class="font-semibold ${estimateTone(s.pass).text}">${s.score}</span>, ` : ''}${right} of ${last.items.length} right${last.timedOut ? ', ran out of time' : ''}</p>
+                        <button type="button" data-act="results" data-id="${last.id}" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 whitespace-nowrap" title="This exam's score, and every question with its answer">See results →</button>
+                    </div>`;
+            }
+            box.innerHTML = html;
+            // the card's corner: a link to every exam once there is one, otherwise the scope like the other cards
+            document.getElementById('ovExamMeta').classList.toggle('hidden', !!last);
+            document.getElementById('ovExamAll').classList.toggle('hidden', !last);
+            box.onclick = e => {
+                const b = e.target.closest('[data-act]');
+                if (!b) return;
+                if (b.dataset.act === 'results') go({ name: 'exam-result', id: Number(b.dataset.id) });
+                else (b.dataset.act === 'abandon' ? abandonExam : startExam)();
+            };
+        }
+
+        // ---- The exam's screens ----
+        // Question n, or the review grid; with no exam in progress, the overview
+        async function showExamRoute(route) {
+            if (examSince === null) exam = readExamSession();   // another tab may have moved it on
+            if (!exam) {
+                setRoute({ name: 'overview' }, true);
+                renderRoute();
+                return;
+            }
+            if (Object.keys(BANKS).some(key => !bankQuestions[key])) {
+                await loadOtherBanks();
+                const now = parseRoute();
+                if (now.name !== route.name || now.n !== route.n) return;
+            }
+            if (exam.items.some(it => !examQuestionOf(it))) {
+                stopExamClock();
+                setRoute({ name: 'overview' }, true);
+                renderRoute();
+                alertBox("Some of the exam's questions couldn't be read, so it can't go on yet. It is saved: try again in a moment, or abandon it.");
+                return;
+            }
+            for (const id of ['dashboardView', 'quizView', 'summaryView', 'overviewView']) document.getElementById(id).classList.add('hidden');
+            document.getElementById('examView').classList.remove('hidden');
+            renderPageTabs(null);
+            document.getElementById('bankLabel').classList.add('hidden');   // the exam draws on every set
+            foldExamClock();   // the time so far belongs to the screen being left
+            if (route.name === 'exam-review') {
+                examPane = 'review';
+                renderExamReview();
+            } else {
+                examPane = 'question';
+                examIndex = Math.min(Math.max(route.n - 1, 0), exam.items.length - 1);
+                exam.at = examIndex;
+                setRoute({ name: 'exam', n: examIndex + 1 }, true);
+                renderExamQuestion();
+            }
+            saveExam();
+            startExamClock();
+            renderExamClock();
+        }
+
+        // Every other screen hides the exam, which stops its clock until the exam is back on screen, and its results
+        function hideExamView() {
+            document.getElementById('examResultView').classList.add('hidden');
+            const view = document.getElementById('examView');
+            if (view.classList.contains('hidden')) return;
+            stopExamClock();
+            examPane = null;
+            view.classList.add('hidden');
+        }
+
+        // The question as the exam shows it: no key phrases marked, no hint, no badges, no past answers
+        function renderExamQuestion() {
+            const item = exam.items[examIndex], q = examQuestionOf(item), multi = item.n > 1;
+            document.getElementById('examQuestionPane').classList.remove('hidden');
+            document.getElementById('examReviewPane').classList.add('hidden');
+            document.getElementById('examFlagBtn').classList.remove('hidden');
+            document.getElementById('examReviewBtn').classList.remove('hidden');
+            document.getElementById('examPosition').innerText = 'Question ' + (examIndex + 1) + ' of ' + exam.items.length;
+            document.getElementById('examQuestionText').innerText = q.question;
+            const note = document.getElementById('examMultiNote');
+            note.classList.toggle('hidden', !multi);
+            note.innerText = multi ? 'Select ' + item.n + ' answers' : '';
+            const box = document.getElementById('examOptions');
+            box.innerHTML = '';
+            for (const [key, value] of Object.entries(q.options)) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.setAttribute('data-key', key);
+                btn.onclick = () => pickExamOption(key);
+                btn.innerHTML = `<span>${key}</span><span class="flex-1 min-w-0"><span class="leading-relaxed block">${escapeHtml(value)}</span></span>`;
+                box.appendChild(btn);
+            }
+            paintExamOptions();
+            document.getElementById('examPrevBtn').disabled = examIndex === 0;
+            document.getElementById('examNextText').innerText = examIndex === exam.items.length - 1 ? 'Review' : 'Next';
+            renderExamFlag();
+            renderExamMeter();
+            document.querySelector('main').scrollTo(0, 0);
+        }
+
+        function paintExamOptions() {
+            const item = exam.items[examIndex];
+            for (const btn of document.getElementById('examOptions').children) {
+                const on = item.sel.includes(btn.dataset.key);
+                setOptionState(btn, on ? 'selected' : 'idle', item.n > 1);
+                btn.setAttribute('aria-pressed', String(on));
+            }
+        }
+
+        // A choice can change until the exam is submitted. A multi-select question takes no more choices than
+        // it needs, as in a quiz, and counts as answered only once it has all of them.
+        function pickExamOption(key) {
+            const item = exam.items[examIndex];
+            if (item.n > 1) {
+                if (item.sel.includes(key)) item.sel = item.sel.filter(k => k !== key);
+                else if (item.sel.length < item.n) item.sel = [...item.sel, key].sort();
+                else return;
+            } else {
+                if (item.sel[0] === key) return;
+                item.sel = [key];
+            }
+            if (examIsAnswered(item)) {
+                item.at = Date.now();
+                if (!item.first) item.first = item.sel.slice();
+            }
+            saveExam();
+            paintExamOptions();
+            renderExamMeter();
+        }
+
+        function toggleExamFlag() {
+            const item = exam.items[examIndex];
+            item.flag = !item.flag;
+            saveExam();
+            renderExamFlag();
+        }
+
+        function renderExamFlag() {
+            const on = exam.items[examIndex].flag;
+            const btn = document.getElementById('examFlagBtn');
+            document.getElementById('examFlagIcon').className = on ? 'fa-solid fa-flag ex-flag-on' : 'fa-regular fa-flag';
+            document.getElementById('examFlagText').innerText = on ? 'Flagged' : 'Flag';
+            btn.setAttribute('aria-pressed', String(on));
+            btn.title = on ? 'Remove the flag' : 'Flag this question to come back to it';
+        }
+
+        function renderExamMeter() {
+            const done = exam.items.filter(examIsAnswered).length, total = exam.items.length;
+            document.getElementById('examMeterFill').style.width = (done / total * 100) + '%';
+            const meter = document.getElementById('examMeter');
+            meter.setAttribute('aria-valuemax', String(total));
+            meter.setAttribute('aria-valuenow', String(done));
+            meter.title = done + ' of ' + total + ' answered';
+        }
+
+        // Previous and Next replace the address, so Back leaves the exam rather than stepping through it;
+        // Next on the last question opens the review
+        function stepExam(delta) {
+            const next = examIndex + delta;
+            if (next < 0) return;
+            if (next >= exam.items.length) { openExamReview(); return; }
+            setRoute({ name: 'exam', n: next + 1 }, true);
+            renderRoute();
+        }
+
+        function openExamReview() {
+            go({ name: 'exam-review' });
+        }
+
+        function backToExamQuestion() {
+            go({ name: 'exam', n: examIndex + 1 });
+        }
+
+        function renderExamReview() {
+            document.getElementById('examQuestionPane').classList.add('hidden');
+            document.getElementById('examReviewPane').classList.remove('hidden');
+            document.getElementById('examFlagBtn').classList.add('hidden');
+            document.getElementById('examReviewBtn').classList.add('hidden');
+            const items = exam.items, total = items.length;
+            const done = items.filter(examIsAnswered).length, flagged = items.filter(it => it.flag).length;
+            document.getElementById('examPosition').innerText = done + ' of ' + total + ' answered';
+            document.getElementById('examReviewSummary').innerText = (total - done) + ' unanswered, ' + flagged + ' flagged.'
+                + (done < total ? ' Unanswered questions count as wrong.' : '');
+            document.getElementById('examBackText').innerText = 'Back to question ' + (examIndex + 1);
+            document.getElementById('examGrid').innerHTML = items.map((it, i) => {
+                const label = 'Question ' + (i + 1) + ': ' + (examIsAnswered(it) ? 'answered' : 'unanswered') + (it.flag ? ', flagged' : '');
+                return `<button type="button" class="ex-sq" data-i="${i}" data-s="${examIsAnswered(it) ? 'answered' : 'open'}"${it.flag ? ' data-flag' : ''}${i === examIndex ? ' aria-current="true"' : ''} title="${label}" aria-label="${label}">${i + 1}</button>`;
+            }).join('');
+            applyExamFilter();
+            renderExamMeter();
+            document.querySelector('main').scrollTo(0, 0);
+        }
+
+        // The filter dims the other squares rather than removing them, so each keeps its place in the grid
+        function applyExamFilter() {
+            for (const chip of document.querySelectorAll('#examReviewPane [data-filter]')) chip.setAttribute('aria-pressed', String(chip.dataset.filter === examFilter));
+            for (const sq of document.querySelectorAll('#examGrid .ex-sq')) {
+                const it = exam.items[Number(sq.dataset.i)];
+                sq.classList.toggle('ex-dim', !(examFilter === 'all' || (examFilter === 'open' ? !examIsAnswered(it) : it.flag)));
+            }
+        }
+
+        document.getElementById('examReviewPane').addEventListener('click', e => {
+            const chip = e.target.closest('[data-filter]');
+            if (chip) { examFilter = chip.dataset.filter; applyExamFilter(); return; }
+            const sq = e.target.closest('.ex-sq');
+            if (sq) go({ name: 'exam', n: Number(sq.dataset.i) + 1 });
+        });
+
+        // ---- Submitting ----
+        async function confirmSubmitExam() {
+            if (!exam) return;
+            const open = exam.items.filter(it => !examIsAnswered(it)).length, flagged = exam.items.filter(it => it.flag).length;
+            const parts = [];
+            if (open) parts.push(plural(open, 'question') + ' unanswered, which count as wrong');
+            if (flagged) parts.push(plural(flagged, 'question') + ' flagged');
+            const ok = await showConfirm((parts.length ? 'You have ' + parts.join(' and ') + '. ' : 'Every question is answered. ')
+                + 'Answers cannot be changed after you submit.', { title: 'Submit the exam?', confirmLabel: 'Submit', tone: 'primary', icon: 'fa-flag-checkered' });
+            if (ok) submitExam(false);
+        }
+
+        // Ends the sitting: its answers join their sets, it is kept as a record with its score figures, and its
+        // results open in place of the exam. At zero it runs on its own, closing a Submit dialog still open.
+        function submitExam(timedOut) {
+            if (!exam) return;
+            foldExamClock();
+            clearInterval(examTicker);
+            examTicker = null;
+            examSince = null;
+            if (timedOut && !document.getElementById('confirmModal').classList.contains('hidden')) settleConfirm(false);
+            const submittedAt = Date.now();
+            // each question: set, id, final answer (null if unanswered), first answer, right, flagged, seconds, when answered
+            const items = exam.items.map(it => {
+                const keys = correctKeysOf(examQuestionOf(it));
+                const a = examIsAnswered(it) ? it.sel : null;
+                return { b: it.b, id: it.id, a, f: it.first, r: a && a.length === keys.length && a.every(k => keys.includes(k)) ? 1 : 0,
+                    fl: it.flag, s: Math.round(it.ms / 1000), at: it.at };
+            });
+            const record = { v: 1, id: exam.id, startedAt: exam.startedAt, submittedAt, usedMs: Math.min(exam.usedMs, examLimitMs()),
+                pauses: exam.pauses, timedOut: !!timedOut, items };
+            const before = readinessFigures();
+            recordExamAnswers(items, submittedAt);
+            record.scores = { exam: examAloneScore(record), before, after: readinessFigures() };
+            writeExamRecords([...readExamRecords(), record]);   // the sync recordExamAnswers scheduled carries it to the gist
+            try { localStorage.removeItem(EXAM_SESSION_KEY); } catch (e) {}
+            exam = null;
+            setRoute({ name: 'exam-result', id: record.id }, true);
+            renderRoute();
+        }
+
+        // Each answered question joins its own set's log as if answered there, with FLAG_EXAM and its time. The
+        // entry goes in at the time its answer was set, among any answers given meanwhile, keeping the first and
+        // the latest ATTEMPTS_KEPT - 1 as recordAttempt does, and the question's place in Mistakes follows its
+        // latest answer, as a quiz answer's does. Unanswered questions record nothing.
+        function recordExamAnswers(items, submittedAt) {
+            const byBank = {};
+            for (const it of items) if (it.a) (byBank[it.b] = byBank[it.b] || []).push(it);
+            const apply = (list, log, wrong) => {
+                for (const it of list) {
+                    const entry = [it.r, it.at || submittedAt, FLAG_EXAM, it.s];
+                    const answers = log[it.id] || (log[it.id] = []);
+                    let i = answers.length;
+                    while (i > 0 && answers[i - 1][1] > entry[1]) i--;
+                    answers.splice(i, 0, entry);
+                    if (answers.length > ATTEMPTS_KEPT) answers.splice(1, 1);
+                    const latestRight = answers[answers.length - 1][0] === 1, at = wrong.indexOf(it.id);
+                    if (latestRight && at >= 0) wrong.splice(at, 1);
+                    else if (!latestRight && at < 0) wrong.push(it.id);
+                }
+            };
+            for (const [key, list] of Object.entries(byBank)) {
+                if (key === bankKey) {
+                    apply(list, attemptLog, mistakes);   // the active set's answers live in memory, ahead of storage
+                    savePersistedData();
+                } else {
+                    const bank = readLocalBank(key);
+                    apply(list, bank.attempts, bank.mistakes);
+                    bank.updatedAt = Date.now();
+                    try { writeLocalBank(key, bank); } catch (e) {}
+                }
+            }
+            scheduleSync();
+            initApp();
+        }
+
+        // ---- Results ----
+        // The figures a result shows are worked out once, at submit, and kept with the record, since later practice
+        // moves the Readiness score. The projected score is this exam alone, through the Studio's own estimator
+        // (examScore): its answers, unanswered ones as wrong, simulated as the real exam's 50 scored questions.
+        // The Readiness score is every answer you have given, just before and just after this exam's joined them.
+        const scoreFigures = s => s.ready ? { score: s.shown, lo: Math.round(s.lo), hi: Math.round(s.hi), pass: Math.round(s.passProb * 1000) / 1000 } : null;
+        const readinessFigures = () => scoreFigures(examScore(allBanksAnswered(loadedBanks()), 'all'));
+
+        function examAloneScore(record) {
+            const answered = record.items.map(it => {
+                const q = examQuestionOf(it);
+                return q && { q, log: [[it.a ? it.r : 0, it.a && it.at ? it.at : record.submittedAt, FLAG_EXAM]] };
+            }).filter(Boolean);
+            return scoreFigures(examScore(answered, 'exam:' + record.id));
+        }
+
+        const examStatus = it => (it.a ? (it.r ? 'right' : 'wrong') : 'open');
+        const examChanged = it => !!(it.a && it.f && it.f.join() !== it.a.join());
+        const EXAM_RESULT_FILTERS = [
+            ['all', 'All', () => true],
+            ['wrong', 'Wrong', it => examStatus(it) === 'wrong'],
+            ['open', 'Unanswered', it => !it.a],
+            ['flag', 'Flagged', it => it.fl],
+            ['changed', 'Changed', examChanged]
+        ];
+        let examResultFilter = 'all';
+        let shownResult = null;   // the record on screen
+
+        async function showExamResult(id) {
+            const record = readExamRecords().find(r => r.id === id);
+            if (!record) {
+                setRoute({ name: 'overview' }, true);
+                renderRoute();
+                alertBox("That exam's results aren't in this browser.");
+                return;
+            }
+            if (Object.keys(BANKS).some(key => !bankQuestions[key])) {
+                await loadOtherBanks();
+                const now = parseRoute();
+                if (now.name !== 'exam-result' || now.id !== id) return;
+            }
+            showExamResultsView('result');
+            if (!shownResult || shownResult.id !== record.id) examResultFilter = 'all';
+            shownResult = record;
+            renderExamResult(record);
+            document.querySelector('main').scrollTo(0, 0);
+        }
+
+        // The view that holds both the list of exams and one exam's results; `pane` is 'list' or 'result'
+        function showExamResultsView(pane) {
+            hideTip();
+            hideExamView();
+            for (const v of ['dashboardView', 'quizView', 'summaryView', 'overviewView']) document.getElementById(v).classList.add('hidden');
+            document.getElementById('examResultView').classList.remove('hidden');
+            renderPageTabs(null);
+            document.getElementById('bankLabel').classList.add('hidden');   // the exams draw on every set
+            document.getElementById('exrPane').classList.toggle('hidden', pane !== 'result');
+            document.getElementById('exlPane').classList.toggle('hidden', pane !== 'list');
+            document.getElementById('exrAllBtn').classList.toggle('hidden', pane !== 'result');
+            document.getElementById('exrTitle').innerText = pane === 'list' ? 'Practice exams' : 'Practice exam results';
+        }
+
+        // ---- Every exam taken ----
+        // From the header menu and the overview card. Newest first; the exam waiting in this browser, if any, on top.
+        function openExamList() {
+            go({ name: 'exams' });
+        }
+
+        async function showExamList() {
+            if (Object.keys(BANKS).some(key => !bankQuestions[key])) {
+                await loadOtherBanks();   // a record kept without its figures works its score out from the questions
+                if (parseRoute().name !== 'exams') return;
+            }
+            showExamResultsView('list');
+            renderExamList();
+            document.querySelector('main').scrollTo(0, 0);
+        }
+
+        function renderExamList() {
+            const records = readExamRecords().slice().sort((a, b) => b.submittedAt - a.submittedAt);
+            const saved = readExamSession();
+            document.getElementById('exrWhen').innerText = records.length ? plural(records.length, 'exam') + ' taken' : '';
+            const primary = 'bg-aws-orange hover:bg-emerald-600 text-aws-darkblue font-semibold px-5 py-2.5 rounded-xl transition flex items-center space-x-2 text-sm';
+            const waiting = saved ? `
+                <div class="ov-weak-item mb-3">
+                    <p class="text-sm text-slate-300 flex-1 min-w-0">In progress: <span class="font-semibold">${saved.items.filter(examIsAnswered).length} of ${saved.items.length}</span> answered, <span class="font-semibold">${formatDuration(Math.max(0, examLimitMs() - saved.usedMs))}</span> left.</p>
+                    <button type="button" data-act="start" class="${primary}"><i class="fa-solid fa-play text-xs"></i><span>Resume</span></button>
+                </div>` : '';
+            if (!records.length) {
+                document.getElementById('exlList').innerHTML = waiting || `
+                    <p class="text-sm text-slate-400">No practice exams yet. Each one is ${EXAM_SIZE} questions in ${Math.round(examLimitMs() / 60000)} minutes, drawn from every set.</p>
+                    <div class="flex flex-wrap gap-2 mt-4"><button type="button" data-act="start" class="${primary}"><i class="fa-solid fa-play text-xs"></i><span>Start exam</span></button></div>`;
+                return;
+            }
+            const rows = records.map(r => {
+                const s = (r.scores && r.scores.exam) || examAloneScore(r);
+                const right = r.items.filter(it => it.r).length;
+                const sub = [right + ' of ' + r.items.length + ' right', formatDuration(r.usedMs)];
+                if (r.timedOut) sub.push('ran out of time');
+                const when = new Date(r.submittedAt).toLocaleString(undefined, DEPLOYED_DATE);
+                const score = s
+                    ? `<b class="${estimateTone(s.pass).text}">${s.score}</b><small>${Math.round(s.pass * 100)}% to pass</small>`
+                    : '<b class="text-slate-500">–</b>';
+                return `
+                    <button type="button" class="exl-row" data-id="${r.id}" title="See this exam's results">
+                        <span class="min-w-0"><span class="exl-date">${escapeHtml(when)}</span><span class="exl-sub">${sub.join(' · ')}</span></span>
+                        <span class="exl-score">${score}</span>
+                        <i class="fa-solid fa-chevron-right exl-chev" aria-hidden="true"></i>
+                    </button>`;
+            }).join('');
+            document.getElementById('exlList').innerHTML = `
+                ${waiting}
+                <div class="exl-list">${rows}</div>
+                <p class="mt-3 text-[11px] text-slate-500">Each score is that exam's projected score, with its chance of reaching ${PASS_SCORE}. With sync on, exams taken in any browser appear here.</p>`;
+        }
+
+        document.getElementById('exlList').addEventListener('click', e => {
+            const row = e.target.closest('.exl-row');
+            if (row) { go({ name: 'exam-result', id: Number(row.dataset.id) }); return; }
+            if (e.target.closest('[data-act="start"]')) startExam();
+        });
+
+        function renderExamResult(record) {
+            const total = record.items.length;
+            const right = record.items.filter(it => it.r).length, open = record.items.filter(it => !it.a).length;
+            const pct = Math.round(right / total * 100);
+            // a record kept before the figures were stored works its projected score out now; it has no Readiness figures
+            const s = (record.scores && record.scores.exam) || examAloneScore(record);
+            const before = record.scores ? record.scores.before : null, after = record.scores ? record.scores.after : null;
+            document.getElementById('exrWhen').innerText = 'Submitted ' + new Date(record.submittedAt).toLocaleString(undefined, DEPLOYED_DATE);
+            const notes = [];
+            if (record.timedOut) notes.push('ran out of time');
+            if (record.pauses) notes.push('paused ' + (record.pauses === 1 ? 'once' : record.pauses === 2 ? 'twice' : record.pauses + ' times'));
+            const tile = (label, value, sub, cls = '') => `
+                <div class="exr-stat">
+                    <p class="text-xs text-slate-400">${label}</p>
+                    <p class="exr-num ${cls}">${value}</p>
+                    ${sub ? `<p class="text-[11px] text-slate-500">${sub}</p>` : ''}
+                </div>`;
+            const tone = s ? estimateTone(s.pass) : null;
+            const head = s ? `
+                <div class="grid grid-cols-2 gap-4 items-end">
+                    <div>
+                        <p class="text-xs text-slate-400">Projected score</p>
+                        <p class="sc-figure"><span class="text-4xl sm:text-5xl font-semibold tracking-tight">${s.score}</span></p>
+                        <p class="text-xs text-slate-400 mt-1">80% range ${s.lo}–${s.hi}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400">Chance of reaching ${PASS_SCORE}</p>
+                        <p class="sc-figure end"><span class="text-3xl sm:text-4xl font-semibold ${tone.text}">${Math.round(s.pass * 100)}%</span></p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${tone.chip}">${tone.label}</span>
+                    </div>
+                </div>
+                ${scoreBar(s.score, s.lo, s.hi)}` : `<p class="text-sm text-slate-400">This exam's questions couldn't all be read, so it has no projected score.</p>`;
+            const readiness = after ? `
+                <p class="ov-rule text-sm text-slate-400">Readiness score, from all your practice: <span class="font-semibold text-slate-200">${before ? before.score + ' → ' : ''}${after.score}</span> ${before ? estimateDelta(before.score, after.score) : ''}</p>` : '';
+            document.getElementById('exrScore').innerHTML = `
+                ${head}
+                <div class="exr-stats mt-5">
+                    ${tile('Right', right, pct + '% of ' + total, correctTone(pct).text)}
+                    ${tile('Wrong', total - right - open, '')}
+                    ${tile('Unanswered', open, open ? 'counted as wrong' : '')}
+                    ${tile('Time', formatDuration(record.usedMs), 'of ' + formatDuration(examLimitMs()) + (notes.length ? ', ' + notes.join(', ') : ''))}
+                </div>
+                ${readiness}
+                <p class="mt-3 text-[11px] text-slate-500">The projected score is what this exam alone says you would score: the Studio's estimator on its ${total} answers, unanswered ones as wrong, simulated as the real exam's ${SCORED_QUESTIONS} scored questions. The Readiness score uses every answer you have given.</p>`;
+            renderExamInsights(record);
+            renderExamResultList(record);
+        }
+
+        // One fold per question, filled the first time it opens, so 65 explanations aren't built up front
+        function renderExamResultList(record) {
+            const box = document.getElementById('exrReview');
+            const marks = { right: ['fa-check', 'Right'], wrong: ['fa-xmark', 'Wrong'], open: ['fa-minus', 'Unanswered'] };
+            const chips = EXAM_RESULT_FILTERS.map(([key, label, test]) => {
+                const n = record.items.filter(test).length;
+                return `<button type="button" class="sc-chip" data-filter="${key}" aria-pressed="${key === examResultFilter}" style="--sc-c:var(--ov-line)">${label} <span class="text-slate-500">${n}</span></button>`;
+            }).join('');
+            const rows = record.items.map((it, i) => {
+                const q = examQuestionOf(it);
+                const [icon, word] = marks[examStatus(it)];
+                const mark = `<span class="exr-mark" data-r="${examStatus(it)}" title="${word}" aria-label="${word}"><i class="fa-solid ${icon}"></i></span>`;
+                // a set that couldn't be read (offline, say) is not the same as a question taken out of its set
+                const set = BANKS[it.b] ? BANKS[it.b].label : it.b;
+                const gone = bankQuestions[it.b] ? 'No longer in ' + set : set + " couldn't be read, so this question can't be shown";
+                if (!q) return `<div class="exr-q" data-i="${i}"><div class="exr-meta" style="padding:.625rem .75rem"><b>${i + 1}</b><span>${escapeHtml(gone)}</span></div></div>`;
+                const tags = [];
+                if (it.fl) tags.push('<span class="exr-chip" data-k="flag"><i class="fa-solid fa-flag"></i>Flagged</span>');
+                if (examChanged(it)) tags.push(`<span class="exr-chip" data-k="changed">Changed from ${escapeHtml(it.f.join(', '))}</span>`);
+                return `
+                    <details class="exr-q" data-i="${i}">
+                        <summary>
+                            ${mark}
+                            <span class="min-w-0 block">
+                                <span class="exr-meta"><b>${i + 1}</b><span>${escapeHtml(q.domain || 'General AWS')}</span><span title="Time on this question">${formatDuration(it.s * 1000)}</span>${tags.join('')}</span>
+                                <span class="exr-text">${escapeHtml(q.question)}</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-down exr-chev" aria-hidden="true"></i>
+                        </summary>
+                        <div class="exr-body"></div>
+                    </details>`;
+            }).join('');
+            box.innerHTML = `
+                <div class="sc-key" role="group" aria-label="Show">${chips}</div>
+                <div class="exr-list mt-3">${rows}</div>
+                <p id="exrEmpty" class="hidden mt-3 text-sm text-slate-400">No questions here.</p>`;
+            applyExamResultFilter();
+        }
+
+        function applyExamResultFilter() {
+            const record = shownResult;
+            const test = (EXAM_RESULT_FILTERS.find(f => f[0] === examResultFilter) || EXAM_RESULT_FILTERS[0])[2];
+            let shown = 0;
+            for (const el of document.querySelectorAll('#exrReview .exr-q')) {
+                const on = test(record.items[Number(el.dataset.i)]);
+                el.classList.toggle('hidden', !on);
+                if (on) shown++;
+            }
+            for (const chip of document.querySelectorAll('#exrReview [data-filter]')) chip.setAttribute('aria-pressed', String(chip.dataset.filter === examResultFilter));
+            document.getElementById('exrEmpty').classList.toggle('hidden', shown > 0);
+        }
+
+        // A question's answer, as a quiz shows it after answering: the right option(s) green, a wrong pick red with
+        // its reason, then the takeaway and the explanation
+        function examAnswerHtml(it, q) {
+            const keys = correctKeysOf(q), picked = it.a || [], multi = keys.length > 1;
+            const options = Object.entries(q.options).map(([key, value]) => {
+                const state = keys.includes(key) ? 'correct' : picked.includes(key) ? 'wrong' : 'dim';
+                const reason = state === 'wrong' && q.wrong_reasons ? q.wrong_reasons[key] : null;
+                return `<div class="${OPT[state]}"><span class="${BOX}${multi ? 'rounded-md ' : 'rounded-xl '}${BOX_STATE[state]}">${key}</span>`
+                    + `<span class="flex-1 min-w-0"><span class="leading-relaxed block">${escapeHtml(value)}</span>`
+                    + (reason ? `<span class="opt-reason text-xs" style="display:block">${escapeHtml(reason)}</span>` : '') + '</span></div>';
+            }).join('');
+            const answer = keys.join(' and ');
+            const verdict = !it.a ? `<span class="text-slate-400">Not answered. The answer is ${answer}.</span>`
+                : it.r ? `<span class="text-emerald-400">You answered ${it.a.join(' and ')}, which is right.</span>`
+                : `<span class="text-rose-400">You answered ${it.a.join(' and ')}. The answer is ${answer}.</span>`;
+            const bullets = [].concat(q.explanation || []);
+            return `
+                <p class="exr-verdict">${verdict}</p>
+                <div class="space-y-2">${options}</div>
+                ${q.tldr ? `<p class="text-sm font-medium text-slate-200">${escapeHtml(q.tldr)}</p>` : ''}
+                ${bullets.length ? `<ul class="list-disc pl-4 space-y-1.5 text-[13px] text-slate-300 leading-relaxed">${bullets.map(b => '<li>' + escapeHtml(b) + '</li>').join('')}</ul>` : ''}`;
+        }
+
+        // ---- What the results say: charts and advice ----
+        // Every chart and the advice read one list of the exam's questions with what each needs, worked out from
+        // the record and the question files, so an exam opened later shows the same. Each figure has one home:
+        // the advice names what to work on and points to the chart that shows the numbers.
+        function examRows(record) {
+            return record.items.map((it, i) => {
+                const q = examQuestionOf(it);
+                if (!q) return null;
+                const keys = correctKeysOf(q);
+                const isRight = a => !!a && a.length === keys.length && a.every(k => keys.includes(k));
+                return {
+                    i, q, dom: String(examDomainOf(q)), task: taskOf(q), diff: String(q.difficulty || '').toLowerCase(),
+                    multi: keys.length > 1, answered: !!it.a, right: !!it.r, flagged: !!it.fl, secs: it.s || 0,
+                    firstRight: it.f ? isRight(it.f) : null, changed: examChanged(it),
+                    services: [...new Set((Array.isArray(q.services) ? q.services : []).map(t => t.split(TAG_SEP)[0]))]
+                };
+            }).filter(Boolean);
+        }
+
+        const tallyOf = list => ({ n: list.length, right: list.filter(r => r.right).length });
+        const shareOf = t => (t.n ? t.right / t.n : 0);
+        const pctOf = t => Math.round(shareOf(t) * 100);
+        const DOMAIN_SHORT = { 1: ['Secure', 'Secure'], 2: ['Resilient', 'Resilient'], 3: ['High-performing', 'Performing'], 4: ['Cost-optimized', 'Cost'] };
+        const passKey = () => `<span><i class="exc-pass"></i>${Math.round(PASS_SHARE * 100)}%, what a pass needs</span>`;
+
+        // A share-right bar: its name, "right of n", and the bar against the pass line, coloured by the Studio's
+        // steps (correctTone). `name` is HTML.
+        function shareRow(name, t) {
+            const pct = pctOf(t);
+            return `
+                <div>
+                    <div class="exs-top"><span class="exs-name">${name}</span><span class="exs-val">${t.right} of ${t.n}</span></div>
+                    <div class="exs-track" style="--pass:${(PASS_SHARE * 100).toFixed(1)}%" role="img" aria-label="${t.right} of ${t.n} right, ${pct}%. A pass needs ${Math.round(PASS_SHARE * 100)}%"><span style="width:${pct}%;background:${correctTone(pct).fill}"></span></div>
+                </div>`;
+        }
+
+        // Hover, and the arrow keys once focused, show a mark's tooltip; `marks` are { cx, cy, lines } in the
+        // SVG's own pixels (it is drawn at its box's width), and `pick(x)` finds the mark under the pointer
+        function wireExamChart(svg, marks, pick, open) {
+            let at = -1;
+            const show = (i, clientX, clientY) => {
+                at = i;
+                const m = marks[i], r = svg.getBoundingClientRect();
+                showTip(m.lines, clientX ?? r.left + m.cx, clientY ?? r.top + m.cy);
+            };
+            svg.addEventListener('pointermove', e => {
+                const i = pick(e.clientX - svg.getBoundingClientRect().left);
+                if (i < 0 || i >= marks.length) hideTip(); else show(i, e.clientX, e.clientY);
+            });
+            svg.addEventListener('pointerleave', hideTip);
+            svg.addEventListener('blur', hideTip);
+            svg.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && open && at >= 0) { open(at); return; }
+                if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                e.preventDefault();
+                show(Math.max(0, Math.min(marks.length - 1, at + (e.key === 'ArrowRight' ? 1 : -1))));
+            });
+            if (open) svg.addEventListener('click', e => {
+                const i = pick(e.clientX - svg.getBoundingClientRect().left);
+                if (i >= 0 && i < marks.length) open(i);
+            });
+        }
+
+        // By domain: each domain a column as wide as its share of the exam, filled to its share right. The empty
+        // part of each column is where marks were lost, so the largest empty area is the largest loss.
+        function drawExamDomains(rows) {
+            const box = document.getElementById('exrDomains');
+            const W = Math.max(260, Math.round(box.clientWidth)), top = 18, plotH = 132, H = top + plotH + 36;
+            const ids = Object.keys(EXAM_DOMAINS), gap = 2, usable = W - gap * (ids.length - 1);
+            let x = 0;
+            const cols = ids.map(id => {
+                const c = { id, x, w: usable * EXAM_DOMAINS[id].w, t: tallyOf(rows.filter(r => r.dom === id)) };
+                x += c.w + gap;
+                return c;
+            });
+            const y = s => top + plotH * (1 - s);
+            // a fill rounded at its top only, square on the baseline
+            const fill = (x0, y0, w, h) => {
+                if (h <= 0) return '';
+                const r = Math.min(4, h, w / 2);
+                return `M${x0.toFixed(1)},${(y0 + h).toFixed(1)}V${(y0 + r).toFixed(1)}Q${x0.toFixed(1)},${y0.toFixed(1)} ${(x0 + r).toFixed(1)},${y0.toFixed(1)}H${(x0 + w - r).toFixed(1)}Q${(x0 + w).toFixed(1)},${y0.toFixed(1)} ${(x0 + w).toFixed(1)},${(y0 + r).toFixed(1)}V${(y0 + h).toFixed(1)}Z`;
+            };
+            const marks = [];
+            const passY = y(PASS_SHARE);
+            const parts = cols.map(c => {
+                const s = shareOf(c.t), pct = pctOf(c.t), cx = c.x + c.w / 2, weight = Math.round(EXAM_DOMAINS[c.id].w * 100);
+                // the value sits on the fill's cap, or just above the pass line when the line would run through it
+                let labelY = y(s) - 5;
+                if (passY > labelY - 10 && passY < labelY + 3) labelY = passY - 4;
+                marks.push({ cx, cy: y(s), lines: [[EXAM_DOMAINS[c.id].name, ''], [`${c.t.right} of ${c.t.n} right`, `(${pct}%)`],
+                    [`${weight}% of the exam`, `· ${Math.round(EXAM_DOMAINS[c.id].w * (1 - s) * 100)}% of the exam lost here`]] });
+                return `
+                    <rect x="${c.x.toFixed(1)}" y="${top}" width="${c.w.toFixed(1)}" height="${plotH}" rx="4" fill="var(--ov-grid)" opacity=".6"/>
+                    <path d="${fill(c.x, y(s), c.w, plotH * s)}" fill="var(--dom-${c.id})"/>
+                    <text x="${cx.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" class="sc-strong">${c.t.n ? pct + '%' : '–'}</text>
+                    <text x="${cx.toFixed(1)}" y="${top + plotH + 15}" text-anchor="middle" class="sc-name">${DOMAIN_SHORT[c.id][c.w < 96 ? 1 : 0]}</text>
+                    <text x="${cx.toFixed(1)}" y="${top + plotH + 29}" text-anchor="middle">${weight}% · ${c.t.right}/${c.t.n}</text>`;
+            }).join('');
+            box.innerHTML = `
+                <div class="ov-chart"><svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="Share right in each exam domain: ${cols.map(c => EXAM_DOMAINS[c.id].name + ' ' + c.t.right + ' of ' + c.t.n).join(', ')}">
+                    ${parts}<line x1="0" x2="${W}" y1="${passY.toFixed(1)}" y2="${passY.toFixed(1)}" stroke="var(--ov-muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                </svg></div>
+                <div class="exc-key mt-3">${passKey()}<span>Each column as wide as the domain's share of the exam</span></div>`;
+            wireExamChart(box.querySelector('svg'), marks, px => cols.findIndex(c => px >= c.x && px < c.x + c.w + gap));
+        }
+
+        // Pace: the time on each question, in the order the exam gave them, coloured by the result, against the
+        // exam's own pace of two minutes a question. The halves' accuracy below shows whether it fell off late.
+        function drawExamPace(record, rows) {
+            const box = document.getElementById('exrPace');
+            const W = Math.max(260, Math.round(box.clientWidth)), left = 36, top = 8, plotH = 128, H = top + plotH + 22;
+            const n = record.items.length, byIndex = new Map(rows.map(r => [r.i, r]));
+            const most = Math.max(0, ...rows.map(r => r.secs));
+            const yMax = Math.ceil(Math.min(600, Math.max(SECONDS_PER_QUESTION * 2, most)) / 120) * 120;
+            const y = s => top + plotH * (1 - Math.min(s, yMax) / yMax);
+            const slot = (W - left) / n, barW = Math.max(1.5, Math.min(24, slot - 2));
+            let grid = '';
+            for (let s = 0; s <= yMax; s += 120) {
+                const pace = s === SECONDS_PER_QUESTION;
+                grid += `<line x1="${left}" x2="${W}" y1="${y(s).toFixed(1)}" y2="${y(s).toFixed(1)}" stroke="${pace ? 'var(--ov-muted)' : 'var(--ov-grid)'}" stroke-width="${pace ? 1.5 : 1}"${pace ? ' stroke-dasharray="4 4"' : ''}/>`
+                    + `<text x="${left - 6}" y="${(y(s) + 3).toFixed(1)}" text-anchor="end">${s ? s / 60 + ' min' : '0'}</text>`;
+            }
+            const marks = [];
+            let bars = '';
+            for (let i = 0; i < n; i++) {
+                const r = byIndex.get(i), cx = left + slot * (i + 0.5);
+                if (!r) { marks.push({ cx, cy: y(0), lines: [['Question ' + (i + 1), '· no longer in its set']] }); continue; }
+                const word = !r.answered ? 'unanswered' : r.right ? 'right' : 'wrong';
+                const h = y(0) - y(r.secs);
+                if (h > 0) bars += `<rect x="${(cx - barW / 2).toFixed(1)}" y="${y(r.secs).toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(2, barW / 2).toFixed(1)}" fill="${!r.answered ? 'var(--ov-muted)' : r.right ? 'var(--ov-right)' : 'var(--ov-missed)'}"${r.answered ? '' : ' opacity=".6"'}/>`;
+                marks.push({ cx, cy: y(r.secs), lines: [['Question ' + (i + 1), '· ' + word], [formatDuration(r.secs * 1000), 'on it' + (r.secs > yMax ? ', past the top of the chart' : '')]] });
+            }
+            const xLabel = (i, anchor) => `<text x="${(left + slot * (i + 0.5)).toFixed(1)}" y="${H - 6}" text-anchor="${anchor}">${i + 1}</text>`;
+            const timed = rows.filter(r => r.secs > 0);
+            const avg = timed.length ? Math.round(timed.reduce((a, r) => a + r.secs, 0) / timed.length) : 0;
+            const slow = rows.filter(r => r.secs > SECONDS_PER_QUESTION).length;
+            const half = Math.ceil(n / 2);
+            const h1 = tallyOf(rows.filter(r => r.i < half)), h2 = tallyOf(rows.filter(r => r.i >= half));
+            const end = record.timedOut ? '<b>ran out of time</b>' : `<b>${formatDuration(examLimitMs() - record.usedMs)}</b> to spare`;
+            box.innerHTML = `
+                <div class="ov-chart"><svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="Time on each question in exam order; average ${formatDuration(avg * 1000)}">
+                    ${grid}${bars}${xLabel(0, 'start')}${xLabel(Math.floor((n - 1) / 2), 'middle')}${xLabel(n - 1, 'end')}
+                </svg></div>
+                <div class="exc-key mt-3">
+                    <span><i style="background:var(--ov-right)"></i>Right</span><span><i style="background:var(--ov-missed)"></i>Wrong</span><span><i style="background:var(--ov-muted);opacity:.6"></i>Unanswered</span>
+                    <span><i class="exc-pass"></i>2 minutes, the exam's pace</span>
+                </div>
+                <p class="exc-note mt-3">Average <b>${formatDuration(avg * 1000)}</b> a question, <b>${slow}</b> over 2 minutes, ${end}. Questions 1–${half}: <b>${pctOf(h1)}%</b> right; ${half + 1}–${n}: <b>${pctOf(h2)}%</b>.</p>`;
+            wireExamChart(box.querySelector('svg'), marks, px => Math.floor((px - left) / slot));
+        }
+
+        // Task statements, weakest first
+        function renderExamTasks(rows) {
+            const box = document.getElementById('exrTasks');
+            const tasks = Object.keys(EXAM_TASKS).map(id => ({ id, t: tallyOf(rows.filter(r => r.task === id)) })).filter(x => x.t.n)
+                .sort((a, b) => shareOf(a.t) - shareOf(b.t) || b.t.n - a.t.n || a.id.localeCompare(b.id));
+            box.innerHTML = tasks.length ? `
+                <div class="exs-list">${tasks.map(x => shareRow(`<span class="font-mono text-slate-400">${x.id}</span> ${escapeHtml(EXAM_TASKS[x.id])}`, x.t)).join('')}</div>
+                <div class="exc-key mt-4">${passKey()}<span>Weakest first</span></div>`
+                : '<p class="text-sm text-slate-400">None of these questions names its task statement.</p>';
+        }
+
+        function renderExamKinds(rows) {
+            const diffs = ['easy', 'medium', 'hard'].map(d => [DIFFICULTY[d].label, tallyOf(rows.filter(r => r.diff === d))]).filter(([, t]) => t.n);
+            const types = [['One answer', tallyOf(rows.filter(r => !r.multi))], ['More than one answer', tallyOf(rows.filter(r => r.multi))]].filter(([, t]) => t.n);
+            document.getElementById('exrKinds').innerHTML = `
+                <p class="exs-head">Difficulty</p>
+                <div class="exs-list mt-2">${diffs.map(([label, t]) => shareRow(label, t)).join('')}</div>
+                <p class="exs-head mt-5">Question type</p>
+                <div class="exs-list mt-2">${types.map(([label, t]) => shareRow(label, t)).join('')}</div>
+                <div class="exc-key mt-4">${passKey()}</div>`;
+        }
+
+        // How the flagged questions went against the rest, and what changing an answer did. A change is counted
+        // from the first full answer to the one submitted.
+        function examChanges(rows) {
+            const changed = rows.filter(r => r.changed);
+            const gained = changed.filter(r => r.firstRight === false && r.right).length;
+            const lost = changed.filter(r => r.firstRight === true && !r.right).length;
+            return { n: changed.length, gained, lost, neither: changed.length - gained - lost };
+        }
+
+        function renderExamFlags(rows) {
+            const flagged = tallyOf(rows.filter(r => r.flagged)), rest = tallyOf(rows.filter(r => !r.flagged));
+            const ch = examChanges(rows);
+            document.getElementById('exrFlags').innerHTML = `
+                <p class="exs-head">Flags</p>
+                ${flagged.n ? `<div class="exs-list mt-2">${shareRow('Flagged', flagged)}${shareRow('Not flagged', rest)}</div>`
+                    : '<p class="mt-2 text-sm text-slate-400">No questions were flagged.</p>'}
+                <p class="exs-head mt-5">Changed answers</p>
+                ${ch.n ? `<div class="exs-stats mt-2"><div><b>${ch.gained}</b><span>wrong → right</span></div><div><b>${ch.lost}</b><span>right → wrong</span></div><div><b>${ch.neither}</b><span>wrong → wrong</span></div></div>`
+                    : '<p class="mt-2 text-sm text-slate-400">No answer was changed once given.</p>'}`;
+        }
+
+        // Your exams over time: each exam's projected score, oldest to newest, with the pass mark. A point opens
+        // that exam. Shown from the second exam on.
+        function drawExamTrend(record) {
+            const card = document.getElementById('exrTrendCard'), box = document.getElementById('exrTrend');
+            const list = readExamRecords().slice().sort((a, b) => a.submittedAt - b.submittedAt)
+                .map(r => ({ r, s: (r.scores && r.scores.exam) || examAloneScore(r) })).filter(p => p.s);
+            card.classList.toggle('hidden', list.length < 2);
+            if (list.length < 2) return;
+            const W = Math.max(260, Math.round(box.clientWidth)), left = 36, right = 18, top = 22, plotH = 140, H = top + plotH + 24;
+            const scores = list.map(p => p.s.score);
+            const lo = Math.max(100, Math.floor((Math.min(PASS_SCORE, ...scores) - 60) / 100) * 100);
+            const hi = Math.min(1000, Math.ceil((Math.max(PASS_SCORE, ...scores) + 60) / 100) * 100);
+            const step = hi - lo > 600 ? 200 : 100;
+            const y = v => top + plotH * (1 - (v - lo) / (hi - lo));
+            const x = i => left + (W - left - right) * i / (list.length - 1);
+            let grid = '';
+            for (let v = lo; v <= hi; v += step) grid += `<line x1="${left}" x2="${W - right}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--ov-grid)" stroke-width="1"/><text x="${left - 6}" y="${(y(v) + 3).toFixed(1)}" text-anchor="end">${v}</text>`;
+            const passY = y(PASS_SCORE).toFixed(1);
+            const path = list.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(p.s.score).toFixed(1)).join('');
+            const marks = [];
+            const dots = list.map((p, i) => {
+                const now = p.r.id === record.id, right = p.r.items.filter(it => it.r).length;
+                marks.push({ cx: x(i), cy: y(p.s.score), lines: [[String(p.s.score), `· ${Math.round(p.s.pass * 100)}% chance of reaching ${PASS_SCORE}`],
+                    [fmtDate(p.r.submittedAt), `· ${right} of ${p.r.items.length} right${now ? ' · this exam' : ''}`]] });
+                return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.s.score).toFixed(1)}" r="${now ? 6 : 4}" fill="var(--ov-line)" stroke="var(--ov-surface)" stroke-width="2"/>`
+                    + (now ? `<text x="${x(i).toFixed(1)}" y="${(y(p.s.score) - 11).toFixed(1)}" text-anchor="${i === 0 ? 'start' : i === list.length - 1 ? 'end' : 'middle'}" class="sc-strong">${p.s.score}</text>` : '');
+            }).join('');
+            const xLabel = (i, anchor) => `<text x="${x(i).toFixed(1)}" y="${H - 6}" text-anchor="${anchor}">${fmtDate(list[i].r.submittedAt)}</text>`;
+            box.innerHTML = `
+                <div class="ov-chart"><svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="Projected score of each exam, oldest to newest: ${scores.join(', ')}">
+                    ${grid}<line x1="${left}" x2="${W - right}" y1="${passY}" y2="${passY}" stroke="var(--ov-muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                    <path d="${path}" fill="none" stroke="var(--ov-line)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                    ${dots}${xLabel(0, 'start')}${xLabel(list.length - 1, 'end')}
+                </svg></div>
+                <div class="exc-key mt-3"><span><i class="exc-pass"></i>${PASS_SCORE}, the pass mark</span><span>Each point is an exam's projected score; open one by clicking it</span></div>`;
+            const half = list.length > 1 ? (W - left - right) / (list.length - 1) / 2 : W;
+            wireExamChart(box.querySelector('svg'), marks, px => marks.findIndex(m => Math.abs(px - m.cx) <= half),
+                i => { if (list[i].r.id !== record.id) go({ name: 'exam-result', id: list[i].r.id }); });
+        }
+
+        // The set to practise a service in: the one with the most of its questions still to get right
+        function examPractiseBank(tag) {
+            let best = null;
+            for (const b of loadedBanks()) {
+                const qs = b.questions.filter(q => tagsOf(q).includes(tag));
+                if (!qs.length) continue;
+                const open = qs.filter(q => { const log = b.log[q.id]; return !(log && log.length && log[log.length - 1][0] === 1); }).length;
+                if (!best || open > best.open || (open === best.open && qs.length > best.total)) best = { bank: b.key, open, total: qs.length };
+            }
+            return best;
+        }
+
+        // Strengths and what to work on, from rules over the same rows the charts draw. Domains below the pass line
+        // come first, the one that cost most of the exam (its weight times how far short it fell) leading.
+        function renderExamAdvice(record, rows) {
+            const good = [], work = [];
+            const pass = PASS_SHARE;
+            const doms = Object.keys(EXAM_DOMAINS).map(id => ({ id, t: tallyOf(rows.filter(r => r.dom === id)) })).filter(d => d.t.n);
+            const cost = d => EXAM_DOMAINS[d.id].w * (pass - shareOf(d.t));
+            doms.filter(d => shareOf(d.t) < pass).sort((a, b) => cost(b) - cost(a)).slice(0, 2).forEach((d, k) => {
+                const weakest = Object.keys(EXAM_TASKS).filter(t => t[0] === d.id).map(t => ({ t, c: tallyOf(rows.filter(r => r.task === t)) })).filter(x => x.c.n)
+                    .sort((a, b) => shareOf(a.c) - shareOf(b.c) || b.c.n - a.c.n)[0];
+                work.push(`<b>${EXAM_DOMAINS[d.id].name}</b> fell below the pass line${k === 0 ? ', and for its weight it cost you the most (see By domain)' : ''}.`
+                    + (weakest ? ` Its weakest task statement here is ${weakest.t}, ${escapeHtml(EXAM_TASKS[weakest.t].charAt(0).toLowerCase() + EXAM_TASKS[weakest.t].slice(1))}.` : ''));
+            });
+            const strongDoms = doms.filter(d => shareOf(d.t) >= pass);
+            if (strongDoms.length) good.push(strongDoms.map(d => `<b>${EXAM_DOMAINS[d.id].name}</b>`).join(', ') + (strongDoms.length === 1 ? ' is' : ' are') + ' at or above the pass line.');
+
+            // services: missed twice or more, with a Practise button each; and those right every time
+            const svc = {};
+            for (const r of rows) for (const s of r.services) { const e = svc[s] || (svc[s] = { n: 0, miss: 0 }); e.n++; if (!r.right) e.miss++; }
+            const mapLink = s => `<a href="cheatsheet/mindmap.html#${encodeURIComponent(s)}" class="font-semibold text-emerald-400 hover:text-emerald-300" title="${escapeHtml(s)} in the mind map: what it is, the exam's cues and its cheat sheet">${escapeHtml(s)}</a>`;
+            const missed = Object.entries(svc).filter(([, e]) => e.miss >= 2).sort((a, b) => b[1].miss - a[1].miss || b[1].n - a[1].n).slice(0, 3);
+            if (missed.length) {
+                const buttons = missed.map(([s]) => {
+                    const p = examPractiseBank(s);
+                    if (!p) return '';
+                    const why = p.open ? `the ${plural(p.open, 'question')} still to get right first` : `all ${plural(p.total, 'question')}`;
+                    return `<button type="button" class="dy-review" data-bank="${p.bank}" data-tag="${escapeHtml(s)}" title="Practise ${escapeHtml(s)} in ${BANKS[p.bank].label}: ${why}">${escapeHtml(s)} · ${BANKS[p.bank].symbol}<i class="fa-solid fa-play" aria-hidden="true"></i></button>`;
+                }).join('');
+                work.push({ text: 'The services you missed most: ' + missed.map(([s, e]) => `${mapLink(s)}, ${e.miss} of ${e.n} missed`).join('; ') + '. Practise each one:', actions: buttons });
+            }
+            const solid = Object.entries(svc).filter(([, e]) => e.miss === 0 && e.n >= 3).sort((a, b) => b[1].n - a[1].n).slice(0, 3);
+            if (solid.length) good.push('Right every time: ' + solid.map(([s, e]) => `${mapLink(s)} (${e.n} questions)`).join(', ') + '.');
+
+            // time
+            const open = rows.filter(r => !r.answered).length;
+            const all = tallyOf(rows);
+            if (record.timedOut) work.push('You ran out of time. Keep to about 2 minutes a question: answer, flag the hard ones, and come back to them at the end.');
+            else if (open) work.push('You left questions unanswered. An unanswered question always counts as wrong, so give every one your best guess before you submit.');
+            else if (rows.filter(r => r.secs > 2 * SECONDS_PER_QUESTION).length >= 5) work.push('Several questions took you over 4 minutes (see Pace). Pick your best answer, flag it and move on; come back if time is left.');
+            else if (examLimitMs() - record.usedMs > 30 * 60000 && shareOf(all) < pass) work.push('You finished with plenty of time to spare (see Pace). Use it to reread each question for the requirement that decides it, such as the lowest cost or the least operational effort.');
+            else good.push('You answered every question in time.');
+            const half = Math.ceil(record.items.length / 2);
+            const h1 = tallyOf(rows.filter(r => r.i < half)), h2 = tallyOf(rows.filter(r => r.i >= half));
+            if (h1.n >= 20 && h2.n >= 20 && shareOf(h1) - shareOf(h2) >= 0.15) work.push('Your accuracy dropped in the second half (see Pace). Full-length exams build the stamina for 130 minutes.');
+
+            // second looks and flags
+            const ch = examChanges(rows);
+            if (ch.lost > ch.gained && ch.lost >= 2) work.push('Changing answers cost you more than it gained (see Flags and changed answers). Change an answer only when you can say why the first one is wrong.');
+            else if (ch.gained > ch.lost && ch.gained >= 2) good.push('Your second looks paid off: changed answers gained more than they cost.');
+            const flagged = tallyOf(rows.filter(r => r.flagged)), rest = tallyOf(rows.filter(r => !r.flagged));
+            if (flagged.n >= 3 && rest.n >= 3) {
+                if (shareOf(flagged) + 0.15 <= shareOf(rest)) good.push('Your flags picked out the questions you were unsure of, so you know where your doubts are.');
+                else if (shareOf(flagged) >= shareOf(rest)) work.push('Flagged questions went as well as the rest (see Flags and changed answers). Trust your first read more, and spend the time on questions you have no answer for.');
+            }
+
+            // kinds of question
+            const easy = tallyOf(rows.filter(r => r.diff === 'easy')), hard = tallyOf(rows.filter(r => r.diff === 'hard'));
+            if (easy.n >= 5 && shareOf(easy) < 0.8) work.push('Easy questions slipped more often than they should (see Difficulty). Those are usually misreads: find the phrase that decides the answer before reading the options.');
+            if (hard.n >= 3 && shareOf(hard) >= pass) good.push('You handled the hard questions well (see Difficulty).');
+            const multi = tallyOf(rows.filter(r => r.multi)), single = tallyOf(rows.filter(r => !r.multi));
+            if (multi.n >= 3 && shareOf(multi) + 0.15 < shareOf(single)) work.push('Questions with more than one answer went worse than single-answer ones (see Question type). Judge each option on its own, and choose exactly as many as the question asks.');
+
+            const item = (kind, x) => {
+                const { text, actions } = typeof x === 'string' ? { text: x } : x;
+                return `<div class="exa-item"><span class="exa-dot" data-k="${kind}" aria-hidden="true"><i class="fa-solid ${kind === 'good' ? 'fa-check' : 'fa-arrow-up'}"></i></span>`
+                    + `<div class="exa-text">${text}${actions ? `<div class="exa-actions">${actions}</div>` : ''}</div></div>`;
+            };
+            document.getElementById('exrAdvice').innerHTML = `
+                <div class="exa-cols">
+                    <div><p class="exs-head">Work on next</p><div class="exa-list mt-3">${work.length ? work.map(x => item('work', x)).join('') : '<p class="text-sm text-slate-400">Nothing big to fix in this exam.</p>'}</div></div>
+                    <div><p class="exs-head">Strengths</p><div class="exa-list mt-3">${good.length ? good.map(x => item('good', x)).join('') : '<p class="text-sm text-slate-400">Nothing stood out yet: no domain reached the pass line.</p>'}</div></div>
+                </div>`;
+        }
+
+        document.getElementById('exrAdvice').addEventListener('click', e => {
+            const b = e.target.closest('.dy-review[data-tag]');
+            if (b) practiseTag(b.dataset.bank, b.dataset.tag);
+        });
+
+        function renderExamInsights(record) {
+            const rows = examRows(record);
+            examChartWidth = document.getElementById('exrDomains').clientWidth;
+            renderExamAdvice(record, rows);
+            drawExamDomains(rows);
+            drawExamPace(record, rows);
+            renderExamTasks(rows);
+            renderExamKinds(rows);
+            renderExamFlags(rows);
+            drawExamTrend(record);
+        }
+
+        // The charts are drawn at their box's width, so they are drawn again when that width changes. Only the width:
+        // a phone's address bar showing or hiding while you scroll fires resize too, and must not redraw them.
+        let examResizeTimer = null;
+        let examChartWidth = 0;
+        addEventListener('resize', () => {
+            clearTimeout(examResizeTimer);
+            examResizeTimer = setTimeout(() => {
+                if (!shownResult || document.getElementById('examResultView').classList.contains('hidden') || document.getElementById('exrPane').classList.contains('hidden')) return;
+                const width = document.getElementById('exrDomains').clientWidth;
+                if (width === examChartWidth) return;
+                examChartWidth = width;
+                const rows = examRows(shownResult);
+                drawExamDomains(rows);
+                drawExamPace(shownResult, rows);
+                drawExamTrend(shownResult);
+            }, 150);
+        });
+
+        document.getElementById('exrReview').addEventListener('click', e => {
+            const chip = e.target.closest('[data-filter]');
+            if (!chip) return;
+            examResultFilter = chip.dataset.filter;
+            applyExamResultFilter();
+        });
+        document.getElementById('exrReview').addEventListener('toggle', e => {
+            const fold = e.target;
+            if (!fold.open || !fold.matches('details.exr-q')) return;
+            const body = fold.querySelector('.exr-body');
+            if (body.childElementCount) return;
+            const it = shownResult.items[Number(fold.dataset.i)];
+            body.innerHTML = examAnswerHtml(it, examQuestionOf(it));
+        }, true);
+
+        // The clock stops while the tab is hidden or closed, and starts again when the exam is back in view
+        document.addEventListener('visibilitychange', () => {
+            if (examPane === null) return;
+            if (document.visibilityState === 'hidden') stopExamClock();
+            else startExamClock();
+        });
+        window.addEventListener('pagehide', () => { if (examPane !== null) stopExamClock(); });
+
+        // Another tab took the exam on, submitted it or abandoned it: this tab steps aside rather than writing its
+        // older copy over it. On the overview, the card follows.
+        window.addEventListener('storage', e => {
+            if (e.key !== EXAM_SESSION_KEY && e.key !== EXAMS_KEY) return;
+            let other = null;
+            try { other = JSON.parse(e.newValue); } catch (err) {}
+            if (e.key === EXAM_SESSION_KEY && examPane !== null && (!other || other.tab !== EXAM_TAB)) {
+                clearInterval(examTicker);
+                examTicker = null;
+                examSince = null;
+                exam = null;
+                setRoute({ name: 'overview' }, true);
+                renderRoute();
+                alertBox(other ? 'The practice exam carried on in another tab.' : 'The practice exam was submitted or abandoned in another tab.');
+                return;
+            }
+            if (!document.getElementById('overviewView').classList.contains('hidden')) renderExamCard();
+            else if (parseRoute().name === 'exams') renderExamList();
+        });
 
         // ---- Time per question ----
         // Its own card, beside Speed and accuracy. From the seconds kept with each attempt. The headline is the
@@ -6186,6 +7650,7 @@
 
         function showSummary() {
             document.getElementById('summaryBackBtn').innerText = quizReturn() ? 'Back to overview' : 'Return to Dashboard';
+            hideExamView();
             document.getElementById('dashboardView').classList.add('hidden');
             document.getElementById('quizView').classList.add('hidden');
             document.getElementById('overviewView').classList.add('hidden');

@@ -3,6 +3,7 @@
 A static study site for the AWS Solutions Architect Associate (SAA-C03) exam. Features:
 
 - **Practice quizzes** from four question banks.
+- **Full-length practice exams** drawn from all four banks, with a results summary, charts and advice, and a synced history.
 - **Progress overview** combining all the banks.
 - **Ten cheat sheets.**
 - **Eight infographics:** one-page visual summaries of the most-tested topics.
@@ -15,7 +16,7 @@ Everything lives in `docs/`, which GitHub Pages serves as is. There is no framew
 
 | Path | What it is |
 |---|---|
-| `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, score estimators, Gist sync. |
+| `docs/index.html` | The whole quiz app in one file: overview, practice dashboard, quizzes, practice exams, score estimators, Gist sync. |
 | `docs/sets/{alpha,beta,gamma,delta}.json` | Question banks: an array of questions. The file name is the bank key in `BANKS`. |
 | `docs/sets/priority-map.json` | The study order: `{ bank, id, priority }` for every question, and `top`, how many of them the Top list covers (100). The overview's ★ Top card and `top.html` read it, so changing `top` is the only edit a new size needs. |
 | `docs/cheatsheet/top.html` | The top questions of the priority map, one card each in the Studio quiz's colours (it sets app.css's tokens to the Studio's values): the full question with its key phrases highlighted, its TL;DR, difficulty, exam domain and section chips, your status and last answer, and the right option(s) in a fold. Filters by set, status, section (in the cheat sheets' order) and difficulty, sorts, and a Show answers switch; on phones the filters move into a bottom sheet behind a Filters button, with the active ones as removable chips. Its head starts fetching the map and the four sets at once. Opened from the Top card's View list link. |
@@ -70,13 +71,15 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **localStorage keys:**
   - `saa_` prefixes app-wide keys;
   - each bank has its own prefix (`set_alpha_`, …);
-  - the theme key is `saa_theme`.
+  - the theme key is `saa_theme`;
+  - the practice exam in progress is `saa_exam_session` (this browser only, never synced), and the submitted exams are `saa_exams` (synced).
 - **Gist sync:**
   - **Answers are merged, never replaced** (`mergeBank` in `index.html`). Each question keeps the answers of both copies, matched by time, up to `ATTEMPTS_KEPT` (the first and the latest 19, as `recordAttempt` keeps them). So two devices can practise the same bank without losing answers.
   - **Resets:** a reset stores its time in `<prefix>reset`, and a merge leaves out every answer from before the latest reset on either side.
   - **Newest-wins:** the mistakes and flagged lists, and the settings section, come from whichever copy changed last. When adding a setting that should sync, add it to that settings section.
   - **The active bank:** a sync rewrites it only while no quiz needs it, and every caller of `syncNow` re-reads it (`reloadActiveBank`) when that happens. Otherwise the page would save its old copy over the merge.
   - **First connection** still replaces this browser's copy of each bank the gist already has, as its dialog says.
+  - **Practice exam records** sit in the gist's top-level `exams` section and are merged, never replaced, on every sync, the first included (`mergeExamRecords`): both copies are kept, joined by exam id, since a record never changes once submitted. A gist with no exams gets no `exams` section. Older copies of the page push back the gist they read, so they carry the section along.
 
 ## Question banks
 
@@ -88,6 +91,22 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - **After a question or its tags change,** run `check-tags.js`.
 - **Review rule** (`standingOf` in `index.html`, one rule for the Due for review list, the Smart quiz and subject quizzes): a question whose latest answer is wrong is to redo now; one right once falls due from the start of the `REVIEW_DAYS` (3) calendar day after that answer; one whose latest two answers are right, whenever given, is retired from review until it is next got wrong. The Smart quiz picks retired ones only when nothing else is left. "Done" (latest answer right) is a separate measure and doesn't use this rule.
 - **Top:** the overview's ★ Top card, after What to do next, shows where the `top` questions ranked highest in `priority-map.json` stand: all banks together, then a full-width done / missed / unseen bar per bank. Each bank's ▶ starts its Top quiz: those not done yet first, each part in priority order (done means the latest answer is right). The quiz runs in the set itself, so its answers count there like any other. The card stays hidden if the file can't be read.
+
+## Practice exams
+
+A full-length sitting under exam conditions, on its own screens and storage: the quizzes, their session in the tab and the active set are left alone, so a quiz can wait while an exam runs.
+
+- **Where it starts:** the overview's Practice exam card, after What to do next (Start, or Resume and Abandon, and the last result). The header menu's **Practice exams** item and the card's **All exams →** open the list of every exam taken (`#/exams`), newest first; a row opens that exam's results.
+- **The questions:** `EXAM_SIZE` (65) from all four sets, split by the exam guide's domain weights (`EXAM_DOMAINS`) by largest remainder: 19 / 17 / 16 / 13. Within each domain: never answered first, then answered longest ago, and the last exam's questions only when nothing else is left. The picks are shuffled together.
+- **Exam conditions:** nothing marked right or wrong until submit; no hint, Services glossary, highlighted key phrases, badges or past answers. Answers can change until submit, and a question with more than one answer counts as answered only once all are chosen. Flags are the exam's own and never touch a set's Flagged list. The review grid (`#/exam/review`) shows answered, unanswered and flagged, with filters, then Submit asks first, naming the unanswered count.
+- **The clock:** two minutes a question (130 minutes), and it runs only while the exam is on screen: leaving it, hiding the tab or closing it stops the clock, and the sitting resumes from `localStorage`. Away at least a minute counts as a pause in the result. At 0:00 it submits on its own, closing a Submit dialog still open.
+- **Two tabs:** the tab that shows the exam takes it over; the other steps aside without writing its older copy over it.
+- **On submit:** each answered question joins its own set's log as an ordinary answer, with the `FLAG_EXAM` bit and its time, and its place in Mistakes follows its latest answer. Unanswered questions record nothing in the stats but count as wrong in the exam. The exam is then kept as a record with its score figures, worked out once so later practice doesn't change them:
+  - **Projected score:** this exam alone through the Studio's own estimator (`examScore`), unanswered as wrong, simulated as the real exam's 50 scored questions. All 65 count; none are dropped as unscored. Shown with its 80% range and chance of reaching 720.
+  - **Readiness score:** the overview's estimate from all practice, just before and just after this exam's answers joined it.
+- **Results** (`#/exams/<id>`): the score figures and four tiles; Strengths and what to work on; By domain (each domain a column as wide as its weight, filled to its share right); Pace (time on each question in exam order against two minutes); Task statements; Difficulty and question type; Flags and changed answers; Your exams over time (from the second exam); then every question as a fold with its answer and explanation, filtered by Wrong, Unanswered, Flagged or Changed. The charts are drawn from the record and the question files, so an exam opened later looks the same.
+- **Advice:** rules over the same rows the charts draw. Each figure stays in its chart: the advice names what to work on and points to the chart ("see Pace"). Missed services are the exception, with their counts, a link to their mind map panel (which links on to the cheat sheet) and a Practise button for the set with the most of that service still to get right.
+- **Phones:** the exam's top bar (back, position, clock, Flag, Review, meter) stays at the top while the question scrolls, and Previous / Next is fixed along the bottom, as in a quiz.
 
 ## Services glossary
 
@@ -159,5 +178,6 @@ There is no test suite. Verify UI changes by rendering the page, e.g. with puppe
 - Bash heredocs and `node -e` mangle backslashes and backticks. Write multi-line edit scripts to a file instead.
 - In JS edit scripts, use a function replacement, `s.replace(a, () => b)`. A string replacement treats `$'` and `$&` specially.
 - Some files have CRLF line endings. Exact string matching across lines can fail, and `build-architectures.js` preserves each file's line endings.
-- `position: fixed` breaks inside an ancestor with a `transform` or `backdrop-filter` (e.g. the top bar). Put popovers and panels outside it.
+- `position: fixed` breaks inside an ancestor with a `transform` or `backdrop-filter` (e.g. the top bar). Put popovers and panels outside it. That includes the identity transform the views' `animate-fade-in` leaves behind once it ends; the exam view fades in by opacity only for that reason.
+- `position: sticky` inside `main` counts `top` from inside main's padding, so a bar meant to sit flush with main's top edge needs a negative `top` equal to that padding (see `.ex-bar`).
 - Grid and flex children that hold wide content (SVG, tables, nowrap labels) need `min-width: 0`, or the page scrolls sideways on phones.
