@@ -1008,6 +1008,10 @@
                         <div id="exrPace" class="mt-4"></div>
                     </section>
                 </div>
+                <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-bold">Speed and accuracy</h3>
+                    <div id="exrScatter" class="mt-4"></div>
+                </section>
                 <div class="ov-pair">
                     <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                         <h3 class="text-lg font-bold">Task statements</h3>
@@ -5731,7 +5735,7 @@
         }
 
         // Hover, and the arrow keys once focused, show a mark's tooltip; `marks` are { cx, cy, lines } in the
-        // SVG's own pixels (it is drawn at its box's width), and `pick(x)` finds the mark under the pointer
+        // SVG's own pixels (it is drawn at its box's width), and `pick(x, y)` finds the mark under the pointer
         function wireExamChart(svg, marks, pick, open) {
             let at = -1;
             const show = (i, clientX, clientY) => {
@@ -5739,8 +5743,9 @@
                 const m = marks[i], r = svg.getBoundingClientRect();
                 showTip(m.lines, clientX ?? r.left + m.cx, clientY ?? r.top + m.cy);
             };
+            const under = e => { const r = svg.getBoundingClientRect(); return pick(e.clientX - r.left, e.clientY - r.top); };
             svg.addEventListener('pointermove', e => {
-                const i = pick(e.clientX - svg.getBoundingClientRect().left);
+                const i = under(e);
                 if (i < 0 || i >= marks.length) hideTip(); else show(i, e.clientX, e.clientY);
             });
             svg.addEventListener('pointerleave', hideTip);
@@ -5752,7 +5757,7 @@
                 show(Math.max(0, Math.min(marks.length - 1, at + (e.key === 'ArrowRight' ? 1 : -1))));
             });
             if (open) svg.addEventListener('click', e => {
-                const i = pick(e.clientX - svg.getBoundingClientRect().left);
+                const i = under(e);
                 if (i >= 0 && i < marks.length) open(i);
             });
         }
@@ -5843,6 +5848,119 @@
                 </div>
                 <p class="exc-note mt-3">Average <b>${formatDuration(avg * 1000)}</b> a question, <b>${slow}</b> over 2 minutes, ${end}. Questions 1–${half}: <b>${pctOf(h1)}%</b> right; ${half + 1}–${n}: <b>${pctOf(h2)}%</b>.</p>`;
             wireExamChart(box.querySelector('svg'), marks, px => Math.floor((px - left) / slot));
+        }
+
+        // Speed and accuracy: each section of the Studio (Compute & Serverless, …) a dot at your typical (median)
+        // time on its questions in this exam and its share right, unanswered as wrong. It reads like the overview's
+        // chart of the same name: its zones (SCATTER_ZONES), section colours, dot sizes and dashed lines at the
+        // two-minute target and the pass line, with both axes zoomed to the dots.
+        const EXAM_SCATTER_MIN = 2;   // questions a section needs in the exam to be placed
+        function drawExamScatter(rows) {
+            const box = document.getElementById('exrScatter');
+            const bySection = {};
+            for (const r of rows) {
+                const name = r.q.domain || 'General AWS';
+                (bySection[name] = bySection[name] || []).push(r);
+            }
+            const pts = [], few = [];
+            for (const [name, list] of Object.entries(bySection)) {
+                const timed = list.filter(r => r.secs > 0 && r.secs <= AWAY_SECONDS).map(r => r.secs);
+                if (list.length < EXAM_SCATTER_MIN || !timed.length) { few.push(name); continue; }
+                const t = tallyOf(list), rate = shareOf(t), secs = median(timed);
+                pts.push({ name, t, rate, secs, zone: rate >= PASS_SHARE ? (secs <= TARGET_SECONDS ? 'solid' : 'slow') : (secs <= TARGET_SECONDS ? 'rushing' : 'gap') });
+            }
+            if (!pts.length) {
+                box.innerHTML = '<p class="text-sm text-slate-400">No section had enough timed questions in this exam to place.</p>';
+                return;
+            }
+            pts.sort((a, b) => compareDomains(a.name, b.name));
+            const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
+            const named = zone => list(pts.filter(p => p.zone === zone).map(p => `<span class="text-slate-200 font-semibold">${escapeHtml(p.name)}</span>`));
+            const target = formatDuration(TARGET_SECONDS * 1000);
+            const said = [];
+            const say = (k, rest) => { if (named(k)) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES[k].colour}">${SCATTER_ZONES[k].name}</b>: ${named(k)}${rest}`); };
+            say('gap', ', slow and often missed, so the topic itself needs work.');
+            say('rushing', ', quick but often missed, so read these for the trap before answering.');
+            say('slow', `, right but past ${target}, so drill these for speed.`);
+            say('solid', '.');
+
+            const W = Math.max(260, Math.round(box.clientWidth)), H = W < 500 ? 280 : 300;
+            const m = { top: 20, right: 14, bottom: 34, left: 38 };
+            const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+            const secs = pts.map(p => p.secs), rates = pts.map(p => p.rate);
+            const xLo = Math.max(0, Math.floor((Math.min(...secs, TARGET_SECONDS) - 20) / 30) * 30);
+            const xHi = Math.ceil((Math.max(...secs, TARGET_SECONDS) + 20) / 30) * 30;
+            const yLo = Math.max(0, Math.floor((Math.min(...rates, PASS_SHARE) - 0.08) * 10) / 10);
+            const yHi = Math.min(1, Math.ceil((Math.max(...rates, PASS_SHARE) + 0.08) * 10) / 10);
+            const x = s => m.left + (Math.min(Math.max(s, xLo), xHi) - xLo) / (xHi - xLo) * iw;
+            const y = v => m.top + ih - (v - yLo) / (yHi - yLo) * ih;
+            const rad = p => 4 + Math.min(7, Math.sqrt(p.t.n) * 1.4);
+            const tx = x(TARGET_SECONDS), py = y(PASS_SHARE);
+            const parts = [];
+            const zone = (k, x1, y1, x2, y2) => parts.push(`<rect x="${x1.toFixed(1)}" y="${y1.toFixed(1)}" width="${(x2 - x1).toFixed(1)}" height="${(y2 - y1).toFixed(1)}" fill="${SCATTER_ZONES[k].colour}" fill-opacity=".08"/>`);
+            zone('solid', m.left, m.top, tx, py);
+            zone('slow', tx, m.top, W - m.right, py);
+            zone('rushing', m.left, py, tx, m.top + ih);
+            zone('gap', tx, py, W - m.right, m.top + ih);
+            const zoneLabel = (k, lx, ly, anchor) => parts.push(`<text class="sc-zone-label" x="${lx}" y="${ly}" text-anchor="${anchor}" style="fill:${SCATTER_ZONES[k].colour}">${SCATTER_ZONES[k].name}</text>`);
+            zoneLabel('solid', m.left + 6, m.top + 14, 'start');
+            zoneLabel('slow', W - m.right - 6, m.top + 14, 'end');
+            zoneLabel('rushing', m.left + 6, m.top + ih - 6, 'start');
+            zoneLabel('gap', W - m.right - 6, m.top + ih - 6, 'end');
+            const yStep = yHi - yLo <= 0.6 ? 0.1 : 0.25;
+            for (let v = Math.ceil(yLo / yStep - 1e-9) * yStep; v <= yHi + 1e-9; v += yStep) {
+                parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${m.left - 6}" y="${(y(v) + 3).toFixed(1)}" text-anchor="end">${Math.round(v * 100)}%</text>`);
+            }
+            const xStep = xHi - xLo <= 240 ? 30 : xHi - xLo <= 480 ? 60 : 120;
+            for (let s = xLo; s <= xHi; s += xStep) {
+                parts.push(`<line x1="${x(s).toFixed(1)}" x2="${x(s).toFixed(1)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                if (Math.abs(s - TARGET_SECONDS) >= xStep && (W >= 500 || (s / 60) % 1 === 0)) parts.push(`<text x="${x(s).toFixed(1)}" y="${m.top + ih + 14}" text-anchor="middle">${formatDuration(s * 1000)}</text>`);
+            }
+            parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${py.toFixed(1)}" y2="${py.toFixed(1)}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
+            parts.push(`<text x="${W - m.right - 6}" y="${(py - 5).toFixed(1)}" text-anchor="end">${Math.round(PASS_SHARE * 100)}% pass</text>`);
+            parts.push(`<line x1="${tx.toFixed(1)}" x2="${tx.toFixed(1)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
+            parts.push(`<text x="${tx.toFixed(1)}" y="${m.top + ih + 14}" text-anchor="middle" class="sc-strong">${target} target</text>`);
+            parts.push(`<text x="${W - m.right}" y="${H - 4}" text-anchor="end">typical time a question →</text>`);
+            parts.push('<text x="0" y="9">↑ right</text>');
+            // the dots, biggest first so small ones stay on top, each with a surface ring
+            const order = pts.slice().sort((a, b) => b.t.n - a.t.n);
+            for (const p of order) parts.push(`<circle cx="${x(p.secs).toFixed(1)}" cy="${y(p.rate).toFixed(1)}" r="${rad(p).toFixed(1)}" fill="${sectionColour(p.name)}" stroke="var(--ov-surface)" stroke-width="1.5"/>`);
+            // names beside the dots where they fit, clear of the zone and pass labels and of every dot; the key below names the rest
+            const boxes = [
+                { x1: W - m.right - 56, x2: W - m.right, y1: py - 15, y2: py - 1 },
+                { x1: m.left, x2: m.left + 40, y1: m.top, y2: m.top + 20 },
+                { x1: W - m.right - 80, x2: W - m.right, y1: m.top, y2: m.top + 20 },
+                { x1: m.left, x2: m.left + 56, y1: m.top + ih - 18, y2: m.top + ih },
+                { x1: W - m.right - 32, x2: W - m.right, y1: m.top + ih - 18, y2: m.top + ih }
+            ];
+            const fits = bx => bx.x1 >= m.left && bx.x2 <= W - m.right && bx.y1 >= m.top && bx.y2 <= m.top + ih
+                && !boxes.some(o => bx.x1 < o.x2 && bx.x2 > o.x1 && bx.y1 < o.y2 && bx.y2 > o.y1)
+                && !pts.some(o => { const ox = x(o.secs), oy = y(o.rate), rr = rad(o); return ox + rr > bx.x1 && ox - rr < bx.x2 && oy + rr > bx.y1 && oy - rr < bx.y2; });
+            for (const p of order) {
+                const cx = x(p.secs), cy = y(p.rate), w = p.name.length * 5.6 + 2, rr = rad(p);
+                for (const [lx, anchor] of [[cx + rr + 3, 'start'], [cx - rr - 3, 'end']]) {
+                    const bx = { x1: anchor === 'start' ? lx : lx - w, x2: anchor === 'start' ? lx + w : lx, y1: cy - 6, y2: cy + 6 };
+                    if (!fits(bx)) continue;
+                    boxes.push(bx);
+                    parts.push(`<text class="sc-name" x="${lx.toFixed(1)}" y="${(cy + 3.5).toFixed(1)}" text-anchor="${anchor}">${escapeHtml(p.name)}</text>`);
+                    break;
+                }
+            }
+            const marks = pts.map(p => ({ cx: x(p.secs), cy: y(p.rate), r: rad(p), lines: [[p.name, '· ' + SCATTER_ZONES[p.zone].name],
+                [`${p.t.right} of ${p.t.n} right`, `(${pctOf(p.t)}%) · typical ${formatDuration(p.secs * 1000)} a question`]] }));
+            const summary = `Speed and accuracy for ${plural(pts.length, 'section')}: ` + Object.keys(SCATTER_ZONES).map(k => `${SCATTER_ZONES[k].name} ${pts.filter(p => p.zone === k).length}`).join(', ') + '. Use the arrow keys to step through them.';
+            box.innerHTML = `
+                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
+                <div class="ov-chart mt-4"><svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg></div>
+                <div class="sc-key mt-3">${pts.map(p => `<span class="sc-chip" style="--sc-c:${sectionColour(p.name)}"><i aria-hidden="true"></i>${escapeHtml(p.name)}</span>`).join('')}</div>
+                <p class="exc-note mt-3">Each dot is a section, sized by its questions in this exam. Across is your typical time on its questions, up is the share right, with unanswered as wrong.${few.length ? ` Too few questions to place: ${escapeHtml(list(few))}.` : ''}</p>`;
+            // the dot under the pointer: the nearest one within reach of its edge
+            wireExamChart(box.querySelector('svg'), marks, (px, py2) => {
+                let best = -1, bestD = Infinity;
+                marks.forEach((mk, i) => { const d = Math.hypot(px - mk.cx, py2 - mk.cy); if (d <= mk.r + 10 && d < bestD) { best = i; bestD = d; } });
+                return best;
+            });
         }
 
         // Task statements, weakest first
@@ -6025,6 +6143,7 @@
             renderExamAdvice(record, rows);
             drawExamDomains(rows);
             drawExamPace(record, rows);
+            drawExamScatter(rows);
             renderExamTasks(rows);
             renderExamKinds(rows);
             renderExamFlags(rows);
@@ -6045,6 +6164,7 @@
                 const rows = examRows(shownResult);
                 drawExamDomains(rows);
                 drawExamPace(shownResult, rows);
+                drawExamScatter(rows);
                 drawExamTrend(shownResult);
             }, 150);
         });
