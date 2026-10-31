@@ -273,6 +273,20 @@
         @keyframes svcUp { from { transform: translateY(32px); opacity: .6; } to { transform: none; opacity: 1; } }
         @keyframes svcFade { from { opacity: 0; } to { opacity: 1; } }
         @media (prefers-reduced-motion: reduce) { #servicesPanel, #servicesScrim { transition: none; animation: none; } }
+        /* The pick sheet: the Services drawer's phone sheet (its scrim, shape, shadow, handle and motion) holding a
+           list of choices, the chosen one ticked as in the Top list page's dropdowns */
+        #pickLayer { position: fixed; inset: 0; z-index: 55; }
+        #pickLayer[hidden] { display: none; }
+        #pickScrim { position: absolute; inset: 0; background: rgba(5, 8, 16, .6); animation: svcFade .18s ease-out; }
+        html:not(.dark) #pickScrim { background: rgba(15, 23, 42, .45); }
+        #pickPanel { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; min-height: 0; max-height: 72vh; outline: none;
+            border-width: 1px 0 0; border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(15, 23, 42, .18); padding-top: 8px;
+            padding-bottom: env(safe-area-inset-bottom); animation: svcUp .2s ease-out; }
+        .pick-list { overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 0 .5rem .75rem; list-style: none; }
+        .pick-list li { position: relative; padding: .75rem .75rem .75rem 2.25rem; border-radius: .625rem; font-size: .9375rem; line-height: 1.35; cursor: pointer; outline: none; }
+        .pick-list li[aria-selected="true"] { font-weight: 600; }
+        .pick-list li[aria-selected="true"]::before { content: "✓"; position: absolute; left: .875rem; }
+        @media (prefers-reduced-motion: reduce) { #pickPanel, #pickScrim { transition: none; animation: none; } }
 
         /* The responsive (lg:/max-lg:) surface variants used by the question card, its mobile
            card styling and the fixed mobile Next bar need the same treatment in both themes --
@@ -442,8 +456,10 @@
         @media (min-width: 640px) { .exr-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
         .exr-stat { border: 1px solid var(--ov-grid); border-radius: .875rem; padding: .625rem .75rem; min-width: 0; }
         .exr-stat .exr-num { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-        .exr-list { display: grid; gap: .5rem; }
-        .exr-q { border: 1px solid var(--ov-grid); border-radius: .875rem; }
+        /* one column that never grows past the card: an opened question's nowrap task badge would otherwise widen
+           its grid track and the whole list with it, and main would scroll sideways on phones */
+        .exr-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+        .exr-q { border: 1px solid var(--ov-grid); border-radius: .875rem; min-width: 0; }
         .exr-q > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .625rem; align-items: start;
             padding: .625rem .75rem; border-radius: calc(.875rem - 1px); transition: background-color .15s; }
         .exr-q > summary::-webkit-details-marker { display: none; }
@@ -463,17 +479,29 @@
         /* the section, its dot in the section's colour as Speed and accuracy draws it; the words stay in ink */
         .exr-chip[data-k="section"] { font-weight: 500; color: var(--ov-ink); background: color-mix(in srgb, var(--sc-c) 14%, transparent); }
         .exr-chip[data-k="section"] i { width: 6px; height: 6px; border-radius: 50%; background: var(--sc-c); flex: none; }
-        /* the Questions list's section filter: a native select dressed as a chip, its chevron an icon over it */
-        .exr-section { position: relative; display: inline-flex; max-width: 100%; }
-        .exr-section select { appearance: none; -webkit-appearance: none; max-width: 100%; padding: .2rem 1.6rem .2rem .6rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
-            background: var(--ov-surface); color: var(--ov-ink); font-size: 11px; text-overflow: ellipsis; cursor: pointer; transition: border-color .15s; }
-        .exr-section select:hover { border-color: var(--ov-muted); }
-        .exr-section select:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
-        .exr-section[data-on] select { border-color: var(--ov-line); background: var(--ov-wash); }
-        .exr-section i { position: absolute; right: .6rem; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--ov-muted); pointer-events: none; }
+        /* the Questions list's section filter: the Top list page's themed dropdown (cheatsheet/top.html .t2-dd) in the
+           Studio's tokens, its open list drawn in the theme rather than by the system; on phones the button opens the
+           pick sheet instead */
+        .exr-dd { position: relative; max-width: 100%; }
+        .exr-dd-btn { position: relative; display: block; max-width: 100%; padding: .2rem 1.75rem .2rem .625rem; border-radius: 8px; border: 1px solid var(--ov-grid);
+            background: var(--ov-surface); color: var(--ov-ink); font-size: 11px; line-height: 1.5; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            cursor: pointer; transition: border-color .15s; }
+        .exr-dd-btn:hover, .exr-dd-btn[aria-expanded="true"] { border-color: var(--ov-line); }
+        .exr-dd-btn:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 1px; }
+        .exr-dd[data-on] .exr-dd-btn { border-color: var(--ov-line); background: var(--ov-wash); }
+        .exr-dd-btn i { position: absolute; right: .625rem; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--ov-muted); }
+        .exr-dd-list { position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; min-width: 100%; width: max-content; max-width: min(340px, calc(100vw - 32px));
+            max-height: min(320px, 60vh); overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--ov-surface); border: 1px solid var(--ov-grid);
+            border-radius: 10px; box-shadow: 0 8px 24px rgba(2, 6, 23, .25); outline: none; }
+        .exr-dd-list[hidden] { display: none; }
+        .exr-dd-list li { position: relative; padding: 6px 10px 6px 26px; border-radius: 6px; font-size: 13px; color: var(--ov-ink); cursor: pointer; }
+        .exr-dd-list li:hover, .exr-dd-list li.active { background: color-mix(in srgb, var(--ov-grid) 70%, transparent); }
+        .exr-dd-list li[aria-selected="true"] { color: var(--ov-line); font-weight: 600; }
+        .exr-dd-list li[aria-selected="true"]::before { content: "✓"; position: absolute; left: 9px; }
         .exr-chev { font-size: 9px; margin-top: .375rem; color: var(--ov-muted); transition: transform .15s; }
         .exr-q[open] .exr-chev { transform: rotate(180deg); }
-        .exr-body { display: grid; gap: .625rem; padding: 0 .75rem .75rem 2.875rem; }
+        .exr-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: .625rem; padding: 0 .75rem .75rem 2.875rem; }
+        .exr-body > div.flex > span { max-width: 100%; }   /* a badge longer than the row shortens with "…" */
         @media (max-width: 639px) { .exr-body { padding-left: .75rem; } }
         /* an opened question in the quiz's style: the same reading sizes as #questionText, #optionsContainer and
            #explanationText at each screen size, and the explanation set off as the quiz's is on desktop */
@@ -1208,6 +1236,20 @@
         </div>
     </div>
 
+    <!-- One choice from a list, as a bottom sheet on phones and tablets (below 1024px), where a dropdown would be
+         cramped: the practice exam results' Section filter opens it. It closes like the Services drawer. Filled by
+         openPickSheet(). -->
+    <div id="pickLayer" hidden>
+        <div id="pickScrim" onclick="closePickSheet()"></div>
+        <div id="pickPanel" role="dialog" aria-modal="true" aria-labelledby="pickTitle" tabindex="-1" class="bg-slate-900 border border-slate-800 shadow-2xl">
+            <button type="button" class="svc-grip" onclick="closePickSheet()" title="Close" aria-label="Close"></button>
+            <div class="svc-head">
+                <h3 id="pickTitle" class="text-sm font-semibold text-slate-200"></h3>
+            </div>
+            <ul id="pickList" class="pick-list" role="listbox" aria-labelledby="pickTitle"></ul>
+        </div>
+    </div>
+
     <div id="confirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-fade-in">
             <div class="flex items-start gap-3">
@@ -1357,7 +1399,7 @@
                     renderRoute();
                 }
                 // Back first closes the Services drawer, which opened as a history step of its own
-                window.addEventListener('popstate', () => { if (servicesOpen) hideServices(); else renderRoute(); });
+                window.addEventListener('popstate', () => { if (servicesOpen) hideServices(); else if (pickOpen) hidePickSheet(); else renderRoute(); });
                 loadOtherBanks();
             });
         });
@@ -5664,15 +5706,12 @@
             const counts = {};
             for (const it of record.items) { const s = examSectionOf(it); if (s) counts[s] = (counts[s] || 0) + 1; }
             if (examResultSection && !counts[examResultSection]) examResultSection = '';
-            const sections = Object.keys(counts).sort(compareDomains);
+            examSectionChoices = [['', 'All sections']].concat(Object.keys(counts).sort(compareDomains).map(s => [s, `${s} (${counts[s]})`]));
             const sectionPick = `
-                <label class="exr-section" title="Show one section's questions">
-                    <select data-section aria-label="Section">
-                        <option value="">All sections</option>${sections.map(s => `
-                        <option value="${escapeHtml(s)}"${s === examResultSection ? ' selected' : ''}>${escapeHtml(s)} (${counts[s]})</option>`).join('')}
-                    </select>
-                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                </label>`;
+                <div class="exr-dd" id="exrSectionDd">
+                    <button type="button" class="exr-dd-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Section" title="Show one section's questions"><span data-label></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                    <ul class="exr-dd-list" role="listbox" tabindex="-1" aria-label="Section" hidden></ul>
+                </div>`;
             const rows = record.items.map((it, i) => {
                 const q = examQuestionOf(it);
                 const [icon, word] = marks[examStatus(it)];
@@ -5701,6 +5740,7 @@
                 <div class="sc-key items-center" role="group" aria-label="Show">${chips}${sectionPick}</div>
                 <div class="exr-list mt-3">${rows}</div>
                 <p id="exrEmpty" class="hidden mt-3 text-sm text-slate-400">No questions here.</p>`;
+            wireExamSectionDd();
             applyExamResultFilter();
             // the priority map arrives after the list on a first visit: its pills are added in place, so a fold
             // opened meanwhile stays open
@@ -5713,6 +5753,74 @@
                 }
             });
         }
+
+        // ---- The Questions list's Section filter ----
+        // The Top list page's themed dropdown on wide screens: a button that opens a list of the sections with their
+        // counts, the chosen one ticked; arrow keys, Home and End move, Enter or Space chooses, and Escape, Tab or a
+        // click elsewhere closes. Below 1024px the button opens the same choices in the pick sheet instead.
+        let examSectionChoices = [];   // [value, text], '' (every section) first
+        let examSectionActive = 0;     // the highlighted choice while the list is open
+
+        function paintExamSectionDd() {
+            const dd = document.getElementById('exrSectionDd');
+            if (!dd) return;
+            dd.querySelector('[data-label]').textContent = examResultSection || 'All sections';
+            if (examResultSection) dd.dataset.on = ''; else delete dd.dataset.on;
+            const list = dd.querySelector('.exr-dd-list');
+            list.innerHTML = examSectionChoices.map(([v, t], i) => `<li role="option" id="exrSec-${i}" data-i="${i}" aria-selected="${v === examResultSection}"${i === examSectionActive ? ' class="active"' : ''}>${escapeHtml(t)}</li>`).join('');
+            list.setAttribute('aria-activedescendant', 'exrSec-' + examSectionActive);
+            const li = list.children[examSectionActive];
+            if (li && !list.hidden) li.scrollIntoView({ block: 'nearest' });
+        }
+
+        function chooseExamSection(value) {
+            examResultSection = value;
+            applyExamResultFilter();
+        }
+
+        function showExamSectionList(open, refocus) {
+            const dd = document.getElementById('exrSectionDd');
+            if (!dd) return;
+            const btn = dd.querySelector('.exr-dd-btn'), list = dd.querySelector('.exr-dd-list');
+            list.hidden = !open;
+            btn.setAttribute('aria-expanded', String(open));
+            if (open) {
+                examSectionActive = Math.max(0, examSectionChoices.findIndex(c => c[0] === examResultSection));
+                paintExamSectionDd();
+                list.focus();
+            } else if (refocus) btn.focus();
+        }
+
+        function wireExamSectionDd() {
+            const dd = document.getElementById('exrSectionDd');
+            const btn = dd.querySelector('.exr-dd-btn'), list = dd.querySelector('.exr-dd-list');
+            examSectionActive = 0;
+            const open = () => {
+                if (WIDE.matches) showExamSectionList(list.hidden);
+                else openPickSheet('Section', examSectionChoices, examResultSection, chooseExamSection, btn);
+            };
+            btn.addEventListener('click', open);
+            btn.addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp'].includes(e.key) && WIDE.matches) { e.preventDefault(); showExamSectionList(true); } });
+            list.addEventListener('click', e => {
+                const li = e.target.closest('li');
+                if (!li) return;
+                showExamSectionList(false, true);
+                chooseExamSection(examSectionChoices[Number(li.dataset.i)][0]);
+            });
+            list.addEventListener('keydown', e => {
+                const last = examSectionChoices.length - 1;
+                const to = { ArrowDown: Math.min(examSectionActive + 1, last), ArrowUp: Math.max(examSectionActive - 1, 0), Home: 0, End: last }[e.key];
+                if (to !== undefined) { e.preventDefault(); examSectionActive = to; paintExamSectionDd(); }
+                else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showExamSectionList(false, true); chooseExamSection(examSectionChoices[examSectionActive][0]); }
+                else if (e.key === 'Escape') { e.preventDefault(); showExamSectionList(false, true); }
+                else if (e.key === 'Tab') showExamSectionList(false);
+            });
+        }
+        // a click anywhere else closes the open list
+        document.addEventListener('pointerdown', e => {
+            const dd = document.getElementById('exrSectionDd');
+            if (dd && !dd.contains(e.target) && !dd.querySelector('.exr-dd-list').hidden) showExamSectionList(false);
+        });
 
         // A question's set letter and id before its text, as the quiz and the mind map name one (α187). Closed, it leads
         // the row's two lines of text; opened, those hide and it leads the full question, so it shows once either way.
@@ -5743,8 +5851,7 @@
                 chip.setAttribute('aria-pressed', String(chip.dataset.filter === examResultFilter));
                 chip.querySelector('[data-count]').innerText = pool.filter(EXAM_RESULT_FILTERS.find(f => f[0] === chip.dataset.filter)[2]).length;
             }
-            const pick = document.querySelector('#exrReview .exr-section');
-            if (examResultSection) pick.dataset.on = ''; else delete pick.dataset.on;
+            paintExamSectionDd();
             document.getElementById('exrEmpty').classList.toggle('hidden', shown > 0);
         }
 
@@ -6176,15 +6283,61 @@
                 : '<p class="text-sm text-slate-400">None of these questions names its task statement.</p>';
         }
 
-        function renderExamKinds(rows) {
-            const diffs = ['easy', 'medium', 'hard'].map(d => [DIFFICULTY[d].label, tallyOf(rows.filter(r => r.diff === d))]).filter(([, t]) => t.n);
-            const types = [['One answer', tallyOf(rows.filter(r => !r.multi))], ['More than one answer', tallyOf(rows.filter(r => r.multi))]].filter(([, t]) => t.n);
-            document.getElementById('exrKinds').innerHTML = `
-                <p class="exs-head">Difficulty</p>
-                <div class="exs-list mt-2">${diffs.map(([label, t]) => shareRow(label, t)).join('')}</div>
-                <p class="exs-head mt-5">Question type</p>
-                <div class="exs-list mt-2">${types.map(([label, t]) => shareRow(label, t)).join('')}</div>
-                <div class="exc-key mt-4">${passKey()}</div>`;
+        // Difficulty and question type: one column chart, Easy, Medium and Hard, then one answer and more than one,
+        // each bar risen to its share right on one 0-100% scale in the Studio's steps (correctTone), with the pass line
+        // across both groups. A kind with no questions in the exam is left out.
+        function drawExamKinds(rows) {
+            const box = document.getElementById('exrKinds');
+            const kind = (label, short, list, group) => ({ label, short, group, t: tallyOf(list), blank: list.filter(r => !r.answered).length });
+            const groups = [
+                ['Difficulty', ['easy', 'medium', 'hard'].map(d => kind(DIFFICULTY[d].label, DIFFICULTY[d].label, rows.filter(r => r.diff === d), 'Difficulty'))],
+                ['Question type', [kind('One answer', 'Single', rows.filter(r => !r.multi), 'Question type'), kind('More than one answer', 'Multiple', rows.filter(r => r.multi), 'Question type')]]
+            ].map(([name, bars]) => [name, bars.filter(b => b.t.n)]).filter(([, bars]) => bars.length);
+            const W = Math.max(260, Math.round(box.clientWidth)), left = 32, top = 18, plotH = 140, H = top + plotH + 56;
+            // a slot per bar, and one empty slot between the groups
+            const slots = groups.reduce((n, [, bars]) => n + bars.length, 0) + groups.length - 1;
+            const slot = (W - left) / slots, bw = Math.min(56, slot * 0.62);
+            const y = s => top + plotH * (1 - s);
+            const passY = y(PASS_SHARE);
+            const fill = (x0, y0, w, h) => {
+                if (h <= 0) return '';
+                const r = Math.min(4, h, w / 2);
+                return `M${x0.toFixed(1)},${(y0 + h).toFixed(1)}V${(y0 + r).toFixed(1)}Q${x0.toFixed(1)},${y0.toFixed(1)} ${(x0 + r).toFixed(1)},${y0.toFixed(1)}H${(x0 + w - r).toFixed(1)}Q${(x0 + w).toFixed(1)},${y0.toFixed(1)} ${(x0 + w).toFixed(1)},${(y0 + r).toFixed(1)}V${(y0 + h).toFixed(1)}Z`;
+            };
+            const parts = [], marks = [], bars = [];
+            // the scale: 0, 50 and 100%
+            for (const v of [0, 0.5, 1]) {
+                parts.push(`<line x1="${left}" x2="${W}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
+                parts.push(`<text x="${left - 6}" y="${(y(v) + 3).toFixed(1)}" text-anchor="end">${v * 100}%</text>`);
+            }
+            let at = 0;
+            for (const [name, list] of groups) {
+                const first = at;
+                for (const b of list) {
+                    const x0 = left + at * slot, cx = x0 + slot / 2, bx = cx - bw / 2, s = shareOf(b.t), pct = pctOf(b.t);
+                    // the value sits on the bar's cap, or just above the pass line when the line would run through it
+                    let labelY = y(s) - 5;
+                    if (passY > labelY - 10 && passY < labelY + 3) labelY = passY - 4;
+                    parts.push(`<rect x="${bx.toFixed(1)}" y="${top}" width="${bw.toFixed(1)}" height="${plotH}" rx="4" fill="var(--ov-grid)" opacity=".6"/>`);
+                    parts.push(`<path d="${fill(bx, y(s), bw, plotH * s)}" fill="${correctTone(pct).fill}"/>`);
+                    parts.push(`<text x="${cx.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" class="sc-strong">${pct}%</text>`);
+                    parts.push(`<text x="${cx.toFixed(1)}" y="${top + plotH + 15}" text-anchor="middle" class="sc-name">${escapeHtml(b.short)}</text>`);
+                    parts.push(`<text x="${cx.toFixed(1)}" y="${top + plotH + 29}" text-anchor="middle">${b.t.right}/${b.t.n}</text>`);
+                    marks.push({ cx, cy: y(s), lines: [[b.label, `· ${b.group}`], [`${b.t.right} of ${b.t.n} right`, `(${pct}%)`]].concat(b.blank ? [[null, `${b.blank} unanswered, counted as wrong`]] : []) });
+                    bars.push({ x1: x0, x2: x0 + slot });
+                    at++;
+                }
+                // the group's name under its bars
+                const gx = left + (first + (at - first) / 2) * slot;
+                parts.push(`<text x="${gx.toFixed(1)}" y="${H - 4}" text-anchor="middle" class="sc-strong">${name}</text>`);
+                at++;
+            }
+            parts.push(`<line x1="${left}" x2="${W}" y1="${passY.toFixed(1)}" y2="${passY.toFixed(1)}" stroke="var(--ov-muted)" stroke-width="1.5" stroke-dasharray="4 4"/>`);
+            const summary = 'Share right by difficulty and question type: ' + groups.flatMap(([, list]) => list).map(b => `${b.label} ${b.t.right} of ${b.t.n}`).join(', ');
+            box.innerHTML = `
+                <div class="ov-chart"><svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg></div>
+                <div class="exc-key mt-3">${passKey()}</div>`;
+            wireExamChart(box.querySelector('svg'), marks, px => bars.findIndex(b => px >= b.x1 && px < b.x2));
         }
 
         // Your exams over time: each exam's projected score, oldest to newest, with the pass mark. A point opens
@@ -6317,7 +6470,7 @@
             drawExamPace(record, rows);
             drawExamScatter(rows);
             renderExamTasks(rows);
-            renderExamKinds(rows);
+            drawExamKinds(rows);
             drawExamTrend(record);
         }
 
@@ -6336,6 +6489,7 @@
                 drawExamDomains(rows);
                 drawExamPace(shownResult, rows);
                 drawExamScatterChart();   // the chart only, so its key, picked dot and open fold stay as they are
+                drawExamKinds(rows);
                 drawExamTrend(shownResult);
             }, 150);
         });
@@ -6344,11 +6498,6 @@
             const chip = e.target.closest('[data-filter]');
             if (!chip) return;
             examResultFilter = chip.dataset.filter;
-            applyExamResultFilter();
-        });
-        document.getElementById('exrReview').addEventListener('change', e => {
-            if (!e.target.matches('[data-section]')) return;
-            examResultSection = e.target.value;
             applyExamResultFilter();
         });
         document.getElementById('exrReview').addEventListener('toggle', e => {
@@ -7876,12 +8025,10 @@
             }
         });
 
-        // Phones: drag the sheet down to close it, from the handle, or from anywhere while its list is scrolled to the
-        // top, and the backdrop fades as it goes. The same rules as the mind map's sheet.
-        (function () {
-            const panel = document.getElementById('servicesPanel');
-            const scrim = document.getElementById('servicesScrim');
-            const list = document.getElementById('servicesList');
+        // Phones: drag a bottom sheet down to close it, from the handle, or from anywhere while its list is scrolled to
+        // the top, and the backdrop fades as it goes. The same rules as the mind map's sheet. `slop` is how far a touch
+        // may move before it counts as a drag, so a sheet whose rows are tapped (the pick sheet) keeps its taps.
+        function sheetDrag(panel, scrim, list, close, slop = 0) {
             let drag = null;
             panel.addEventListener('touchstart', e => {
                 if (WIDE.matches || e.touches.length !== 1 || (list.scrollTop > 0 && !e.target.closest('.svc-grip'))) return;
@@ -7891,6 +8038,7 @@
                 if (!drag) return;
                 const dy = e.touches[0].clientY - drag.y;
                 if (dy < 0 && !drag.dy) { drag = null; return; }   // starting upwards is an ordinary scroll
+                if (!drag.dy && dy <= slop) return;
                 if (e.cancelable) e.preventDefault();
                 drag.dy = Math.max(0, dy);
                 drag.trail = drag.trail.filter(p => e.timeStamp - p.t < 100).concat({ dy: drag.dy, t: e.timeStamp });   // the last 0.1s, for flick speed
@@ -7910,7 +8058,7 @@
                 if (e.type === 'touchend' && (flick || dy > Math.min(120, panel.offsetHeight / 3))) {
                     panel.style.transform = 'translateY(100%)';
                     scrim.style.opacity = '0';
-                    setTimeout(closeServices, 200);
+                    setTimeout(close, 200);
                 } else {
                     panel.style.transform = '';
                     scrim.style.opacity = '';
@@ -7918,7 +8066,73 @@
             };
             panel.addEventListener('touchend', release);
             panel.addEventListener('touchcancel', release);
-        })();
+        }
+        sheetDrag(document.getElementById('servicesPanel'), document.getElementById('servicesScrim'), document.getElementById('servicesList'), () => closeServices());
+
+        // ---- The pick sheet ----
+        // One choice from a list in a bottom sheet (#pickLayer), for phones and tablets. Choosing a row closes it, and so
+        // do the backdrop, the handle, a drag down, Escape and Back: like the Services drawer, opening it is a history
+        // step, so Back closes it rather than leaving the page.
+        let pickOpen = false, pickFocusBack = null, pickChoose = null;
+        function openPickSheet(title, choices, value, onChoose, from) {
+            if (pickOpen) return;
+            pickOpen = true;
+            pickChoose = onChoose;
+            pickFocusBack = from || document.activeElement;
+            document.getElementById('pickTitle').textContent = title;
+            const list = document.getElementById('pickList');
+            list.innerHTML = choices.map(([v, t], i) => `<li role="option" tabindex="0" data-i="${i}" aria-selected="${v === value}" class="${v === value ? 'text-emerald-400' : 'text-slate-200'} hover:bg-slate-800">${escapeHtml(t)}</li>`).join('');
+            list.onclick = e => {
+                const li = e.target.closest('li');
+                if (!li) return;
+                const chosen = choices[Number(li.dataset.i)][0];
+                closePickSheet();
+                pickChoose(chosen);
+            };
+            list.onkeydown = e => {
+                if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('li')) { e.preventDefault(); e.target.click(); }
+            };
+            const layer = document.getElementById('pickLayer'), panel = document.getElementById('pickPanel');
+            panel.style.transform = '';
+            layer.hidden = false;
+            list.scrollTop = 0;
+            if (from) from.setAttribute('aria-expanded', 'true');
+            history.pushState(Object.assign({}, history.state, { pickSheet: true }), '');
+            // the chosen row in view, and focus on it, so the keys start from there
+            const on = list.querySelector('[aria-selected="true"]') || list.firstElementChild;
+            if (on) { on.scrollIntoView({ block: 'nearest' }); on.focus({ preventScroll: true }); } else panel.focus({ preventScroll: true });
+        }
+
+        function closePickSheet() {
+            if (!pickOpen) return;
+            if (history.state && history.state.pickSheet) history.back();
+            else hidePickSheet();
+        }
+
+        function hidePickSheet() {
+            if (!pickOpen) return;
+            pickOpen = false;
+            const panel = document.getElementById('pickPanel'), scrim = document.getElementById('pickScrim');
+            document.getElementById('pickLayer').hidden = true;
+            panel.style.transform = panel.style.transition = scrim.style.opacity = scrim.style.transition = '';
+            if (pickFocusBack && document.contains(pickFocusBack)) {
+                pickFocusBack.setAttribute('aria-expanded', 'false');
+                pickFocusBack.focus({ preventScroll: true });
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (!pickOpen) return;
+            if (e.key === 'Escape') { e.preventDefault(); closePickSheet(); }
+            // focus stays in the sheet: Tab cycles through its handle and rows
+            else if (e.key === 'Tab') {
+                const stops = [...document.querySelectorAll('#pickPanel .svc-grip, #pickList li')];
+                const at = stops.indexOf(document.activeElement);
+                e.preventDefault();
+                stops[(at + (e.shiftKey ? -1 : 1) + stops.length) % stops.length].focus();
+            }
+        });
+        sheetDrag(document.getElementById('pickPanel'), document.getElementById('pickScrim'), document.getElementById('pickList'), () => closePickSheet(), 8);
 
         function handleNextQuestion() {
             const next = currentIndex + 1;
