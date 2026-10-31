@@ -328,6 +328,7 @@
             --ov-grid: #e2e8f0; --ov-ink: #334155; --ov-muted: #64748b;
             --ov-right: #059669; --ov-missed: #e11d48; --ov-unseen: #e2e8f0; --ov-review: #d97706;
             --ov-lean-up: #0d9488; --ov-lean-down: #ea580c;
+            --ov-top: #7c3aed;   /* the ★ Top pill: a purple no section, zone or status uses */
             --sec-0: #4e79a7; --sec-1: #e8771a; --sec-2: #d93f43; --sec-3: #4f9a94; --sec-4: #4a8f41;
             --sec-5: #c9a227; --sec-6: #9c5f8c; --sec-7: #e8748a; --sec-8: #8c6449; --sec-9: #8f8580;
         }
@@ -336,6 +337,7 @@
             --ov-grid: #212739; --ov-ink: #cbd5e1; --ov-muted: #94a3b8;
             --ov-right: #10b981; --ov-missed: #f43f5e; --ov-unseen: #2e3447; --ov-review: #fbbf24;
             --ov-lean-up: #2dd4bf; --ov-lean-down: #fb923c;
+            --ov-top: #c4b5fd;
             --sec-0: #6f9bd1; --sec-1: #f5a04f; --sec-2: #ef7476; --sec-3: #8fd0ca; --sec-4: #7cc26f;
             --sec-5: #f1d35c; --sec-6: #c595b6; --sec-7: #ffb0b8; --sec-8: #b58c74; --sec-9: #c9c0bb;
         }
@@ -454,15 +456,48 @@
         .exr-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .625rem; font-size: 11px; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
         .exr-meta b { color: var(--ov-ink); font-weight: 600; }
         .exr-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: .25rem; font-size: 13px; line-height: 1.5; color: var(--ov-ink); }
-        .exr-q[open] .exr-text { display: block; overflow: visible; }
+        .exr-q[open] .exr-text { display: none; }   /* opened, the question shows in full in the quiz's style below */
         .exr-chip { display: inline-flex; align-items: center; gap: .25rem; padding: 0 .45rem; border-radius: 9999px; font-size: 10px; font-weight: 600; }
         .exr-chip[data-k="flag"] { color: var(--ov-review); background: color-mix(in srgb, var(--ov-review) 14%, transparent); }
-        .exr-chip[data-k="changed"] { color: var(--ov-line); background: var(--ov-wash); }
+        .exr-chip[data-k="top"] { color: var(--ov-top); background: color-mix(in srgb, var(--ov-top) 14%, transparent); }
+        /* the section, its dot in the section's colour as Speed and accuracy draws it; the words stay in ink */
+        .exr-chip[data-k="section"] { font-weight: 500; color: var(--ov-ink); background: color-mix(in srgb, var(--sc-c) 14%, transparent); }
+        .exr-chip[data-k="section"] i { width: 6px; height: 6px; border-radius: 50%; background: var(--sc-c); flex: none; }
+        /* the Questions list's section filter: a native select dressed as a chip, its chevron an icon over it */
+        .exr-section { position: relative; display: inline-flex; max-width: 100%; }
+        .exr-section select { appearance: none; -webkit-appearance: none; max-width: 100%; padding: .2rem 1.6rem .2rem .6rem; border-radius: 9999px; border: 1px solid var(--ov-grid);
+            background: var(--ov-surface); color: var(--ov-ink); font-size: 11px; text-overflow: ellipsis; cursor: pointer; transition: border-color .15s; }
+        .exr-section select:hover { border-color: var(--ov-muted); }
+        .exr-section select:focus-visible { outline: 2px solid var(--ov-line); outline-offset: 2px; }
+        .exr-section[data-on] select { border-color: var(--ov-line); background: var(--ov-wash); }
+        .exr-section i { position: absolute; right: .6rem; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--ov-muted); pointer-events: none; }
         .exr-chev { font-size: 9px; margin-top: .375rem; color: var(--ov-muted); transition: transform .15s; }
         .exr-q[open] .exr-chev { transform: rotate(180deg); }
         .exr-body { display: grid; gap: .625rem; padding: 0 .75rem .75rem 2.875rem; }
         @media (max-width: 639px) { .exr-body { padding-left: .75rem; } }
-        .exr-verdict { font-size: 12px; font-weight: 600; }
+        /* an opened question in the quiz's style: the same reading sizes as #questionText, #optionsContainer and
+           #explanationText at each screen size, and the explanation set off as the quiz's is on desktop */
+        .exr-explain { padding-top: .75rem; border-top: 1px solid var(--ov-grid); }
+        html:not(.dark) .exr-qtext, html:not(.dark) .exr-tldr { color: #0f172a; }
+        @media (max-width: 1023px) {
+            .exr-qtext { font-size: 0.9375rem; line-height: 1.55; }
+            .exr-options > div { padding: 0.85rem; font-size: 0.9375rem; min-height: 3rem; }
+            .exr-expl { font-size: 0.875rem; }
+        }
+        @media (min-width: 1024px) and (min-height: 821px) {
+            .exr-qtext { font-size: 1rem; line-height: 1.65; }
+            .exr-options > div { padding: 0.9rem 1.05rem; font-size: 0.9375rem; line-height: 1.5; }
+            .exr-expl { font-size: 0.875rem; line-height: 1.6; }
+        }
+        @media (min-width: 1024px) and (max-height: 820px) {
+            .exr-qtext { font-size: 0.9375rem; line-height: 1.55; }
+            .exr-options > div { padding: 0.5rem 0.75rem; font-size: 0.8125rem; line-height: 1.35; }
+            .exr-expl { font-size: 0.78rem; line-height: 1.45; }
+        }
+        @media (min-width: 1024px) and (max-height: 700px) {
+            .exr-options > div { padding: 0.4rem 0.65rem; font-size: 0.78rem; line-height: 1.3; }
+            .exr-expl { font-size: 0.72rem; line-height: 1.4; }
+        }
         /* The results' cards sit 1.5rem apart, as the overview's do */
         #exrPane { gap: 1.5rem; }
         /* Share-right bars: a track, a fill coloured by the Studio's pass steps, and a dashed tick at the pass line */
@@ -474,10 +509,6 @@
         .exs-track > span { display: block; height: 100%; border-radius: 9999px; }
         .exs-track::after { content: ""; position: absolute; left: var(--pass); top: -3px; bottom: -3px; border-left: 1.5px dashed var(--ov-muted); }
         .exs-head { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ov-muted); }
-        .exs-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
-        .exs-stats > div { border: 1px solid var(--ov-grid); border-radius: .75rem; padding: .5rem .625rem; min-width: 0; }
-        .exs-stats b { display: block; font-size: 1.125rem; font-weight: 600; color: var(--ov-ink); }
-        .exs-stats span { font-size: 11px; color: var(--ov-muted); }
         /* chart keys and the line under a chart */
         .exc-key { display: flex; flex-wrap: wrap; gap: .375rem 1rem; font-size: 11px; color: var(--ov-muted); }
         .exc-key > span { display: inline-flex; align-items: center; gap: .375rem; }
@@ -1017,16 +1048,10 @@
                         <h3 class="text-lg font-bold">Task statements</h3>
                         <div id="exrTasks" class="mt-4"></div>
                     </section>
-                    <div class="ov-col">
-                        <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                            <h3 class="text-lg font-bold">Difficulty and question type</h3>
-                            <div id="exrKinds" class="mt-4"></div>
-                        </section>
-                        <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-                            <h3 class="text-lg font-bold">Flags and changed answers</h3>
-                            <div id="exrFlags" class="mt-4"></div>
-                        </section>
-                    </div>
+                    <section class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="text-lg font-bold">Difficulty and question type</h3>
+                        <div id="exrKinds" class="mt-4"></div>
+                    </section>
                 </div>
                 <section id="exrTrendCard" class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
                     <h3 class="text-lg font-bold">Your exams over time</h3>
@@ -4889,16 +4914,20 @@
         // A bank's ▶ starts its top-questions quiz: the ones not done yet first, then the done ones, each in priority order.
         // The card stays hidden if the file can't be read.
         let topIds = null, topLoad = null, topSize = 100;   // bank key -> question ids in priority order, once read
+        // reads the map once, for this card and for the practice exam results' Top pills
+        function loadTop() {
+            topLoad = topLoad || fetch('./sets/priority-map.json', { cache: 'no-cache' }).then(res => res.json())
+                .then(data => {
+                    topIds = {};
+                    if (Number.isInteger(data.top) && data.top > 0) topSize = data.top;
+                    for (const e of data.questions.filter(e => e.priority <= topSize).sort((a, b) => a.priority - b.priority)) (topIds[e.bank] = topIds[e.bank] || []).push(e.id);
+                })
+                .catch(() => { topIds = {}; });
+            return topLoad;
+        }
         function renderTop(banks) {
             if (!topIds) {
-                topLoad = topLoad || fetch('./sets/priority-map.json', { cache: 'no-cache' }).then(res => res.json())
-                    .then(data => {
-                        topIds = {};
-                        if (Number.isInteger(data.top) && data.top > 0) topSize = data.top;
-                        for (const e of data.questions.filter(e => e.priority <= topSize).sort((a, b) => a.priority - b.priority)) (topIds[e.bank] = topIds[e.bank] || []).push(e.id);
-                    })
-                    .catch(() => { topIds = {}; });
-                topLoad.then(() => { if (parseRoute().name === 'overview') renderTop(loadedBanks()); });
+                loadTop().then(() => { if (parseRoute().name === 'overview') renderTop(loadedBanks()); });
                 return;
             }
             const rows = banks.map(b => {
@@ -5208,7 +5237,8 @@
                 alertBox("Some of the exam's questions couldn't be read, so it can't go on yet. It is saved: try again in a moment, or abandon it.");
                 return;
             }
-            for (const id of ['dashboardView', 'quizView', 'summaryView', 'overviewView']) document.getElementById(id).classList.add('hidden');
+            // the list of exams too, since its Start and Resume buttons lead here
+            for (const id of ['dashboardView', 'quizView', 'summaryView', 'overviewView', 'examResultView']) document.getElementById(id).classList.add('hidden');
             document.getElementById('examView').classList.remove('hidden');
             renderPageTabs(null);
             document.getElementById('bankLabel').classList.add('hidden');   // the exam draws on every set
@@ -5470,15 +5500,16 @@
         }
 
         const examStatus = it => (it.a ? (it.r ? 'right' : 'wrong') : 'open');
-        const examChanged = it => !!(it.a && it.f && it.f.join() !== it.a.join());
         const EXAM_RESULT_FILTERS = [
             ['all', 'All', () => true],
             ['wrong', 'Wrong', it => examStatus(it) === 'wrong'],
             ['open', 'Unanswered', it => !it.a],
-            ['flag', 'Flagged', it => it.fl],
-            ['changed', 'Changed', examChanged]
+            ['flag', 'Flagged', it => it.fl]
         ];
         let examResultFilter = 'all';
+        let examResultSection = '';   // the Questions list's section, '' for every section
+        // a question's section in the results: its Studio section, or null when the question can't be read
+        const examSectionOf = it => { const q = examQuestionOf(it); return q ? q.domain || 'General AWS' : null; };
         let shownResult = null;   // the record on screen
 
         async function showExamResult(id) {
@@ -5495,7 +5526,7 @@
                 if (now.name !== 'exam-result' || now.id !== id) return;
             }
             showExamResultsView('result');
-            if (!shownResult || shownResult.id !== record.id) examResultFilter = 'all';
+            if (!shownResult || shownResult.id !== record.id) { examResultFilter = 'all'; examResultSection = ''; }
             shownResult = record;
             renderExamResult(record);
             document.querySelector('main').scrollTo(0, 0);
@@ -5627,10 +5658,21 @@
         function renderExamResultList(record) {
             const box = document.getElementById('exrReview');
             const marks = { right: ['fa-check', 'Right'], wrong: ['fa-xmark', 'Wrong'], open: ['fa-minus', 'Unanswered'] };
-            const chips = EXAM_RESULT_FILTERS.map(([key, label, test]) => {
-                const n = record.items.filter(test).length;
-                return `<button type="button" class="sc-chip" data-filter="${key}" aria-pressed="${key === examResultFilter}" style="--sc-c:var(--ov-line)">${label} <span class="text-slate-500">${n}</span></button>`;
-            }).join('');
+            // the status chips count within the chosen section (applyExamResultFilter fills them in)
+            const chips = EXAM_RESULT_FILTERS.map(([key, label]) =>
+                `<button type="button" class="sc-chip" data-filter="${key}" aria-pressed="${key === examResultFilter}" style="--sc-c:var(--ov-line)">${label} <span class="text-slate-500" data-count></span></button>`).join('');
+            const counts = {};
+            for (const it of record.items) { const s = examSectionOf(it); if (s) counts[s] = (counts[s] || 0) + 1; }
+            if (examResultSection && !counts[examResultSection]) examResultSection = '';
+            const sections = Object.keys(counts).sort(compareDomains);
+            const sectionPick = `
+                <label class="exr-section" title="Show one section's questions">
+                    <select data-section aria-label="Section">
+                        <option value="">All sections</option>${sections.map(s => `
+                        <option value="${escapeHtml(s)}"${s === examResultSection ? ' selected' : ''}>${escapeHtml(s)} (${counts[s]})</option>`).join('')}
+                    </select>
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </label>`;
             const rows = record.items.map((it, i) => {
                 const q = examQuestionOf(it);
                 const [icon, word] = marks[examStatus(it)];
@@ -5639,16 +5681,16 @@
                 const set = BANKS[it.b] ? BANKS[it.b].label : it.b;
                 const gone = bankQuestions[it.b] ? 'No longer in ' + set : set + " couldn't be read, so this question can't be shown";
                 if (!q) return `<div class="exr-q" data-i="${i}"><div class="exr-meta" style="padding:.625rem .75rem"><b>${i + 1}</b><span>${escapeHtml(gone)}</span></div></div>`;
-                const tags = [];
+                // the closed row: what helps to scan the list; the quiz's badges show once it is opened
+                const tags = [examTopPill(it)];
                 if (it.fl) tags.push('<span class="exr-chip" data-k="flag"><i class="fa-solid fa-flag"></i>Flagged</span>');
-                if (examChanged(it)) tags.push(`<span class="exr-chip" data-k="changed">Changed from ${escapeHtml(it.f.join(', '))}</span>`);
                 return `
                     <details class="exr-q" data-i="${i}">
                         <summary>
                             ${mark}
                             <span class="min-w-0 block">
-                                <span class="exr-meta"><b>${i + 1}</b><span>${escapeHtml(q.domain || 'General AWS')}</span><span title="Time on this question">${formatDuration(it.s * 1000)}</span>${tags.join('')}</span>
-                                <span class="exr-text">${escapeHtml(q.question)}</span>
+                                <span class="exr-meta"><b>${i + 1}</b><span class="exr-chip" data-k="section" style="--sc-c:${sectionColour(q.domain || 'General AWS')}"><i aria-hidden="true"></i>${escapeHtml(q.domain || 'General AWS')}</span><span title="Time on this question">${formatDuration(it.s * 1000)}</span>${tags.join('')}</span>
+                                <span class="exr-text">${examRefHtml(it)}${escapeHtml(q.question)}</span>
                             </span>
                             <i class="fa-solid fa-chevron-down exr-chev" aria-hidden="true"></i>
                         </summary>
@@ -5656,29 +5698,69 @@
                     </details>`;
             }).join('');
             box.innerHTML = `
-                <div class="sc-key" role="group" aria-label="Show">${chips}</div>
+                <div class="sc-key items-center" role="group" aria-label="Show">${chips}${sectionPick}</div>
                 <div class="exr-list mt-3">${rows}</div>
                 <p id="exrEmpty" class="hidden mt-3 text-sm text-slate-400">No questions here.</p>`;
             applyExamResultFilter();
+            // the priority map arrives after the list on a first visit: its pills are added in place, so a fold
+            // opened meanwhile stays open
+            if (!topIds) loadTop().then(() => {
+                if (shownResult !== record) return;
+                for (const fold of box.querySelectorAll('details.exr-q')) {
+                    const pill = examTopPill(record.items[Number(fold.dataset.i)]);
+                    const meta = fold.querySelector('.exr-meta');
+                    if (pill && !meta.querySelector('[data-k="top"]')) meta.querySelector('[title="Time on this question"]').insertAdjacentHTML('afterend', pill);
+                }
+            });
+        }
+
+        // A question's set letter and id before its text, as the quiz and the mind map name one (α187). Closed, it leads
+        // the row's two lines of text; opened, those hide and it leads the full question, so it shows once either way.
+        function examRefHtml(it) {
+            const set = BANKS[it.b];
+            return `<small class="q-num" title="${escapeHtml(set ? set.label : it.b)}, question ${it.id}">${escapeHtml((set ? set.symbol : '') + it.id)}</small> `;
+        }
+
+        // "★ Top 100" on a question in the priority map's top list, the overview's ★ Top card; '' otherwise, or
+        // while the map is still being read
+        function examTopPill(it) {
+            if (!topIds || !(topIds[it.b] || []).includes(it.id)) return '';
+            return `<span class="exr-chip" data-k="top" title="One of the ${topSize} questions to study first, as in the overview's ★ Top card">★ Top ${topSize}</span>`;
         }
 
         function applyExamResultFilter() {
             const record = shownResult;
             const test = (EXAM_RESULT_FILTERS.find(f => f[0] === examResultFilter) || EXAM_RESULT_FILTERS[0])[2];
+            const inSection = it => !examResultSection || examSectionOf(it) === examResultSection;
             let shown = 0;
             for (const el of document.querySelectorAll('#exrReview .exr-q')) {
-                const on = test(record.items[Number(el.dataset.i)]);
+                const it = record.items[Number(el.dataset.i)], on = inSection(it) && test(it);
                 el.classList.toggle('hidden', !on);
                 if (on) shown++;
             }
-            for (const chip of document.querySelectorAll('#exrReview [data-filter]')) chip.setAttribute('aria-pressed', String(chip.dataset.filter === examResultFilter));
+            const pool = record.items.filter(inSection);
+            for (const chip of document.querySelectorAll('#exrReview [data-filter]')) {
+                chip.setAttribute('aria-pressed', String(chip.dataset.filter === examResultFilter));
+                chip.querySelector('[data-count]').innerText = pool.filter(EXAM_RESULT_FILTERS.find(f => f[0] === chip.dataset.filter)[2]).length;
+            }
+            const pick = document.querySelector('#exrReview .exr-section');
+            if (examResultSection) pick.dataset.on = ''; else delete pick.dataset.on;
             document.getElementById('exrEmpty').classList.toggle('hidden', shown > 0);
         }
 
-        // A question's answer, as a quiz shows it after answering: the right option(s) green, a wrong pick red with
-        // its reason, then the takeaway and the explanation
+        // An opened question, styled as the quiz shows one after answering, in one column: the question with its key
+        // phrases marked and its set and id, the quiz's badges (difficulty, pillars, task statement), "Select n answers",
+        // the options (the right ones green, a wrong pick red with its reason), then the quiz's verdict, the takeaway
+        // and the explanation
         function examAnswerHtml(it, q) {
             const keys = correctKeysOf(q), picked = it.a || [], multi = keys.length > 1;
+            const badges = [];
+            const diff = DIFFICULTY[String(q.difficulty || '').toLowerCase()];
+            if (diff) badges.push(`<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${diff.cls}">${diff.label}</span>`);
+            const pillars = pillarsOf(q);
+            if (pillars.length) badges.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300" title="Well-Architected pillars"><i class="fa-solid fa-building-columns text-aws-orange text-[9px]"></i>${escapeHtml(pillars.join(' · '))}</span>`);
+            const task = taskOf(q);
+            if (task) badges.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 min-w-0" title="Task statement ${task}: ${escapeHtml(EXAM_TASKS[task])}"><i class="fa-solid fa-list-check text-aws-orange text-[9px]"></i><span class="font-mono">${task}</span><span class="truncate min-w-0">${escapeHtml(EXAM_TASKS[task])}</span></span>`);
             const options = Object.entries(q.options).map(([key, value]) => {
                 const state = keys.includes(key) ? 'correct' : picked.includes(key) ? 'wrong' : 'dim';
                 const reason = state === 'wrong' && q.wrong_reasons ? q.wrong_reasons[key] : null;
@@ -5686,16 +5768,22 @@
                     + `<span class="flex-1 min-w-0"><span class="leading-relaxed block">${escapeHtml(value)}</span>`
                     + (reason ? `<span class="opt-reason text-xs" style="display:block">${escapeHtml(reason)}</span>` : '') + '</span></div>';
             }).join('');
-            const answer = keys.join(' and ');
-            const verdict = !it.a ? `<span class="text-slate-400">Not answered. The answer is ${answer}.</span>`
-                : it.r ? `<span class="text-emerald-400">You answered ${it.a.join(' and ')}, which is right.</span>`
-                : `<span class="text-rose-400">You answered ${it.a.join(' and ')}. The answer is ${answer}.</span>`;
+            // the quiz's verdict; an unanswered question has its own, in grey
+            const which = multi ? 'answers are ' + keys.join(' and ') : 'answer is ' + keys[0];
+            const verdict = !it.a ? `<i class="fa-solid fa-circle-minus text-slate-500 text-base"></i><span class="text-slate-400">Not answered. The correct ${which}.</span>`
+                : it.r ? '<i class="fa-solid fa-circle-check text-emerald-500 text-base"></i><span class="text-emerald-600 dark:text-emerald-400">Correct Answer</span>'
+                : `<i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i><span class="text-rose-600 dark:text-rose-400">Incorrect. The correct ${which}.</span>`;
             const bullets = [].concat(q.explanation || []);
             return `
-                <p class="exr-verdict">${verdict}</p>
-                <div class="space-y-2">${options}</div>
-                ${q.tldr ? `<p class="text-sm font-medium text-slate-200">${escapeHtml(q.tldr)}</p>` : ''}
-                ${bullets.length ? `<ul class="list-disc pl-4 space-y-1.5 text-[13px] text-slate-300 leading-relaxed">${bullets.map(b => '<li>' + escapeHtml(b) + '</li>').join('')}</ul>` : ''}`;
+                <h4 class="exr-qtext text-sm leading-relaxed text-white">${examRefHtml(it)}${highlightKeywords(q.question, q.keywords)}</h4>
+                ${badges.length ? `<div class="flex items-center flex-wrap gap-x-3 gap-y-1">${badges.join('')}</div>` : ''}
+                ${multi ? `<p class="text-xs font-semibold text-emerald-400 -mb-1">Select ${keys.length} answers</p>` : ''}
+                <div class="exr-options space-y-2">${options}</div>
+                <div class="exr-explain space-y-2">
+                    <div class="flex items-center space-x-2 font-semibold text-sm">${verdict}</div>
+                    ${q.tldr ? `<p class="exr-tldr text-sm font-medium text-white">${escapeHtml(q.tldr)}</p>` : ''}
+                    ${bullets.length ? `<ul class="exr-expl list-disc pl-4 space-y-1.5 text-[13px] text-slate-300 leading-relaxed">${bullets.map(b => '<li>' + escapeHtml(b) + '</li>').join('')}</ul>` : ''}
+                </div>`;
         }
 
         // ---- What the results say: charts and advice ----
@@ -5707,11 +5795,9 @@
                 const q = examQuestionOf(it);
                 if (!q) return null;
                 const keys = correctKeysOf(q);
-                const isRight = a => !!a && a.length === keys.length && a.every(k => keys.includes(k));
                 return {
                     i, q, dom: String(examDomainOf(q)), task: taskOf(q), diff: String(q.difficulty || '').toLowerCase(),
                     multi: keys.length > 1, answered: !!it.a, right: !!it.r, flagged: !!it.fl, secs: it.s || 0,
-                    firstRight: it.f ? isRight(it.f) : null, changed: examChanged(it),
                     services: [...new Set((Array.isArray(q.services) ? q.services : []).map(t => t.split(TAG_SEP)[0]))]
                 };
             }).filter(Boolean);
@@ -5850,41 +5936,100 @@
             wireExamChart(box.querySelector('svg'), marks, px => Math.floor((px - left) / slot));
         }
 
-        // Speed and accuracy: each section of the Studio (Compute & Serverless, …) a dot at your typical (median)
-        // time on its questions in this exam and its share right, unanswered as wrong. It reads like the overview's
-        // chart of the same name: its zones (SCATTER_ZONES), section colours, dot sizes and dashed lines at the
-        // two-minute target and the pass line, with both axes zoomed to the dots.
-        const EXAM_SCATTER_MIN = 2;   // questions a section needs in the exam to be placed
+        // Speed and accuracy: the overview's chart of the same name for this exam alone. Each service in the exam is a
+        // dot: across, your typical (median) time on its questions; up, its share right, unanswered as wrong, steadied
+        // toward your exam average as the overview steadies its rates (FOREST_PRIOR), since a service has only a few
+        // questions in one exam. The target time and the pass line cut it into the overview's zones (SCATTER_ZONES). A
+        // dot takes its section's colour and its size from its questions; a section in the key can be picked out, and
+        // a dot picked for its figures and a Practise button. Features fold into their service.
+        const EXAM_SCATTER_MIN = 2;   // questions a service needs in the exam to be placed
+        let examScatter = null;       // what drawExamScatterChart() draws: { id (the exam), points, section, selected }
+
         function drawExamScatter(rows) {
             const box = document.getElementById('exrScatter');
-            const bySection = {};
-            for (const r of rows) {
-                const name = r.q.domain || 'General AWS';
-                (bySection[name] = bySection[name] || []).push(r);
+            const svc = {};
+            for (const r of rows) for (const s of r.services) {
+                const e = svc[s] || (svc[s] = { list: [], domains: {} });
+                e.list.push(r);
+                const d = r.q.domain || 'General AWS';
+                e.domains[d] = (e.domains[d] || 0) + 1;
             }
-            const pts = [], few = [];
-            for (const [name, list] of Object.entries(bySection)) {
-                const timed = list.filter(r => r.secs > 0 && r.secs <= AWAY_SECONDS).map(r => r.secs);
-                if (list.length < EXAM_SCATTER_MIN || !timed.length) { few.push(name); continue; }
-                const t = tallyOf(list), rate = shareOf(t), secs = median(timed);
-                pts.push({ name, t, rate, secs, zone: rate >= PASS_SHARE ? (secs <= TARGET_SECONDS ? 'solid' : 'slow') : (secs <= TARGET_SECONDS ? 'rushing' : 'gap') });
+            const overall = Math.min(0.95, Math.max(0.05, shareOf(tallyOf(rows))));
+            const points = [];
+            let few = 0, untimed = 0;   // services left out: one question in the exam; no time that counts as reading
+            for (const [name, e] of Object.entries(svc)) {
+                const timed = e.list.filter(r => r.secs > 0 && r.secs <= AWAY_SECONDS).map(r => r.secs);
+                if (e.list.length < EXAM_SCATTER_MIN) { few++; continue; }
+                if (!timed.length) { untimed++; continue; }
+                const t = tallyOf(e.list), secs = median(timed);
+                const rate = (FOREST_PRIOR * overall + t.right) / (FOREST_PRIOR + t.n);
+                const section = Object.keys(e.domains).sort((a, b) => e.domains[b] - e.domains[a] || compareDomains(a, b))[0];
+                const zone = rate >= PASS_SHARE ? (secs <= TARGET_SECONDS ? 'solid' : 'slow') : (secs <= TARGET_SECONDS ? 'rushing' : 'gap');
+                points.push({ name, section, t, rate, secs, zone, timed: timed.length, blank: e.list.filter(r => !r.answered).length });
             }
-            if (!pts.length) {
-                box.innerHTML = '<p class="text-sm text-slate-400">No section had enough timed questions in this exam to place.</p>';
+            // the picked section and dot survive a redraw of the same exam
+            const id = shownResult ? shownResult.id : null, same = examScatter && examScatter.id === id;
+            examScatter = {
+                id, points,
+                section: same && points.some(p => p.section === examScatter.section) ? examScatter.section : null,
+                selected: same && points.some(p => p.name === examScatter.selected) ? examScatter.selected : null
+            };
+
+            const target = formatDuration(TARGET_SECONDS * 1000), passPct = Math.round(PASS_SHARE * 100);
+            const need = `a service is placed once it has ${EXAM_SCATTER_MIN} questions in the exam`;
+            if (!points.length) {
+                box.innerHTML = `<p class="text-sm text-slate-400">No service had enough timed questions in this exam to place: ${need}.</p>`;
                 return;
             }
-            pts.sort((a, b) => compareDomains(a.name, b.name));
+            // a sentence per zone, the ones worth acting on first
             const list = arr => arr.length > 2 ? arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length - 1] : arr.join(' and ');
-            const named = zone => list(pts.filter(p => p.zone === zone).map(p => `<span class="text-slate-200 font-semibold">${escapeHtml(p.name)}</span>`));
-            const target = formatDuration(TARGET_SECONDS * 1000);
+            const names = zone => {
+                const all = points.filter(p => p.zone === zone).sort((a, b) => b.t.n - a.t.n || a.name.localeCompare(b.name)).map(p => escapeHtml(p.name));
+                const shown = all.length > 4 ? all.slice(0, 3).concat(`${all.length - 3} more`) : all;
+                return all.length ? `<span class="text-slate-200 font-semibold">${list(shown)}</span>` : '';
+            };
             const said = [];
-            const say = (k, rest) => { if (named(k)) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES[k].colour}">${SCATTER_ZONES[k].name}</b>: ${named(k)}${rest}`); };
+            const say = (k, rest) => { if (names(k)) said.push(`<b class="sc-zone" style="--sc-c:${SCATTER_ZONES[k].colour}">${SCATTER_ZONES[k].name}</b>: ${names(k)}${rest}`); };
             say('gap', ', slow and often missed, so the topic itself needs work.');
             say('rushing', ', quick but often missed, so read these for the trap before answering.');
             say('slow', `, right but past ${target}, so drill these for speed.`);
             say('solid', '.');
 
-            const W = Math.max(260, Math.round(box.clientWidth)), H = W < 500 ? 280 : 300;
+            const sections = [...new Set(points.map(p => p.section))].sort(compareDomains);
+            box.innerHTML = `
+                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
+                <div id="exrScatterChart" class="ov-chart mt-4"></div>
+                <div class="ws-row mt-3" id="exrScatterKey">
+                    <div class="sc-key ws-scroll" role="group" aria-label="Pick out a section">${sections.map(s => `
+                        <button type="button" class="sc-chip" data-section="${escapeHtml(s)}" aria-pressed="${s === examScatter.section}" style="--sc-c:${sectionColour(s)}"><i aria-hidden="true"></i>${escapeHtml(s)}</button>`).join('')}
+                    </div>
+                </div>
+                <div id="exrScatterPick" class="mt-3"></div>
+                <details class="mt-4">
+                    <summary class="text-xs text-slate-400 hover:text-slate-300 cursor-pointer select-none">How this is worked out</summary>
+                    <p class="mt-2 text-[11px] text-slate-500 leading-relaxed">Each dot is a service in this exam, coloured by the section most of its questions here are in and sized by how many there were. Across is your typical time on its questions, up is its share right with unanswered as wrong, steadied toward your ${Math.round(overall * 100)}% for the whole exam, since one exam holds only a few of each service's questions. A question counts toward every service it is tagged with. The dashed lines are the ${target} target and the ${passPct}% pass line, and both axes zoom to where your dots are. ${need[0].toUpperCase() + need.slice(1)}${few ? `, so ${plural(few, 'service')} with one question ${few === 1 ? 'is' : 'are'} left out` : ''}.${untimed ? ` ${plural(untimed, 'service')} ${untimed === 1 ? 'has' : 'have'} no time that counts (over ${Math.round(AWAY_SECONDS / 60)} minutes on a question is taken as a break), so ${untimed === 1 ? 'it is' : 'they are'} left out too.` : ''} Tap a dot for its numbers, or a section to pick it out.</p>
+                </details>`;
+            box.querySelector('.sc-key').onclick = e => {
+                const chip = e.target.closest('.sc-chip');
+                if (!chip) return;
+                examScatter.section = examScatter.section === chip.dataset.section ? null : chip.dataset.section;
+                for (const c of box.querySelectorAll('.sc-chip')) c.setAttribute('aria-pressed', String(c.dataset.section === examScatter.section));
+                drawExamScatterChart();
+            };
+            fadeEdges(document.getElementById('exrScatterKey'));
+            document.getElementById('exrScatterPick').onclick = e => {
+                const b = e.target.closest('.ov-practise');
+                if (b) practiseTag(b.dataset.bank, b.dataset.tag);
+            };
+            drawExamScatterChart();
+        }
+
+        // The chart, drawn to its holder's width, as the overview's drawScatter() draws its own
+        function drawExamScatterChart() {
+            const holder = document.getElementById('exrScatterChart');
+            if (!examScatter || !holder) return;
+            const pts = examScatter.points;
+            const W = Math.max(260, Math.round(holder.clientWidth)), H = W < 500 ? 280 : 300;
             const m = { top: 20, right: 14, bottom: 34, left: 38 };
             const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
             const secs = pts.map(p => p.secs), rates = pts.map(p => p.rate);
@@ -5894,9 +6039,10 @@
             const yHi = Math.min(1, Math.ceil((Math.max(...rates, PASS_SHARE) + 0.08) * 10) / 10);
             const x = s => m.left + (Math.min(Math.max(s, xLo), xHi) - xLo) / (xHi - xLo) * iw;
             const y = v => m.top + ih - (v - yLo) / (yHi - yLo) * ih;
-            const rad = p => 4 + Math.min(7, Math.sqrt(p.t.n) * 1.4);
+            const rad = p => 4 + Math.min(7, Math.sqrt(p.t.n) * 2);
             const tx = x(TARGET_SECONDS), py = y(PASS_SHARE);
             const parts = [];
+            // the zones, faintly tinted, each named in its outer corner
             const zone = (k, x1, y1, x2, y2) => parts.push(`<rect x="${x1.toFixed(1)}" y="${y1.toFixed(1)}" width="${(x2 - x1).toFixed(1)}" height="${(y2 - y1).toFixed(1)}" fill="${SCATTER_ZONES[k].colour}" fill-opacity=".08"/>`);
             zone('solid', m.left, m.top, tx, py);
             zone('slow', tx, m.top, W - m.right, py);
@@ -5907,6 +6053,7 @@
             zoneLabel('slow', W - m.right - 6, m.top + 14, 'end');
             zoneLabel('rushing', m.left + 6, m.top + ih - 6, 'start');
             zoneLabel('gap', W - m.right - 6, m.top + ih - 6, 'end');
+            // grid and axes
             const yStep = yHi - yLo <= 0.6 ? 0.1 : 0.25;
             for (let v = Math.ceil(yLo / yStep - 1e-9) * yStep; v <= yHi + 1e-9; v += yStep) {
                 parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--ov-grid)" stroke-width="1"/>`);
@@ -5920,13 +6067,17 @@
             parts.push(`<line x1="${m.left}" x2="${W - m.right}" y1="${py.toFixed(1)}" y2="${py.toFixed(1)}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
             parts.push(`<text x="${W - m.right - 6}" y="${(py - 5).toFixed(1)}" text-anchor="end">${Math.round(PASS_SHARE * 100)}% pass</text>`);
             parts.push(`<line x1="${tx.toFixed(1)}" x2="${tx.toFixed(1)}" y1="${m.top}" y2="${m.top + ih}" stroke="var(--ov-muted)" stroke-width="1" stroke-dasharray="4 4"/>`);
-            parts.push(`<text x="${tx.toFixed(1)}" y="${m.top + ih + 14}" text-anchor="middle" class="sc-strong">${target} target</text>`);
+            parts.push(`<text x="${tx.toFixed(1)}" y="${m.top + ih + 14}" text-anchor="middle" class="sc-strong">${formatDuration(TARGET_SECONDS * 1000)} target</text>`);
             parts.push(`<text x="${W - m.right}" y="${H - 4}" text-anchor="end">typical time a question →</text>`);
             parts.push('<text x="0" y="9">↑ right</text>');
-            // the dots, biggest first so small ones stay on top, each with a surface ring
+            // the dots, biggest first so small ones stay on top; a picked section dims the rest
             const order = pts.slice().sort((a, b) => b.t.n - a.t.n);
-            for (const p of order) parts.push(`<circle cx="${x(p.secs).toFixed(1)}" cy="${y(p.rate).toFixed(1)}" r="${rad(p).toFixed(1)}" fill="${sectionColour(p.name)}" stroke="var(--ov-surface)" stroke-width="1.5"/>`);
-            // names beside the dots where they fit, clear of the zone and pass labels and of every dot; the key below names the rest
+            for (const p of order) {
+                const dim = examScatter.section && p.section !== examScatter.section;
+                parts.push(`<circle class="sc-dot" cx="${x(p.secs).toFixed(1)}" cy="${y(p.rate).toFixed(1)}" r="${rad(p).toFixed(1)}" fill="${sectionColour(p.section)}" stroke="var(--ov-surface)" stroke-width="1.5"${dim ? ' opacity=".15"' : ''}/>`);
+            }
+            // names beside the dots where they fit, clear of the zone and pass labels and of every dot, the most
+            // asked first; a picked section's names always try first
             const boxes = [
                 { x1: W - m.right - 56, x2: W - m.right, y1: py - 15, y2: py - 1 },
                 { x1: m.left, x2: m.left + 40, y1: m.top, y2: m.top + 20 },
@@ -5937,7 +6088,9 @@
             const fits = bx => bx.x1 >= m.left && bx.x2 <= W - m.right && bx.y1 >= m.top && bx.y2 <= m.top + ih
                 && !boxes.some(o => bx.x1 < o.x2 && bx.x2 > o.x1 && bx.y1 < o.y2 && bx.y2 > o.y1)
                 && !pts.some(o => { const ox = x(o.secs), oy = y(o.rate), rr = rad(o); return ox + rr > bx.x1 && ox - rr < bx.x2 && oy + rr > bx.y1 && oy - rr < bx.y2; });
-            for (const p of order) {
+            const labelled = order.slice().sort((a, b) => (examScatter.section ? (b.section === examScatter.section) - (a.section === examScatter.section) : 0) || b.t.n - a.t.n);
+            for (const p of labelled) {
+                if (examScatter.section && p.section !== examScatter.section) continue;
                 const cx = x(p.secs), cy = y(p.rate), w = p.name.length * 5.6 + 2, rr = rad(p);
                 for (const [lx, anchor] of [[cx + rr + 3, 'start'], [cx - rr - 3, 'end']]) {
                     const bx = { x1: anchor === 'start' ? lx : lx - w, x2: anchor === 'start' ? lx + w : lx, y1: cy - 6, y2: cy + 6 };
@@ -5947,20 +6100,69 @@
                     break;
                 }
             }
-            const marks = pts.map(p => ({ cx: x(p.secs), cy: y(p.rate), r: rad(p), lines: [[p.name, '· ' + SCATTER_ZONES[p.zone].name],
-                [`${p.t.right} of ${p.t.n} right`, `(${pctOf(p.t)}%) · typical ${formatDuration(p.secs * 1000)} a question`]] }));
-            const summary = `Speed and accuracy for ${plural(pts.length, 'section')}: ` + Object.keys(SCATTER_ZONES).map(k => `${SCATTER_ZONES[k].name} ${pts.filter(p => p.zone === k).length}`).join(', ') + '. Use the arrow keys to step through them.';
-            box.innerHTML = `
-                <p class="text-xs text-slate-400 leading-relaxed">${said.join(' ')}</p>
-                <div class="ov-chart mt-4"><svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg></div>
-                <div class="sc-key mt-3">${pts.map(p => `<span class="sc-chip" style="--sc-c:${sectionColour(p.name)}"><i aria-hidden="true"></i>${escapeHtml(p.name)}</span>`).join('')}</div>
-                <p class="exc-note mt-3">Each dot is a section, sized by its questions in this exam. Across is your typical time on its questions, up is the share right, with unanswered as wrong.${few.length ? ` Too few questions to place: ${escapeHtml(list(few))}.` : ''}</p>`;
-            // the dot under the pointer: the nearest one within reach of its edge
-            wireExamChart(box.querySelector('svg'), marks, (px, py2) => {
-                let best = -1, bestD = Infinity;
-                marks.forEach((mk, i) => { const d = Math.hypot(px - mk.cx, py2 - mk.cy); if (d <= mk.r + 10 && d < bestD) { best = i; bestD = d; } });
+            parts.push('<circle class="sc-ring" r="0" fill="none" stroke="var(--ov-ink)" stroke-width="2" visibility="hidden"/>');
+            const summary = `Speed and accuracy for ${plural(pts.length, 'service')}: ` + Object.keys(SCATTER_ZONES)
+                .map(k => `${SCATTER_ZONES[k].name} ${pts.filter(p => p.zone === k).length}`).join(', ') + '. Use the arrow keys to step through them.';
+            holder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" tabindex="0" role="img" aria-label="${escapeHtml(summary)}">${parts.join('')}</svg>`;
+
+            const svg = holder.querySelector('svg'), ring = svg.querySelector('.sc-ring');
+            const pick = document.getElementById('exrScatterPick');
+            const tipLines = p => [[p.name, `· ${SCATTER_ZONES[p.zone].name}`], [null, `${p.t.right} of ${p.t.n} right · typical ${formatDuration(p.secs * 1000)}`], [null, p.section]];
+            const mark = p => {
+                ring.setAttribute('visibility', p ? 'visible' : 'hidden');
+                if (!p) return;
+                ring.setAttribute('cx', x(p.secs));
+                ring.setAttribute('cy', y(p.rate));
+                ring.setAttribute('r', rad(p) + 3);
+            };
+            const select = p => {
+                examScatter.selected = p ? p.name : null;
+                mark(p);
+                if (!p) { pick.innerHTML = ''; return; }
+                const z = SCATTER_ZONES[p.zone], b = examPractiseBank(p.name);
+                const label = b ? `Practise ${escapeHtml(p.name)} in ${BANKS[b.bank].label}` : '';
+                pick.innerHTML = `
+                    <div class="ov-weak-item">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-2 text-xs">
+                                <span class="text-slate-200 font-semibold"><i class="sc-swatch" style="--sc-c:${sectionColour(p.section)}" aria-hidden="true"></i>${escapeHtml(p.name)}</span>
+                                <span class="sc-zone font-semibold shrink-0" style="--sc-c:${z.colour}">${z.name}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">${p.t.right} of ${p.t.n} right in this exam${p.blank ? ` (${p.blank} unanswered)` : ''}, estimate ${Math.round(p.rate * 100)}% · typical ${formatDuration(p.secs * 1000)} a question, from ${plural(p.timed, 'timed question')} · ${z.says}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(p.section)}</p>
+                        </div>
+                        ${b ? `<button type="button" class="ov-practise" data-bank="${b.bank}" data-tag="${escapeHtml(p.name)}" aria-label="${label}" title="${label}: ${b.open ? `the ${plural(b.open, 'question')} still to get right first` : `all ${plural(b.total, 'question')}`}"><i class="fa-solid fa-play" aria-hidden="true"></i></button>` : ''}
+                    </div>`;
+            };
+            const nearest = e => {
+                const rc = svg.getBoundingClientRect(), px = (e.clientX - rc.left) * W / rc.width, py2 = (e.clientY - rc.top) * H / rc.height;
+                let best = null, dist = Infinity;
+                for (const p of pts) {
+                    if (examScatter.section && p.section !== examScatter.section) continue;
+                    const d = Math.hypot(x(p.secs) - px, y(p.rate) - py2);
+                    if (d < dist && d <= rad(p) + 10) { best = p; dist = d; }
+                }
                 return best;
+            };
+            svg.addEventListener('pointermove', e => { const p = nearest(e); if (p) showTip(tipLines(p), e.clientX, e.clientY); else hideTip(); });
+            svg.addEventListener('pointerleave', hideTip);
+            svg.addEventListener('click', e => { const p = nearest(e); select(p || null); });
+            // the arrow keys step through the dots left to right
+            const byX = pts.filter(p => !examScatter.section || p.section === examScatter.section).sort((a, b) => a.secs - b.secs || b.rate - a.rate);
+            svg.addEventListener('keydown', e => {
+                const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -1, ArrowDown: 1 }[e.key];
+                if (step === undefined) { if (e.key === 'Escape') { hideTip(); select(null); } return; }
+                e.preventDefault();
+                if (!byX.length) return;
+                const at = byX.findIndex(p => p.name === examScatter.selected);
+                const p = byX[at < 0 ? (step > 0 ? 0 : byX.length - 1) : (at + step + byX.length) % byX.length];
+                select(p);
+                const rc = svg.getBoundingClientRect();
+                showTip(tipLines(p), rc.left + x(p.secs) * rc.width / W, rc.top + y(p.rate) * rc.height / H);
             });
+            svg.addEventListener('blur', hideTip);
+            const kept = pts.find(p => p.name === examScatter.selected && (!examScatter.section || p.section === examScatter.section));
+            select(kept || null);
         }
 
         // Task statements, weakest first
@@ -5983,27 +6185,6 @@
                 <p class="exs-head mt-5">Question type</p>
                 <div class="exs-list mt-2">${types.map(([label, t]) => shareRow(label, t)).join('')}</div>
                 <div class="exc-key mt-4">${passKey()}</div>`;
-        }
-
-        // How the flagged questions went against the rest, and what changing an answer did. A change is counted
-        // from the first full answer to the one submitted.
-        function examChanges(rows) {
-            const changed = rows.filter(r => r.changed);
-            const gained = changed.filter(r => r.firstRight === false && r.right).length;
-            const lost = changed.filter(r => r.firstRight === true && !r.right).length;
-            return { n: changed.length, gained, lost, neither: changed.length - gained - lost };
-        }
-
-        function renderExamFlags(rows) {
-            const flagged = tallyOf(rows.filter(r => r.flagged)), rest = tallyOf(rows.filter(r => !r.flagged));
-            const ch = examChanges(rows);
-            document.getElementById('exrFlags').innerHTML = `
-                <p class="exs-head">Flags</p>
-                ${flagged.n ? `<div class="exs-list mt-2">${shareRow('Flagged', flagged)}${shareRow('Not flagged', rest)}</div>`
-                    : '<p class="mt-2 text-sm text-slate-400">No questions were flagged.</p>'}
-                <p class="exs-head mt-5">Changed answers</p>
-                ${ch.n ? `<div class="exs-stats mt-2"><div><b>${ch.gained}</b><span>wrong → right</span></div><div><b>${ch.lost}</b><span>right → wrong</span></div><div><b>${ch.neither}</b><span>wrong → wrong</span></div></div>`
-                    : '<p class="mt-2 text-sm text-slate-400">No answer was changed once given.</p>'}`;
         }
 
         // Your exams over time: each exam's projected score, oldest to newest, with the pass mark. A point opens
@@ -6103,15 +6284,6 @@
             const h1 = tallyOf(rows.filter(r => r.i < half)), h2 = tallyOf(rows.filter(r => r.i >= half));
             if (h1.n >= 20 && h2.n >= 20 && shareOf(h1) - shareOf(h2) >= 0.15) work.push('Your accuracy dropped in the second half (see Pace). Full-length exams build the stamina for 130 minutes.');
 
-            // second looks and flags
-            const ch = examChanges(rows);
-            if (ch.lost > ch.gained && ch.lost >= 2) work.push('Changing answers cost you more than it gained (see Flags and changed answers). Change an answer only when you can say why the first one is wrong.');
-            else if (ch.gained > ch.lost && ch.gained >= 2) good.push('Your second looks paid off: changed answers gained more than they cost.');
-            const flagged = tallyOf(rows.filter(r => r.flagged)), rest = tallyOf(rows.filter(r => !r.flagged));
-            if (flagged.n >= 3 && rest.n >= 3) {
-                if (shareOf(flagged) + 0.15 <= shareOf(rest)) good.push('Your flags picked out the questions you were unsure of, so you know where your doubts are.');
-                else if (shareOf(flagged) >= shareOf(rest)) work.push('Flagged questions went as well as the rest (see Flags and changed answers). Trust your first read more, and spend the time on questions you have no answer for.');
-            }
 
             // kinds of question
             const easy = tallyOf(rows.filter(r => r.diff === 'easy')), hard = tallyOf(rows.filter(r => r.diff === 'hard'));
@@ -6146,7 +6318,6 @@
             drawExamScatter(rows);
             renderExamTasks(rows);
             renderExamKinds(rows);
-            renderExamFlags(rows);
             drawExamTrend(record);
         }
 
@@ -6164,7 +6335,7 @@
                 const rows = examRows(shownResult);
                 drawExamDomains(rows);
                 drawExamPace(shownResult, rows);
-                drawExamScatter(rows);
+                drawExamScatterChart();   // the chart only, so its key, picked dot and open fold stay as they are
                 drawExamTrend(shownResult);
             }, 150);
         });
@@ -6173,6 +6344,11 @@
             const chip = e.target.closest('[data-filter]');
             if (!chip) return;
             examResultFilter = chip.dataset.filter;
+            applyExamResultFilter();
+        });
+        document.getElementById('exrReview').addEventListener('change', e => {
+            if (!e.target.matches('[data-section]')) return;
+            examResultSection = e.target.value;
             applyExamResultFilter();
         });
         document.getElementById('exrReview').addEventListener('toggle', e => {
